@@ -1187,7 +1187,7 @@ function InvoicePreview({ invoice, onClose, currency }) {
           )}
 
           {invoice.bankInfo && (
-            <div className="invoice-bank-info" style={{ padding:"14px 18px", background:"#f5f3ef", borderRadius:8, borderLeft:"3px solid #c9a84c" }}>
+            <div style={{ padding:"14px 18px", background:"#f5f3ef", borderRadius:8, borderLeft:"3px solid #c9a84c" }}>
               <div style={{ fontSize:10, fontWeight:800, color:"#c9a84c", letterSpacing:1, textTransform:"uppercase", marginBottom:8 }}>Payment Information</div>
               <pre style={{ fontSize:12, color:"#333", lineHeight:1.8, fontFamily:"monospace", whiteSpace:"pre-wrap", margin:0 }}>{invoice.bankInfo}</pre>
             </div>
