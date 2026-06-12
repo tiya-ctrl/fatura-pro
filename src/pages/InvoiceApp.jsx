@@ -169,7 +169,7 @@ const STYLES = `
     .print-hide { display: none !important; }
     * { box-shadow: none !important; -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; }
     .invoice-items-table { page-break-inside: avoid; }
-  .invoice-bank-info { page-break-before: always; }
+  .invoice-bank-info { page-break-inside: avoid; }
 }
   
   @page { size: A4; margin: 0; }
