@@ -168,7 +168,6 @@ const STYLES = `
     .invoice-preview { box-shadow: none !important; padding: 15mm 20mm !important; margin: 0 auto !important; max-width: 210mm !important; border: none !important; border-radius: 0 !important; background: #fff !important; color: #1a1a2e !important; }
     .print-hide { display: none !important; }
     * { box-shadow: none !important; -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; }
-    .invoice-items-table { page-break-inside: avoid; }
   .invoice-bank-info { page-break-inside: avoid; }
 }
   
