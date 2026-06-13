@@ -177,33 +177,36 @@ const STYLES = `
     .clients-grid { grid-template-columns: repeat(2, 1fr); }
     .content { padding: 20px; }
   }
-  @media (max-width: 640px) {
-    .sidebar { transform: translateX(-100%); width: 260px; }
-    .sidebar.open { transform: translateX(0); }
-    .sidebar-overlay.open { display: block; }
-    .main { margin-left: 0; padding-bottom: 70px; }
-    .hamburger { display: flex; }
-    .mobile-nav { display: block; }
-    .mobile-fab { display: flex !important; }
-    .topbar { padding: 12px 16px; }
-    .page-title { font-size: 18px; }
-    .content { padding: 14px; }
-    .stats-grid { grid-template-columns: repeat(2, 1fr); gap: 10px; margin-bottom: 18px; }
-    .stat-card { padding: 14px 16px; }
-    .stat-value { font-size: 20px; }
-    .clients-grid { grid-template-columns: 1fr; }
-    .table-wrap { display: none; }
-    .inv-cards { display: flex; }
-    .card-header { padding: 14px 16px; }
-    .modal-overlay { padding: 0; align-items: flex-end; }
-    .modal { border-radius: 20px 20px 0 0; max-height: 95vh; padding: 20px 18px 28px; }
-    .form-grid { grid-template-columns: 1fr; }
-    .form-group.full { grid-column: 1; }
-    .search-bar { width: 140px; font-size: 12px; }
-    .invoice-preview { padding: 24px 20px; border-radius: 0; }
-    .topbar-actions .btn-label { display: none; }
-  }
-`;
+  /* ── MOBILE (≤640px) ── */
+@media (max-width: 640px) {
+  .sidebar { transform: translateX(-100%); width: 260px; }
+  .sidebar.open { transform: translateX(0); }
+  .sidebar-overlay.open { display: block; }
+  .main { margin-left: 0; padding-bottom: 70px; }
+  .hamburger { display: flex; }
+  .mobile-nav { display: block; }
+  .mobile-fab { display: flex !important; }
+  .topbar { padding: 12px 16px; }
+  .topbar-actions { display: none; }
+  .page-title { font-size: 18px; }
+  .content { padding: 14px; }
+  .stats-grid { grid-template-columns: repeat(2, 1fr); gap: 10px; margin-bottom: 18px; }
+  .stat-card { padding: 14px 16px; }
+  .stat-value { font-size: 20px; }
+  .stat-icon { font-size: 18px; margin-bottom: 6px; }
+  .clients-grid { grid-template-columns: 1fr; }
+  .table-wrap { display: none; }
+  .inv-cards { display: flex; }
+  .card-header { padding: 14px 16px; }
+  .modal-overlay { padding: 0; align-items: flex-end; overflow: hidden; }
+  .modal { border-radius: 20px 20px 0 0; max-height: 95vh; padding: 20px 18px 28px; width: 100%; overflow-y: auto; }
+  .form-grid { grid-template-columns: 1fr; }
+  .form-group.full { grid-column: 1; }
+  .search-bar { width: 120px; font-size: 12px; }
+  .invoice-preview { padding: 16px 12px; border-radius: 0; font-size: 12px; }
+  .items-header { display: none !important; }
+  .item-row-grid { grid-template-columns: 1fr 60px 80px 70px 24px !important; gap: 4px !important; }
+}
 
 const INIT_INVOICES = [];
 
@@ -778,7 +781,7 @@ function NewInvoiceModal({ clients, onSave, onClose, invoiceCount, currency: glo
   const handleSave = () => {
     if (!form.client || !form.due) return alert("Please fill in Client and Due Date (Step 2)");
     const id = isEdit ? editData.id : ("INV-" + String(invoiceCount + 1).padStart(3, "0"));
-    const status = isEdit ? (editData.status || "draft") : "draft";
+    const status = isEdit ? (editData.status || "pending") : "pending";
     onSave({ id, ...form, currency:invoiceCurrency, sellerLogoSize, buyerLogoSize, amount:total, status, items, subtotal, discountAmt, taxAmt, total });
   };
 
