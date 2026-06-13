@@ -177,7 +177,7 @@ const STYLES = `
     .clients-grid { grid-template-columns: repeat(2, 1fr); }
     .content { padding: 20px; }
   }
-  /* ── MOBILE (≤640px) ── */
+ /* ── MOBILE (≤640px) ── */
 @media (max-width: 640px) {
   .sidebar { transform: translateX(-100%); width: 260px; }
   .sidebar.open { transform: translateX(0); }
@@ -207,6 +207,7 @@ const STYLES = `
   .items-header { display: none !important; }
   .item-row-grid { grid-template-columns: 1fr 60px 80px 70px 24px !important; gap: 4px !important; }
 }
+`;
 
 const INIT_INVOICES = [];
 
