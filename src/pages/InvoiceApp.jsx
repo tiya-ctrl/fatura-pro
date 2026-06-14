@@ -206,32 +206,7 @@ const STYLES = `
   .invoice-preview { padding: 16px 12px; border-radius: 0; font-size: 12px; }
   .items-header { display: none !important; }
   .item-row-grid { grid-template-columns: 1fr 60px 80px 70px 24px !important; gap: 4px !important; }
-  /* INPUT FIX (mobile readability) */
-  input, textarea, select {
-    font-size: 16px !important;
-    width: 100%;
-    padding: 12px;
-  }
-
-  /* STOP invoice moving / shifting */
-  .invoice-container,
-  .invoice-page,
-  .invoice-preview {
-    max-width: 100%;
-    overflow-x: hidden;
-  }
-
-  /* ITEM ROW FIX (mobile stacking) */
-  .item-row {
-    display: flex;
-    flex-direction: column;
-    gap: 8px;
-  }
-
-  /* TOUCH FRIENDLY BUTTONS */
-  button {
-    min-height: 44px;
-  }
+}
 `;
 
 const INIT_INVOICES = [];
@@ -432,10 +407,15 @@ export default function InvoiceApp({ onGoHome }) {
             </div>
             <div className="topbar-actions">
               {page === "invoices" && (
-                <button className="btn btn-primary" onClick={openNewInvoice}>
-                  <span className="btn-label">{!isPro && invoices.length >= 5 ? "🔒 New Invoice" : "New Invoice"}</span>
-                </button>
-              )}
+  <button
+    className="btn btn-primary desktop-only"
+    onClick={openNewInvoice}
+  >
+    <span className="btn-label">
+      {!isPro && invoices.length >= 5 ? "🔒 New Invoice" : "New Invoice"}
+    </span>
+  </button>
+)}
               {page === "clients" && (
                 <button className="btn btn-primary" onClick={() => {
                   if (!isPro && clients.length >= 3) { setUpgradeFeature("unlimited_clients"); setShowUpgrade(true); }
