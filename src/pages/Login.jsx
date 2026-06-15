@@ -30,6 +30,18 @@ body { font-family:'DM Sans',sans-serif; background:#08080e; color:#e8e4dc; }
   background:radial-gradient(ellipse, rgba(201,168,76,0.07) 0%, transparent 70%);
   pointer-events:none;
 }
+
+@media (max-width: 640px) {
+  .login-bg-glow {
+    width: 300px;
+    height: 300px;
+  }
+
+  .login-page {
+    overflow: hidden;
+  }
+}
+  
 .login-bg-grid {
   position:absolute; inset:0; opacity:0.03;
   background-image:linear-gradient(rgba(255,255,255,0.5) 1px,transparent 1px),

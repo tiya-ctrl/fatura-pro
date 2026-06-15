@@ -171,6 +171,10 @@ const STYLES = `
 }
   
   @page { size: A4 portrait; margin: 15mm; scale: 0.85; }
+  
+  .desktop-only {
+     display: inline-flex;
+   }
 
   @media (max-width: 900px) {
     .stats-grid { grid-template-columns: repeat(2, 1fr); }
@@ -186,8 +190,16 @@ const STYLES = `
   .hamburger { display: flex; }
   .mobile-nav { display: block; }
   .mobile-fab { display: flex !important; }
-  .topbar { padding: 12px 16px; }
-  .topbar-actions { display: none; }
+  .topbar {
+  padding: 12px;
+  flex-wrap: wrap;
+  gap: 10px;
+  align-items: center;
+}
+  .topbar-actions {
+  display: flex;
+  gap: 8px;
+}
   .page-title { font-size: 18px; }
   .content { padding: 14px; }
   .stats-grid { grid-template-columns: repeat(2, 1fr); gap: 10px; margin-bottom: 18px; }
@@ -205,8 +217,45 @@ const STYLES = `
   .search-bar { width: 120px; font-size: 12px; }
   .invoice-preview { padding: 16px 12px; border-radius: 0; font-size: 12px; }
   .items-header { display: none !important; }
-  .item-row-grid { grid-template-columns: 1fr 60px 80px 70px 24px !important; gap: 4px !important; }
+  .item-row-grid {
+  grid-template-columns: 1.8fr 50px 70px 70px 50px !important;
+  gap: 6px !important;
 }
+  .item-row-grid button {
+  font-size: 20px !important;
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+  .desktop-only {
+       display: none !important;
+     }
+  }
+   html, body {
+  width: 100%;
+  overflow-x: hidden;
+}
+
+#root {
+  width: 100%;
+  overflow-x: hidden;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+img, video, canvas, svg {
+  max-width: 100%;
+}
+
+.main {
+  max-width: 100vw;
+  overflow-x: hidden;
+}
+}  
 `;
 
 const INIT_INVOICES = [];
@@ -347,6 +396,17 @@ export default function InvoiceApp({ onGoHome }) {
     { id: "clients", icon: "\u2299", label: "Clients" },
     { id: "settings", icon: "\u2699", label: "Settings" },
   ];
+  
+  const [isMobile, setIsMobile] = React.useState(false);
+
+  React.useEffect(() => {
+    const check = () => setIsMobile(window.innerWidth <= 640);
+
+    check();
+    window.addEventListener("resize", check);
+
+    return () => window.removeEventListener("resize", check);
+  }, []);
 
   return (
     <>
@@ -407,14 +467,34 @@ export default function InvoiceApp({ onGoHome }) {
             </div>
             <div className="topbar-actions">
               {page === "invoices" && (
-  <button
-    className="btn btn-primary desktop-only"
-    onClick={openNewInvoice}
-  >
-    <span className="btn-label">
-      {!isPro && invoices.length >= 5 ? "🔒 New Invoice" : "New Invoice"}
-    </span>
-  </button>
+  <>
+    {/* Desktop button */}
+    {!isMobile && (
+      <button className="btn btn-primary" onClick={openNewInvoice}>
+        <span className="btn-label">
+          {!isPro && invoices.length >= 5
+            ? "🔒 New Invoice"
+            : "New Invoice"}
+        </span>
+      </button>
+    )}
+
+    {/* Mobile FAB */}
+    {isMobile && (
+      <button
+        className="mobile-fab"
+        onClick={() => {
+          if (!isPro && invoices.length >= 5) {
+            alert("Upgrade to Pro to create more invoices");
+            return;
+          }
+          openNewInvoice();
+        }}
+      >
+        +
+      </button>
+    )}
+  </>
 )}
               {page === "clients" && (
                 <button className="btn btn-primary" onClick={() => {
@@ -719,6 +799,17 @@ function NewInvoiceModal({ clients, onSave, onClose, invoiceCount, currency: glo
 
   const [sellerLogoSize, setSellerLogoSize] = useState((sourceData && sourceData.sellerLogoSize) || 80);
   const [buyerLogoSize, setBuyerLogoSize] = useState((sourceData && sourceData.buyerLogoSize) || 60);
+  
+  const [isMobile, setIsMobile] = React.useState(false);
+
+React.useEffect(() => {
+  const check = () => setIsMobile(window.innerWidth <= 640);
+
+  check();
+  window.addEventListener("resize", check);
+
+  return () => window.removeEventListener("resize", check);
+}, []);
 
   const emptyForm = {
     sellerName:"", sellerEmail:"", sellerPhone:"+31", sellerAddress:"", sellerLogo:null,
@@ -959,7 +1050,7 @@ function NewInvoiceModal({ clients, onSave, onClose, invoiceCount, currency: glo
 
         {step === 2 && (
           <div>
-            <div style={{ display:"grid", gridTemplateColumns:"1fr 90px 120px 100px 28px", gap:8, padding:"6px 12px", background:"var(--bg3)", borderRadius:8, border:"1px solid var(--border)", marginBottom:6 }}>
+            <div style={{ display:"grid", gridTemplateColumns:"minmax(140px, 2.5fr) 70px 100px 90px 28px", gap:8, padding:"6px 12px", background:"var(--bg3)", borderRadius:8, border:"1px solid var(--border)", marginBottom:6 }}>
               {["Description", "Qty", "Price (" + curInfo.symbol + ")", "Total", ""].map((h, i) => (
                 <div key={i} style={{ fontSize:10, fontWeight:700, color:"var(--text2)", letterSpacing:0.5, textTransform:"uppercase" }}>{h}</div>
               ))}
@@ -967,8 +1058,8 @@ function NewInvoiceModal({ clients, onSave, onClose, invoiceCount, currency: glo
             <div style={{ display:"flex", flexDirection:"column", gap:6, marginBottom:12 }}>
               {items.map((it, idx) => (
                 <div key={idx} style={{ display:"flex", flexDirection:"column", background:"var(--bg4)", borderRadius:8, border:"1px solid var(--border)", overflow:"hidden" }}>
-                  <div style={{ display:"grid", gridTemplateColumns:"1fr 90px 120px 100px 28px", gap:8, padding:"8px 12px", alignItems:"center" }}>
-                    <input value={it.desc} onChange={e => updateItem(idx, "desc", e.target.value)} placeholder="e.g. Social Media Package" style={{ width:"100%", padding:"8px 10px", fontSize:13 }} />
+                  <div style={{ display:"grid", gridTemplateColumns:"minmax(140px, 1.5fr) 45px 65px 60px 30px", gap:8, padding:"8px 12px", alignItems:"center" }}>
+                    <input value={it.desc} onChange={e => updateItem(idx, "desc", e.target.value)} placeholder="e.g. Social Media Package" style={{ width:"100%", padding: isMobile ? "12px" :"8px 10px", fontSize: isMobile ? 16 : 13, minWidth: 0 }} />
                     <input type="number" value={it.qty === 0 ? "" : it.qty} min={0} onChange={e => updateItem(idx, "qty", e.target.value===""?0:+e.target.value)} placeholder="1" style={{ width:"100%", padding:"8px 10px", fontSize:14, fontWeight:600, textAlign:"center" }} />
                     <input type="number" value={it.price === 0 ? "" : it.price} min={0} onChange={e => updateItem(idx, "price", e.target.value===""?0:+e.target.value)} placeholder="0.00" style={{ width:"100%", padding:"8px 10px", fontSize:14, fontWeight:600, textAlign:"right" }} />
                     <div style={{ fontSize:13, fontWeight:700, color:"var(--gold)", textAlign:"right" }}>{fLocal(it.qty * it.price)}</div>

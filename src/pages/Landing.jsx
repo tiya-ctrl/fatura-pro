@@ -74,6 +74,14 @@ nav.topnav.scrolled {
   background: radial-gradient(ellipse, rgba(201,168,76,0.12) 0%, transparent 70%);
   pointer-events:none;
 }
+
+@media (max-width: 640px) {
+  .hero-glow {
+    width: 320px;
+    height: 220px;
+  }
+}
+  
 .hero-tag {
   display:inline-flex; align-items:center; gap:8px; background:var(--gold-dim);
   border:1px solid var(--border); border-radius:100px; padding:6px 16px;
