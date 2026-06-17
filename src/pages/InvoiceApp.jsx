@@ -160,17 +160,21 @@ const STYLES = `
   @keyframes spin { to { transform: rotate(360deg); } }
   
   @media print {
-    html, body { background: #fff !important; color: #000 !important; margin: 0; padding: 0; }
-    .sidebar, .topbar, .content > *:not(.invoice-preview), .mobile-nav, .mobile-fab { display: none !important; }
-    .main { margin-left: 0; padding-bottom: 0; }
-    .modal-overlay { position: absolute !important; top: 0 !important; left: 0 !important; right: 0 !important; background: none !important; padding: 0 !important; align-items: flex-start !important; justify-content: center !important; backdrop-filter: none !important; display: block !important; }
-    .invoice-preview-wrapper { max-height: none !important; overflow: visible !important; width: 100% !important; max-width: 100% !important; border-radius: 0 !important; margin: 0 !important; padding: 0 !important; }
-    .invoice-preview { box-shadow: none !important; padding: 15mm 20mm !important; margin: 0 auto !important; max-width: 210mm !important; border: none !important; border-radius: 0 !important; background: #fff !important; color: #1a1a2e !important; }
-    .print-hide { display: none !important; }
-    * { box-shadow: none !important; -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; }
+  html, body { background: #fff !important; color: #000 !important; margin: 0; padding: 0; }
+  .sidebar, .topbar, .content > *:not(.invoice-preview), .mobile-nav, .mobile-fab { display: none !important; }
+  .main { margin-left: 0; padding-bottom: 0; }
+  .modal-overlay { position: absolute !important; top: 0 !important; left: 0 !important; right: 0 !important; background: none !important; padding: 0 !important; align-items: flex-start !important; justify-content: center !important; backdrop-filter: none !important; display: block !important; }
+  .invoice-preview-wrapper { max-height: none !important; overflow: visible !important; width: 100% !important; max-width: 100% !important; border-radius: 0 !important; margin: 0 !important; padding: 0 !important; }
+  .invoice-preview { box-shadow: none !important; padding: 12mm 14mm !important; margin: 0 auto !important; max-width: 210mm !important; border: none !important; border-radius: 0 !important; background: #fff !important; color: #1a1a2e !important; font-size: 11px !important; }
+  .preview-table { font-size: 10px !important; }
+  .preview-table th, .preview-table td { padding: 5px 0 !important; }
+  .invoice-notes { page-break-inside: avoid; }
+  .invoice-bank-info { page-break-inside: avoid; }
+  .print-hide { display: none !important; }
+  * { box-shadow: none !important; -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; }
 }
   
-  @page { size: A4 portrait; margin: 15mm; scale: 0.85; }
+  @page { size: A4 portrait; margin: 10mm;}
   
   .desktop-only {
      display: inline-flex;
@@ -215,7 +219,13 @@ const STYLES = `
   .form-grid { grid-template-columns: 1fr; }
   .form-group.full { grid-column: 1; }
   .search-bar { width: 120px; font-size: 12px; }
-  .invoice-preview { padding: 16px 12px; border-radius: 0; overflow-x: hidden; font-size: 12px; }
+   /* Invoice preview mobile */
+    .invoice-preview { padding: 16px 12px; border-radius: 0; overflow-x: hidden; font-size: 12px; }
+    .invoice-preview-wrapper { overflow-x: hidden !important; width: 100% !important; }
+    .preview-table { font-size: 11px; }
+    .preview-table th, .preview-table td { padding: 6px 4px; word-break: break-word; }
+    .topbar-actions .btn-label { display: none; }
+  }
   .items-header { display: none !important; }
   .item-row-grid {
   grid-template-columns: 1.8fr 50px 70px 70px 50px !important;
@@ -387,6 +397,7 @@ export default function InvoiceApp({ onGoHome }) {
 
   const addInvoice = (inv) => { setInvoices(prev => [inv, ...prev]); setInvoiceDraft(null); setShowNewInvoice(false); };
   const updateInvoice = (inv) => { setInvoices(prev => prev.map(i => i.id === inv.id ? inv : i)); setEditDraft(null); setEditingInvoice(null); };
+  const markAsPaid = (id) => { setInvoices(prev => prev.map(i => i.id === id ? { ...i, status: "paid" } : i)); };
   const addClient = (c) => { setClients(prev => [c, ...prev]); setShowNewClient(false); };
   const deleteInvoice = (id) => setInvoices(prev => prev.filter(i => i.id !== id));
 
@@ -507,7 +518,7 @@ export default function InvoiceApp({ onGoHome }) {
 
           <div className="content">
             {page === "dashboard" && <Dashboard invoices={invoicesWithStatus} totalRevenue={totalRevenue} totalPending={totalPending} totalOverdue={totalOverdue} setPage={setPage} setPreviewInvoice={setPreviewInvoice} onEdit={setEditingInvoice} onRemind={(inv) => requirePro("reminders", () => setReminderInvoice(inv))} f={f} />}
-            {page === "invoices" && <Invoices invoices={filteredInvoices} filterStatus={filterStatus} setFilterStatus={setFilterStatus} search={search} setSearch={setSearch} onPreview={setPreviewInvoice} onDelete={deleteInvoice} onNew={openNewInvoice} onEdit={setEditingInvoice} onRemind={(inv) => requirePro("reminders", () => setReminderInvoice(inv))} remindersLog={remindersLog} f={f} isPro={isPro} hasDraft={!!invoiceDraft} onOpenDraft={openNewInvoice} onDiscardDraft={discardDraft} />}
+            {page === "invoices" && <Invoices invoices={filteredInvoices} filterStatus={filterStatus} setFilterStatus={setFilterStatus} search={search} setSearch={setSearch} onPreview={setPreviewInvoice} onDelete={deleteInvoice} onNew={openNewInvoice} onEdit={setEditingInvoice} onRemind={(inv) => requirePro("reminders", () => setReminderInvoice(inv))} remindersLog={remindersLog} f={f} isPro={isPro} onUpgrade={(feat) => { setUpgradeFeature(feat); setShowUpgrade(true); }} hasDraft={!!invoiceDraft} onOpenDraft={openNewInvoice} onDiscardDraft={discardDraft} onMarkPaid={markAsPaid} />}
             {page === "clients" && <Clients clients={clients} invoices={invoicesWithStatus} f={f} />}
             {page === "settings" && <Settings currency={currency} setCurrency={setCurrency} />}
           </div>
@@ -596,7 +607,7 @@ function Dashboard({ invoices, totalRevenue, totalPending, totalOverdue, setPage
   );
 }
 
-function Invoices({ invoices, filterStatus, setFilterStatus, search, setSearch, onPreview, onDelete, onNew, onEdit, onRemind, remindersLog, f, isPro, hasDraft, onOpenDraft, onDiscardDraft }) {
+function Invoices({ invoices, filterStatus, setFilterStatus, search, setSearch, onPreview, onDelete, onNew, onEdit, onRemind, remindersLog, f, isPro, onUpgrade, hasDraft, onOpenDraft, onDiscardDraft, onMarkPaid }) {
   const statuses = ["all", "paid", "pending", "overdue", "draft"];
   return (
     <>
@@ -654,8 +665,10 @@ function Invoices({ invoices, filterStatus, setFilterStatus, search, setSearch, 
                         <button className="btn btn-ghost btn-sm" onClick={() => onPreview(inv)}>View</button>
                         <button className="btn btn-ghost btn-sm" style={{ color:"var(--gold)" }} onClick={() => onEdit(inv)}>Edit</button>
                         {(inv.status === "overdue" || inv.status === "pending") && (
-                          <button className="btn btn-sm" style={{ background:"rgba(224,85,85,0.15)", color:"var(--red)", border:"1px solid rgba(224,85,85,0.3)", whiteSpace:"nowrap" }} onClick={() => onRemind(inv)}>Remind</button>
+                          <button className="btn btn-ghost btn-sm" style={{ color:"var(--green)" }} onClick={() => onMarkPaid(inv.id)}>✓ Paid</button>
                         )}
+                          <button className="btn btn-sm" style={{ background:"rgba(224,85,85,0.15)", color:"var(--red)", border:"1px solid rgba(224,85,85,0.3)", whiteSpace:"nowrap" }} onClick={() => onRemind(inv)}>Remind</button>
+                        
                         <button className="btn btn-danger btn-sm" onClick={() => onDelete(inv.id)}>✕</button>
                       </div>
                     </td>
@@ -699,8 +712,10 @@ function Invoices({ invoices, filterStatus, setFilterStatus, search, setSearch, 
                 <button className="btn btn-ghost btn-sm" onClick={() => onPreview(inv)}>View</button>
                 <button className="btn btn-ghost btn-sm" style={{ color:"var(--gold)" }} onClick={() => onEdit(inv)}>Edit</button>
                 {(inv.status === "overdue" || inv.status === "pending") && (
-                  <button className="btn btn-sm" style={{ background:"rgba(224,85,85,0.15)", color:"var(--red)", border:"1px solid rgba(224,85,85,0.3)" }} onClick={() => onRemind(inv)}>Remind</button>
+                  <button className="btn btn-ghost btn-sm" style={{ color:"var(--green)" }} onClick={() => onMarkPaid(inv.id)}>✓ Paid</button>
                 )}
+                  <button className="btn btn-sm" style={{ background:"rgba(224,85,85,0.15)", color:"var(--red)", border:"1px solid rgba(224,85,85,0.3)" }} onClick={() => onRemind(inv)}>Remind</button>
+                
                 <button className="btn btn-danger btn-sm" onClick={() => onDelete(inv.id)}>✕</button>
               </div>
             </div>
@@ -1286,7 +1301,7 @@ function InvoicePreview({ invoice, onClose, currency }) {
           )}
 
           {invoice.bankInfo && (
-            <div style={{ padding:"14px 18px", background:"#f5f3ef", borderRadius:8, borderLeft:"3px solid #c9a84c" }}>
+            <div className="invoice-bank-info" style={{ padding:"14px 18px", background:"#f5f3ef", borderRadius:8, borderLeft:"3px solid #c9a84c" }}>
               <div style={{ fontSize:10, fontWeight:800, color:"#c9a84c", letterSpacing:1, textTransform:"uppercase", marginBottom:8 }}>Payment Information</div>
               <pre style={{ fontSize:12, color:"#333", lineHeight:1.8, fontFamily:"monospace", whiteSpace:"pre-wrap", margin:0 }}>{invoice.bankInfo}</pre>
             </div>
