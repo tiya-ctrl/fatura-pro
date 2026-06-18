@@ -41,7 +41,7 @@ body { font-family:'DM Sans',sans-serif; background:#08080e; color:#e8e4dc; }
     overflow: hidden;
   }
 }
-  
+
 .login-bg-grid {
   position:absolute; inset:0; opacity:0.03;
   background-image:linear-gradient(rgba(255,255,255,0.5) 1px,transparent 1px),
@@ -322,12 +322,7 @@ export default function LoginPage({ onLogin, onBack }) {
 </div>
 
 
-        {/* Demo hint */}
-        <div style={{ marginTop:18, padding:"10px 14px", background:"var(--bg3)", borderRadius:10,
-          border:"1px solid var(--border2)", fontSize:12, color:"var(--text2)", lineHeight:1.8 }}>
-          <strong style={{ color:"var(--gold)" }}>Demo credentials:</strong><br />
-          📧 demo@fatura.app &nbsp; 🔑 demo1234
-        </div>
+  
 
         {/* Switch mode */}
         <div className="login-footer-text">
