@@ -1,6 +1,5 @@
 import { useState } from "react";
-import { loginUser, registerUser } from "../auth";
-import { loginWithGoogle } from "../auth";
+import { signIn, signUp, loginWithGoogle } from "../auth";
 
 /* ─── CSS ─────────────────────────────────────────────── */
 const FONTS = `@import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700&family=DM+Sans:wght@300;400;500;600&display=swap');`;
@@ -157,11 +156,11 @@ export default function LoginPage({ onLogin, onBack }) {
 
   try {
     if (mode === "login") {
-      const res = await loginUser(form.email, form.password);
+      const res = await signIn(form.email, form.password);
       setSuccess(true);
       setTimeout(() => onLogin(res.user), 1200);
     } else {
-      const res = await registerUser(form.email, form.password);
+      const res = await signUp(form.email, form.password);
       setSuccess(true);
       setTimeout(() => onLogin(res.user), 1200);
     }
