@@ -1,6 +1,6 @@
 import { BrowserRouter, Routes, Route, useNavigate } from "react-router-dom";
 import { useEffect, useState } from "react";
-import { listenToUser } from "./auth";
+import { onAuthChange } from "./auth";
 
 import LandingPage from "./pages/Landing";
 import InvoiceApp from "./pages/InvoiceApp";
@@ -45,7 +45,7 @@ function InvoiceWrapper() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const unsub = listenToUser((u) => {
+    const unsub = onAuthChange((u) => {
       setUser(u);
       setLoading(false);
     });
