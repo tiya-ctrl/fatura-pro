@@ -1,35 +1,38 @@
-import { auth } from "./firebase";
+import { supabase } from "./supabase";
 
-import {
-  createUserWithEmailAndPassword,
-  signInWithEmailAndPassword,
-  signOut,
-  onAuthStateChanged,
-  GoogleAuthProvider,
-  signInWithPopup
-} from "firebase/auth";
-
-/* ───── Google Login ───── */
-const provider = new GoogleAuthProvider();
-
-export const loginWithGoogle = () => {
-  return signInWithPopup(auth, provider);
+export const signUp = async (email, password) => {
+  const { data, error } = await supabase.auth.signUp({ email, password });
+  if (error) throw error;
+  return data;
 };
 
-/* ───── Email/Password ───── */
-export const registerUser = (email, password) => {
-  return createUserWithEmailAndPassword(auth, email, password);
+export const signIn = async (email, password) => {
+  const { data, error } = await supabase.auth.signInWithPassword({ email, password });
+  if (error) throw error;
+  return data;
 };
 
-export const loginUser = (email, password) => {
-  return signInWithEmailAndPassword(auth, email, password);
+export const signOut = async () => {
+  const { error } = await supabase.auth.signOut();
+  if (error) throw error;
 };
 
-export const logoutUser = () => {
-  return signOut(auth);
+export const getUser = async () => {
+  const { data: { user } } = await supabase.auth.getUser();
+  return user;
 };
 
-/* ───── Auth Listener ───── */
-export const listenToUser = (callback) => {
-  return onAuthStateChanged(auth, callback);
+export const onAuthChange = (callback) => {
+  const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+    callback(session?.user || null);
+  });
+  return () => subscription.unsubscribe();
+};
+export const loginWithGoogle = async () => {
+  const { data, error } = await supabase.auth.signInWithOAuth({
+    provider: "google",
+    options: { redirectTo: window.location.origin }
+  });
+  if (error) throw error;
+  return data;
 };
