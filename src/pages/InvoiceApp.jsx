@@ -1,4 +1,5 @@
 import React, { useState, useRef, useEffect } from "react";
+import { supabase } from "../supabase";
 
 const FONTS = `@import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600;700&family=DM+Sans:wght@300;400;500;600&display=swap');`;
 
@@ -395,11 +396,44 @@ export default function InvoiceApp({ onGoHome }) {
     return matchStatus && matchSearch;
   });
 
-  const addInvoice = (inv) => { setInvoices(prev => [inv, ...prev]); setInvoiceDraft(null); setShowNewInvoice(false); };
-  const updateInvoice = (inv) => { setInvoices(prev => prev.map(i => i.id === inv.id ? inv : i)); setEditDraft(null); setEditingInvoice(null); };
-  const markAsPaid = (id) => { setInvoices(prev => prev.map(i => i.id === id ? { ...i, status: "paid" } : i)); };
-  const addClient = (c) => { setClients(prev => [c, ...prev]); setShowNewClient(false); };
-  const deleteInvoice = (id) => setInvoices(prev => prev.filter(i => i.id !== id));
+  const addInvoice = async (inv) => {
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) return;
+    const row = { id: inv.id, user_id: user.id, client: inv.client, email: inv.email, seller_name: inv.sellerName, seller_email: inv.sellerEmail, seller_phone: inv.sellerPhone, seller_address: inv.sellerAddress, buyer_phone: inv.buyerPhone, buyer_address: inv.buyerAddress, date: inv.date, due: inv.due, status: inv.status, amount: inv.amount, subtotal: inv.subtotal, discount_amt: inv.discountAmt, tax_amt: inv.taxAmt, total: inv.total, tax: inv.tax, discount: inv.discount, notes: inv.notes, bank_info: inv.bankInfo, currency: inv.currency, items: inv.items };
+    await supabase.from("invoices").insert(row);
+    setInvoices(prev => [inv, ...prev]); setInvoiceDraft(null); setShowNewInvoice(false);
+  };
+  const updateInvoice = async (inv) => {
+    const row = { client: inv.client, email: inv.email, seller_name: inv.sellerName, seller_email: inv.sellerEmail, seller_phone: inv.sellerPhone, seller_address: inv.sellerAddress, buyer_phone: inv.buyerPhone, buyer_address: inv.buyerAddress, date: inv.date, due: inv.due, status: inv.status, amount: inv.amount, subtotal: inv.subtotal, discount_amt: inv.discountAmt, tax_amt: inv.taxAmt, total: inv.total, tax: inv.tax, discount: inv.discount, notes: inv.notes, bank_info: inv.bankInfo, currency: inv.currency, items: inv.items };
+    await supabase.from("invoices").update(row).eq("id", inv.id);
+    setInvoices(prev => prev.map(i => i.id === inv.id ? inv : i)); setEditDraft(null); setEditingInvoice(null);
+  };
+  const markAsPaid = async (id) => {
+    await supabase.from("invoices").update({ status: "paid" }).eq("id", id);
+    setInvoices(prev => prev.map(i => i.id === id ? { ...i, status: "paid" } : i));
+  };
+  const addClient = async (c) => {
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) return;
+    await supabase.from("clients").insert({ id: c.id, user_id: user.id, name: c.name, email: c.email, phone: c.phone, country: c.country, invoices: 0, total: 0 });
+    setClients(prev => [c, ...prev]); setShowNewClient(false);
+  };
+  const deleteInvoice = async (id) => {
+    await supabase.from("invoices").delete().eq("id", id);
+    setInvoices(prev => prev.filter(i => i.id !== id));
+  };
+
+  useEffect(() => {
+    const loadData = async () => {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return;
+      const { data: invData } = await supabase.from("invoices").select("*").eq("user_id", user.id).order("created_at", { ascending: false });
+      const { data: cliData } = await supabase.from("clients").select("*").eq("user_id", user.id);
+      if (invData) setInvoices(invData.map(r => ({ id: r.id, client: r.client, email: r.email, sellerName: r.seller_name, sellerEmail: r.seller_email, sellerPhone: r.seller_phone, sellerAddress: r.seller_address, buyerPhone: r.buyer_phone, buyerAddress: r.buyer_address, date: r.date, due: r.due, status: r.status, amount: r.amount, subtotal: r.subtotal, discountAmt: r.discount_amt, taxAmt: r.tax_amt, total: r.total, tax: r.tax, discount: r.discount, notes: r.notes, bankInfo: r.bank_info, currency: r.currency, items: r.items || [] })));
+      if (cliData) setClients(cliData);
+    };
+    loadData();
+  }, []);
 
   const navItems = [
     { id: "dashboard", icon: "\u229e", label: "Dashboard" },
