@@ -81,7 +81,7 @@ nav.topnav.scrolled {
     height: 220px;
   }
 }
-  
+
 .hero-tag {
   display:inline-flex; align-items:center; gap:8px; background:var(--gold-dim);
   border:1px solid var(--border); border-radius:100px; padding:6px 16px;
@@ -744,26 +744,18 @@ function Chatbot() {
     try {
       const history = [...msgs.filter(m => m.role !== "bot" || m !== INIT_MSG), userMsg]
         .map(m => ({ role: m.role === "user" ? "user" : "assistant", content: m.text }));
-      // Demo protection: avoid calling external API unless configured
-      const apiKey = process.env.REACT_APP_ANTHROPIC_API_KEY || null;
-      if (!apiKey) {
-        // Provide a helpful demo reply when no API key is set
-        setMsgs(m => [...m, { role: "bot", text: "Chat demo: set REACT_APP_ANTHROPIC_API_KEY to enable live assistant replies.", time: timeStr() }]);
-      } else {
-        const res = await fetch("https://api.anthropic.com/v1/messages", {
-          method: "POST",
-          headers: { "Content-Type": "application/json", "x-api-key": apiKey },
-          body: JSON.stringify({
-            model: "claude-sonnet-4-20250514",
-            max_tokens: 400,
-            system: SYSTEM_PROMPT,
-            messages: history,
-          }),
-        });
-        const data = await res.json();
-        const reply = data.content?.[0]?.text || "Sorry, I couldn't get a response. Please try again.";
-        setMsgs(m => [...m, { role: "bot", text: reply, time: timeStr() }]);
-      }
+
+      const res = await fetch("/api/chat", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          system: SYSTEM_PROMPT,
+          messages: history,
+        }),
+      });
+      const data = await res.json();
+      const reply = data.content?.[0]?.text || "Sorry, I couldn't get a response. Please try again.";
+      setMsgs(m => [...m, { role: "bot", text: reply, time: timeStr() }]);
     } catch {
       setMsgs(m => [...m, { role:"bot", text:"Something went wrong. Please try again in a moment.", time: timeStr() }]);
     } finally {
