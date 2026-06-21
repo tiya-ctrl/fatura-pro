@@ -212,33 +212,14 @@ export default function Chatbot() {
           content: m.text,
         }));
 
-        console.log("ANTHROPIC:", process.env.REACT_APP_ANTHROPIC_API_KEY);
-console.log("ANTHROPIC2:", process.env.REACT_APP_ANTHROPIC_KEY);
-
-      const apiKey = process.env.REACT_APP_ANTHROPIC_API_KEY;
-      console.log("API KEY FOUND:", !!apiKey);
-
-      if (!apiKey) {
-        throw new Error("API key missing — add REACT_APP_ANTHROPIC_KEY to .env.local");
-      }
-
-      const res = await fetch("https://api.anthropic.com/v1/messages", {
+      const res = await fetch("/api/chat", {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          "x-api-key": apiKey,
-          "anthropic-version": "2023-06-01",
-          "anthropic-dangerous-direct-browser-access": "true",
-        },
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          model: "claude-haiku-4-5-20251001",
-          max_tokens: 400,
           system: SYSTEM_PROMPT,
           messages: history,
         }),
       });
-      
-      console.log("STATUS:", res.status);
 
       if (!res.ok) {
         const err = await res.json().catch(() => ({}));
