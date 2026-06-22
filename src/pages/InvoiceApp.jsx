@@ -350,6 +350,16 @@ export default function InvoiceApp({ onGoHome }) {
   const [currency, setCurrency] = useState("EUR");
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [plan, setPlan] = useState("free");
+
+  useEffect(() => {
+    const loadPlan = async () => {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return;
+      const { data } = await supabase.from("user_plans").select("plan").eq("user_id", user.id).single();
+      if (data?.plan) setPlan(data.plan);
+    };
+    loadPlan();
+  }, []);
   const [showUpgrade, setShowUpgrade] = useState(false);
   const [upgradeFeature, setUpgradeFeature] = useState("");
   const [invoiceDraft, setInvoiceDraft] = useState(null);
