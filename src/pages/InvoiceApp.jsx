@@ -347,14 +347,20 @@ export default function InvoiceApp({ onGoHome }) {
   const [previewInvoice, setPreviewInvoice] = useState(null);
   const [filterStatus, setFilterStatus] = useState("all");
   const [search, setSearch] = useState("");
-  const [currency, setCurrency] = useState("EUR");
+  const [currency, setCurrency] = useState(() => localStorage.getItem("fatura_currency") || "EUR");
+
+  useEffect(() => {
+    localStorage.setItem("fatura_currency", currency);
+  }, [currency]);
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [plan, setPlan] = useState("free");
+  const [userEmail, setUserEmail] = useState("");
 
   useEffect(() => {
     const loadPlan = async () => {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) return;
+      setUserEmail(user.email || "");
       const { data } = await supabase.from("user_plans").select("plan").eq("user_id", user.id).single();
       if (data?.plan) setPlan(data.plan);
     };
@@ -487,9 +493,19 @@ export default function InvoiceApp({ onGoHome }) {
             ))}
           </div>
           <div className="sidebar-footer">
+            {userEmail && (
+              <div style={{ marginBottom:12, padding:"8px 12px", background:"var(--bg3)", borderRadius:8, border:"1px solid var(--border)" }}>
+                <div style={{ fontSize:10, color:"var(--text2)", fontWeight:600, letterSpacing:0.5, textTransform:"uppercase", marginBottom:2 }}>Signed in as</div>
+                <div style={{ fontSize:12, color:"var(--text)", fontWeight:500, overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap" }}>{userEmail}</div>
+                <button onClick={async () => { const { signOut } = await import("../auth"); await signOut(); window.location.href = "/"; }}
+                  style={{ marginTop:6, fontSize:11, color:"var(--red)", background:"none", border:"none", cursor:"pointer", padding:0, fontFamily:"'DM Sans', sans-serif" }}>
+                  Sign out
+                </button>
+              </div>
+            )}
             {isPro ? (
               <div className="plan-badge">
-                <div className="plan-name">PRO PLAN</div>
+                <div className="plan-name">✦ PRO PLAN</div>
                 <div className="plan-info">Unlimited everything</div>
               </div>
             ) : (
@@ -501,8 +517,8 @@ export default function InvoiceApp({ onGoHome }) {
                     <div style={{ height:"100%", width:(Math.min(100,(invoices.length/5)*100)) + "%", background:invoices.length>=5?"var(--red)":"var(--gold)", borderRadius:4 }} />
                   </div>
                 </div>
-                <button className="btn btn-primary" style={{ width:"100%", justifyContent:"center" }} onClick={() => setShowUpgrade(true)}>
-                  Upgrade to Pro
+                <button className="btn btn-primary" style={{ width:"100%", justifyContent:"center", fontSize:13, padding:"10px 14px" }} onClick={() => setShowUpgrade(true)}>
+                  ⚡ Upgrade to Pro
                 </button>
               </div>
             )}
