@@ -795,18 +795,23 @@ function Clients({ clients, invoices, f }) {
       <div className="empty-text">No clients yet — add your first client to get started.</div>
     </div>
   )}
-  {clients.map(c => (
+  {clients.map(c => {
+    const clientInvoices = invoices.filter(i => i.client === c.name);
+    const invoiceCount = clientInvoices.length;
+    const totalBilled = clientInvoices.filter(i => i.status === "paid").reduce((a, b) => a + (b.amount || 0), 0);
+    return (
         <div className="client-card" key={c.id}>
           <div className="client-avatar">{c.name[0]}</div>
           <div className="client-name">{c.name}</div>
           <div className="client-email">{c.email}</div>
           <div className="client-email">{c.phone} · {c.country}</div>
           <div className="client-stats" style={{ marginTop:14 }}>
-            <div className="client-stat"><span>{c.invoices}</span>Invoices</div>
-            <div className="client-stat"><span style={{ color:"var(--gold)" }}>{f(c.total)}</span>Total Billed</div>
+            <div className="client-stat"><span>{invoiceCount}</span>Invoices</div>
+            <div className="client-stat"><span style={{ color:"var(--gold)" }}>{f(totalBilled)}</span>Total Billed</div>
           </div>
         </div>
-      ))}
+    );
+  })}
     </div>
   );
 }
@@ -887,6 +892,7 @@ React.useEffect(() => {
 }, []);
 
   const emptyForm = {
+    invoiceNumber:"",
     sellerName:"", sellerEmail:"", sellerPhone:"+31", sellerAddress:"", sellerLogo:null,
     client:(clients[0] && clients[0].name) || "", email:(clients[0] && clients[0].email) || "",
     buyerPhone:"", buyerAddress:"", buyerLogo:null,
@@ -952,7 +958,7 @@ React.useEffect(() => {
 
   const handleSave = () => {
     if (!form.client || !form.due) return alert("Please fill in Client and Due Date (Step 2)");
-    const id = isEdit ? editData.id : ("INV-" + String(invoiceCount + 1).padStart(3, "0"));
+    const id = isEdit ? editData.id : (form.invoiceNumber && form.invoiceNumber.trim() ? form.invoiceNumber.trim() : "INV-" + Date.now().toString().slice(-8));
     const status = isEdit ? (editData.status || "pending") : "pending";
     onSave({ id, ...form, currency:invoiceCurrency, sellerLogoSize, buyerLogoSize, amount:total, status, items, subtotal, discountAmt, taxAmt, total });
   };
@@ -1092,6 +1098,12 @@ React.useEffect(() => {
 
         {step === 0 && (
           <div>
+            <div className="form-grid" style={{ marginBottom:16 }}>
+              <div className="form-group full">
+                <label>Invoice Number</label>
+                <input value={form.invoiceNumber || ""} onChange={e => set("invoiceNumber", e.target.value)} placeholder="e.g. INV-001 (leave blank to auto-generate)" />
+              </div>
+            </div>
             <LogoUploader logoKey="sellerLogo" sizeVal={sellerLogoSize} onSizeChange={setSellerLogoSize} inputId="sellerLogoInput" label="Company / Seller Logo" />
             <div className="form-grid">
               <div className="form-group full"><label>Seller / Company Name</label><input value={form.sellerName} onChange={e => set("sellerName", e.target.value)} placeholder="e.g. Vyynd Agency BV" /></div>
