@@ -805,6 +805,7 @@ function Clients({ clients, invoices, f }) {
     const clientInvoices = invoices.filter(i => i.client === c.name);
     const invoiceCount = clientInvoices.length;
     const totalBilled = clientInvoices.filter(i => i.status === "paid").reduce((a, b) => a + (b.amount || 0), 0);
+    const overdueAmt = clientInvoices.filter(i => i.status === "overdue").reduce((a, b) => a + (b.amount || 0), 0);
     return (
         <div className="client-card" key={c.id}>
           <div className="client-avatar">{c.name[0]}</div>
@@ -814,6 +815,7 @@ function Clients({ clients, invoices, f }) {
           <div className="client-stats" style={{ marginTop:14 }}>
             <div className="client-stat"><span>{invoiceCount}</span>Invoices</div>
             <div className="client-stat"><span style={{ color:"var(--gold)" }}>{f(totalBilled)}</span>Total Billed</div>
+            {overdueAmt > 0 && <div className="client-stat"><span style={{ color:"var(--red)" }}>{f(overdueAmt)}</span>Overdue</div>}
           </div>
         </div>
     );
@@ -824,25 +826,51 @@ function Clients({ clients, invoices, f }) {
 
 function Settings({ currency, setCurrency }) {
   const cur = getCurrency(currency);
+  const [profile, setProfile] = useState({ name:"", email:"", phone:"", country:"NL", address:"" });
+  const [saving, setSaving] = useState(false);
+  const [saved, setSaved] = useState(false);
+
+  useEffect(() => {
+    const load = async () => {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return;
+      const { data } = await supabase.from("business_profile").select("*").eq("user_id", user.id).single();
+      if (data) setProfile({ name: data.name || "", email: data.email || "", phone: data.phone || "", country: data.country || "NL", address: data.address || "" });
+    };
+    load();
+  }, []);
+
+  const saveProfile = async () => {
+    setSaving(true);
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) return;
+    await supabase.from("business_profile").upsert({ user_id: user.id, ...profile, updated_at: new Date().toISOString() });
+    setSaving(false);
+    setSaved(true);
+    setTimeout(() => setSaved(false), 2000);
+  };
+
   return (
     <div style={{ maxWidth:600 }}>
       <div className="card" style={{ padding:28, marginBottom:20 }}>
         <div className="card-title" style={{ marginBottom:20 }}>Business Profile</div>
         <div className="form-grid">
-          <div className="form-group"><label>Business Name</label><input defaultValue="My Company" /></div>
-          <div className="form-group"><label>Email</label><input defaultValue="me@company.com" /></div>
-          <div className="form-group"><label>Phone</label><input defaultValue="+31 6 XX XX XX XX" /></div>
+          <div className="form-group"><label>Business Name</label><input value={profile.name} onChange={e => setProfile(p => ({ ...p, name: e.target.value }))} placeholder="e.g. Vyynd Agency BV" /></div>
+          <div className="form-group"><label>Email</label><input value={profile.email} onChange={e => setProfile(p => ({ ...p, email: e.target.value }))} placeholder="me@company.com" /></div>
+          <div className="form-group"><label>Phone</label><input value={profile.phone} onChange={e => setProfile(p => ({ ...p, phone: e.target.value }))} placeholder="+31 6 XX XX XX XX" /></div>
           <div className="form-group"><label>Country</label>
-            <select defaultValue="NL">
+            <select value={profile.country} onChange={e => setProfile(p => ({ ...p, country: e.target.value }))}>
               {["Morocco","Algeria","Tunisia","Egypt","France","Belgium","Netherlands","United Kingdom","UAE","Saudi Arabia","Qatar","Kuwait","Yemen"].map((l, i) => {
                 const v = ["MA","DZ","TN","EG","FR","BE","NL","GB","AE","SA","QA","KW","YE"][i];
                 return <option key={v} value={v}>{l}</option>
               })}
             </select>
           </div>
-          <div className="form-group full"><label>Address</label><input defaultValue="Keizersgracht 123, Amsterdam, Netherlands" /></div>
+          <div className="form-group full"><label>Address</label><input value={profile.address} onChange={e => setProfile(p => ({ ...p, address: e.target.value }))} placeholder="Keizersgracht 123, Amsterdam" /></div>
         </div>
-        <button className="btn btn-primary">Save Changes</button>
+        <button className="btn btn-primary" onClick={saveProfile} disabled={saving}>
+          {saving ? "Saving..." : saved ? "✓ Saved!" : "Save Changes"}
+        </button>
       </div>
       <div className="card" style={{ padding:28 }}>
         <div className="card-title" style={{ marginBottom:20 }}>Invoice Defaults</div>
@@ -897,9 +925,23 @@ React.useEffect(() => {
   return () => window.removeEventListener("resize", check);
 }, []);
 
+  const [profileLoaded, setProfileLoaded] = useState(false);
+  const [bizProfile, setBizProfile] = useState({ name:"", email:"", phone:"", address:"" });
+
+  useEffect(() => {
+    const loadProfile = async () => {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return;
+      const { data } = await supabase.from("business_profile").select("*").eq("user_id", user.id).single();
+      if (data) setBizProfile({ name: data.name || "", email: data.email || "", phone: data.phone || "", address: data.address || "" });
+      setProfileLoaded(true);
+    };
+    loadProfile();
+  }, []);
+
   const emptyForm = {
     invoiceNumber:"",
-    sellerName:"", sellerEmail:"", sellerPhone:"+31", sellerAddress:"", sellerLogo:null,
+    sellerName: bizProfile.name, sellerEmail: bizProfile.email, sellerPhone: bizProfile.phone, sellerAddress: bizProfile.address, sellerLogo:null,
     client:(clients[0] && clients[0].name) || "", email:(clients[0] && clients[0].email) || "",
     buyerPhone:"", buyerAddress:"", buyerLogo:null,
     date:new Date().toISOString().split("T")[0], due:"",
