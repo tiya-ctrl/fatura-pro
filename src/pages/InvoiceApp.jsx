@@ -593,6 +593,12 @@ export default function InvoiceApp({ onGoHome }) {
                 {n.badge > 0 && <span className="mobile-nav-dot" />}
               </div>
             ))}
+            {!isPro && (
+              <div className="mobile-nav-item" onClick={() => setShowUpgrade(true)} style={{ color:"var(--gold)" }}>
+                <span className="m-icon">⚡</span>
+                <span className="m-label">Pro</span>
+              </div>
+            )}
           </div>
         </nav>
 
@@ -645,7 +651,7 @@ function Dashboard({ invoices, totalRevenue, totalPending, totalOverdue, setPage
                 <tr key={inv.id}>
                   <td style={{ fontWeight:600, color:"var(--gold)" }}>{inv.id}</td>
                   <td>{inv.client}</td>
-                  <td style={{ fontWeight:600 }}>{f(inv.amount)}</td>
+                  <td style={{ fontWeight:600 }}>{fmtCurrency(inv.amount, inv.currency || currency)}</td>
                   <td style={{ color:"var(--text2)" }}>{formatDate(inv.due)}</td>
                   <td>{statusBadge(inv.status)}</td>
                   <td>
@@ -718,7 +724,7 @@ function Invoices({ invoices, filterStatus, setFilterStatus, search, setSearch, 
                       {formatDate(inv.due)}
                       {inv.status === "overdue" && <div style={{ fontSize:10, color:"var(--red)" }}>Overdue</div>}
                     </td>
-                    <td style={{ fontWeight:700 }}>{f(inv.amount)}</td>
+                    <td style={{ fontWeight:700 }}>{fmtCurrency(inv.amount, inv.currency || currency)}</td>
                     <td>{statusBadge(inv.status)}</td>
                     <td>
                       <div className="action-btns">
@@ -765,7 +771,7 @@ function Invoices({ invoices, filterStatus, setFilterStatus, search, setSearch, 
                 {statusBadge(inv.status)}
               </div>
               <div className="inv-card-row">
-                <div className="inv-card-amount">{f(inv.amount)}</div>
+                <div className="inv-card-amount">{fmtCurrency(inv.amount, inv.currency || currency)}</div>
                 <div className="inv-card-due" style={{ color:inv.status==="overdue"?"var(--red)":"var(--text2)", fontWeight:inv.status==="overdue"?700:400 }}>Due: {formatDate(inv.due)}</div>
               </div>
               <div className="inv-card-actions">
