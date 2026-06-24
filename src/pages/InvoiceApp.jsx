@@ -15,7 +15,7 @@ const STYLES = `
   .app { display: flex; min-height: 100vh; }
   .sidebar { width: 240px; background: var(--bg2); border-right: 1px solid var(--border);
     display: flex; flex-direction: column; padding: 28px 0; position: fixed;
-    height: 100vh; z-index: 20; transition: transform 0.25s ease; }
+    height: 100vh; z-index: 20; transition: transform 0.25s ease; overflow-y: auto; }
   .sidebar-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.6);
     z-index: 19; backdrop-filter: blur(2px); }
   .main { margin-left: 240px; flex: 1; min-height: 100vh; }
