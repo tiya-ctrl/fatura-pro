@@ -925,28 +925,32 @@ React.useEffect(() => {
   return () => window.removeEventListener("resize", check);
 }, []);
 
-  const [profileLoaded, setProfileLoaded] = useState(false);
-  const [bizProfile, setBizProfile] = useState({ name:"", email:"", phone:"", address:"" });
-
-  useEffect(() => {
-    const loadProfile = async () => {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) return;
-      const { data } = await supabase.from("business_profile").select("*").eq("user_id", user.id).single();
-      if (data) setBizProfile({ name: data.name || "", email: data.email || "", phone: data.phone || "", address: data.address || "" });
-      setProfileLoaded(true);
-    };
-    loadProfile();
-  }, []);
-
   const emptyForm = {
     invoiceNumber:"",
-    sellerName: bizProfile.name, sellerEmail: bizProfile.email, sellerPhone: bizProfile.phone, sellerAddress: bizProfile.address, sellerLogo:null,
+    sellerName:"", sellerEmail:"", sellerPhone:"", sellerAddress:"", sellerLogo:null,
     client:(clients[0] && clients[0].name) || "", email:(clients[0] && clients[0].email) || "",
     buyerPhone:"", buyerAddress:"", buyerLogo:null,
     date:new Date().toISOString().split("T")[0], due:"",
     tax:20, discount:0, notes:"", bankInfo:"",
   };
+
+  useEffect(() => {
+    if (sourceData) return;
+    const loadProfile = async () => {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return;
+      const { data } = await supabase.from("business_profile").select("*").eq("user_id", user.id).single();
+      if (data) {
+        setForm(f => ({ ...f,
+          sellerName: f.sellerName || data.name || "",
+          sellerEmail: f.sellerEmail || data.email || "",
+          sellerPhone: f.sellerPhone || data.phone || "",
+          sellerAddress: f.sellerAddress || data.address || "",
+        }));
+      }
+    };
+    loadProfile();
+  }, []);
 
   const [form, setForm] = useState(sourceData ? {
     sellerName: sourceData.sellerName || "",
@@ -1006,7 +1010,7 @@ React.useEffect(() => {
 
   const handleSave = () => {
     if (!form.client || !form.due) return alert("Please fill in Client and Due Date (Step 2)");
-    const id = isEdit ? editData.id : (form.invoiceNumber && form.invoiceNumber.trim() ? form.invoiceNumber.trim() : "INV-" + Date.now().toString().slice(-8));
+    const id = isEdit ? editData.id : (form.invoiceNumber && form.invoiceNumber.trim() ? form.invoiceNumber.trim() : "INV-" + String(invoiceCount + 1).padStart(3, "0"));
     const status = isEdit ? (editData.status || "pending") : "pending";
     onSave({ id, ...form, currency:invoiceCurrency, sellerLogoSize, buyerLogoSize, amount:total, status, items, subtotal, discountAmt, taxAmt, total });
   };
