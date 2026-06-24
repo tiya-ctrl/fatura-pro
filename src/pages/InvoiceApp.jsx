@@ -494,11 +494,10 @@ export default function InvoiceApp({ onGoHome }) {
           </div>
           <div className="sidebar-footer">
             {userEmail && (
-              <div style={{ marginBottom:12, padding:"8px 12px", background:"var(--bg3)", borderRadius:8, border:"1px solid var(--border)" }}>
-                <div style={{ fontSize:10, color:"var(--text2)", fontWeight:600, letterSpacing:0.5, textTransform:"uppercase", marginBottom:2 }}>Signed in as</div>
-                <div style={{ fontSize:12, color:"var(--text)", fontWeight:500, overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap" }}>{userEmail}</div>
+              <div style={{ marginBottom:8, padding:"6px 10px", background:"var(--bg3)", borderRadius:8, border:"1px solid var(--border)", display:"flex", alignItems:"center", justifyContent:"space-between", gap:8 }}>
+                <div style={{ fontSize:11, color:"var(--text2)", overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap", flex:1 }}>{userEmail}</div>
                 <button onClick={async () => { const { signOut } = await import("../auth"); await signOut(); window.location.href = "/"; }}
-                  style={{ marginTop:6, fontSize:11, color:"var(--red)", background:"none", border:"none", cursor:"pointer", padding:0, fontFamily:"'DM Sans', sans-serif" }}>
+                  style={{ fontSize:10, color:"var(--red)", background:"none", border:"none", cursor:"pointer", padding:0, fontFamily:"'DM Sans', sans-serif", whiteSpace:"nowrap", flexShrink:0 }}>
                   Sign out
                 </button>
               </div>
