@@ -40,7 +40,7 @@ const STYLES = `
   .nav-item.active { background: var(--gold-dim); color: var(--gold); }
   .nav-item .icon { font-size: 17px; width: 22px; text-align: center; }
   .nav-badge { margin-left: auto; background: var(--gold); color: #000; font-size: 10px; font-weight: 700; border-radius: 10px; padding: 2px 7px; }
-  .sidebar-footer { margin-top: auto; padding: 16px 24px; border-top: 1px solid var(--border); overflow-y: auto; max-height: 60vh; }
+  .sidebar-footer { margin-top: auto; padding: 16px 24px; border-top: 1px solid var(--border); }
   .plan-badge { background: var(--gold-dim); border: 1px solid var(--border); border-radius: 8px; padding: 10px 14px; }
   .plan-name { font-size: 11px; color: var(--gold); font-weight: 600; letter-spacing: 0.5px; }
   .plan-info { font-size: 11px; color: var(--text2); margin-top: 2px; }
