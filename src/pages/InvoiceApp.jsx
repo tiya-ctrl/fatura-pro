@@ -188,8 +188,8 @@ const STYLES = `
   }
  /* ── MOBILE (≤640px) ── */
 @media (max-width: 640px) {
-  .sidebar { transform: translateX(-100%); width: 260px; }
-  .sidebar.open { transform: translateX(0); }
+  .sidebar { left: -100%; width: 260px; }
+  .sidebar.open { left: 0; }
   .sidebar-overlay.open { display: block; }
   .main { margin-left: 0; padding-bottom: 70px; }
   .hamburger { display: flex; }
