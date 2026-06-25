@@ -482,6 +482,15 @@ export default function InvoiceApp({ onGoHome }) {
             <div className="logo-icon">F</div>
             <div className="logo-text">Fatūra</div>
           </div>
+          {userEmail && (
+            <div style={{ margin:"0 16px 12px", padding:"6px 10px", background:"var(--bg3)", borderRadius:8, border:"1px solid var(--border)", display:"flex", alignItems:"center", justifyContent:"space-between", gap:8 }}>
+              <div style={{ fontSize:11, color:"var(--text2)", overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap", flex:1 }}>{userEmail}</div>
+              <button onClick={async () => { const { signOut } = await import("../auth"); await signOut(); window.location.href = "/"; }}
+                style={{ fontSize:10, color:"var(--red)", background:"none", border:"none", cursor:"pointer", padding:0, fontFamily:"'DM Sans', sans-serif", whiteSpace:"nowrap", flexShrink:0 }}>
+                Sign out
+              </button>
+            </div>
+          )}
           <div className="nav-section">
             <div className="nav-label">Main</div>
             {navItems.map(n => (
@@ -493,15 +502,6 @@ export default function InvoiceApp({ onGoHome }) {
             ))}
           </div>
           <div className="sidebar-footer">
-            {userEmail && (
-              <div style={{ marginBottom:8, padding:"6px 10px", background:"var(--bg3)", borderRadius:8, border:"1px solid var(--border)", display:"flex", alignItems:"center", justifyContent:"space-between", gap:8 }}>
-                <div style={{ fontSize:11, color:"var(--text2)", overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap", flex:1 }}>{userEmail}</div>
-                <button onClick={async () => { const { signOut } = await import("../auth"); await signOut(); window.location.href = "/"; }}
-                  style={{ fontSize:10, color:"var(--red)", background:"none", border:"none", cursor:"pointer", padding:0, fontFamily:"'DM Sans', sans-serif", whiteSpace:"nowrap", flexShrink:0 }}>
-                  Sign out
-                </button>
-              </div>
-            )}
             {isPro ? (
               <div className="plan-badge">
                 <div className="plan-name">✦ PRO PLAN</div>
