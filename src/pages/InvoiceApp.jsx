@@ -1,4 +1,19 @@
-import React, { useState, useRef, useEffect } from "react";
+        <div className="main">
+          {trialEnd && (() => {
+            const days = Math.ceil((new Date(trialEnd) - new Date()) / 86400000);
+            if (days > 3) return null;
+            return (
+              <div style={{ background:"rgba(201,168,76,0.12)", borderBottom:"1px solid var(--gold)", padding:"10px 24px", display:"flex", alignItems:"center", justifyContent:"space-between", gap:12, flexWrap:"wrap" }}>
+                <div style={{ fontSize:13, color:"var(--gold)" }}>
+                  ⚡ Your free trial ends in <strong>{days} day{days !== 1 ? "s" : ""}</strong> — upgrade to keep Pro features.
+                </div>
+                <button className="btn btn-primary btn-sm" onClick={() => setShowUpgrade(true)}>
+                  Upgrade Now
+                </button>
+              </div>
+            );
+          })()}
+          <div className="topbar">import React, { useState, useRef, useEffect } from "react";
 import { supabase } from "../supabase";
 
 const FONTS = `@import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600;700&family=DM+Sans:wght@300;400;500;600&display=swap');`;
@@ -355,6 +370,7 @@ export default function InvoiceApp({ onGoHome }) {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [plan, setPlan] = useState("free");
   const [userEmail, setUserEmail] = useState("");
+  const [trialEnd, setTrialEnd] = useState(null);
 
   useEffect(() => {
     const loadPlan = async () => {
@@ -366,6 +382,7 @@ export default function InvoiceApp({ onGoHome }) {
         setPlan("pro");
       } else if (data?.trial_end && new Date(data.trial_end) > new Date()) {
         setPlan("pro");
+        setTrialEnd(data.trial_end);
       } else {
         setPlan("free");
       }
