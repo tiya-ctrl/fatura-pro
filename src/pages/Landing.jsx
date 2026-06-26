@@ -746,7 +746,7 @@ function Footer({ onOpenApp }) {
         </div>
         <div className="footer-col">
           <h4>Legal</h4>
-          {[["#","Privacy Policy"],["#","Terms of Service"],["#","Cookie Policy"],["#","GDPR Compliant"]].map(([h,l]) => <a key={l} href={h}>{l}</a>)}
+          <p style={{fontSize:12,color:"var(--text2)",lineHeight:1.8}}>Fatūra Pro is GDPR compliant and does not sell your data. All invoices and client data are encrypted and stored securely in the EU.<br/><br/>For privacy inquiries: support@faturapro.app</p>
         </div>
       </div>
       <div className="footer-bottom">
