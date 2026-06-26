@@ -191,7 +191,7 @@ const STYLES = `
   .sidebar { transform: translateX(-100%); width: 260px; will-change: transform; -webkit-transform: translateX(-100%); }
   .sidebar.open { transform: translateX(0); -webkit-transform: translateX(0); }
   .sidebar-overlay.open { display: block; }
-  .main { margin-left: 0; padding-bottom: 70px; }
+  .main { margin-left: 0 !important; padding-bottom: 70px; }
   .hamburger { display: flex; }
   .mobile-nav { display: block; }
   .mobile-fab { display: flex !important; }
