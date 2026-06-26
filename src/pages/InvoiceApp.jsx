@@ -827,6 +827,30 @@ function Settings({ currency, setCurrency }) {
   const [profile, setProfile] = useState({ name:"", email:"", phone:"", country:"NL", address:"" });
   const [saving, setSaving] = useState(false);
   const [saved, setSaved] = useState(false);
+  const [savingDefaults, setSavingDefaults] = useState(false);
+  const [savedDefaults, setSavedDefaults] = useState(false);
+
+  const saveDefaults = async () => {
+    setSavingDefaults(true);
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) return;
+    await supabase.from("business_profile").upsert({ user_id: user.id, notes: profile.notes || "", updated_at: new Date().toISOString() });
+    setSavingDefaults(false);
+    setSavedDefaults(true);
+    setTimeout(() => setSavedDefaults(false), 2000);
+  };
+  const [savingDefaults, setSavingDefaults] = useState(false);
+  const [savedDefaults, setSavedDefaults] = useState(false);
+
+  const saveDefaults = async () => {
+    setSavingDefaults(true);
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) return;
+    await supabase.from("business_profile").upsert({ user_id: user.id, notes: profile.notes || "", updated_at: new Date().toISOString() });
+    setSavingDefaults(false);
+    setSavedDefaults(true);
+    setTimeout(() => setSavedDefaults(false), 2000);
+  };
 
   useEffect(() => {
     const load = async () => {
@@ -893,7 +917,7 @@ function Settings({ currency, setCurrency }) {
             <textarea rows={3} value={profile.notes || ""} onChange={e => setProfile(p => ({ ...p, notes: e.target.value }))} style={{ resize:"vertical" }} placeholder="Thank you for your business. Payment is due within 30 days." />
           </div>
         </div>
-        <button className="btn btn-primary" onClick={saveProfile}>Save Defaults</button>
+        <button className="btn btn-primary" onClick={saveDefaults} disabled={savingDefaults}>{savingDefaults ? "Saving..." : savedDefaults ? "✓ Saved!" : "Save Defaults"}</button>
       </div>
     </div>
   );
