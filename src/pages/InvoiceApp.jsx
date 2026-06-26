@@ -899,12 +899,31 @@ React.useEffect(() => {
 
   const emptyForm = {
     invoiceNumber:"",
-    sellerName:"", sellerEmail:"", sellerPhone:"+31", sellerAddress:"", sellerLogo:null,
+    sellerName:"", sellerEmail:"", sellerPhone:"", sellerAddress:"", sellerLogo:null,
     client:(clients[0] && clients[0].name) || "", email:(clients[0] && clients[0].email) || "",
     buyerPhone:"", buyerAddress:"", buyerLogo:null,
     date:new Date().toISOString().split("T")[0], due:"",
     tax:20, discount:0, notes:"", bankInfo:"",
   };
+
+  useEffect(() => {
+    if (sourceData) return;
+    const loadProfile = async () => {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return;
+      const { data } = await supabase.from("business_profile").select("*").eq("user_id", user.id).maybeSingle();
+      if (data) {
+        setForm(f => ({
+          ...f,
+          sellerName: f.sellerName || data.name || "",
+          sellerEmail: f.sellerEmail || data.email || "",
+          sellerPhone: f.sellerPhone || data.phone || "",
+          sellerAddress: f.sellerAddress || data.address || "",
+        }));
+      }
+    };
+    loadProfile();
+  }, []);
 
   const [form, setForm] = useState(sourceData ? {
     sellerName: sourceData.sellerName || "",
