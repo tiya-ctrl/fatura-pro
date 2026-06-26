@@ -890,10 +890,10 @@ function Settings({ currency, setCurrency }) {
           <div className="form-group"><label>Payment Terms (days)</label><input type="number" defaultValue="30" /></div>
           <div className="form-group"><label>Invoice Prefix</label><input defaultValue="INV-" /></div>
           <div className="form-group full"><label>Invoice Notes</label>
-            <textarea rows={3} defaultValue="Thank you for your business. Payment is due within 30 days." style={{ resize:"vertical" }} />
+            <textarea rows={3} value={profile.notes || ""} onChange={e => setProfile(p => ({ ...p, notes: e.target.value }))} style={{ resize:"vertical" }} placeholder="Thank you for your business. Payment is due within 30 days." />
           </div>
         </div>
-        <button className="btn btn-primary">Save Defaults</button>
+        <button className="btn btn-primary" onClick={saveProfile}>Save Defaults</button>
       </div>
     </div>
   );
@@ -1009,7 +1009,7 @@ React.useEffect(() => {
 
   const handleSave = () => {
     if (!form.client || !form.due) return alert("Please fill in Client and Due Date (Step 2)");
-    const id = isEdit ? editData.id : (form.invoiceNumber && form.invoiceNumber.trim() ? form.invoiceNumber.trim() : "INV-" + Date.now().toString().slice(-8));
+    const id = isEdit ? editData.id : (form.invoiceNumber && form.invoiceNumber.trim() ? form.invoiceNumber.trim() : "INV-" + String(invoiceCount + 1).padStart(3, "0"));
     const status = isEdit ? (editData.status || "pending") : "pending";
     onSave({ id, ...form, currency:invoiceCurrency, sellerLogoSize, buyerLogoSize, amount:total, status, items, subtotal, discountAmt, taxAmt, total });
   };
