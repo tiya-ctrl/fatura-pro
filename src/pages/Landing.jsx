@@ -504,7 +504,7 @@ function Features() {
     <section id="features" style={{ background:"var(--bg2)", borderTop:"1px solid var(--border2)", borderBottom:"1px solid var(--border2)" }}>
       <div className="container">
         <div className="section-tag">Features</div>
-        <h2 className="section-title">Everything you need.<br /><em style={{ fontStyle:"italic", color:"var(--gold)" }}>Nothing you don't.</em></h2>
+        <h2 className="section-title">The smartest way to invoice.<br /><em style={{ fontStyle:"italic", color:"var(--gold)" }}>Built for how you work.</em></h2>
         <p className="section-sub">Built specifically for freelancers and entrepreneurs who need professional invoicing without the complexity.</p>
         <div className="features-grid">
           {FEATURES.map((f, i) => (
