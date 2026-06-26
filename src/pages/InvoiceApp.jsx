@@ -958,6 +958,7 @@ React.useEffect(() => {
           sellerEmail: f.sellerEmail || data.email || "",
           sellerPhone: f.sellerPhone || data.phone || "",
           sellerAddress: f.sellerAddress || data.address || "",
+          notes: f.notes || data.notes || "",
         }));
       }
     };
