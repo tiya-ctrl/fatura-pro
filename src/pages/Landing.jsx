@@ -730,27 +730,31 @@ function Footer({ onOpenApp }) {
             <div className="nav-logo-icon">F</div>
             <span className="nav-logo-text">Fatūra</span>
           </div>
-          <p>Professional invoicing for freelancers and entrepreneurs. Built for the MENA & European market.</p>
+          <p>Professional invoicing software for freelancers, consultants, and entrepreneurs in MENA and Europe. Create and send invoices in EUR, USD, AED, MAD and 14 currencies. No business registration needed.</p>
+          <div style={{ marginTop:16, display:"flex", flexDirection:"column", gap:4 }}>
+            <span style={{ fontSize:12, color:"var(--text2)" }}>📧 support@faturapro.app</span>
+            <span style={{ fontSize:12, color:"var(--text2)" }}>🌍 Serving NL · MA · DZ · AE · FR & more</span>
+          </div>
         </div>
         <div className="footer-col">
           <h4>Product</h4>
-          {[["#features","Features"],["#pricing","Pricing"],["#how","How it works"],["#","Changelog"]].map(([h,l]) => <a key={h} href={h}>{l}</a>)}
+          {[["#features","Invoice Features"],["#pricing","Pricing Plans"],["#how","How It Works"],["#top","Install as App"]].map(([h,l]) => <a key={h} href={h}>{l}</a>)}
         </div>
         <div className="footer-col">
-          <h4>Company</h4>
-          {[["#","About"],["#","Blog"],["#","Careers"],["#","Contact"]].map(([h,l]) => <a key={l} href={h}>{l}</a>)}
+          <h4>Use Cases</h4>
+          {[["#top","Freelancer Invoicing"],["#top","Multi-currency Billing"],["#top","MENA Invoicing"],["#top","EU Invoicing"]].map(([h,l]) => <a key={l} href={h}>{l}</a>)}
         </div>
         <div className="footer-col">
           <h4>Legal</h4>
-          {[["#","Privacy Policy"],["#","Terms of Service"],["#","Cookie Policy"],["#","GDPR"]].map(([h,l]) => <a key={l} href={h}>{l}</a>)}
+          {[["#","Privacy Policy"],["#","Terms of Service"],["#","Cookie Policy"],["#","GDPR Compliant"]].map(([h,l]) => <a key={l} href={h}>{l}</a>)}
         </div>
       </div>
       <div className="footer-bottom">
-        <span>© 2026 Fatūra. All rights reserved.</span>
+        <span>© 2026 Fatūra Pro · Professional Invoicing for Freelancers · faturapro.app</span>
         <span style={{ display:"flex", gap:16 }}>
-          <a href="#" style={{ color:"var(--text2)", fontSize:18, textDecoration:"none" }}>𝕏</a>
-          <a href="#" style={{ color:"var(--text2)", fontSize:18, textDecoration:"none" }}>in</a>
-          <a href="#" style={{ color:"var(--text2)", fontSize:18, textDecoration:"none" }}>📸</a>
+          <a href="https://x.com" target="_blank" rel="noreferrer" style={{ color:"var(--text2)", fontSize:18, textDecoration:"none" }}>𝕏</a>
+          <a href="https://linkedin.com" target="_blank" rel="noreferrer" style={{ color:"var(--text2)", fontSize:18, textDecoration:"none" }}>in</a>
+          <a href="https://instagram.com" target="_blank" rel="noreferrer" style={{ color:"var(--text2)", fontSize:18, textDecoration:"none" }}>📸</a>
         </span>
       </div>
     </footer>
