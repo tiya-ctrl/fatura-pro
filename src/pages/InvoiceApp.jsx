@@ -824,25 +824,51 @@ function Clients({ clients, invoices, f }) {
 
 function Settings({ currency, setCurrency }) {
   const cur = getCurrency(currency);
+  const [profile, setProfile] = useState({ name:"", email:"", phone:"", country:"NL", address:"" });
+  const [saving, setSaving] = useState(false);
+  const [saved, setSaved] = useState(false);
+
+  useEffect(() => {
+    const load = async () => {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return;
+      const { data } = await supabase.from("business_profile").select("*").eq("user_id", user.id).maybeSingle();
+      if (data) setProfile({ name: data.name || "", email: data.email || "", phone: data.phone || "", country: data.country || "NL", address: data.address || "" });
+    };
+    load();
+  }, []);
+
+  const saveProfile = async () => {
+    setSaving(true);
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) return;
+    await supabase.from("business_profile").upsert({ user_id: user.id, ...profile, updated_at: new Date().toISOString() });
+    setSaving(false);
+    setSaved(true);
+    setTimeout(() => setSaved(false), 2000);
+  };
+
   return (
     <div style={{ maxWidth:600 }}>
       <div className="card" style={{ padding:28, marginBottom:20 }}>
         <div className="card-title" style={{ marginBottom:20 }}>Business Profile</div>
         <div className="form-grid">
-          <div className="form-group"><label>Business Name</label><input defaultValue="My Company" /></div>
-          <div className="form-group"><label>Email</label><input defaultValue="me@company.com" /></div>
-          <div className="form-group"><label>Phone</label><input defaultValue="+31 6 XX XX XX XX" /></div>
+          <div className="form-group"><label>Business Name</label><input value={profile.name} onChange={e => setProfile(p => ({ ...p, name: e.target.value }))} placeholder="e.g. Vyynd Agency BV" /></div>
+          <div className="form-group"><label>Email</label><input value={profile.email} onChange={e => setProfile(p => ({ ...p, email: e.target.value }))} placeholder="me@company.com" /></div>
+          <div className="form-group"><label>Phone</label><input value={profile.phone} onChange={e => setProfile(p => ({ ...p, phone: e.target.value }))} placeholder="+31 6 XX XX XX XX" /></div>
           <div className="form-group"><label>Country</label>
-            <select defaultValue="NL">
+            <select value={profile.country} onChange={e => setProfile(p => ({ ...p, country: e.target.value }))}>
               {["Morocco","Algeria","Tunisia","Egypt","France","Belgium","Netherlands","United Kingdom","UAE","Saudi Arabia","Qatar","Kuwait","Yemen"].map((l, i) => {
                 const v = ["MA","DZ","TN","EG","FR","BE","NL","GB","AE","SA","QA","KW","YE"][i];
                 return <option key={v} value={v}>{l}</option>
               })}
             </select>
           </div>
-          <div className="form-group full"><label>Address</label><input defaultValue="Keizersgracht 123, Amsterdam, Netherlands" /></div>
+          <div className="form-group full"><label>Address</label><input value={profile.address} onChange={e => setProfile(p => ({ ...p, address: e.target.value }))} placeholder="Keizersgracht 123, Amsterdam" /></div>
         </div>
-        <button className="btn btn-primary">Save Changes</button>
+        <button className="btn btn-primary" onClick={saveProfile} disabled={saving}>
+          {saving ? "Saving..." : saved ? "✓ Saved!" : "Save Changes"}
+        </button>
       </div>
       <div className="card" style={{ padding:28 }}>
         <div className="card-title" style={{ marginBottom:20 }}>Invoice Defaults</div>
