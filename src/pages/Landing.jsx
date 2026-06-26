@@ -521,6 +521,43 @@ function Features() {
   );
 }
 
+function InstallApp() {
+  return (
+    <section style={{ background:"var(--bg)", borderTop:"1px solid var(--border2)" }}>
+      <div className="container" style={{ textAlign:"center", padding:"80px 24px" }}>
+        <div className="section-tag" style={{ justifyContent:"center", display:"flex" }}>📲 Mobile App</div>
+        <h2 className="section-title">Use Fatūra as a<br /><em style={{ color:"var(--gold)", fontStyle:"italic" }}>mobile app.</em></h2>
+        <p className="section-sub" style={{ maxWidth:520, margin:"0 auto 48px" }}>
+          No App Store needed. Install Fatūra directly from your browser in seconds — works on iPhone and Android.
+        </p>
+        <div style={{ display:"grid", gridTemplateColumns:"repeat(auto-fit, minmax(220px, 1fr))", gap:20, maxWidth:700, margin:"0 auto 48px" }}>
+          <div style={{ background:"var(--bg2)", border:"1px solid var(--border)", borderRadius:14, padding:"24px 20px" }}>
+            <div style={{ fontSize:32, marginBottom:12 }}>🍎</div>
+            <div style={{ fontWeight:700, fontSize:15, marginBottom:12, color:"var(--text)" }}>iPhone (Safari)</div>
+            <ol style={{ textAlign:"left", paddingLeft:18, color:"var(--text2)", fontSize:13, lineHeight:2 }}>
+              <li>Open Fatūra in Safari</li>
+              <li>Tap the <strong style={{ color:"var(--text)" }}>Share</strong> button (□↑)</li>
+              <li>Scroll down and tap <strong style={{ color:"var(--text)" }}>Add to Home Screen</strong></li>
+              <li>Tap <strong style={{ color:"var(--text)" }}>Add</strong> — done! ✓</li>
+            </ol>
+          </div>
+          <div style={{ background:"var(--bg2)", border:"1px solid var(--border)", borderRadius:14, padding:"24px 20px" }}>
+            <div style={{ fontSize:32, marginBottom:12 }}>🤖</div>
+            <div style={{ fontWeight:700, fontSize:15, marginBottom:12, color:"var(--text)" }}>Android (Chrome)</div>
+            <ol style={{ textAlign:"left", paddingLeft:18, color:"var(--text2)", fontSize:13, lineHeight:2 }}>
+              <li>Open Fatūra in Chrome</li>
+              <li>Tap the <strong style={{ color:"var(--text)" }}>⋮ menu</strong> (top right)</li>
+              <li>Tap <strong style={{ color:"var(--text)" }}>Add to Home Screen</strong></li>
+              <li>Tap <strong style={{ color:"var(--text)" }}>Add</strong> — done! ✓</li>
+            </ol>
+          </div>
+        </div>
+        <p style={{ color:"var(--text2)", fontSize:13 }}>Opens full-screen · No ads · Works offline · Free forever</p>
+      </div>
+    </section>
+  );
+}
+
 function HowItWorks({ onOpenApp }) {
   const steps = [
     { n:"1", icon:"🏢", title:"Set up your profile", desc:"Add your company name, logo, address, and banking details once. It'll appear on every invoice." },
@@ -830,6 +867,7 @@ export default function LandingPage({ onOpenApp }) {
       <NavBar onOpenApp={onOpenApp} />
       <Hero onOpenApp={onOpenApp} />
       <Features />
+      <InstallApp />
       <HowItWorks onOpenApp={onOpenApp} />
       <Pricing onOpenApp={onOpenApp} />
       <Testimonials />
