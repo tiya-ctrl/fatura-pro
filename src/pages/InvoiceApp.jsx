@@ -380,8 +380,6 @@ export default function InvoiceApp({ onGoHome }) {
   const [remindersLog, setRemindersLog] = useState({});
 
   const isPro = plan === "pro";
-  const trialDaysLeft = trialEnd ? Math.ceil((new Date(trialEnd) - new Date()) / 86400000) : null;
-  const showTrialBanner = trialDaysLeft !== null && trialDaysLeft <= 3;
   const f = (n) => fmtCurrency(n, currency);
 
   const requirePro = (feature, cb) => {
