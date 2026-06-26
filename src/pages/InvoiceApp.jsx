@@ -361,7 +361,7 @@ export default function InvoiceApp({ onGoHome }) {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) return;
       setUserEmail(user.email || "");
-      const { data } = await supabase.from("user_plans").select("plan").eq("user_id", user.id).single();
+      const { data } = await supabase.from("user_plans").select("plan").eq("user_id", user.id).maybeSingle();
       if (data?.plan) setPlan(data.plan);
     };
     loadPlan();
