@@ -15,7 +15,7 @@ const STYLES = `
   .app { display: flex; min-height: 100vh; }
   .sidebar { width: 240px; background: var(--bg2); border-right: 1px solid var(--border);
     display: flex; flex-direction: column; padding: 28px 0; position: fixed;
-    height: 100vh; z-index: 20; transition: transform 0.25s ease; }
+    height: 100vh; z-index: 20; transition: transform 0.25s ease; overflow-y: auto; }
   .sidebar-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.6);
     z-index: 19; backdrop-filter: blur(2px); }
   .main { margin-left: 240px; flex: 1; min-height: 100vh; }
@@ -188,10 +188,10 @@ const STYLES = `
   }
  /* ── MOBILE (≤640px) ── */
 @media (max-width: 640px) {
-  .sidebar { display: none; width: 260px; }
-  .sidebar.open { display: flex; }
+  .sidebar { transform: translateX(-100%); width: 260px; overflow-y: auto; padding-bottom: 20px; }
+  .sidebar.open { transform: translateX(0); }
   .sidebar-overlay.open { display: block; }
-  .main { margin-left: 0 !important; padding-bottom: 70px; }
+  .main { margin-left: 0; padding-bottom: 70px; }
   .hamburger { display: flex; }
   .mobile-nav { display: block; }
   .mobile-fab { display: flex !important; }
@@ -482,15 +482,6 @@ export default function InvoiceApp({ onGoHome }) {
             <div className="logo-icon">F</div>
             <div className="logo-text">Fatūra</div>
           </div>
-          {userEmail && (
-            <div style={{ margin:"0 16px 12px", padding:"6px 10px", background:"var(--bg3)", borderRadius:8, border:"1px solid var(--border)", display:"flex", alignItems:"center", justifyContent:"space-between", gap:8 }}>
-              <div style={{ fontSize:11, color:"var(--text2)", overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap", flex:1 }}>{userEmail}</div>
-              <button onClick={async () => { const { signOut } = await import("../auth"); await signOut(); window.location.href = "/"; }}
-                style={{ fontSize:10, color:"var(--red)", background:"none", border:"none", cursor:"pointer", padding:0, fontFamily:"'DM Sans', sans-serif", whiteSpace:"nowrap", flexShrink:0 }}>
-                Sign out
-              </button>
-            </div>
-          )}
           <div className="nav-section">
             <div className="nav-label">Main</div>
             {navItems.map(n => (
@@ -502,6 +493,15 @@ export default function InvoiceApp({ onGoHome }) {
             ))}
           </div>
           <div className="sidebar-footer">
+            {userEmail && (
+              <div style={{ marginBottom:8, padding:"6px 10px", background:"var(--bg3)", borderRadius:8, border:"1px solid var(--border)", display:"flex", alignItems:"center", justifyContent:"space-between", gap:8 }}>
+                <div style={{ fontSize:11, color:"var(--text2)", overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap", flex:1 }}>{userEmail}</div>
+                <button onClick={async () => { const { signOut } = await import("../auth"); await signOut(); window.location.href = "/"; }}
+                  style={{ fontSize:10, color:"var(--red)", background:"none", border:"none", cursor:"pointer", padding:0, fontFamily:"'DM Sans', sans-serif", whiteSpace:"nowrap", flexShrink:0 }}>
+                  Sign out
+                </button>
+              </div>
+            )}
             {isPro ? (
               <div className="plan-badge">
                 <div className="plan-name">✦ PRO PLAN</div>
