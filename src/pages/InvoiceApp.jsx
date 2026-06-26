@@ -805,6 +805,7 @@ function Clients({ clients, invoices, f }) {
     const clientInvoices = invoices.filter(i => i.client === c.name);
     const invoiceCount = clientInvoices.length;
     const totalBilled = clientInvoices.filter(i => i.status === "paid").reduce((a, b) => a + (b.amount || 0), 0);
+    const overdueAmt = clientInvoices.filter(i => i.status === "overdue").reduce((a, b) => a + (b.amount || 0), 0);
     return (
         <div className="client-card" key={c.id}>
           <div className="client-avatar">{c.name[0]}</div>
@@ -814,6 +815,7 @@ function Clients({ clients, invoices, f }) {
           <div className="client-stats" style={{ marginTop:14 }}>
             <div className="client-stat"><span>{invoiceCount}</span>Invoices</div>
             <div className="client-stat"><span style={{ color:"var(--gold)" }}>{f(totalBilled)}</span>Total Billed</div>
+            {overdueAmt > 0 && <div className="client-stat"><span style={{ color:"var(--red)" }}>{f(overdueAmt)}</span>Overdue</div>}
           </div>
         </div>
     );
