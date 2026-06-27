@@ -1239,7 +1239,7 @@ React.useEffect(() => {
 
         {step === 2 && (
           <div>
-            <div style={{ display:"grid", gridTemplateColumns:"minmax(140px, 2.5fr) 70px 100px 90px 28px", gap:8, padding:"6px 12px", background:"var(--bg3)", borderRadius:8, border:"1px solid var(--border)", marginBottom:6 }}>
+            <div style={{ display:"grid", gridTemplateColumns:"minmax(140px, 2fr) 90px 120px 100px 28px", gap:8, padding:"6px 12px", background:"var(--bg3)", borderRadius:8, border:"1px solid var(--border)", marginBottom:6 }}>
               {["Description", "Qty", "Price (" + curInfo.symbol + ")", "Total", ""].map((h, i) => (
                 <div key={i} style={{ fontSize:10, fontWeight:700, color:"var(--text2)", letterSpacing:0.5, textTransform:"uppercase" }}>{h}</div>
               ))}
@@ -1247,7 +1247,7 @@ React.useEffect(() => {
             <div style={{ display:"flex", flexDirection:"column", gap:6, marginBottom:12 }}>
               {items.map((it, idx) => (
                 <div key={idx} style={{ display:"flex", flexDirection:"column", background:"var(--bg4)", borderRadius:8, border:"1px solid var(--border)", overflow:"hidden" }}>
-                  <div style={{ display:"grid", gridTemplateColumns:"minmax(140px, 1.5fr) 45px 65px 60px 30px", gap:8, padding:"8px 12px", alignItems:"center" }}>
+                  <div style={{ display:"grid", gridTemplateColumns:"minmax(140px, 2fr) 90px 120px 100px 30px", gap:8, padding:"8px 12px", alignItems:"center" }}>
                     <input value={it.desc} onChange={e => updateItem(idx, "desc", e.target.value)} placeholder="e.g. Social Media Package" style={{ width:"100%", padding: isMobile ? "12px" :"8px 10px", fontSize: isMobile ? 16 : 13, minWidth: 0 }} />
                     <input type="number" value={it.qty === 0 ? "" : it.qty} min={0} onChange={e => updateItem(idx, "qty", e.target.value===""?0:+e.target.value)} placeholder="1" style={{ width:"100%", padding:"8px 10px", fontSize:14, fontWeight:600, textAlign:"center" }} />
                     <input type="number" value={it.price === 0 ? "" : it.price} min={0} onChange={e => updateItem(idx, "price", e.target.value===""?0:+e.target.value)} placeholder="0.00" style={{ width:"100%", padding:"8px 10px", fontSize:14, fontWeight:600, textAlign:"right" }} />
