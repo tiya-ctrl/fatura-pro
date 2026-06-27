@@ -11,7 +11,7 @@ import Register from "./pages/Register";
 function LandingWrapper() {
   const navigate = useNavigate();
 
-  return <LandingPage onOpenApp={() => navigate("/register")} onSignIn={() => navigate("/login")} />;
+  return <LandingPage onOpenApp={() => navigate("/login")} onSignIn={() => navigate("/login")} />;
 }
 
 /* ───────── Login ───────── */
