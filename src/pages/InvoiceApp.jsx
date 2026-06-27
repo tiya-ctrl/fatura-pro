@@ -462,6 +462,24 @@ export default function InvoiceApp({ onGoHome }) {
     loadData();
   }, []);
 
+  useEffect(() => {
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+      if (session?.user) {
+        const reload = async () => {
+          const { data: invData } = await supabase.from("invoices").select("*").eq("user_id", session.user.id).order("created_at", { ascending: false });
+          const { data: cliData } = await supabase.from("clients").select("*").eq("user_id", session.user.id);
+          if (invData) setInvoices(invData.map(r => ({ id: r.id, client: r.client, email: r.email, sellerName: r.seller_name, sellerEmail: r.seller_email, sellerPhone: r.seller_phone, sellerAddress: r.seller_address, buyerPhone: r.buyer_phone, buyerAddress: r.buyer_address, date: r.date, due: r.due, status: r.status, amount: r.amount, subtotal: r.subtotal, discountAmt: r.discount_amt, taxAmt: r.tax_amt, total: r.total, tax: r.tax, discount: r.discount, notes: r.notes, bankInfo: r.bank_info, currency: r.currency, items: r.items || [] })));
+          if (cliData) setClients(cliData);
+        };
+        reload();
+      } else {
+        setInvoices([]);
+        setClients([]);
+      }
+    });
+    return () => subscription.unsubscribe();
+  }, []);
+
   const navItems = [
     { id: "dashboard", icon: "\u229e", label: "Dashboard" },
     { id: "invoices", icon: "\u229f", label: "Invoices", badge: invoices.filter(i => i.status === "pending").length },
