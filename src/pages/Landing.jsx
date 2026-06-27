@@ -634,7 +634,7 @@ function Pricing({ onOpenApp }) {
                   <span style={{ color: f.ok ? "var(--text)" : "var(--text3)" }}>{f.text}</span>
                 </div>
               ))}
-              <button className={`btn ${p.ctaStyle} price-cta`} onClick={onOpenApp}>{p.cta}</button>
+              <button className={`btn ${p.ctaStyle} price-cta`} onClick={p.cta === "Join Waitlist" ? () => setShowWaitlist(true) : onOpenApp}>{p.cta}</button>
             </div>
           ))}
         </div>
