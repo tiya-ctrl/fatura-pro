@@ -1309,10 +1309,12 @@ React.useEffect(() => {
 }
 
 function NewClientModal({ onSave, onClose }) {
-  const [form, setForm] = useState({ name:"", email:"", phone:"", country:"Morocco" });
+  const [form, setForm] = useState({ name:"", email:"", phone:"", country:"" });
+  const [customCountry, setCustomCountry] = useState("");
   const handleSave = () => {
     if (!form.name || !form.email) return alert("Name and email are required");
-    onSave({ ...form, id:Date.now(), invoices:0, total:0 });
+    const country = form.country === "Other" ? customCountry : form.country;
+    onSave({ ...form, country, id:Date.now(), invoices:0, total:0 });
   };
   return (
     <div className="modal-overlay" onClick={e => e.target === e.currentTarget && onClose()}>
@@ -1328,7 +1330,8 @@ function NewClientModal({ onSave, onClose }) {
           <div className="form-group">
             <label>Country</label>
             <select value={form.country} onChange={e => setForm(f => ({ ...f, country:e.target.value }))}>
-              {["Morocco","Algeria","Tunisia","France","Belgium","Netherlands","UAE","Saudi Arabia","Other"].map(c => <option key={c}>{c}</option>)}
+              <option value="">— Choose country —</option>
+              {["Morocco","Algeria","Tunisia","Egypt","Libya","France","Belgium","Netherlands","Germany","United Kingdom","United States","UAE","Saudi Arabia","Qatar","Kuwait","Other"].map(c => <option key={c}>{c}</option>)}
             </select>
           </div>
         </div>
