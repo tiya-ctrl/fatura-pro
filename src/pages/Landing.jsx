@@ -412,7 +412,7 @@ Answer questions helpfully and concisely in the same language the user writes in
 const timeStr = () => new Date().toLocaleTimeString("en", { hour:"2-digit", minute:"2-digit" });
 
 /* ─── COMPONENTS ─────────────────────────────────────────────── */
-function NavBar({ onOpenApp }) {
+function NavBar({ onOpenApp, onSignIn }) {
   const [scrolled, setScrolled] = useState(false);
   useEffect(() => {
     const fn = () => setScrolled(window.scrollY > 20);
@@ -877,11 +877,11 @@ function Chatbot() {
   );
 }
 
-export default function LandingPage({ onOpenApp }) {
+export default function LandingPage({ onOpenApp, onSignIn }) {
   return (
     <>
       <style>{FONTS + GLOBAL}</style>
-      <NavBar onOpenApp={onOpenApp} />
+      <NavBar onOpenApp={onOpenApp} onSignIn={onSignIn} />
       <Hero onOpenApp={onOpenApp} />
       <Features />
       <InstallApp />
