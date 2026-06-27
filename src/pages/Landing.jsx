@@ -592,6 +592,18 @@ function HowItWorks({ onOpenApp }) {
 
 function Pricing({ onOpenApp }) {
   const [annual, setAnnual] = useState(false);
+  const [showWaitlist, setShowWaitlist] = useState(false);
+  const [waitEmail, setWaitEmail] = useState("");
+  const [waitStatus, setWaitStatus] = useState("");
+  const handleWaitlist = async () => {
+    if (!waitEmail.includes("@")) return;
+    const { createClient } = await import("@supabase/supabase-js");
+    const sb = createClient(process.env.REACT_APP_SUPABASE_URL, process.env.REACT_APP_SUPABASE_ANON_KEY);
+    const { error } = await sb.from("waitlist").insert({ email: waitEmail });
+    if (error && error.code === "23505") { setWaitStatus("already"); }
+    else if (error) { setWaitStatus("error"); }
+    else { setWaitStatus("success"); }
+  };
   return (
     <section id="pricing" style={{ background:"var(--bg2)", borderTop:"1px solid var(--border2)", borderBottom:"1px solid var(--border2)" }}>
       <div className="container">
@@ -643,6 +655,40 @@ function Pricing({ onOpenApp }) {
         </div>
       </div>
     </section>
+    {showWaitlist && (
+      <div style={{ position:"fixed", inset:0, background:"rgba(0,0,0,0.75)", zIndex:200, display:"flex", alignItems:"center", justifyContent:"center", padding:16 }}>
+        <div style={{ background:"#111118", border:"1px solid rgba(201,168,76,0.18)", borderRadius:16, padding:32, maxWidth:440, width:"100%", maxHeight:"90vh", overflowY:"auto" }}>
+          <div style={{ fontFamily:"Playfair Display, serif", fontSize:22, marginBottom:8, color:"#e8e4dc" }}>Business Plan — Coming Soon</div>
+          <div style={{ fontSize:13, color:"#9a9690", marginBottom:16, lineHeight:1.6 }}>Join the waitlist and be the first to know when we launch. In the meantime, Pro has everything you need to get started.</div>
+          <div style={{ background:"#18181f", borderRadius:10, padding:"14px 16px", marginBottom:20 }}>
+            <div style={{ fontSize:11, fontWeight:600, color:"#c9a84c", letterSpacing:1, marginBottom:10 }}>WHAT IS COMING IN BUSINESS</div>
+            {["Team members — invite up to 5 collaborators","Multi-business — manage multiple companies","Stripe integration — clients pay directly from invoice","Advanced analytics — monthly reports and insights","Bulk PDF export — export all invoices at once","Custom invoice domain — brand your invoices","API access — connect to your own tools"].map((f,i) => (
+              <div key={i} style={{ display:"flex", gap:10, fontSize:13, color:"#e8e4dc", marginBottom:6 }}>
+                <span style={{ color:"#c9a84c" }}>✦</span>{f}
+              </div>
+            ))}
+          </div>
+          {waitStatus === "success" ? (
+            <div style={{ textAlign:"center", padding:"16px 0" }}>
+              <div style={{ fontSize:22, marginBottom:8 }}>🎉</div>
+              <div style={{ color:"#4caf89", fontSize:15, fontWeight:600, marginBottom:8 }}>You are on the list!</div>
+              <div style={{ color:"#9a9690", fontSize:13, lineHeight:1.6, marginBottom:16 }}>Thank you for your interest. We will notify you as soon as Business Plan is ready. In the meantime, try Pro free for 7 days — no credit card needed.</div>
+              <button onClick={() => setShowWaitlist(false)} style={{ padding:"10px 24px", borderRadius:8, background:"#c9a84c", border:"none", color:"#000", fontWeight:600, cursor:"pointer", fontFamily:"DM Sans, sans-serif" }}>Continue with Pro →</button>
+            </div>
+          ) : (
+            <>
+              <input value={waitEmail} onChange={e => setWaitEmail(e.target.value)} placeholder="your@email.com" style={{ width:"100%", background:"#18181f", border:"1px solid rgba(201,168,76,0.18)", borderRadius:8, color:"#e8e4dc", fontSize:14, padding:"11px 14px", marginBottom:12, fontFamily:"DM Sans, sans-serif", outline:"none", boxSizing:"border-box" }} />
+              {waitStatus === "already" && <div style={{ fontSize:12, color:"#c9a84c", marginBottom:8 }}>This email is already on the waitlist!</div>}
+              {waitStatus === "error" && <div style={{ fontSize:12, color:"#e05555", marginBottom:8 }}>Something went wrong. Please try again.</div>}
+              <div style={{ display:"flex", gap:10 }}>
+                <button onClick={() => setShowWaitlist(false)} style={{ flex:1, padding:"10px", borderRadius:8, background:"#18181f", border:"1px solid rgba(255,255,255,0.07)", color:"#9a9690", cursor:"pointer", fontFamily:"DM Sans, sans-serif" }}>Cancel</button>
+                <button onClick={handleWaitlist} style={{ flex:1, padding:"10px", borderRadius:8, background:"#c9a84c", border:"none", color:"#000", fontWeight:600, cursor:"pointer", fontFamily:"DM Sans, sans-serif" }}>Notify Me</button>
+              </div>
+            </>
+          )}
+        </div>
+      </div>
+    )}
   );
 }
 
