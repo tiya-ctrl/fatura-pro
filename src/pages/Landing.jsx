@@ -431,8 +431,8 @@ function NavBar({ onOpenApp, onSignIn }) {
         ))}
       </ul>
       <div className="nav-cta">
-        <a href="#pricing" className="btn btn-outline">Sign in</a>
-        <button className="btn btn-outline" onClick={onOpenApp}>Try Free</button>
+        <button className="btn btn-outline" onClick={onOpenApp}>Sign In</button>
+        <button className="btn btn-gold" onClick={onOpenApp}>Try Free →</button>
       </div>
     </nav>
   );
