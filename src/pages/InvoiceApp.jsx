@@ -1239,7 +1239,7 @@ React.useEffect(() => {
 
         {step === 2 && (
           <div>
-            <div style={{ display:"grid", gridTemplateColumns: isMobile ? "1fr" : "1fr 90px 110px 90px 32px", gap:8, padding:"6px 12px", background:"var(--bg3)", borderRadius:8, border:"1px solid var(--border)", marginBottom:6 }}>
+            <div style={{ display:"grid", gridTemplateColumns: isMobile ? "1fr" : "1.5fr 100px 120px 100px 32px", gap:8, padding:"6px 12px", background:"var(--bg3)", borderRadius:8, border:"1px solid var(--border)", marginBottom:6 }}>
               {["Description", "Qty", "Price (" + curInfo.symbol + ")", "Total", ""].map((h, i) => (
                 <div key={i} style={{ fontSize:10, fontWeight:700, color:"var(--text2)", letterSpacing:0.5, textTransform:"uppercase" }}>{h}</div>
               ))}
