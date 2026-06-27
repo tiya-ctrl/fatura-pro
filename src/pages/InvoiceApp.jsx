@@ -452,6 +452,7 @@ export default function InvoiceApp({ onGoHome }) {
 
   useEffect(() => {
     const loadData = async () => {
+      await new Promise(r => setTimeout(r, 500));
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) return;
       const { data: invData } = await supabase.from("invoices").select("*").eq("user_id", user.id).order("created_at", { ascending: false });
