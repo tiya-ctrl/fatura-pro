@@ -344,6 +344,7 @@ export default function InvoiceApp({ onGoHome }) {
   const [showNewInvoice, setShowNewInvoice] = useState(false);
   const [editingInvoice, setEditingInvoice] = useState(null);
   const [showNewClient, setShowNewClient] = useState(false);
+  const [editingClient, setEditingClient] = useState(null);
   const [previewInvoice, setPreviewInvoice] = useState(null);
   const [filterStatus, setFilterStatus] = useState("all");
   const [search, setSearch] = useState("");
@@ -439,6 +440,10 @@ export default function InvoiceApp({ onGoHome }) {
     if (!user) return;
     await supabase.from("clients").insert({ id: c.id, user_id: user.id, name: c.name, email: c.email, phone: c.phone, country: c.country, invoices: 0, total: 0 });
     setClients(prev => [c, ...prev]); setShowNewClient(false);
+  };
+  const deleteClient = async (id) => {
+    await supabase.from("clients").delete().eq("id", id);
+    setClients(prev => prev.filter(c => c.id !== id));
   };
   const deleteInvoice = async (id) => {
     await supabase.from("invoices").delete().eq("id", id);
@@ -585,7 +590,7 @@ export default function InvoiceApp({ onGoHome }) {
           <div className="content">
             {page === "dashboard" && <Dashboard invoices={invoicesWithStatus} totalRevenue={totalRevenue} totalPending={totalPending} totalOverdue={totalOverdue} setPage={setPage} setPreviewInvoice={setPreviewInvoice} onEdit={setEditingInvoice} onRemind={(inv) => requirePro("reminders", () => setReminderInvoice(inv))} f={f} />}
             {page === "invoices" && <Invoices invoices={filteredInvoices} filterStatus={filterStatus} setFilterStatus={setFilterStatus} search={search} setSearch={setSearch} onPreview={setPreviewInvoice} onDelete={deleteInvoice} onNew={openNewInvoice} onEdit={setEditingInvoice} onRemind={(inv) => requirePro("reminders", () => setReminderInvoice(inv))} remindersLog={remindersLog} f={f} isPro={isPro} onUpgrade={(feat) => { setUpgradeFeature(feat); setShowUpgrade(true); }} hasDraft={!!invoiceDraft} onOpenDraft={openNewInvoice} onDiscardDraft={discardDraft} onMarkPaid={markAsPaid} />}
-            {page === "clients" && <Clients clients={clients} invoices={invoicesWithStatus} f={f} />}
+            {page === "clients" && <Clients clients={clients} invoices={invoicesWithStatus} f={f} onDeleteClient={deleteClient} onEditClient={(c) => setEditingClient(c)} />}
             {page === "settings" && <Settings currency={currency} setCurrency={setCurrency} />}
           </div>
         </div>
@@ -613,6 +618,7 @@ export default function InvoiceApp({ onGoHome }) {
         {showNewInvoice && <NewInvoiceModal clients={clients} onSave={addInvoice} onClose={handleNewInvoiceClose} invoiceCount={invoices.length} currency={currency} f={f} draftData={invoiceDraft} onDiscardDraft={discardDraft} />}
         {editingInvoice && <NewInvoiceModal clients={clients} onSave={updateInvoice} onClose={(draftData) => { if (draftData) setEditDraft(draftData); setEditingInvoice(null); }} invoiceCount={invoices.length} currency={currency} f={f} editData={editingInvoice} editDraft={editDraft} onDiscardEditDraft={() => setEditDraft(null)} />}
         {showNewClient && <NewClientModal onSave={addClient} onClose={() => setShowNewClient(false)} />}
+        {editingClient && <NewClientModal onSave={async (updated) => { await supabase.from("clients").update({ name:updated.name, email:updated.email, phone:updated.phone, country:updated.country }).eq("id", editingClient.id); setClients(prev => prev.map(c => c.id === editingClient.id ? { ...c, ...updated } : c)); setEditingClient(null); }} onClose={() => setEditingClient(null)} editData={editingClient} />}
         {previewInvoice && <InvoicePreview invoice={previewInvoice} onClose={() => setPreviewInvoice(null)} currency={currency} />}
         {reminderInvoice && <ReminderModal invoice={reminderInvoice} onClose={() => setReminderInvoice(null)} onLog={logReminder} f={f} />}
         {showUpgrade && <UpgradeModal feature={upgradeFeature} onClose={() => setShowUpgrade(false)} onActivate={() => { setPlan("pro"); setShowUpgrade(false); }} />}
@@ -798,7 +804,7 @@ function Invoices({ invoices, filterStatus, setFilterStatus, search, setSearch, 
   );
 }
 
-function Clients({ clients, invoices, f }) {
+function Clients({ clients, invoices, f, onDeleteClient, onEditClient }) {
   return (
     <div className="clients-grid">
   {clients.length === 0 && (
@@ -822,6 +828,10 @@ function Clients({ clients, invoices, f }) {
             <div className="client-stat"><span>{invoiceCount}</span>Invoices</div>
             <div className="client-stat"><span style={{ color:"var(--gold)" }}>{f(totalBilled)}</span>Total Billed</div>
             {overdueAmt > 0 && <div className="client-stat"><span style={{ color:"var(--red)" }}>{f(overdueAmt)}</span>Overdue</div>}
+          </div>
+          <div style={{ display:"flex", gap:8, marginTop:12 }}>
+            <button className="btn btn-ghost btn-sm" onClick={() => onEditClient(c)}>Edit</button>
+            <button className="btn btn-danger btn-sm" onClick={() => { if(window.confirm("Delete this client?")) onDeleteClient(c.id); }}>Delete</button>
           </div>
         </div>
     );
