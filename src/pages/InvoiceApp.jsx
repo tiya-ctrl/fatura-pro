@@ -167,8 +167,10 @@ const STYLES = `
   .modal-overlay { position: absolute !important; top: 0 !important; left: 0 !important; right: 0 !important; background: none !important; padding: 0 !important; align-items: flex-start !important; justify-content: center !important; backdrop-filter: none !important; display: block !important; }
   .invoice-preview-wrapper { max-height: none !important; overflow: visible !important; width: 100% !important; max-width: 100% !important; border-radius: 0 !important; margin: 0 !important; padding: 0 !important; }
   .invoice-preview { box-shadow: none !important; padding: 12mm 14mm !important; margin: 0 auto !important; max-width: 210mm !important; border: none !important; border-radius: 0 !important; background: #fff !important; color: #1a1a2e !important; font-size: 11px !important; }
-  .preview-table { font-size: 10px !important; }
-  .preview-table th, .preview-table td { padding: 5px 0 !important; }
+  .preview-table { font-size: 10px !important; table-layout: fixed; width: 100% !important; }
+  .preview-table th, .preview-table td { padding: 5px 2px !important; word-break: break-word; overflow-wrap: break-word; }
+  .preview-table th:first-child, .preview-table td:first-child { width: 40% !important; }
+  .preview-table th:last-child, .preview-table td:last-child { width: 20% !important; text-align: right; }
   .invoice-notes { page-break-inside: avoid; }
   .invoice-bank-info { page-break-inside: avoid; }
   .print-hide { display: none !important; }
