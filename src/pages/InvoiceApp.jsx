@@ -861,7 +861,7 @@ function Clients({ clients, invoices, f, onDeleteClient, onEditClient }) {
 
 function Settings({ currency, setCurrency }) {
   const cur = getCurrency(currency);
-  const [profile, setProfile] = useState({ name:"", email:"", phone:"", country:"NL", address:"" });
+  const [profile, setProfile] = useState({ name:"", email:"", phone:"", country:"NL", address:"", default_tax:20, notes:"" });
   const [saving, setSaving] = useState(false);
   const [saved, setSaved] = useState(false);
   const [savingDefaults, setSavingDefaults] = useState(false);
@@ -883,7 +883,7 @@ function Settings({ currency, setCurrency }) {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) return;
       const { data } = await supabase.from("business_profile").select("*").eq("user_id", user.id).maybeSingle();
-      if (data) setProfile({ name: data.name || "", email: data.email || "", phone: data.phone || "", country: data.country || "NL", address: data.address || "" });
+      if (data) setProfile({ name: data.name || "", email: data.email || "", phone: data.phone || "", country: data.country || "NL", address: data.address || "", default_tax: data.default_tax ?? 20, notes: data.notes || "" });
     };
     load();
   }, []);
@@ -892,7 +892,7 @@ function Settings({ currency, setCurrency }) {
     setSaving(true);
     const { data: { user } } = await supabase.auth.getUser();
     if (!user) return;
-    await supabase.from("business_profile").upsert({ user_id: user.id, ...profile, updated_at: new Date().toISOString() });
+    await supabase.from("business_profile").upsert({ user_id: user.id, ...profile, default_tax: profile.default_tax ?? 20, updated_at: new Date().toISOString() });
     setSaving(false);
     setSaved(true);
     setTimeout(() => setSaved(false), 2000);
@@ -936,7 +936,7 @@ function Settings({ currency, setCurrency }) {
               Preview: {fmtCurrency(1234.5, currency)} · {cur.label}
             </div>
           </div>
-          <div className="form-group"><label>Default Tax (%)</label><input type="number" defaultValue="20" /></div>
+          <div className="form-group"><label>Default Tax (%)</label><input type="number" value={profile.default_tax ?? 20} onChange={e => setProfile(p => ({ ...p, default_tax: +e.target.value }))} /></div>
           <div className="form-group"><label>Payment Terms (days)</label><input type="number" defaultValue="30" /></div>
           <div className="form-group"><label>Invoice Prefix</label><input defaultValue="INV-" /></div>
           <div className="form-group full"><label>Invoice Notes</label>
@@ -996,6 +996,7 @@ React.useEffect(() => {
           sellerPhone: f.sellerPhone || data.phone || "",
           sellerAddress: f.sellerAddress || data.address || "",
           notes: f.notes || data.notes || "",
+          tax: f.tax !== 20 ? f.tax : (data.default_tax ?? 20),
         }));
       }
     };
