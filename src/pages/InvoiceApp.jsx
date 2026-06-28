@@ -215,6 +215,8 @@ const STYLES = `
   .clients-grid { grid-template-columns: 1fr; }
   .table-wrap { display: none; }
   .inv-cards { display: flex; }
+  .items-grid-header { grid-template-columns: 1fr 50px 70px 60px 24px !important; }
+  .items-grid-row { grid-template-columns: 1fr 50px 70px 60px 24px !important; }
   .card-header { padding: 14px 16px; }
   .modal-overlay { padding: 0; align-items: flex-end; overflow: hidden; }
   .modal { border-radius: 20px 20px 0 0; max-height: 95vh; padding: 20px 18px 28px; width: 100%; overflow-y: auto; }
@@ -1241,7 +1243,7 @@ React.useEffect(() => {
 
         {step === 2 && (
           <div>
-            <div style={{ display:"grid", gridTemplateColumns:"minmax(140px, 2fr) 90px 120px 100px 28px", gap:8, padding:"6px 12px", background:"var(--bg3)", borderRadius:8, border:"1px solid var(--border)", marginBottom:6 }}>
+            <div style={{ display:"grid", gridTemplateColumns:"minmax(140px, 2fr) 90px 120px 100px 28px", gap:8, padding:"6px 12px", background:"var(--bg3)", borderRadius:8, border:"1px solid var(--border)", marginBottom:6, className:"items-grid-header" }}>
               {["Description", "Qty", "Price (" + curInfo.symbol + ")", "Total", ""].map((h, i) => (
                 <div key={i} style={{ fontSize:10, fontWeight:700, color:"var(--text2)", letterSpacing:0.5, textTransform:"uppercase" }}>{h}</div>
               ))}
