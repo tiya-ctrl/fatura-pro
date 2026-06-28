@@ -169,7 +169,10 @@ const STYLES = `
   .invoice-preview { box-shadow: none !important; padding: 12mm 14mm !important; margin: 0 auto !important; max-width: 210mm !important; border: none !important; border-radius: 0 !important; background: #fff !important; color: #1a1a2e !important; font-size: 11px !important; }
   .preview-table { font-size: 10px !important; table-layout: fixed; width: 100% !important; }
   .preview-table th, .preview-table td { padding: 5px 2px !important; word-break: break-word; overflow-wrap: break-word; }
-  .preview-table th:first-child, .preview-table td:first-child { width: 40% !important; }
+    .preview-table th:first-child, .preview-table td:first-child { width: 38% !important; }
+  .preview-table th:nth-child(2), .preview-table td:nth-child(2) { width: 8% !important; text-align: center; }
+  .preview-table th:nth-child(3), .preview-table td:nth-child(3) { width: 22% !important; text-align: right; }
+  .preview-table th:last-child, .preview-table td:last-child { width: 22% !important; text-align: right !important; }
   .preview-table th:last-child, .preview-table td:last-child { width: 22% !important; text-align: right !important; }
   .preview-table th:nth-child(2), .preview-table td:nth-child(2) { width: 8% !important; }
   .preview-table th:nth-child(3), .preview-table td:nth-child(3) { width: 20% !important; }
