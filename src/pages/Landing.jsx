@@ -35,7 +35,7 @@ body { font-family: 'DM Sans', sans-serif; background: #08080e; color: #e8e4dc; 
 nav.topnav {
   position: fixed; top:0; left:0; right:0; z-index:100;
   display:flex; align-items:center; justify-content:space-between;
-  padding:16px 48px; transition: background 0.3s, backdrop-filter 0.3s;
+  padding:16px 48px; padding-top: max(16px, env(safe-area-inset-top)); transition: background 0.3s, backdrop-filter 0.3s;
 }
 nav.topnav.scrolled {
   background: rgba(8,8,14,0.88); backdrop-filter: blur(16px);
