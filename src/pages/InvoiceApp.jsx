@@ -871,7 +871,7 @@ function Settings({ currency, setCurrency }) {
     setSavingDefaults(true);
     const { data: { user } } = await supabase.auth.getUser();
     if (!user) return;
-    await supabase.from("business_profile").upsert({ user_id: user.id, notes: profile.notes || "", updated_at: new Date().toISOString() });
+    await supabase.from("business_profile").upsert({ user_id: user.id, notes: profile.notes || "", default_tax: profile.default_tax ?? 20, updated_at: new Date().toISOString() });
     setSavingDefaults(false);
     setSavedDefaults(true);
     setTimeout(() => setSavedDefaults(false), 2000);
