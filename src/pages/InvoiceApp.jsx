@@ -84,7 +84,7 @@ const STYLES = `
     text-transform: uppercase; padding: 11px 18px; text-align: left; border-bottom: 1px solid var(--border); white-space: nowrap; }
   td { padding: 13px 18px; font-size: 13px; border-bottom: 1px solid rgba(255,255,255,0.04); }
   tr:last-child td { border-bottom: none; }
-  tr:hover td { background: var(--bg3); }
+  tr:hover td { background: rgba(201,168,76,0.05); }
   .inv-cards { display: none; flex-direction: column; gap: 10px; }
   .inv-card { background: var(--bg3); border: 1px solid var(--border); border-radius: 12px; padding: 16px; }
   .inv-card-top { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 10px; }
@@ -118,7 +118,7 @@ const STYLES = `
     max-width: 700px; margin: 0 auto; box-shadow: 0 20px 60px rgba(0,0,0,0.5); }
   .preview-label { font-size: 10px; font-weight: 700; color: #999; letter-spacing: 1px; text-transform: uppercase; margin-bottom: 6px; }
   .preview-value { font-size: 14px; color: #1a1a2e; line-height: 1.6; }
-  .preview-table { width: 100%; border-collapse: collapse; margin-bottom: 24px; }
+  .preview-table { width: 100%; border-collapse: collapse; margin-bottom: 24px; table-layout: fixed; }
   .preview-table th { font-size: 10px; font-weight: 700; color: #999; letter-spacing: 1px; text-transform: uppercase;
     border-bottom: 2px solid #f0e6c8; padding: 8px 0; text-align: left; }
   .preview-table td { padding: 12px 0; font-size: 13px; border-bottom: 1px solid #f5f5f5; color: #333; }
@@ -1466,10 +1466,10 @@ function InvoicePreview({ invoice, onClose, currency }) {
 
           <table className="preview-table">
             <thead><tr>
-              <th style={{ width:"50%" }}>Description</th>
-              <th>Qty</th>
-              <th>Unit Price</th>
-              <th style={{ textAlign:"right" }}>Amount</th>
+              <th style={{ width:"45%" }}>Description</th>
+              <th style={{ width:"10%" }}>Qty</th>
+              <th style={{ width:"20%" }}>Unit Price</th>
+              <th style={{ width:"25%", textAlign:"right" }}>Amount</th>
             </tr></thead>
             <tbody>
               {(invoice.items && invoice.items.length > 0 ? invoice.items : [{ desc:"Professional Services", qty:1, price:invoice.amount }]).map((it, i) => (
