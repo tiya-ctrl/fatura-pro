@@ -197,6 +197,7 @@ const STYLES = `
   .mobile-fab { display: flex !important; }
   .topbar {
   padding: 12px;
+  padding-top: max(12px, env(safe-area-inset-top));
   flex-wrap: wrap;
   gap: 10px;
   align-items: center;
