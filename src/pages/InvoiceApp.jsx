@@ -170,7 +170,9 @@ const STYLES = `
   .preview-table { font-size: 10px !important; table-layout: fixed; width: 100% !important; }
   .preview-table th, .preview-table td { padding: 5px 2px !important; word-break: break-word; overflow-wrap: break-word; }
   .preview-table th:first-child, .preview-table td:first-child { width: 40% !important; }
-  .preview-table th:last-child, .preview-table td:last-child { width: 20% !important; text-align: right; }
+  .preview-table th:last-child, .preview-table td:last-child { width: 22% !important; text-align: right !important; }
+  .preview-table th:nth-child(2), .preview-table td:nth-child(2) { width: 8% !important; }
+  .preview-table th:nth-child(3), .preview-table td:nth-child(3) { width: 20% !important; }
   .invoice-notes { page-break-inside: avoid; }
   .invoice-bank-info { page-break-inside: avoid; }
   .print-hide { display: none !important; }
