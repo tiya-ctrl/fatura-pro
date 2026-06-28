@@ -1251,13 +1251,36 @@ React.useEffect(() => {
             <div style={{ display:"flex", flexDirection:"column", gap:6, marginBottom:12 }}>
               {items.map((it, idx) => (
                 <div key={idx} style={{ display:"flex", flexDirection:"column", background:"var(--bg4)", borderRadius:8, border:"1px solid var(--border)", overflow:"hidden" }}>
-                  <div style={{ display:"grid", gridTemplateColumns:"minmax(140px, 2fr) 90px 120px 100px 30px", gap:8, padding:"8px 12px", alignItems:"center" }}>
-                    <input value={it.desc} onChange={e => updateItem(idx, "desc", e.target.value)} placeholder="e.g. Social Media Package" style={{ width:"100%", padding: isMobile ? "12px" :"8px 10px", fontSize: isMobile ? 16 : 13, minWidth: 0 }} />
-                    <input type="number" value={it.qty === 0 ? "" : it.qty} min={0} onChange={e => updateItem(idx, "qty", e.target.value===""?0:+e.target.value)} placeholder="1" style={{ width:"100%", padding:"8px 10px", fontSize:14, fontWeight:600, textAlign:"center" }} />
-                    <input type="number" value={it.price === 0 ? "" : it.price} min={0} onChange={e => updateItem(idx, "price", e.target.value===""?0:+e.target.value)} placeholder="0.00" style={{ width:"100%", padding:"8px 10px", fontSize:14, fontWeight:600, textAlign:"right" }} />
-                    <div style={{ fontSize:13, fontWeight:700, color:"var(--gold)", textAlign:"right" }}>{fLocal(it.qty * it.price)}</div>
-                    <button onClick={() => removeItem(idx)} style={{ background:"none", border:"none", color:"var(--red)", cursor:"pointer", fontSize:18, lineHeight:1, padding:0 }}>×</button>
-                  </div>
+                  {isMobile ? (
+                    <div style={{ padding:"10px 12px", display:"flex", flexDirection:"column", gap:8 }}>
+                      <div style={{ display:"flex", gap:8, alignItems:"center" }}>
+                        <input value={it.desc} onChange={e => updateItem(idx, "desc", e.target.value)} placeholder="Description" style={{ flex:1, padding:"10px", fontSize:14, borderRadius:6, background:"var(--bg3)", border:"1px solid var(--border)", color:"var(--text)", outline:"none" }} />
+                        <button onClick={() => removeItem(idx)} style={{ background:"none", border:"none", color:"var(--red)", cursor:"pointer", fontSize:20, padding:"0 4px", flexShrink:0 }}>×</button>
+                      </div>
+                      <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr 1fr", gap:8 }}>
+                        <div>
+                          <div style={{ fontSize:10, color:"var(--text2)", fontWeight:600, marginBottom:4, textTransform:"uppercase" }}>Qty</div>
+                          <input type="number" value={it.qty === 0 ? "" : it.qty} min={0} onChange={e => updateItem(idx, "qty", e.target.value===""?0:+e.target.value)} placeholder="1" style={{ width:"100%", padding:"10px 8px", fontSize:14, fontWeight:600, textAlign:"center", borderRadius:6, background:"var(--bg3)", border:"1px solid var(--border)", color:"var(--text)", outline:"none" }} />
+                        </div>
+                        <div>
+                          <div style={{ fontSize:10, color:"var(--text2)", fontWeight:600, marginBottom:4, textTransform:"uppercase" }}>Price</div>
+                          <input type="number" value={it.price === 0 ? "" : it.price} min={0} onChange={e => updateItem(idx, "price", e.target.value===""?0:+e.target.value)} placeholder="0.00" style={{ width:"100%", padding:"10px 8px", fontSize:14, fontWeight:600, textAlign:"right", borderRadius:6, background:"var(--bg3)", border:"1px solid var(--border)", color:"var(--text)", outline:"none" }} />
+                        </div>
+                        <div>
+                          <div style={{ fontSize:10, color:"var(--gold)", fontWeight:600, marginBottom:4, textTransform:"uppercase" }}>Total</div>
+                          <div style={{ padding:"10px 8px", fontSize:14, fontWeight:700, color:"var(--gold)", textAlign:"right" }}>{fLocal(it.qty * it.price)}</div>
+                        </div>
+                      </div>
+                    </div>
+                  ) : (
+                    <div style={{ display:"grid", gridTemplateColumns:"minmax(140px, 2fr) 90px 120px 100px 30px", gap:8, padding:"8px 12px", alignItems:"center" }}>
+                      <input value={it.desc} onChange={e => updateItem(idx, "desc", e.target.value)} placeholder="e.g. Social Media Package" style={{ width:"100%", padding:"8px 10px", fontSize:13, minWidth: 0 }} />
+                      <input type="number" value={it.qty === 0 ? "" : it.qty} min={0} onChange={e => updateItem(idx, "qty", e.target.value===""?0:+e.target.value)} placeholder="1" style={{ width:"100%", padding:"8px 10px", fontSize:14, fontWeight:600, textAlign:"center" }} />
+                      <input type="number" value={it.price === 0 ? "" : it.price} min={0} onChange={e => updateItem(idx, "price", e.target.value===""?0:+e.target.value)} placeholder="0.00" style={{ width:"100%", padding:"8px 10px", fontSize:14, fontWeight:600, textAlign:"right" }} />
+                      <div style={{ fontSize:13, fontWeight:700, color:"var(--gold)", textAlign:"right" }}>{fLocal(it.qty * it.price)}</div>
+                      <button onClick={() => removeItem(idx)} style={{ background:"none", border:"none", color:"var(--red)", cursor:"pointer", fontSize:18, lineHeight:1, padding:0 }}>×</button>
+                    </div>
+                  )}
                   <div style={{ borderTop:"1px dashed var(--border)", padding:"6px 12px 8px" }}>
                     <input
                       value={it.note || ""}
