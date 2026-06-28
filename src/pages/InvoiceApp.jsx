@@ -1241,7 +1241,7 @@ React.useEffect(() => {
 
         {step === 2 && (
           <div>
-            <div style={{ display:"grid", gridTemplateColumns:"minmax(140px, 2fr) 90px 120px 100px 28px", gap:8, padding:"6px 12px", background:"var(--bg3)", borderRadius:8, border:"1px solid var(--border)", marginBottom:6 }}>
+            <div style={{ display:"grid", gridTemplateColumns: window.innerWidth <= 640 ? "1fr 55px 75px 65px 24px" : "minmax(140px, 2fr) 90px 120px 100px 28px", gap:8, padding:"6px 12px", background:"var(--bg3)", borderRadius:8, border:"1px solid var(--border)", marginBottom:6 }}>
               {["Description", "Qty", "Price (" + curInfo.symbol + ")", "Total", ""].map((h, i) => (
                 <div key={i} style={{ fontSize:10, fontWeight:700, color:"var(--text2)", letterSpacing:0.5, textTransform:"uppercase" }}>{h}</div>
               ))}
