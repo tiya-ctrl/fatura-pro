@@ -381,11 +381,11 @@ export default function InvoiceApp({ onGoHome }) {
       } else if (data?.trial_end && new Date(data.trial_end) > new Date()) {
         setPlan("pro");
         setTrialEnd(data.trial_end);
-        const isNew = !localStorage.getItem("fatura_welcomed_" + user.id);
-        if (isNew) { setShowWelcome(true); localStorage.setItem("fatura_welcomed_" + user.id, "1"); }
       } else {
         setPlan("free");
       }
+      const isNew = !localStorage.getItem("fatura_welcomed_" + user.id);
+      if (isNew) { setShowWelcome(true); localStorage.setItem("fatura_welcomed_" + user.id, "1"); }
     };
     loadPlan();
   }, []);
