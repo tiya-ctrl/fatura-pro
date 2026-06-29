@@ -367,6 +367,8 @@ export default function InvoiceApp({ onGoHome }) {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [plan, setPlan] = useState("free");
   const [userEmail, setUserEmail] = useState("");
+  const [trialEnd, setTrialEnd] = useState(null);
+  const [showWelcome, setShowWelcome] = useState(false);
 
   useEffect(() => {
     const loadPlan = async () => {
@@ -378,6 +380,9 @@ export default function InvoiceApp({ onGoHome }) {
         setPlan("pro");
       } else if (data?.trial_end && new Date(data.trial_end) > new Date()) {
         setPlan("pro");
+        setTrialEnd(data.trial_end);
+        const isNew = !localStorage.getItem("fatura_welcomed_" + user.id);
+        if (isNew) { setShowWelcome(true); localStorage.setItem("fatura_welcomed_" + user.id, "1"); }
       } else {
         setPlan("free");
       }
@@ -652,6 +657,23 @@ export default function InvoiceApp({ onGoHome }) {
         {previewInvoice && <InvoicePreview invoice={previewInvoice} onClose={() => setPreviewInvoice(null)} currency={currency} />}
         {reminderInvoice && <ReminderModal invoice={reminderInvoice} onClose={() => setReminderInvoice(null)} onLog={logReminder} f={f} />}
         {showUpgrade && <UpgradeModal feature={upgradeFeature} onClose={() => setShowUpgrade(false)} onActivate={() => { setPlan("pro"); setShowUpgrade(false); }} />}
+        {showWelcome && (
+          <div style={{ position:"fixed", inset:0, background:"rgba(0,0,0,0.8)", zIndex:200, display:"flex", alignItems:"center", justifyContent:"center", padding:16 }}>
+            <div style={{ background:"#111118", border:"1px solid rgba(201,168,76,0.3)", borderRadius:16, padding:32, maxWidth:420, width:"100%", textAlign:"center" }}>
+              <div style={{ fontSize:36, marginBottom:12 }}>🎉</div>
+              <div style={{ fontFamily:"Playfair Display, serif", fontSize:22, color:"#e8e4dc", marginBottom:8 }}>Welcome to Fatūra Pro!</div>
+              <div style={{ fontSize:13, color:"#9a9690", lineHeight:1.7, marginBottom:20 }}>You have <strong style={{ color:"#c9a84c" }}>7 days free Pro access</strong> — no credit card needed. Enjoy unlimited invoices, clients, PDF export, payment reminders, and more.</div>
+              <div style={{ background:"rgba(201,168,76,0.1)", border:"1px solid rgba(201,168,76,0.2)", borderRadius:10, padding:"12px 16px", marginBottom:20, textAlign:"left" }}>
+                {["Unlimited invoices & clients","PDF export","Payment reminders (Email & WhatsApp)","Multi-currency support","Business profile auto-fill"].map((f,i) => (
+                  <div key={i} style={{ fontSize:13, color:"#e8e4dc", marginBottom:i<4?6:0, display:"flex", gap:8 }}>
+                    <span style={{ color:"#c9a84c" }}>✓</span>{f}
+                  </div>
+                ))}
+              </div>
+              <button onClick={() => setShowWelcome(false)} style={{ width:"100%", padding:"12px", borderRadius:8, background:"#c9a84c", border:"none", color:"#000", fontWeight:600, fontSize:14, cursor:"pointer", fontFamily:"DM Sans, sans-serif" }}>Start Using Pro →</button>
+            </div>
+          </div>
+        )}
       </div>
     </>
   );
