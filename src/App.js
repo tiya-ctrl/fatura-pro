@@ -6,6 +6,7 @@ import LandingPage from "./pages/Landing";
 import InvoiceApp from "./pages/InvoiceApp";
 import Login from "./pages/Login";
 import Register from "./pages/Register";
+import ResetPassword from "./pages/ResetPassword";
 
 /* ───────── Landing ───────── */
 function LandingWrapper() {
@@ -67,6 +68,7 @@ function AppRoutes() {
       <Route path="/" element={<LandingWrapper />} />
       <Route path="/login" element={<LoginWrapper />} />
       <Route path="/register" element={<RegisterWrapper />} />
+      <Route path="/reset-password" element={<ResetPassword onDone={() => window.location.href="/login"} />} />
       <Route path="/app" element={<InvoiceWrapper />} />
       <Route path="*" element={<LandingWrapper />} />
     </Routes>
