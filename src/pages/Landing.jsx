@@ -305,7 +305,7 @@ footer {
 @media(max-width:900px){
   nav.topnav { padding:14px 20px; }
   .nav-links { display:none; }
-  .nav-links.open { display:flex; flex-direction:column; position:fixed; top:0; left:0; right:0; bottom:0; background:rgba(8,8,14,0.97); z-index:150; align-items:center; justify-content:center; gap:32px; }
+  .nav-links.open { display:flex; flex-direction:column; position:fixed; top:0; left:0; right:0; bottom:0; background:#08080e; z-index:150; align-items:center; justify-content:center; gap:32px; }
   .nav-links.open a { font-size:22px; color:var(--text); }
   .nav-hamburger { display:flex; background:none; border:none; color:var(--text); cursor:pointer; font-size:24px; padding:4px; z-index:160; }
   .nav-close { position:fixed; top:20px; right:20px; background:none; border:none; color:var(--text); font-size:28px; cursor:pointer; z-index:160; }
