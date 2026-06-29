@@ -232,7 +232,8 @@ const STYLES = `
   .search-bar { width: 120px; font-size: 12px; }
    /* Invoice preview mobile */
     .invoice-preview { padding: 16px 12px; border-radius: 0; overflow-x: hidden; font-size: 12px; }
-    .invoice-preview-wrapper { overflow-x: hidden !important; width: 100% !important; }
+    .invoice-preview-wrapper { overflow-x: auto !important; width: 100% !important; }
+    .preview-table { min-width: unset !important; }
     .preview-table { font-size: 11px; }
     .preview-table th, .preview-table td { padding: 6px 4px; word-break: break-word; }
     .topbar-actions .btn-label { display: none; }
