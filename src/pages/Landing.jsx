@@ -305,6 +305,10 @@ footer {
 @media(max-width:900px){
   nav.topnav { padding:14px 20px; }
   .nav-links { display:none; }
+  .nav-links.open { display:flex; flex-direction:column; position:fixed; top:0; left:0; right:0; bottom:0; background:rgba(8,8,14,0.97); z-index:150; align-items:center; justify-content:center; gap:32px; }
+  .nav-links.open a { font-size:22px; color:var(--text); }
+  .nav-hamburger { display:flex; background:none; border:none; color:var(--text); cursor:pointer; font-size:24px; padding:4px; z-index:160; }
+  .nav-close { position:fixed; top:20px; right:20px; background:none; border:none; color:var(--text); font-size:28px; cursor:pointer; z-index:160; }
   .features-grid,.how-grid,.pricing-grid,.testi-grid { grid-template-columns:1fr; }
   .price-card.featured { transform:scale(1); }
   .footer-grid { grid-template-columns:1fr 1fr; }
@@ -414,6 +418,7 @@ const timeStr = () => new Date().toLocaleTimeString("en", { hour:"2-digit", minu
 /* ─── COMPONENTS ─────────────────────────────────────────────── */
 function NavBar({ onOpenApp, onSignIn }) {
   const [scrolled, setScrolled] = useState(false);
+  const [menuOpen, setMenuOpen] = useState(false);
   useEffect(() => {
     const fn = () => setScrolled(window.scrollY > 20);
     window.addEventListener("scroll", fn);
@@ -425,9 +430,11 @@ function NavBar({ onOpenApp, onSignIn }) {
         <div className="nav-logo-icon">F</div>
         <span className="nav-logo-text">Fatūra</span>
       </a>
-      <ul className="nav-links">
+      <button className="nav-hamburger" onClick={() => setMenuOpen(true)}>☰</button>
+      <ul className={"nav-links" + (menuOpen ? " open" : "")}>
+        {menuOpen && <button className="nav-close" onClick={() => setMenuOpen(false)}>✕</button>}
         {[["#features","Features"],["#pricing","Pricing"],["#how","How it works"],["#faq","FAQ"]].map(([h,l]) => (
-          <li key={h}><a href={h}>{l}</a></li>
+          <li key={h}><a href={h} onClick={() => setMenuOpen(false)}>{l}</a></li>
         ))}
       </ul>
       <div className="nav-cta">
