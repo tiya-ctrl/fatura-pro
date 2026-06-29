@@ -250,7 +250,7 @@ export default function LoginPage({ onLogin, onBack }) {
           <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center" }}>
             <label>Password</label>
             {mode === "login" && (
-              <span style={{ fontSize:12, color:"var(--gold)", cursor:"pointer" }}>Forgot password?</span>
+              <span style={{ fontSize:12, color:"var(--gold)", cursor:"pointer" }} onClick={async () => { const email = document.querySelector("input[type=email]")?.value; if(!email) return alert("Enter your email first"); const { supabase } = await import("../supabase"); await supabase.auth.resetPasswordForEmail(email, { redirectTo: "https://faturapro.app/app" }); alert("Password reset email sent!"); }}>Forgot password?</span>
             )}
           </div>
           <div style={{ position:"relative" }}>
