@@ -634,7 +634,7 @@ export default function InvoiceApp({ onGoHome }) {
             {page === "dashboard" && <Dashboard invoices={invoicesWithStatus} totalRevenue={totalRevenue} totalPending={totalPending} totalOverdue={totalOverdue} setPage={setPage} setPreviewInvoice={setPreviewInvoice} onEdit={setEditingInvoice} onRemind={(inv) => requirePro("reminders", () => setReminderInvoice(inv))} f={f} />}
             {page === "invoices" && <Invoices invoices={filteredInvoices} filterStatus={filterStatus} setFilterStatus={setFilterStatus} search={search} setSearch={setSearch} onPreview={setPreviewInvoice} onDelete={deleteInvoice} onNew={openNewInvoice} onEdit={setEditingInvoice} onRemind={(inv) => requirePro("reminders", () => setReminderInvoice(inv))} remindersLog={remindersLog} f={f} isPro={isPro} onUpgrade={(feat) => { setUpgradeFeature(feat); setShowUpgrade(true); }} hasDraft={!!invoiceDraft} onOpenDraft={openNewInvoice} onDiscardDraft={discardDraft} onMarkPaid={markAsPaid} />}
             {page === "clients" && <Clients clients={clients} invoices={invoicesWithStatus} f={f} onDeleteClient={deleteClient} onEditClient={(c) => setEditingClient(c)} />}
-            {page === "settings" && <Settings currency={currency} setCurrency={setCurrency} />}
+            {page === "settings" && <Settings currency={currency} setCurrency={setCurrency} userEmail={userEmail} />}
           </div>
         </div>
 
@@ -900,7 +900,7 @@ function Clients({ clients, invoices, f, onDeleteClient, onEditClient }) {
   );
 }
 
-function Settings({ currency, setCurrency }) {
+function Settings({ currency, setCurrency, userEmail }) {
   const cur = getCurrency(currency);
   const [profile, setProfile] = useState({ name:"", email:"", phone:"", country:"NL", address:"", default_tax:20, notes:"" });
   const [saving, setSaving] = useState(false);
