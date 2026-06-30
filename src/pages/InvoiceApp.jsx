@@ -1661,7 +1661,7 @@ function UpgradeModal({ feature, onClose, onActivate }) {
   const [selectedPlan, setSelectedPlan] = useState("pro");
 
   const PLANS_INFO = {
-    pro: { name:"Pro", price:"\u20ac9", period:"/month", color:"var(--gold)", stripe_link:"https://buy.stripe.com/test_YOUR_PRO_LINK",
+    pro: { name:"Pro", price:"\u20ac9", period:"/month", color:"var(--gold)", stripe_link:"https://buy.stripe.com/fZu4gzepGdT05Gx48j5ZC00",
       features:["Unlimited invoices","Unlimited clients","Payment reminders (Email + WhatsApp)","PDF export","Custom logo & branding"] },
     business: { name:"Business", price:"\u20ac19", period:"/month", color:"#a78bfa", badge:"Coming Soon", stripe_link:null,
       features:["Everything in Pro","Team members (up to 5)","Multi-business profiles","Advanced analytics","Stripe payment integration","API access"] },
