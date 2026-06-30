@@ -305,9 +305,10 @@ footer {
 @media(max-width:900px){
   nav.topnav { padding:14px 20px; }
   .nav-links { display:none; }
+  .nav-hamburger { display:flex !important; }
   .nav-links.open { display:flex; flex-direction:column; position:fixed; top:0; left:0; right:0; bottom:0; background:#08080e !important; z-index:999; align-items:center; justify-content:center; gap:32px; list-style:none; }
   .nav-links.open a { font-size:22px; color:var(--text); }
-  .nav-hamburger { display:flex; background:none; border:none; color:var(--text); cursor:pointer; font-size:24px; padding:4px; z-index:160; }
+  .nav-hamburger { display:none; background:none; border:none; color:var(--text); cursor:pointer; font-size:24px; padding:4px; z-index:160; }
   .nav-close { position:fixed; top:20px; right:20px; background:none; border:none; color:var(--text); font-size:28px; cursor:pointer; z-index:1000; }
   .features-grid,.how-grid,.pricing-grid,.testi-grid { grid-template-columns:1fr; }
   .price-card.featured { transform:scale(1); }
