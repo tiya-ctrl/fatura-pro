@@ -1555,34 +1555,76 @@ function ReminderModal({ invoice, onClose, onLog, f }) {
   const daysOverdue = invoice.due ? Math.floor((new Date(today) - new Date(invoice.due)) / 86400000) : 0;
   const [tone, setTone] = useState("polite");
   const [channel, setChannel] = useState("email");
+  const [lang, setLang] = useState("en");
   const [sent, setSent] = useState(false);
 
-  const getBody = (t, c) => {
-    const bodies = {
-      polite: "Dear " + invoice.client + ",\n\nThis is a friendly reminder that Invoice " + invoice.id + " for " + f(invoice.amount) + " was due on " + formatDate(invoice.due) + ".\n\nPlease arrange payment at your earliest convenience.\n\nWarm regards,\n" + (invoice.sellerName || "Your Company"),
-      firm: "Dear " + invoice.client + ",\n\nInvoice " + invoice.id + " for " + f(invoice.amount) + " is now " + daysOverdue + " days overdue.\n\nPlease process payment within 5 business days.\n\nBest regards,\n" + (invoice.sellerName || "Your Company"),
-      final: "Dear " + invoice.client + ",\n\nThis is our final notice. Invoice " + invoice.id + " for " + f(invoice.amount) + " is " + daysOverdue + " days overdue.\n\nPlease arrange immediate payment or contact us within 48 hours.\n\nRegards,\n" + (invoice.sellerName || "Your Company"),
-    };
-    const wa = {
-      polite: "Hi " + invoice.client + ", friendly reminder about Invoice " + invoice.id + " for " + f(invoice.amount) + " due " + formatDate(invoice.due) + ". Thank you!",
-      firm: "Hi " + invoice.client + ", Invoice " + invoice.id + " for " + f(invoice.amount) + " is " + daysOverdue + " days overdue. Please pay within 5 days.",
-      final: "Dear " + invoice.client + ", Invoice " + invoice.id + " is " + daysOverdue + " days overdue. Final notice — please pay immediately.",
-    };
-    return c === "email" ? bodies[t] : wa[t];
+  const TEMPLATES = {
+    en: { label: "English",
+      bodies: {
+        polite: "Dear " + invoice.client + ",\n\nThis is a friendly reminder that Invoice " + invoice.id + " for " + f(invoice.amount) + " was due on " + formatDate(invoice.due) + ".\n\nPlease arrange payment at your earliest convenience.\n\nWarm regards,\n" + (invoice.sellerName || "Your Company"),
+        firm: "Dear " + invoice.client + ",\n\nInvoice " + invoice.id + " for " + f(invoice.amount) + " is now " + daysOverdue + " days overdue.\n\nPlease process payment within 5 business days.\n\nBest regards,\n" + (invoice.sellerName || "Your Company"),
+        final: "Dear " + invoice.client + ",\n\nThis is our final notice. Invoice " + invoice.id + " for " + f(invoice.amount) + " is " + daysOverdue + " days overdue.\n\nPlease arrange immediate payment or contact us within 48 hours.\n\nRegards,\n" + (invoice.sellerName || "Your Company"),
+      },
+      wa: {
+        polite: "Hi " + invoice.client + ", friendly reminder about Invoice " + invoice.id + " for " + f(invoice.amount) + " due " + formatDate(invoice.due) + ". Thank you!",
+        firm: "Hi " + invoice.client + ", Invoice " + invoice.id + " for " + f(invoice.amount) + " is " + daysOverdue + " days overdue. Please pay within 5 days.",
+        final: "Dear " + invoice.client + ", Invoice " + invoice.id + " is " + daysOverdue + " days overdue. Final notice — please pay immediately.",
+      },
+      subjects: { polite:"Friendly Reminder – Invoice " + invoice.id, firm:"Payment Overdue – Invoice " + invoice.id, final:"FINAL NOTICE – Invoice " + invoice.id },
+    },
+    ar: { label: "العربية",
+      bodies: {
+        polite: "عزيزي " + invoice.client + "،\n\nهذه رسالة تذكير ودية بأن الفاتورة " + invoice.id + " بمبلغ " + f(invoice.amount) + " كانت مستحقة بتاريخ " + formatDate(invoice.due) + ".\n\nيرجى ترتيب الدفع في أقرب وقت ممكن.\n\nمع التحية،\n" + (invoice.sellerName || "شركتك"),
+        firm: "عزيزي " + invoice.client + "،\n\nالفاتورة " + invoice.id + " بمبلغ " + f(invoice.amount) + " متأخرة منذ " + daysOverdue + " يوماً.\n\nيرجى إتمام الدفع خلال 5 أيام عمل.\n\nمع التحية،\n" + (invoice.sellerName || "شركتك"),
+        final: "عزيزي " + invoice.client + "،\n\nهذا إشعارنا الأخير. الفاتورة " + invoice.id + " بمبلغ " + f(invoice.amount) + " متأخرة منذ " + daysOverdue + " يوماً.\n\nيرجى الدفع الفوري أو التواصل معنا خلال 48 ساعة.\n\nمع التحية،\n" + (invoice.sellerName || "شركتك"),
+      },
+      wa: {
+        polite: "مرحباً " + invoice.client + "، تذكير ودي بخصوص الفاتورة " + invoice.id + " بمبلغ " + f(invoice.amount) + " المستحقة بتاريخ " + formatDate(invoice.due) + ". شكراً لك!",
+        firm: "مرحباً " + invoice.client + "، الفاتورة " + invoice.id + " بمبلغ " + f(invoice.amount) + " متأخرة منذ " + daysOverdue + " يوماً. يرجى الدفع خلال 5 أيام.",
+        final: "عزيزي " + invoice.client + "، الفاتورة " + invoice.id + " متأخرة منذ " + daysOverdue + " يوماً. إشعار أخير — يرجى الدفع فوراً.",
+      },
+      subjects: { polite:"تذكير ودي – فاتورة " + invoice.id, firm:"دفعة متأخرة – فاتورة " + invoice.id, final:"إشعار أخير – فاتورة " + invoice.id },
+    },
+    fr: { label: "Français",
+      bodies: {
+        polite: "Cher/Chère " + invoice.client + ",\n\nCeci est un rappel amical concernant la facture " + invoice.id + " de " + f(invoice.amount) + " qui était due le " + formatDate(invoice.due) + ".\n\nVeuillez organiser le paiement dès que possible.\n\nCordialement,\n" + (invoice.sellerName || "Votre entreprise"),
+        firm: "Cher/Chère " + invoice.client + ",\n\nLa facture " + invoice.id + " de " + f(invoice.amount) + " est maintenant en retard de " + daysOverdue + " jours.\n\nVeuillez procéder au paiement sous 5 jours ouvrables.\n\nCordialement,\n" + (invoice.sellerName || "Votre entreprise"),
+        final: "Cher/Chère " + invoice.client + ",\n\nCeci est notre avis final. La facture " + invoice.id + " de " + f(invoice.amount) + " est en retard de " + daysOverdue + " jours.\n\nVeuillez effectuer le paiement immédiatement ou nous contacter sous 48 heures.\n\nCordialement,\n" + (invoice.sellerName || "Votre entreprise"),
+      },
+      wa: {
+        polite: "Bonjour " + invoice.client + ", rappel amical concernant la facture " + invoice.id + " de " + f(invoice.amount) + " due le " + formatDate(invoice.due) + ". Merci!",
+        firm: "Bonjour " + invoice.client + ", la facture " + invoice.id + " de " + f(invoice.amount) + " est en retard de " + daysOverdue + " jours. Merci de payer sous 5 jours.",
+        final: "Cher/Chère " + invoice.client + ", la facture " + invoice.id + " est en retard de " + daysOverdue + " jours. Avis final — merci de payer immédiatement.",
+      },
+      subjects: { polite:"Rappel amical – Facture " + invoice.id, firm:"Paiement en retard – Facture " + invoice.id, final:"AVIS FINAL – Facture " + invoice.id },
+    },
+    nl: { label: "Nederlands",
+      bodies: {
+        polite: "Beste " + invoice.client + ",\n\nDit is een vriendelijke herinnering dat factuur " + invoice.id + " van " + f(invoice.amount) + " verschuldigd was op " + formatDate(invoice.due) + ".\n\nGelieve de betaling zo spoedig mogelijk te regelen.\n\nMet vriendelijke groet,\n" + (invoice.sellerName || "Uw bedrijf"),
+        firm: "Beste " + invoice.client + ",\n\nFactuur " + invoice.id + " van " + f(invoice.amount) + " is nu " + daysOverdue + " dagen te laat.\n\nGelieve binnen 5 werkdagen te betalen.\n\nMet vriendelijke groet,\n" + (invoice.sellerName || "Uw bedrijf"),
+        final: "Beste " + invoice.client + ",\n\nDit is onze laatste herinnering. Factuur " + invoice.id + " van " + f(invoice.amount) + " is " + daysOverdue + " dagen te laat.\n\nGelieve onmiddellijk te betalen of binnen 48 uur contact op te nemen.\n\nMet vriendelijke groet,\n" + (invoice.sellerName || "Uw bedrijf"),
+      },
+      wa: {
+        polite: "Hoi " + invoice.client + ", vriendelijke herinnering over factuur " + invoice.id + " van " + f(invoice.amount) + " verschuldigd op " + formatDate(invoice.due) + ". Bedankt!",
+        firm: "Hoi " + invoice.client + ", factuur " + invoice.id + " van " + f(invoice.amount) + " is " + daysOverdue + " dagen te laat. Gelieve binnen 5 dagen te betalen.",
+        final: "Beste " + invoice.client + ", factuur " + invoice.id + " is " + daysOverdue + " dagen te laat. Laatste herinnering — gelieve onmiddellijk te betalen.",
+      },
+      subjects: { polite:"Vriendelijke herinnering – Factuur " + invoice.id, firm:"Betaling te laat – Factuur " + invoice.id, final:"LAATSTE HERINNERING – Factuur " + invoice.id },
+    },
   };
-
+  const getBody = (t, c) => {
+    const tmpl = TEMPLATES[lang];
+    return c === "email" ? tmpl.bodies[t] : tmpl.wa[t];
+  };
   const [editedText, setEditedText] = useState(getBody("polite","email"));
   const tones = [
     { id:"polite", label:"Polite", desc:"Friendly first reminder", color:"var(--green)" },
     { id:"firm", label:"Firm", desc:"Professional follow-up", color:"var(--orange)" },
     { id:"final", label:"Final", desc:"Last notice before action", color:"var(--red)" },
   ];
-
-  const subjects = { polite:"Friendly Reminder – Invoice " + invoice.id, firm:"Payment Overdue – Invoice " + invoice.id, final:"FINAL NOTICE – Invoice " + invoice.id };
-
   const handleSend = () => {
     if (channel === "email" && invoice.email) {
-      window.open("mailto:" + invoice.email + "?subject=" + encodeURIComponent(subjects[tone]) + "&body=" + encodeURIComponent(editedText), "_blank");
+      window.open("mailto:" + invoice.email + "?subject=" + encodeURIComponent(TEMPLATES[lang].subjects[tone]) + "&body=" + encodeURIComponent(editedText), "_blank");
     } else if (channel === "whatsapp") {
       window.open("https://wa.me/" + (invoice.buyerPhone || "").replace(/\D/g,"") + "?text=" + encodeURIComponent(editedText), "_blank");
     }
@@ -1618,6 +1660,10 @@ function ReminderModal({ invoice, onClose, onLog, f }) {
         </div>
 
         <div style={{ marginBottom:16 }}>
+          <div style={{ fontSize:11, fontWeight:700, color:"var(--text2)", letterSpacing:0.5, textTransform:"uppercase", marginBottom:8 }}>Language</div>
+          <select value={lang} onChange={e => { setLang(e.target.value); setEditedText(TEMPLATES[e.target.value][channel==="email"?"bodies":"wa"][tone]); }} style={{ width:"100%", marginBottom:16 }}>
+            {Object.entries(TEMPLATES).map(([code, t]) => <option key={code} value={code}>{t.label}</option>)}
+          </select>
           <div style={{ fontSize:11, fontWeight:700, color:"var(--text2)", letterSpacing:0.5, textTransform:"uppercase", marginBottom:8 }}>Tone</div>
           <div style={{ display:"flex", gap:8 }}>
             {tones.map(t => (
@@ -1633,7 +1679,7 @@ function ReminderModal({ invoice, onClose, onLog, f }) {
         </div>
 
         <div className="form-group" style={{ marginBottom:16 }}>
-          <label>{channel==="email" && <span style={{ color:"var(--text2)", fontSize:11 }}>Subject: <strong style={{ color:"var(--text)" }}>{subjects[tone]}</strong></span>}</label>
+          <label>{channel==="email" && <span style={{ color:"var(--text2)", fontSize:11 }}>Subject: <strong style={{ color:"var(--text)" }}>{TEMPLATES[lang].subjects[tone]}</strong></span>}</label>
           <textarea rows={channel==="email"?9:5} value={editedText} onChange={e => setEditedText(e.target.value)} style={{ resize:"vertical", fontSize:12, lineHeight:1.7, marginTop:channel==="email"?8:0 }} />
           <div style={{ fontSize:11, color:"var(--text2)", marginTop:4 }}>You can edit the message before sending</div>
         </div>
