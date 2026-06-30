@@ -10,7 +10,7 @@ export default function Legal({ page }) {
             <p style={{ color:"#9a9690", marginBottom:40 }}>Last updated: June 2026</p>
             {[
               ["1. Who We Are", "Fatūra Pro is a professional invoicing platform operated from the Netherlands. We are committed to protecting your personal data in accordance with GDPR."],
-              ["2. Data We Collect", "We collect your email address, business profile information (name, address, phone), and invoice data you enter into the platform. We do not sell your data to third parties."],
+              ["2. Data We Collect", "We collect only the minimum information necessary to provide the service. Your data belongs to you — we store it securely and never share or sell it to third parties."],
               ["3. How We Use Your Data", "Your data is used solely to provide the Fatūra Pro service — creating invoices, managing clients, and sending payment reminders. We may send you transactional emails about your account."],
               ["4. Data Storage", "Your data is stored securely in EU-based servers via Supabase. All connections are encrypted via TLS."],
               ["5. Payment Data", "Payments are processed by Stripe. We do not store your credit card details. Please review Stripe's privacy policy at stripe.com/privacy."],
