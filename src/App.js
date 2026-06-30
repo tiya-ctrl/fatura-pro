@@ -9,6 +9,7 @@ import Login from "./pages/Login";
 import Register from "./pages/Register";
 import ResetPassword from "./pages/ResetPassword";
 import Legal from "./pages/Legal";
+import Admin from "./pages/Admin";
 
 /* ───────── Landing ───────── */
 function LandingWrapper() {
@@ -73,6 +74,7 @@ function AppRoutes() {
       <Route path="/reset-password" element={<ResetPassword onDone={() => window.location.href="/login"} />} />
       <Route path="/privacy" element={<Legal page="privacy" />} />
       <Route path="/terms" element={<Legal page="terms" />} />
+      <Route path="/admin" element={<Admin />} />
       <Route path="/app" element={<InvoiceWrapper />} />
       <Route path="*" element={<LandingWrapper />} />
     </Routes>
