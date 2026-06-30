@@ -771,6 +771,10 @@ function Footer({ onOpenApp }) {
           <a href="/privacy" style={{color:"var(--text2)",fontSize:13,textDecoration:"none",display:"block",marginBottom:6}}>Privacy Policy</a><a href="/terms" style={{color:"var(--text2)",fontSize:13,textDecoration:"none",display:"block",marginBottom:6}}>Terms of Service</a><p style={{fontSize:12,color:"var(--text2)",lineHeight:1.8,marginTop:8}}>GDPR Compliant · EU Data Storage</p>
         </div>
       </div>
+      <div style={{ borderTop:"1px solid var(--border2)", padding:"32px 0", textAlign:"center", marginTop:32 }}>
+        <div style={{ fontSize:16, fontWeight:700, color:"var(--gold)", marginBottom:8 }}>🎁 Refer a Friend & Earn</div>
+        <div style={{ fontSize:13, color:"var(--text2)", lineHeight:1.8, maxWidth:500, margin:"0 auto" }}>Love Fatūra Pro? Share it with a friend!<br/>For every 3 friends who subscribe, you get a <strong style={{ color:"var(--text)" }}>free month</strong>.<br/>Sign in → Go to Settings → Copy your referral link.</div>
+      </div>
       <div className="footer-bottom">
         <span>© 2026 Fatūra Pro · Professional Invoicing for Freelancers · faturapro.app</span>
         <span style={{ display:"flex", gap:16 }}>
