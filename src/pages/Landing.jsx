@@ -608,6 +608,7 @@ function Pricing({ onOpenApp }) {
     const { createClient } = await import("@supabase/supabase-js");
     const sb = createClient(process.env.REACT_APP_SUPABASE_URL, process.env.REACT_APP_SUPABASE_ANON_KEY);
     const { error } = await sb.from("waitlist").insert({ email: waitEmail });
+    if (!error) { await fetch("/api/waitlist-confirm", { method:"POST", headers:{"Content-Type":"application/json"}, body:JSON.stringify({ email: waitEmail }) }); }
     if (error && error.code === "23505") { setWaitStatus("already"); }
     else if (error) { setWaitStatus("error"); }
     else { setWaitStatus("success"); }
