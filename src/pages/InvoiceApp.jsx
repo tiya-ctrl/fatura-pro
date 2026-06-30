@@ -379,7 +379,7 @@ export default function InvoiceApp({ onGoHome }) {
       if (!data) {
         const trialEndDate = new Date();
         trialEndDate.setDate(trialEndDate.getDate() + 7);
-        await supabase.from("user_plans").upsert({ user_id: user.id, plan: "free", trial_end: trialEndDate.toISOString() });
+        await supabase.from("user_plans").upsert({ user_id: user.id, plan: "free", trial_end: trialEndDate.toISOString(), email: user.email });
         data = { plan: "free", trial_end: trialEndDate.toISOString() };
       }
       if (data?.plan === "pro") {
