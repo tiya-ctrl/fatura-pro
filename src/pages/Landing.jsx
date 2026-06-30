@@ -768,7 +768,7 @@ function Footer({ onOpenApp }) {
         </div>
         <div className="footer-col">
           <h4>Legal</h4>
-          <p style={{fontSize:12,color:"var(--text2)",lineHeight:1.8}}>Fatūra Pro is GDPR compliant and does not sell your data. All invoices and client data are encrypted and stored securely in the EU.<br/><br/>For privacy inquiries: support@faturapro.app</p>
+          <a href="/privacy" style={{color:"var(--text2)",fontSize:13,textDecoration:"none",display:"block",marginBottom:6}}>Privacy Policy</a><a href="/terms" style={{color:"var(--text2)",fontSize:13,textDecoration:"none",display:"block",marginBottom:6}}>Terms of Service</a><p style={{fontSize:12,color:"var(--text2)",lineHeight:1.8,marginTop:8}}>GDPR Compliant · EU Data Storage</p>
         </div>
       </div>
       <div className="footer-bottom">
