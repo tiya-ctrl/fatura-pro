@@ -1676,8 +1676,10 @@ function UpgradeModal({ feature, onClose, onActivate }) {
   const feat = featureLabels[feature] || { icon:"✦", label:"Pro Feature", desc:"Unlock all Pro features" };
 
   const handleStripe = () => {
-    setLoading(true);
-    setTimeout(() => { setStep("success"); setLoading(false); }, 1500);
+    const link = PLANS_INFO[selectedPlan]?.stripe_link;
+    if (link) {
+      window.location.href = link;
+    }
   };
 
   if (step === "success") {
