@@ -375,7 +375,13 @@ export default function InvoiceApp({ onGoHome }) {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) return;
       setUserEmail(user.email || "");
-      const { data } = await supabase.from("user_plans").select("plan, trial_end").eq("user_id", user.id).maybeSingle();
+      let { data } = await supabase.from("user_plans").select("plan, trial_end").eq("user_id", user.id).maybeSingle();
+      if (!data) {
+        const trialEndDate = new Date();
+        trialEndDate.setDate(trialEndDate.getDate() + 7);
+        await supabase.from("user_plans").upsert({ user_id: user.id, plan: "free", trial_end: trialEndDate.toISOString() });
+        data = { plan: "free", trial_end: trialEndDate.toISOString() };
+      }
       if (data?.plan === "pro") {
         setPlan("pro");
       } else if (data?.trial_end && new Date(data.trial_end) > new Date()) {
