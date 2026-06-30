@@ -49,6 +49,7 @@ nav.topnav.scrolled {
 .nav-links a { font-size:14px; font-weight:500; color:var(--text2); text-decoration:none; transition:color 0.2s; }
 .nav-links a:hover { color:var(--text); }
 .nav-cta { display:flex; gap:10px; align-items:center; }
+.nav-hamburger { display:none; background:none; border:none; color:var(--text); cursor:pointer; font-size:24px; padding:4px; }
 .btn { display:inline-flex; align-items:center; gap:6px; padding:10px 22px; border-radius:9px;
   font-size:13px; font-weight:600; cursor:pointer; border:none; transition:all 0.2s;
   font-family:'DM Sans',sans-serif; text-decoration:none; white-space:nowrap; }
@@ -308,7 +309,6 @@ footer {
   .nav-hamburger { display:flex !important; }
   .nav-links.open { display:flex; flex-direction:column; position:fixed; top:0; left:0; right:0; bottom:0; background:#08080e !important; z-index:999; align-items:center; justify-content:center; gap:32px; list-style:none; }
   .nav-links.open a { font-size:22px; color:var(--text); }
-  .nav-hamburger { display:none; background:none; border:none; color:var(--text); cursor:pointer; font-size:24px; padding:4px; z-index:160; }
   .nav-close { position:fixed; top:20px; right:20px; background:none; border:none; color:var(--text); font-size:28px; cursor:pointer; z-index:1000; }
   .features-grid,.how-grid,.pricing-grid,.testi-grid { grid-template-columns:1fr; }
   .price-card.featured { transform:scale(1); }
