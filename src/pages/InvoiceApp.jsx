@@ -931,8 +931,6 @@ function Settings({ currency, setCurrency }) {
 
   const refCode = userEmail ? btoa(userEmail).slice(0,8).toUpperCase() : "";
   const refLink = "https://faturapro.app/?ref=" + refCode;
-  const refCode = userEmail ? btoa(userEmail).slice(0,8).toUpperCase() : "";
-  const refLink = "https://faturapro.app/?ref=" + refCode;
   const saveProfile = async () => {
     setSaving(true);
     const { data: { user } } = await supabase.auth.getUser();
