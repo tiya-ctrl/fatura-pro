@@ -1743,16 +1743,30 @@ function UpgradeModal({ feature, onClose, onActivate }) {
           </div>
         </div>
 
-        <button className="btn btn-primary" style={{ width:"100%", justifyContent:"center", fontSize:15, padding:"14px", marginBottom:10 }}
-          onClick={handleStripe} disabled={loading || !!(PLANS_INFO[selectedPlan] && PLANS_INFO[selectedPlan].badge)}>
-          {loading
-            ? <span style={{ display:"flex", alignItems:"center", gap:8 }}>
-                <span style={{ width:16, height:16, border:"2px solid #000", borderTopColor:"transparent", borderRadius:"50%", display:"inline-block", animation:"spin 0.7s linear infinite" }} />
-                Connecting to Stripe...
-              </span>
-            : ("Upgrade to " + PLANS_INFO[selectedPlan].name + " — " + PLANS_INFO[selectedPlan].price + "/mo")
-          }
-        </button>
+        {selectedPlan === "business" ? (
+          <button className="btn btn-primary" style={{ width:"100%", justifyContent:"center", fontSize:15, padding:"14px", marginBottom:10 }}
+            onClick={async () => {
+              const email = prompt("Enter your email to join the Business plan waitlist:");
+              if (!email || !email.includes("@")) return;
+              const { createClient } = await import("@supabase/supabase-js");
+              const sb = createClient(process.env.REACT_APP_SUPABASE_URL, process.env.REACT_APP_SUPABASE_ANON_KEY);
+              const { error } = await sb.from("waitlist").insert({ email });
+              alert(error ? "You are already on the waitlist!" : "You are on the list! We will notify you when Business launches.");
+            }}>
+            Join Waitlist
+          </button>
+        ) : (
+          <button className="btn btn-primary" style={{ width:"100%", justifyContent:"center", fontSize:15, padding:"14px", marginBottom:10 }}
+            onClick={handleStripe} disabled={loading}>
+            {loading
+              ? <span style={{ display:"flex", alignItems:"center", gap:8 }}>
+                  <span style={{ width:16, height:16, border:"2px solid #000", borderTopColor:"transparent", borderRadius:"50%", display:"inline-block", animation:"spin 0.7s linear infinite" }} />
+                  Connecting to Stripe...
+                </span>
+              : ("Upgrade to " + PLANS_INFO[selectedPlan].name + " — " + PLANS_INFO[selectedPlan].price + "/mo")
+            }
+          </button>
+        )}
 
         <div style={{ textAlign:"center", fontSize:11, color:"var(--text3)" }}>No commitment · Cancel anytime · 14-day money back guarantee</div>
         <button onClick={onClose} style={{ display:"block", margin:"14px auto 0", background:"none", border:"none", color:"var(--text2)", cursor:"pointer", fontSize:13 }}>Maybe later</button>
