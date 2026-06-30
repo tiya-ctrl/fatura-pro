@@ -307,7 +307,7 @@ footer {
   nav.topnav { padding:14px 20px; }
   .nav-links { display:none; }
   .nav-hamburger { display:flex !important; }
-  .nav-links.open { display:flex; flex-direction:column; position:fixed; top:0; left:0; right:0; bottom:0; background:#08080e !important; z-index:999; align-items:center; justify-content:center; gap:32px; list-style:none; }
+  .nav-links.open { display:flex; flex-direction:column; position:fixed; top:0; left:0; width:100vw; height:100vh; background:#08080e !important; z-index:999; align-items:center; justify-content:center; gap:32px; list-style:none; margin:0; padding:0; }
   .nav-links.open a { font-size:22px; color:var(--text); }
   .nav-close { position:fixed; top:20px; right:20px; background:none; border:none; color:var(--text); font-size:28px; cursor:pointer; z-index:1000; }
   .features-grid,.how-grid,.pricing-grid,.testi-grid { grid-template-columns:1fr; }
