@@ -1,4 +1,5 @@
 import { BrowserRouter, Routes, Route, useNavigate } from "react-router-dom";
+import { Analytics } from "@vercel/analytics/react";
 import { useEffect, useState } from "react";
 import { onAuthChange } from "./auth";
 
@@ -80,6 +81,7 @@ export default function App() {
   return (
     <BrowserRouter>
       <AppRoutes />
+      <Analytics />
     </BrowserRouter>
   );
 }
