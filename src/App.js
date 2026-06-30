@@ -81,6 +81,9 @@ function AppRoutes() {
 
 /* ───────── Main App ───────── */
 export default function App() {
+  const params = new URLSearchParams(window.location.search);
+  const ref = params.get("ref");
+  if (ref) localStorage.setItem("fatura_ref", ref);
   return (
     <BrowserRouter>
       <AppRoutes />

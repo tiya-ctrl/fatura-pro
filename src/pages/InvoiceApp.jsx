@@ -379,7 +379,9 @@ export default function InvoiceApp({ onGoHome }) {
       if (!data) {
         const trialEndDate = new Date();
         trialEndDate.setDate(trialEndDate.getDate() + 7);
-        await supabase.from("user_plans").upsert({ user_id: user.id, plan: "free", trial_end: trialEndDate.toISOString(), email: user.email });
+        const refCode = localStorage.getItem("fatura_ref") || null;
+        await supabase.from("user_plans").upsert({ user_id: user.id, plan: "free", trial_end: trialEndDate.toISOString(), email: user.email, referred_by: refCode });
+        if (refCode) localStorage.removeItem("fatura_ref");
         data = { plan: "free", trial_end: trialEndDate.toISOString() };
       }
       if (data?.plan === "pro") {
@@ -927,6 +929,10 @@ function Settings({ currency, setCurrency }) {
     load();
   }, []);
 
+  const refCode = userEmail ? btoa(userEmail).slice(0,8).toUpperCase() : "";
+  const refLink = "https://faturapro.app/?ref=" + refCode;
+  const refCode = userEmail ? btoa(userEmail).slice(0,8).toUpperCase() : "";
+  const refLink = "https://faturapro.app/?ref=" + refCode;
   const saveProfile = async () => {
     setSaving(true);
     const { data: { user } } = await supabase.auth.getUser();
@@ -958,6 +964,14 @@ function Settings({ currency, setCurrency }) {
         <button className="btn btn-primary" onClick={saveProfile} disabled={saving}>
           {saving ? "Saving..." : saved ? "✓ Saved!" : "Save Changes"}
         </button>
+        <div style={{ marginTop:20, background:"var(--bg3)", border:"1px solid var(--border)", borderRadius:10, padding:"16px 20px" }}>
+          <div style={{ fontSize:12, fontWeight:700, color:"var(--gold)", marginBottom:6, letterSpacing:0.5, textTransform:"uppercase" }}>🎁 Refer a Friend</div>
+          <div style={{ fontSize:13, color:"var(--text2)", marginBottom:10, lineHeight:1.6 }}>Share your referral link. For every 3 friends who subscribe, you get a free month!</div>
+          <div style={{ display:"flex", gap:8 }}>
+            <input readOnly value={refLink} style={{ flex:1, fontSize:12, padding:"8px 12px", borderRadius:6 }} />
+            <button className="btn btn-ghost btn-sm" onClick={() => { navigator.clipboard.writeText(refLink); alert("Copied!"); }}>Copy</button>
+          </div>
+        </div>
       </div>
       <div className="card" style={{ padding:28 }}>
         <div className="card-title" style={{ marginBottom:20 }}>Invoice Defaults</div>
