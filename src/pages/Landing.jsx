@@ -785,7 +785,7 @@ function Footer({ onOpenApp }) {
 }
 
 /* ─── CHATBOT ────────────────────────────────────────────────── */
-const SUGGESTIONS = ["What's in the Pro plan?", "كيف تشتغل؟", "Do I need a company?", "Stripe payments?"];
+const SUGGESTIONS = ["What's in the Pro plan?", "كيف تشتغل؟", "Do I need a company?", "How does the trial work?"];
 const INIT_MSG = { role:"bot", text:"Hey! 👋 I'm Fatūra's assistant. Ask me anything about features, pricing, or how to get started.", time: timeStr() };
 
 function Chatbot() {
@@ -846,7 +846,7 @@ function Chatbot() {
           <div className="chat-messages">
             {msgs.map((m, i) => (
               <div key={i} className={`chat-msg ${m.role}`}>
-                <div className="chat-bubble">{m.text}</div>
+                <div className="chat-bubble" style={{ direction: /[؀-ۿ]/.test(m.text) ? "rtl" : "ltr", textAlign: /[؀-ۿ]/.test(m.text) ? "right" : "left" }}>{m.text}</div>
                 <div className="chat-time">{m.time}</div>
               </div>
             ))}
