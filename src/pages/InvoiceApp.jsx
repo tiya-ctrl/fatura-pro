@@ -381,7 +381,10 @@ export default function InvoiceApp({ onGoHome }) {
         trialEndDate.setDate(trialEndDate.getDate() + 7);
         const refCode = localStorage.getItem("fatura_ref") || null;
         await supabase.from("user_plans").upsert({ user_id: user.id, plan: "free", trial_end: trialEndDate.toISOString(), email: user.email, referred_by: refCode });
-        if (refCode) localStorage.removeItem("fatura_ref");
+        if (refCode) {
+          await supabase.from("referrals").insert({ referrer_code: refCode, referred_email: user.email, referred_user_id: user.id });
+          localStorage.removeItem("fatura_ref");
+        }
         data = { plan: "free", trial_end: trialEndDate.toISOString() };
       }
       if (data?.plan === "pro") {
