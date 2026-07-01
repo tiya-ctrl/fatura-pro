@@ -9,6 +9,7 @@ import Login from "./pages/Login";
 import Register from "./pages/Register";
 import ResetPassword from "./pages/ResetPassword";
 import Legal from "./pages/Legal";
+import Admin from "./pages/Admin";
 
 /* ───────── Landing ───────── */
 function LandingWrapper() {
