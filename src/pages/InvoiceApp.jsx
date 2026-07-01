@@ -905,7 +905,7 @@ function Clients({ clients, invoices, f, onDeleteClient, onEditClient }) {
 
 function Settings({ currency, setCurrency, userEmail }) {
   const cur = getCurrency(currency);
-  const [profile, setProfile] = useState({ name:"", email:"", phone:"", country:"NL", address:"", default_tax:20, notes:"" });
+  const [profile, setProfile] = useState({ name:"", email:"", phone:"", country:"NL", address:"", default_tax:20, notes:"", invoice_prefix:"INV-", payment_terms:30 });
   const [saving, setSaving] = useState(false);
   const [saved, setSaved] = useState(false);
   const [savingDefaults, setSavingDefaults] = useState(false);
@@ -915,7 +915,7 @@ function Settings({ currency, setCurrency, userEmail }) {
     setSavingDefaults(true);
     const { data: { user } } = await supabase.auth.getUser();
     if (!user) return;
-    await supabase.from("business_profile").upsert({ user_id: user.id, notes: profile.notes || "", default_tax: profile.default_tax ?? 20, updated_at: new Date().toISOString() });
+    await supabase.from("business_profile").upsert({ user_id: user.id, notes: profile.notes || "", default_tax: profile.default_tax ?? 20, invoice_prefix: profile.invoice_prefix || "INV-", payment_terms: profile.payment_terms ?? 30, updated_at: new Date().toISOString() });
     setSavingDefaults(false);
     setSavedDefaults(true);
     setTimeout(() => setSavedDefaults(false), 2000);
@@ -927,7 +927,7 @@ function Settings({ currency, setCurrency, userEmail }) {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) return;
       const { data } = await supabase.from("business_profile").select("*").eq("user_id", user.id).maybeSingle();
-      if (data) setProfile({ name: data.name || "", email: data.email || "", phone: data.phone || "", country: data.country || "NL", address: data.address || "", default_tax: data.default_tax ?? 20, notes: data.notes || "" });
+      if (data) setProfile({ name: data.name || "", email: data.email || "", phone: data.phone || "", country: data.country || "NL", address: data.address || "", default_tax: data.default_tax ?? 20, notes: data.notes || "", invoice_prefix: data.invoice_prefix || "INV-", payment_terms: data.payment_terms ?? 30 });
     };
     load();
   }, []);
@@ -991,8 +991,8 @@ function Settings({ currency, setCurrency, userEmail }) {
             </div>
           </div>
           <div className="form-group"><label>Default Tax (%)</label><input type="number" value={profile.default_tax ?? 20} onChange={e => setProfile(p => ({ ...p, default_tax: +e.target.value }))} /></div>
-          <div className="form-group"><label>Payment Terms (days)</label><input type="number" defaultValue="30" /></div>
-          <div className="form-group"><label>Invoice Prefix</label><input defaultValue="INV-" /></div>
+          <div className="form-group"><label>Payment Terms (days)</label><input type="number" value={profile.payment_terms ?? 30} onChange={e => setProfile(p => ({ ...p, payment_terms: +e.target.value }))} /></div>
+          <div className="form-group"><label>Invoice Prefix</label><input value={profile.invoice_prefix || "INV-"} onChange={e => setProfile(p => ({ ...p, invoice_prefix: e.target.value }))} /></div>
           <div className="form-group full"><label>Invoice Notes</label>
             <textarea rows={3} value={profile.notes || ""} onChange={e => setProfile(p => ({ ...p, notes: e.target.value }))} style={{ resize:"vertical" }} placeholder="Thank you for your business. Payment is due within 30 days." />
           </div>
