@@ -604,7 +604,9 @@ function Pricing({ onOpenApp }) {
     if (!waitEmail.includes("@")) return;
     const { createClient } = await import("@supabase/supabase-js");
     const sb = createClient(process.env.REACT_APP_SUPABASE_URL, process.env.REACT_APP_SUPABASE_ANON_KEY);
-    const { error } = await sb.from("waitlist").insert({ email: waitEmail });
+    let wCountry = null;
+    try { const geo = await fetch("https://ipapi.co/json/"); const gd = await geo.json(); wCountry = gd.country_name || null; } catch(e) {}
+    const { error } = await sb.from("waitlist").insert({ email: waitEmail, country: wCountry });
     if (!error) { await fetch("/api/waitlist-confirm", { method:"POST", headers:{"Content-Type":"application/json"}, body:JSON.stringify({ email: waitEmail }) }); }
     if (error && error.code === "23505") { setWaitStatus("already"); }
     else if (error) { setWaitStatus("error"); }
