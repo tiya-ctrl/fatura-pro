@@ -6,9 +6,6 @@ const supabase = createClient(
 );
 
 export default async function handler(req, res) {
-  if (req.headers.authorization !== `Bearer ${process.env.CRON_SECRET}`) {
-    return res.status(401).end();
-  }
 
   const tomorrow = new Date();
   tomorrow.setDate(tomorrow.getDate() + 1);
