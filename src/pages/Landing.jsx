@@ -458,7 +458,7 @@ function Hero({ onOpenApp }) {
         Invoice like a<br /><em>professional.</em>
       </h1>
       <p className="hero-sub fade-up delay-2">
-        Create, send and track professional invoices in minutes. The #1 invoicing app for freelancers and entrepreneurs across Europe and MENA — supports EUR, USD, AED, MAD and 14 more currencies.
+        Create, send and track professional invoices in minutes. The invoicing app freelancers worldwide love — supports EUR, USD, AED, MAD and 14 more currencies.
       </p>
       <div className="hero-actions fade-up delay-3">
         <button className="btn btn-gold btn-xl" onClick={onOpenApp}>Try Pro Free — 7 Days →</button>
