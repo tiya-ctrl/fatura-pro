@@ -9,6 +9,7 @@ import Login from "./pages/Login";
 import Register from "./pages/Register";
 import ResetPassword from "./pages/ResetPassword";
 import Legal from "./pages/Legal";
+import { BlogIndex, BlogPost } from "./pages/Blog";
 import Admin from "./pages/Admin";
 
 /* ───────── Landing ───────── */
@@ -74,6 +75,8 @@ function AppRoutes() {
       <Route path="/reset-password" element={<ResetPassword onDone={() => window.location.href="/login"} />} />
       <Route path="/privacy" element={<Legal page="privacy" />} />
       <Route path="/terms" element={<Legal page="terms" />} />
+      <Route path="/blog" element={<BlogIndex />} />
+      <Route path="/blog/:slug" element={<BlogPost />} />
       <Route path="/admin" element={<Admin />} />
       <Route path="/app" element={<InvoiceWrapper />} />
       <Route path="*" element={<LandingWrapper />} />
