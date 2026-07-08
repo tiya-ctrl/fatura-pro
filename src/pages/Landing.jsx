@@ -461,7 +461,7 @@ function Hero({ onOpenApp }) {
         Create, send and track professional invoices in minutes. The #1 invoicing app for professionals worldwide — supports EUR, USD, AED, MAD and 14 more currencies.
       </p>
       <div className="hero-actions fade-up delay-3">
-        <button className="btn btn-gold btn-xl" onClick={onOpenApp}>Try Pro Free — 7 Days →</button>
+        <button className="btn btn-gold btn-xl" onClick={onOpenApp}>Get Paid Faster — Start Free →</button>
         <a href="#features" className="btn btn-outline btn-lg">See Features</a>
       </div>
       <div className="hero-social-proof fade-up delay-4">
@@ -734,7 +734,7 @@ function CTASection({ onOpenApp }) {
           Join 2,400+ freelancers who stopped chasing payments.
         </p>
         <div style={{ display:"flex", gap:14, justifyContent:"center", flexWrap:"wrap" }}>
-          <button className="btn btn-gold btn-xl" onClick={onOpenApp}>Create Free Account →</button>
+          <button className="btn btn-gold btn-xl" onClick={onOpenApp}>Start Now — It's Free →</button>
           <a href="#pricing" className="btn btn-outline btn-lg">View Pricing</a>
         </div>
       </div>
