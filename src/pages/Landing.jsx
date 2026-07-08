@@ -405,7 +405,7 @@ Key facts:
 - Business plan: 19 EUR/month — coming soon, waitlist available
 - 17+ currencies supported
 - No business registration needed
-- Built for freelancers and entrepreneurs in Europe and MENA
+- Built for freelancers and entrepreneurs worldwide
 - Stripe is used only for subscription payments, not in invoices
 - Contact: support@faturapro.app
 Always respond in the same language the user writes in. Keep replies short (2-4 sentences). Be accurate and specific.`
@@ -466,7 +466,7 @@ function Hero({ onOpenApp }) {
       </div>
       <div className="hero-social-proof fade-up delay-4">
         <div className="proof-avatars">
-          {["🇲🇦","🇩🇿","🇳🇱","🇫🇷","🇦🇪"].map((f,i) => <div key={i} className="proof-avatar">{f}</div>)}
+          {["🇲🇦","🇺🇸","🇳🇱","🇫🇷","🇦🇪"].map((f,i) => <div key={i} className="proof-avatar">{f}</div>)}
         </div>
         <p className="proof-text"><strong>2,400+</strong> freelancers already billing smarter</p>
       </div>
@@ -751,7 +751,7 @@ function Footer({ onOpenApp }) {
             <div className="nav-logo-icon">F</div>
             <span className="nav-logo-text">Fatūra</span>
           </div>
-          <p>Professional invoicing software for freelancers, consultants, and entrepreneurs in MENA and Europe. Create and send invoices in EUR, USD, AED, MAD and 14 currencies. No business registration needed.</p>
+          <p>Professional invoicing software for freelancers, consultants, and entrepreneurs worldwide. Create and send invoices in EUR, USD, GBP, AED and 14 more currencies. No business registration needed.</p>
           <div style={{ marginTop:16, display:"flex", flexDirection:"column", gap:4 }}>
             <span style={{ fontSize:12, color:"var(--text2)" }}>📧 support@faturapro.app</span>
             <span style={{ fontSize:12, color:"var(--text2)" }}>🌍 Serving NL · MA · DZ · AE · FR & more</span>
@@ -763,7 +763,7 @@ function Footer({ onOpenApp }) {
         </div>
         <div className="footer-col">
           <h4>Use Cases</h4>
-          {[["#top","Freelancer Invoicing"],["#top","Multi-currency Billing"],["#top","MENA Invoicing"],["#top","EU Invoicing"]].map(([h,l]) => <a key={l} href={h}>{l}</a>)}
+          {[["#top","Freelancer Invoicing"],["#top","Multi-currency Billing"],["#top","Online Invoicing"],["#top","Invoice Generator"]].map(([h,l]) => <a key={l} href={h}>{l}</a>)}
         </div>
         <div className="footer-col">
           <h4>Legal</h4>
