@@ -431,7 +431,7 @@ function NavBar({ onOpenApp, onSignIn }) {
       <button className="nav-hamburger" onClick={() => setMenuOpen(true)}>☰</button>
       <ul className={"nav-links" + (menuOpen ? " open" : "")}>
         {menuOpen && <button className="nav-close" onClick={() => setMenuOpen(false)}>✕</button>}
-        {[["#features","Features"],["#pricing","Pricing"],["#how","How it works"],["#faq","FAQ"]].map(([h,l]) => (
+        {[["#features","Features"],["#pricing","Pricing"],["#how","How it works"],["#faq","FAQ"],["/blog","Blog"]].map(([h,l]) => (
           <li key={h}><a href={h} onClick={() => setMenuOpen(false)}>{l}</a></li>
         ))}
       </ul>
