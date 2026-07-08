@@ -466,7 +466,7 @@ function Hero({ onOpenApp }) {
       </div>
       <div className="hero-social-proof fade-up delay-4">
         <div className="proof-avatars">
-          {["🇲🇦","🇺🇸","🇳🇱","🇫🇷","🇦🇪"].map((f,i) => <div key={i} className="proof-avatar">{f}</div>)}
+          {["🇺🇸","🇬🇧","🇲🇦","🇸🇦","🇳🇱","🇦🇪"].map((f,i) => <div key={i} className="proof-avatar">{f}</div>)}
         </div>
         <p className="proof-text"><strong>2,400+</strong> freelancers already billing smarter</p>
       </div>
