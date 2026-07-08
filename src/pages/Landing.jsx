@@ -468,7 +468,7 @@ function Hero({ onOpenApp }) {
         <div className="proof-avatars">
           {["🇺🇸","🇬🇧","🇲🇦","🇸🇦","🇳🇱","🇦🇪"].map((f,i) => <div key={i} className="proof-avatar">{f}</div>)}
         </div>
-        <p className="proof-text"><strong>2,400+</strong> freelancers already billing smarter</p>
+        <p className="proof-text"><strong>Create your first invoice in under 3 minutes</strong> — free · No credit card needed</p>
       </div>
       <div className="mockup-wrap fade-up delay-4" style={{ marginTop:64 }}>
         <div className="mockup-glow" />
