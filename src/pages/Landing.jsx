@@ -763,7 +763,7 @@ function Footer({ onOpenApp }) {
         </div>
         <div className="footer-col">
           <h4>Use Cases</h4>
-          {[["#top","Freelancer Invoicing"],["#top","Multi-currency Billing"],["#top","Online Invoicing"],["#top","Invoice Generator"]].map(([h,l]) => <a key={l} href={h}>{l}</a>)}
+          {[["/invoice-generator","Free Invoice Generator"],["/blog","Invoicing Guides"],["#pricing","Pricing"],["#faq","FAQ"]].map(([h,l]) => <a key={l} href={h}>{l}</a>)}
         </div>
         <div className="footer-col">
           <h4>Legal</h4>
