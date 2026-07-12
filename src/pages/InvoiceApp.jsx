@@ -672,7 +672,7 @@ export default function InvoiceApp({ onGoHome }) {
         {editingInvoice && <NewInvoiceModal clients={clients} onSave={updateInvoice} onClose={(draftData) => { if (draftData) setEditDraft(draftData); setEditingInvoice(null); }} invoiceCount={invoices.length} currency={currency} f={f} editData={editingInvoice} editDraft={editDraft} onDiscardEditDraft={() => setEditDraft(null)} />}
         {showNewClient && <NewClientModal onSave={addClient} onClose={() => setShowNewClient(false)} />}
         {editingClient && <NewClientModal onSave={async (updated) => { await supabase.from("clients").update({ name:updated.name, email:updated.email, phone:updated.phone, country:updated.country }).eq("id", editingClient.id); setClients(prev => prev.map(c => c.id === editingClient.id ? { ...c, ...updated } : c)); setEditingClient(null); }} onClose={() => setEditingClient(null)} editData={editingClient} />}
-        {previewInvoice && <InvoicePreview invoice={previewInvoice} onClose={() => setPreviewInvoice(null)} currency={currency} />}
+        {previewInvoice && <InvoicePreview invoice={previewInvoice} onClose={() => setPreviewInvoice(null)} currency={currency} plan={plan} />}
         {reminderInvoice && <ReminderModal invoice={reminderInvoice} onClose={() => setReminderInvoice(null)} onLog={logReminder} f={f} />}
         {showUpgrade && <UpgradeModal feature={upgradeFeature} onClose={() => setShowUpgrade(false)} onActivate={() => { setPlan("pro"); setShowUpgrade(false); }} />}
         {showWelcome && (
@@ -1458,7 +1458,7 @@ function NewClientModal({ onSave, onClose }) {
   );
 }
 
-function InvoicePreview({ invoice, onClose, currency }) {
+function InvoicePreview({ invoice, onClose, currency, plan }) {
   const f = (n) => fmtCurrency(n, currency || "EUR");
   const subtotal = invoice.subtotal != null ? invoice.subtotal : invoice.amount;
   const taxAmt = invoice.taxAmt != null ? invoice.taxAmt : invoice.amount * 0.2;
@@ -1570,7 +1570,7 @@ function InvoicePreview({ invoice, onClose, currency }) {
           )}
 
           <div className="preview-footer" style={{ marginTop:32 }}>
-            {invoice.sellerName ? (invoice.sellerName + " · ") : ""}Thank you for your business · Fatūra Invoicing
+            {invoice.sellerName ? (invoice.sellerName + " · ") : ""}Thank you for your business{hasBusinessAccess(plan) ? "" : " · Fatūra Invoicing"}
           </div>
         </div>
       </div>
