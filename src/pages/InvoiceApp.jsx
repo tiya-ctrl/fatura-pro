@@ -1,5 +1,7 @@
 import React, { useState, useRef, useEffect } from "react";
 import { supabase } from "../supabase";
+import { hasBusinessAccess } from "../lib/businessPlan";
+import { exportInvoicesCSV } from "../lib/accountantExport";
 
 const FONTS = `@import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600;700&family=DM+Sans:wght@300;400;500;600&display=swap');`;
 
@@ -598,6 +600,9 @@ export default function InvoiceApp({ onGoHome }) {
             <div className="topbar-actions">
               {page === "invoices" && (
   <>
+  {hasBusinessAccess(plan) && (
+      <button className="btn btn-ghost" onClick={() => exportInvoicesCSV(invoicesWithStatus)}>⬇ Export CSV</button>
+    )}
     {/* Desktop button */}
     {!isMobile && (
       <button className="btn btn-primary" onClick={openNewInvoice}>
