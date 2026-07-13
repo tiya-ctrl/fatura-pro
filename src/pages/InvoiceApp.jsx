@@ -8,6 +8,8 @@ import BusinessProfiles from "./BusinessProfiles";
 import { loadProfiles } from "../lib/businessProfiles";
 import Expenses from "./Expenses";
 import Analytics from "./Analytics";
+import RecurringList from "./RecurringList";
+import { loadRecurring, createRecurring } from "../lib/recurring";
 import { loadExpenses } from "../lib/expenses";
 
 const FONTS = `@import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600;700&family=DM+Sans:wght@300;400;500;600&display=swap');`;
@@ -380,6 +382,7 @@ export default function InvoiceApp({ onGoHome }) {
   const [quotes, setQuotes] = useState([]);
   const [bizProfiles, setBizProfiles] = useState([]);
   const [expenses, setExpenses] = useState([]);
+  const [recurring, setRecurring] = useState([]);
   const [trialEnd, setTrialEnd] = useState(null);
   const [showWelcome, setShowWelcome] = useState(false);
 
@@ -392,6 +395,7 @@ export default function InvoiceApp({ onGoHome }) {
       loadQuotes(user.id).then(setQuotes);
       loadProfiles(user.id).then(setBizProfiles);
       loadExpenses(user.id).then(setExpenses);
+      loadRecurring(user.id).then(setRecurring);
       let { data } = await supabase.from("user_plans").select("plan, trial_end").eq("user_id", user.id).maybeSingle();
       if (!data) {
         const trialEndDate = new Date();
@@ -614,7 +618,7 @@ export default function InvoiceApp({ onGoHome }) {
                   {page === "expenses" && hasBusinessAccess(plan) && <Expenses expenses={expenses} setExpenses={setExpenses} invoices={invoicesWithStatus} userId={userId} f={f} />}
                   {page === "analytics" && hasBusinessAccess(plan) && <Analytics invoices={invoicesWithStatus} f={f} />}
                 {page === "clients" && "Clients"}
-                {page === "settings" && "Settings"}
+                {page === "settings" && <><Settings currency={currency} setCurrency={setCurrency} userEmail={userEmail} />{hasBusinessAccess(plan) && <BusinessProfiles profiles={bizProfiles} setProfiles={setBizProfiles} userId={userId} />}{hasBusinessAccess(plan) && <RecurringList recurring={recurring} setRecurring={setRecurring} userId={userId} f={f} />}</>}
               </div>
             </div>
             <div className="topbar-actions">
