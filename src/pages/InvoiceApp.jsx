@@ -666,7 +666,7 @@ export default function InvoiceApp({ onGoHome }) {
 
           <div className="content">
             {page === "dashboard" && <Dashboard invoices={invoicesWithStatus} totalRevenue={totalRevenue} totalPending={totalPending} totalOverdue={totalOverdue} setPage={setPage} setPreviewInvoice={setPreviewInvoice} onEdit={setEditingInvoice} onRemind={(inv) => requirePro("reminders", () => setReminderInvoice(inv))} f={f} />}
-            {page === "invoices" && <Invoices invoices={filteredInvoices} filterStatus={filterStatus} setFilterStatus={setFilterStatus} search={search} setSearch={setSearch} onPreview={setPreviewInvoice} onDelete={deleteInvoice} onNew={openNewInvoice} onEdit={setEditingInvoice} onRemind={(inv) => requirePro("reminders", () => setReminderInvoice(inv))} remindersLog={remindersLog} f={f} isPro={isPro} onUpgrade={(feat) => { setUpgradeFeature(feat); setShowUpgrade(true); }} hasDraft={!!invoiceDraft} onOpenDraft={openNewInvoice} onDiscardDraft={discardDraft} onMarkPaid={markAsPaid} />}
+            {page === "invoices" && <Invoices invoices={filteredInvoices} filterStatus={filterStatus} setFilterStatus={setFilterStatus} search={search} setSearch={setSearch} onPreview={setPreviewInvoice} onDelete={deleteInvoice} onNew={openNewInvoice} onEdit={setEditingInvoice} onRemind={(inv) => requirePro("reminders", () => setReminderInvoice(inv))} remindersLog={remindersLog} f={f} isPro={isPro} onUpgrade={(feat) => { setUpgradeFeature(feat); setShowUpgrade(true); }} hasDraft={!!invoiceDraft} onOpenDraft={openNewInvoice} onDiscardDraft={discardDraft} onMarkPaid={markAsPaid} onMakeRecurring={hasBusinessAccess(plan) ? async (inv) => { const freq = window.prompt("Repeat how often? Type: monthly, weekly or yearly", "monthly"); if (!freq || !["monthly","weekly","yearly"].includes(freq)) return; const ok = await createRecurring(inv, freq, userId); if (ok) { loadRecurring(userId).then(setRecurring); alert("Recurring invoice created ✓ (" + freq + ")"); } } : null} />}
             {page === "clients" && <Clients clients={clients} invoices={invoicesWithStatus} f={f} onDeleteClient={deleteClient} onEditClient={(c) => setEditingClient(c)} />}
             {page === "settings" && <><Settings currency={currency} setCurrency={setCurrency} userEmail={userEmail} />{hasBusinessAccess(plan) && <BusinessProfiles profiles={bizProfiles} setProfiles={setBizProfiles} userId={userId} />}</>}
           </div>
@@ -779,7 +779,7 @@ function Dashboard({ invoices, totalRevenue, totalPending, totalOverdue, setPage
   );
 }
 
-function Invoices({ invoices, filterStatus, setFilterStatus, search, setSearch, onPreview, onDelete, onNew, onEdit, onRemind, remindersLog, f, isPro, onUpgrade, hasDraft, onOpenDraft, onDiscardDraft, onMarkPaid }) {
+function Invoices({ invoices, filterStatus, setFilterStatus, search, setSearch, onPreview, onDelete, onNew, onEdit, onRemind, remindersLog, f, isPro, onUpgrade, hasDraft, onOpenDraft, onDiscardDraft, onMarkPaid, onMakeRecurring }) {
   const statuses = ["all", "paid", "pending", "overdue", "draft"];
   return (
     <>
@@ -834,7 +834,7 @@ function Invoices({ invoices, filterStatus, setFilterStatus, search, setSearch, 
                     <td>{statusBadge(inv.status)}</td>
                     <td>
                       <div className="action-btns">
-                        <button className="btn btn-ghost btn-sm" onClick={() => onPreview(inv)}>View</button>
+                        <button className="btn btn-ghost btn-sm" onClick={() => onPreview(inv)}>View</button>{onMakeRecurring && <button className="btn btn-ghost btn-sm" title="Make recurring" onClick={() => onMakeRecurring(inv)}>🔄</button>}
                         <button className="btn btn-ghost btn-sm" style={{ color:"var(--gold)" }} onClick={() => onEdit(inv)}>Edit</button>
                         {(inv.status === "overdue" || inv.status === "pending") && (
                           <button className="btn btn-ghost btn-sm" style={{ color:"var(--green)" }} onClick={() => onMarkPaid(inv.id)}>✓ Paid</button>
@@ -881,7 +881,7 @@ function Invoices({ invoices, filterStatus, setFilterStatus, search, setSearch, 
                 <div className="inv-card-due" style={{ color:inv.status==="overdue"?"var(--red)":"var(--text2)", fontWeight:inv.status==="overdue"?700:400 }}>Due: {formatDate(inv.due)}</div>
               </div>
               <div className="inv-card-actions">
-                <button className="btn btn-ghost btn-sm" onClick={() => onPreview(inv)}>View</button>
+                <button className="btn btn-ghost btn-sm" onClick={() => onPreview(inv)}>View</button>{onMakeRecurring && <button className="btn btn-ghost btn-sm" title="Make recurring" onClick={() => onMakeRecurring(inv)}>🔄</button>}
                 <button className="btn btn-ghost btn-sm" style={{ color:"var(--gold)" }} onClick={() => onEdit(inv)}>Edit</button>
                 {(inv.status === "overdue" || inv.status === "pending") && (
                   <button className="btn btn-ghost btn-sm" style={{ color:"var(--green)" }} onClick={() => onMarkPaid(inv.id)}>✓ Paid</button>
