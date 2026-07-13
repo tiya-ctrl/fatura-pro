@@ -1,9 +1,9 @@
 // Fatura Pro - Business Plan Feature Flag
 // المفتاح الرئيسي: false = كل ميزات Business مخفية تماماً
 // يوم الإطلاق فقط نغيره إلى true
-export const BUSINESS_ENABLED = false;
+export const BUSINESS_ENABLED = true;
 
 // يتحقق إذا المستخدم يشوف ميزات Business
 export function hasBusinessAccess(plan) {
-  return BUSINESS_ENABLED && plan === "business";
+  return BUSINESS_ENABLED && (plan === "business" || plan === "pro");
 }
