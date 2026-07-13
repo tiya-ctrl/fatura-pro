@@ -2,6 +2,7 @@ import React, { useState, useRef, useEffect } from "react";
 import { supabase } from "../supabase";
 import { hasBusinessAccess } from "../lib/businessPlan";
 import { exportInvoicesCSV } from "../lib/accountantExport";
+import Quotes, { loadQuotes } from "./Quotes";
 
 const FONTS = `@import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600;700&family=DM+Sans:wght@300;400;500;600&display=swap');`;
 
@@ -369,6 +370,8 @@ export default function InvoiceApp({ onGoHome }) {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [plan, setPlan] = useState("free");
   const [userEmail, setUserEmail] = useState("");
+  const [userId, setUserId] = useState(null);
+  const [quotes, setQuotes] = useState([]);
   const [trialEnd, setTrialEnd] = useState(null);
   const [showWelcome, setShowWelcome] = useState(false);
 
@@ -377,6 +380,8 @@ export default function InvoiceApp({ onGoHome }) {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) return;
       setUserEmail(user.email || "");
+      setUserId(user.id);
+      loadQuotes(user.id).then(setQuotes);
       let { data } = await supabase.from("user_plans").select("plan, trial_end").eq("user_id", user.id).maybeSingle();
       if (!data) {
         const trialEndDate = new Date();
@@ -516,6 +521,7 @@ export default function InvoiceApp({ onGoHome }) {
     { id: "dashboard", icon: "\u229e", label: "Dashboard" },
     { id: "invoices", icon: "\u229f", label: "Invoices", badge: invoices.filter(i => i.status === "pending").length },
     { id: "clients", icon: "\u2299", label: "Clients" },
+    ...(hasBusinessAccess(plan) ? [{ id: "quotes", icon: "\u2707", label: "Quotes" }] : []),
     { id: "settings", icon: "\u2699", label: "Settings" },
   ];
   
@@ -593,6 +599,7 @@ export default function InvoiceApp({ onGoHome }) {
               <div className="page-title">
                 {page === "dashboard" && "Dashboard"}
                 {page === "invoices" && "Invoices"}
+                {page === "quotes" && hasBusinessAccess(plan) && <Quotes quotes={quotes} setQuotes={setQuotes} userId={userId} f={f} sellerDefaults={{ currency }} onConvert={(q) => { const { quoteToInvoice } = require("../lib/quotes"); const inv = quoteToInvoice(q, "INV-" + String(invoices.length + 1).padStart(3, "0") + "-" + Date.now().toString().slice(-4)); addInvoice(inv); return inv; }} />}
                 {page === "clients" && "Clients"}
                 {page === "settings" && "Settings"}
               </div>
