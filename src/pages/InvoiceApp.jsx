@@ -7,6 +7,7 @@ import { loadLiveChat } from "../lib/liveChat";
 import BusinessProfiles from "./BusinessProfiles";
 import { loadProfiles } from "../lib/businessProfiles";
 import Expenses from "./Expenses";
+import Analytics from "./Analytics";
 import { loadExpenses } from "../lib/expenses";
 
 const FONTS = `@import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600;700&family=DM+Sans:wght@300;400;500;600&display=swap');`;
@@ -531,7 +532,7 @@ export default function InvoiceApp({ onGoHome }) {
     { id: "dashboard", icon: "\u229e", label: "Dashboard" },
     { id: "invoices", icon: "\u229f", label: "Invoices", badge: invoices.filter(i => i.status === "pending").length },
     { id: "clients", icon: "\u2299", label: "Clients" },
-    ...(hasBusinessAccess(plan) ? [{ id: "quotes", icon: "\u2707", label: "Quotes" }, { id: "expenses", icon: "\u2296", label: "Expenses" }] : []),
+    ...(hasBusinessAccess(plan) ? [{ id: "quotes", icon: "\u2707", label: "Quotes" }, { id: "expenses", icon: "\u2296", label: "Expenses" }, { id: "analytics", icon: "\u2261", label: "Analytics" }] : []),
     { id: "settings", icon: "\u2699", label: "Settings" },
   ];
   
@@ -611,6 +612,7 @@ export default function InvoiceApp({ onGoHome }) {
                 {page === "invoices" && "Invoices"}
                 {page === "quotes" && hasBusinessAccess(plan) && <Quotes quotes={quotes} setQuotes={setQuotes} userId={userId} f={f} sellerDefaults={{ currency }} onConvert={(q) => { const { quoteToInvoice } = require("../lib/quotes"); const inv = quoteToInvoice(q, "INV-" + String(invoices.length + 1).padStart(3, "0") + "-" + Date.now().toString().slice(-4)); addInvoice(inv); return inv; }} />}
                   {page === "expenses" && hasBusinessAccess(plan) && <Expenses expenses={expenses} setExpenses={setExpenses} invoices={invoicesWithStatus} userId={userId} f={f} />}
+                  {page === "analytics" && hasBusinessAccess(plan) && <Analytics invoices={invoicesWithStatus} f={f} />}
                 {page === "clients" && "Clients"}
                 {page === "settings" && "Settings"}
               </div>
