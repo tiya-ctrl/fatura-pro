@@ -681,8 +681,8 @@ export default function InvoiceApp({ onGoHome }) {
 
         {page === "invoices" && <button className="mobile-fab" onClick={openNewInvoice}>+</button>}
 
-        {showNewInvoice && <NewInvoiceModal clients={clients} onSave={addInvoice} onClose={handleNewInvoiceClose} invoiceCount={invoices.length} currency={currency} f={f} draftData={invoiceDraft} onDiscardDraft={discardDraft} />}
-        {editingInvoice && <NewInvoiceModal clients={clients} onSave={updateInvoice} onClose={(draftData) => { if (draftData) setEditDraft(draftData); setEditingInvoice(null); }} invoiceCount={invoices.length} currency={currency} f={f} editData={editingInvoice} editDraft={editDraft} onDiscardEditDraft={() => setEditDraft(null)} />}
+        {showNewInvoice && <NewInvoiceModal bizProfiles={hasBusinessAccess(plan) ? bizProfiles : []} clients={clients} onSave={addInvoice} onClose={handleNewInvoiceClose} invoiceCount={invoices.length} currency={currency} f={f} draftData={invoiceDraft} onDiscardDraft={discardDraft} />}
+        {editingInvoice && <NewInvoiceModal bizProfiles={hasBusinessAccess(plan) ? bizProfiles : []} clients={clients} onSave={updateInvoice} onClose={(draftData) => { if (draftData) setEditDraft(draftData); setEditingInvoice(null); }} invoiceCount={invoices.length} currency={currency} f={f} editData={editingInvoice} editDraft={editDraft} onDiscardEditDraft={() => setEditDraft(null)} />}
         {showNewClient && <NewClientModal onSave={addClient} onClose={() => setShowNewClient(false)} />}
         {editingClient && <NewClientModal onSave={async (updated) => { await supabase.from("clients").update({ name:updated.name, email:updated.email, phone:updated.phone, country:updated.country }).eq("id", editingClient.id); setClients(prev => prev.map(c => c.id === editingClient.id ? { ...c, ...updated } : c)); setEditingClient(null); }} onClose={() => setEditingClient(null)} editData={editingClient} />}
         {previewInvoice && <InvoicePreview invoice={previewInvoice} onClose={() => setPreviewInvoice(null)} currency={currency} plan={plan} />}
@@ -1023,9 +1023,10 @@ function Settings({ currency, setCurrency, userEmail }) {
   );
 }
 
-function NewInvoiceModal({ clients, onSave, onClose, invoiceCount, currency: globalCurrency, f: globalF, editData, draftData, onDiscardDraft, editDraft, onDiscardEditDraft }) {
+function NewInvoiceModal({ bizProfiles = [], clients, onSave, onClose, invoiceCount, currency: globalCurrency, f: globalF, editData, draftData, onDiscardDraft, editDraft, onDiscardEditDraft }) {
   const isEdit = !!editData;
   const sourceData = isEdit ? (editDraft || editData) : (draftData || null);
+  const applyBizProfile = (p) => { if (!p) return; setForm(f => ({ ...f, sellerName: p.seller_name || p.name || "", sellerEmail: p.seller_email || "", sellerPhone: p.seller_phone || "", sellerAddress: p.seller_address || "", bankInfo: p.bank_info || f.bankInfo })); if (p.currency) setInvoiceCurrency(p.currency); };
   const [showDraftBanner, setShowDraftBanner] = useState(!!draftData && !editData);
   const [showEditDraftBanner, setShowEditDraftBanner] = useState(!!editDraft && !!editData);
   const [step, setStep] = useState(0);
@@ -1283,6 +1284,14 @@ React.useEffect(() => {
             </div>
             <LogoUploader logoKey="sellerLogo" sizeVal={sellerLogoSize} onSizeChange={setSellerLogoSize} inputId="sellerLogoInput" label="Company / Seller Logo" />
             <div className="form-grid">
+              {bizProfiles.length > 0 && (
+                <div className="form-group full"><label>From business</label>
+                  <select defaultValue="" onChange={(e) => applyBizProfile(bizProfiles.find(p => p.id === e.target.value))}>
+                    <option value="" disabled>Select a business profile…</option>
+                    {bizProfiles.map((p) => <option key={p.id} value={p.id}>{p.name}</option>)}
+                  </select>
+                </div>
+              )}
               <div className="form-group full"><label>Seller / Company Name</label><input value={form.sellerName} onChange={e => set("sellerName", e.target.value)} placeholder="e.g. Vyynd Agency BV" /></div>
               <div className="form-group"><label>Email</label><input value={form.sellerEmail} onChange={e => set("sellerEmail", e.target.value)} placeholder="contact@yourcompany.com" /></div>
               <div className="form-group"><label>Phone</label><input value={form.sellerPhone} onChange={e => set("sellerPhone", e.target.value)} placeholder="+31 6 XX XX XX XX" /></div>
