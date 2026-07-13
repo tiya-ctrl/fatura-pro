@@ -3,6 +3,9 @@ import { supabase } from "../supabase";
 import { hasBusinessAccess } from "../lib/businessPlan";
 import { exportInvoicesCSV } from "../lib/accountantExport";
 import Quotes, { loadQuotes } from "./Quotes";
+import { loadLiveChat } from "../lib/liveChat";
+import BusinessProfiles from "./BusinessProfiles";
+import { loadProfiles } from "../lib/businessProfiles";
 
 const FONTS = `@import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600;700&family=DM+Sans:wght@300;400;500;600&display=swap');`;
 
@@ -372,6 +375,7 @@ export default function InvoiceApp({ onGoHome }) {
   const [userEmail, setUserEmail] = useState("");
   const [userId, setUserId] = useState(null);
   const [quotes, setQuotes] = useState([]);
+  const [bizProfiles, setBizProfiles] = useState([]);
   const [trialEnd, setTrialEnd] = useState(null);
   const [showWelcome, setShowWelcome] = useState(false);
 
@@ -382,6 +386,7 @@ export default function InvoiceApp({ onGoHome }) {
       setUserEmail(user.email || "");
       setUserId(user.id);
       loadQuotes(user.id).then(setQuotes);
+      loadProfiles(user.id).then(setBizProfiles);
       let { data } = await supabase.from("user_plans").select("plan, trial_end").eq("user_id", user.id).maybeSingle();
       if (!data) {
         const trialEndDate = new Date();
@@ -417,6 +422,7 @@ export default function InvoiceApp({ onGoHome }) {
   const [remindersLog, setRemindersLog] = useState({});
 
   const isPro = plan === "pro";
+  React.useEffect(() => { if (hasBusinessAccess(plan)) loadLiveChat(userEmail); }, [plan, userEmail]);
   const f = (n) => fmtCurrency(n, currency);
 
   const requirePro = (feature, cb) => {
@@ -651,7 +657,7 @@ export default function InvoiceApp({ onGoHome }) {
             {page === "dashboard" && <Dashboard invoices={invoicesWithStatus} totalRevenue={totalRevenue} totalPending={totalPending} totalOverdue={totalOverdue} setPage={setPage} setPreviewInvoice={setPreviewInvoice} onEdit={setEditingInvoice} onRemind={(inv) => requirePro("reminders", () => setReminderInvoice(inv))} f={f} />}
             {page === "invoices" && <Invoices invoices={filteredInvoices} filterStatus={filterStatus} setFilterStatus={setFilterStatus} search={search} setSearch={setSearch} onPreview={setPreviewInvoice} onDelete={deleteInvoice} onNew={openNewInvoice} onEdit={setEditingInvoice} onRemind={(inv) => requirePro("reminders", () => setReminderInvoice(inv))} remindersLog={remindersLog} f={f} isPro={isPro} onUpgrade={(feat) => { setUpgradeFeature(feat); setShowUpgrade(true); }} hasDraft={!!invoiceDraft} onOpenDraft={openNewInvoice} onDiscardDraft={discardDraft} onMarkPaid={markAsPaid} />}
             {page === "clients" && <Clients clients={clients} invoices={invoicesWithStatus} f={f} onDeleteClient={deleteClient} onEditClient={(c) => setEditingClient(c)} />}
-            {page === "settings" && <Settings currency={currency} setCurrency={setCurrency} userEmail={userEmail} />}
+            {page === "settings" && <><Settings currency={currency} setCurrency={setCurrency} userEmail={userEmail} />{hasBusinessAccess(plan) && <BusinessProfiles profiles={bizProfiles} setProfiles={setBizProfiles} userId={userId} />}</>}
           </div>
         </div>
 
