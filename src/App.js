@@ -12,6 +12,7 @@ import Legal from "./pages/Legal";
 import { BlogIndex, BlogPost } from "./pages/Blog";
 import InvoiceGenerator from "./pages/InvoiceGenerator";
 import Admin from "./pages/Admin";
+import PayInvoice from "./pages/PayInvoice";
 
 /* ───────── Landing ───────── */
 function LandingWrapper() {
@@ -80,6 +81,7 @@ function AppRoutes() {
       <Route path="/invoice-generator" element={<InvoiceGenerator />} />
       <Route path="/blog/:slug" element={<BlogPost />} />
       <Route path="/admin" element={<Admin />} />
+      <Route path="/pay/:invoiceId" element={<PayInvoice />} />
       <Route path="/app" element={<InvoiceWrapper />} />
       <Route path="*" element={<LandingWrapper />} />
     </Routes>
