@@ -9,6 +9,8 @@ import { loadProfiles } from "../lib/businessProfiles";
 import Expenses from "./Expenses";
 import Analytics from "./Analytics";
 import RecurringList from "./RecurringList";
+import TeamMembers from "./TeamMembers";
+import { loadTeam, claimInvites } from "../lib/team";
 import { loadRecurring, createRecurring } from "../lib/recurring";
 import { loadExpenses } from "../lib/expenses";
 
@@ -383,6 +385,7 @@ export default function InvoiceApp({ onGoHome }) {
   const [bizProfiles, setBizProfiles] = useState([]);
   const [expenses, setExpenses] = useState([]);
   const [recurring, setRecurring] = useState([]);
+  const [team, setTeam] = useState([]);
   const [trialEnd, setTrialEnd] = useState(null);
   const [showWelcome, setShowWelcome] = useState(false);
 
@@ -396,6 +399,7 @@ export default function InvoiceApp({ onGoHome }) {
       loadProfiles(user.id).then(setBizProfiles);
       loadExpenses(user.id).then(setExpenses);
       loadRecurring(user.id).then(setRecurring);
+      claimInvites(user.id, user.email).then(() => loadTeam(user.id).then(setTeam));
       let { data } = await supabase.from("user_plans").select("plan, trial_end").eq("user_id", user.id).maybeSingle();
       if (!data) {
         const trialEndDate = new Date();
@@ -618,7 +622,7 @@ export default function InvoiceApp({ onGoHome }) {
                   {page === "expenses" && hasBusinessAccess(plan) && <Expenses expenses={expenses} setExpenses={setExpenses} invoices={invoicesWithStatus} userId={userId} f={f} />}
                   {page === "analytics" && hasBusinessAccess(plan) && <Analytics invoices={invoicesWithStatus} f={f} />}
                 {page === "clients" && "Clients"}
-                {page === "settings" && <><Settings currency={currency} setCurrency={setCurrency} userEmail={userEmail} />{hasBusinessAccess(plan) && <BusinessProfiles profiles={bizProfiles} setProfiles={setBizProfiles} userId={userId} />}{hasBusinessAccess(plan) && <RecurringList recurring={recurring} setRecurring={setRecurring} userId={userId} f={f} />}{hasBusinessAccess(plan) && <div className="card" style={{ marginTop: 20 }}><div className="card-title" style={{ marginBottom: 10 }}>Online payments</div><div style={{ fontSize: 13, color: "#999", marginBottom: 12 }}>Connect your Stripe account so clients can pay invoices online. Money goes directly to your bank.</div><button className="btn btn-primary btn-sm" onClick={async () => { const { data: { session } } = await supabase.auth.getSession(); const r = await fetch("/api/connect-stripe", { method: "POST", headers: { Authorization: "Bearer " + (session?.access_token || "") } }); const d = await r.json(); if (d.url) window.location.href = d.url; else alert(d.error || "Could not start Stripe onboarding"); }}>Connect Stripe →</button></div>}</>}
+                {page === "settings" && <><Settings currency={currency} setCurrency={setCurrency} userEmail={userEmail} />{hasBusinessAccess(plan) && <BusinessProfiles profiles={bizProfiles} setProfiles={setBizProfiles} userId={userId} />}{hasBusinessAccess(plan) && <RecurringList recurring={recurring} setRecurring={setRecurring} userId={userId} f={f} />}{hasBusinessAccess(plan) && <div className="card" style={{ marginTop: 20 }}><div className="card-title" style={{ marginBottom: 10 }}>Online payments</div><div style={{ fontSize: 13, color: "#999", marginBottom: 12 }}>Connect your Stripe account so clients can pay invoices online. Money goes directly to your bank.</div><button className="btn btn-primary btn-sm" onClick={async () => { const { data: { session } } = await supabase.auth.getSession(); const r = await fetch("/api/connect-stripe", { method: "POST", headers: { Authorization: "Bearer " + (session?.access_token || "") } }); const d = await r.json(); if (d.url) window.location.href = d.url; else alert(d.error || "Could not start Stripe onboarding"); }}>Connect Stripe →</button></div>}{hasBusinessAccess(plan) && <TeamMembers team={team} setTeam={setTeam} userId={userId} />}</>}
               </div>
             </div>
             <div className="topbar-actions">
@@ -668,7 +672,7 @@ export default function InvoiceApp({ onGoHome }) {
             {page === "dashboard" && <Dashboard invoices={invoicesWithStatus} totalRevenue={totalRevenue} totalPending={totalPending} totalOverdue={totalOverdue} setPage={setPage} setPreviewInvoice={setPreviewInvoice} onEdit={setEditingInvoice} onRemind={(inv) => requirePro("reminders", () => setReminderInvoice(inv))} f={f} />}
             {page === "invoices" && <Invoices invoices={filteredInvoices} filterStatus={filterStatus} setFilterStatus={setFilterStatus} search={search} setSearch={setSearch} onPreview={setPreviewInvoice} onDelete={deleteInvoice} onNew={openNewInvoice} onEdit={setEditingInvoice} onRemind={(inv) => requirePro("reminders", () => setReminderInvoice(inv))} remindersLog={remindersLog} f={f} isPro={isPro} onUpgrade={(feat) => { setUpgradeFeature(feat); setShowUpgrade(true); }} hasDraft={!!invoiceDraft} onOpenDraft={openNewInvoice} onDiscardDraft={discardDraft} onMarkPaid={markAsPaid} onMakeRecurring={hasBusinessAccess(plan) ? async (inv) => { const freq = window.prompt("Repeat how often? Type: monthly, weekly or yearly", "monthly"); if (!freq || !["monthly","weekly","yearly"].includes(freq)) return; const ok = await createRecurring(inv, freq, userId); if (ok) { loadRecurring(userId).then(setRecurring); alert("Recurring invoice created ✓ (" + freq + ")"); } } : null} />}
             {page === "clients" && <Clients clients={clients} invoices={invoicesWithStatus} f={f} onDeleteClient={deleteClient} onEditClient={(c) => setEditingClient(c)} />}
-            {page === "settings" && <><Settings currency={currency} setCurrency={setCurrency} userEmail={userEmail} />{hasBusinessAccess(plan) && <BusinessProfiles profiles={bizProfiles} setProfiles={setBizProfiles} userId={userId} />}{hasBusinessAccess(plan) && <RecurringList recurring={recurring} setRecurring={setRecurring} userId={userId} f={f} />}{hasBusinessAccess(plan) && <div className="card" style={{ marginTop: 20 }}><div className="card-title" style={{ marginBottom: 10 }}>Online payments</div><div style={{ fontSize: 13, color: "#999", marginBottom: 12 }}>Connect your Stripe account so clients can pay invoices online. Money goes directly to your bank.</div><button className="btn btn-primary btn-sm" onClick={async () => { const { data: { session } } = await supabase.auth.getSession(); const r = await fetch("/api/connect-stripe", { method: "POST", headers: { Authorization: "Bearer " + (session?.access_token || "") } }); const d = await r.json(); if (d.url) window.location.href = d.url; else alert(d.error || "Could not start Stripe onboarding"); }}>Connect Stripe →</button></div>}</>}
+            {page === "settings" && <><Settings currency={currency} setCurrency={setCurrency} userEmail={userEmail} />{hasBusinessAccess(plan) && <BusinessProfiles profiles={bizProfiles} setProfiles={setBizProfiles} userId={userId} />}{hasBusinessAccess(plan) && <RecurringList recurring={recurring} setRecurring={setRecurring} userId={userId} f={f} />}{hasBusinessAccess(plan) && <div className="card" style={{ marginTop: 20 }}><div className="card-title" style={{ marginBottom: 10 }}>Online payments</div><div style={{ fontSize: 13, color: "#999", marginBottom: 12 }}>Connect your Stripe account so clients can pay invoices online. Money goes directly to your bank.</div><button className="btn btn-primary btn-sm" onClick={async () => { const { data: { session } } = await supabase.auth.getSession(); const r = await fetch("/api/connect-stripe", { method: "POST", headers: { Authorization: "Bearer " + (session?.access_token || "") } }); const d = await r.json(); if (d.url) window.location.href = d.url; else alert(d.error || "Could not start Stripe onboarding"); }}>Connect Stripe →</button></div>}{hasBusinessAccess(plan) && <TeamMembers team={team} setTeam={setTeam} userId={userId} />}</>}
           </div>
         </div>
 
