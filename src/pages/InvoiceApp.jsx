@@ -417,7 +417,9 @@ export default function InvoiceApp({ onGoHome }) {
         }
         data = { plan: "free", trial_end: trialEndDate.toISOString() };
       }
-      if (data?.plan === "pro") {
+      if (data?.plan === "business") {
+        setPlan("business");
+      } else if (data?.plan === "pro") {
         setPlan("pro");
       } else if (data?.trial_end && new Date(data.trial_end) > new Date()) {
         setPlan("pro");
@@ -438,6 +440,7 @@ export default function InvoiceApp({ onGoHome }) {
   const [remindersLog, setRemindersLog] = useState({});
 
   const isPro = plan === "pro";
+  console.log("PLAN:", JSON.stringify(plan), "| ACCESS:", hasBusinessAccess(plan));
   React.useEffect(() => { if (hasBusinessAccess(plan)) loadLiveChat(userEmail); }, [plan, userEmail]);
   const f = (n) => fmtCurrency(n, currency);
 
