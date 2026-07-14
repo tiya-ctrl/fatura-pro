@@ -44,7 +44,8 @@ export async function deleteRecurring(recId, userId) {
 export function nextDate(from, frequency) {
   const d = new Date(from);
   if (frequency === "weekly") d.setDate(d.getDate() + 7);
+  else if (frequency === "biweekly") d.setDate(d.getDate() + 14);
   else if (frequency === "yearly") d.setFullYear(d.getFullYear() + 1);
-  else d.setMonth(d.getMonth() + 1); // monthly default
+  else d.setMonth(d.getMonth() + 1);
   return d;
 }
