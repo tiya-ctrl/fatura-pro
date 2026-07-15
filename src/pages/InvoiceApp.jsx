@@ -439,7 +439,7 @@ export default function InvoiceApp({ onGoHome }) {
   const [reminderInvoice, setReminderInvoice] = useState(null);
   const [remindersLog, setRemindersLog] = useState({});
 
-  const isPro = plan === "pro";
+  const isPro = plan === "pro" || plan === "business";
   console.log("PLAN:", JSON.stringify(plan), "| ACCESS:", hasBusinessAccess(plan));
   React.useEffect(() => { if (hasBusinessAccess(plan)) loadLiveChat(userEmail); }, [plan, userEmail]);
   const f = (n) => fmtCurrency(n, currency);
