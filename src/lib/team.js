@@ -28,6 +28,15 @@ export async function inviteMember(email, ownerId, currentCount) {
     console.error("inviteMember:", error.message);
     return { error: "Could not send invite" };
   }
+  // إرسال إيميل الدعوة (لا نفشل العملية لو تعذر الإرسال)
+  try {
+    const { data: { session } } = await supabase.auth.getSession();
+    await fetch("/api/send-team-invite", {
+      method: "POST",
+      headers: { Authorization: "Bearer " + (session?.access_token || ""), "Content-Type": "application/json" },
+      body: JSON.stringify({ email: clean }),
+    });
+  } catch (e) { console.error("invite email:", e); }
   return { ok: true };
 }
 
@@ -39,17 +48,21 @@ export async function removeMember(memberId, ownerId) {
   return true;
 }
 
-// عند تسجيل دخول أي مستخدم: هل في دعوة معلقة بإيميله؟ نفعّلها ونربطها بحسابه
-export async function claimInvites(userId, userEmail) {
-  if (!userEmail) return false;
-  const { data, error } = await supabase
-    .from("team_members")
-    .update({ member_user_id: userId, status: "active" })
-    .eq("member_email", userEmail.toLowerCase())
-    .eq("status", "invited")
-    .select();
-  if (error) { console.error("claimInvites:", error.message); return false; }
-  return (data || []).length > 0;
+// تفعيل الدعوات عبر السيرفر (يتجاوز RLS بأمان بعد التحقق من الهوية)
+export async function claimInvites() {
+  try {
+    const { data: { session } } = await supabase.auth.getSession();
+    if (!session?.access_token) return false;
+    const r = await fetch("/api/claim-invite", {
+      method: "POST",
+      headers: { Authorization: "Bearer " + session.access_token },
+    });
+    const d = await r.json();
+    return (d.activated || 0) > 0;
+  } catch (e) {
+    console.error("claimInvites:", e);
+    return false;
+  }
 }
 
 // هل أنا عضو نشط بفريق أحد؟ يرجع owner_id أو null

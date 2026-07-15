@@ -401,7 +401,7 @@ export default function InvoiceApp({ onGoHome }) {
       loadProfiles(user.id).then(setBizProfiles);
       loadExpenses(user.id).then(setExpenses);
       loadRecurring(user.id).then(setRecurring);
-      claimInvites(user.id, user.email).then(() => loadTeam(user.id).then(setTeam));
+      claimInvites().then(() => loadTeam(user.id).then(setTeam));
       supabase.from("api_keys").select("id, key_prefix, label, last_used_at, created_at").eq("user_id", user.id).then(({ data }) => setApiKeys(data || []));
       let { data } = await supabase.from("user_plans").select("plan, trial_end").eq("user_id", user.id).maybeSingle();
       if (!data) {
