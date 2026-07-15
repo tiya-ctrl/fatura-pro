@@ -10,7 +10,7 @@ export default function PayInvoice() {
   const paid = new URLSearchParams(window.location.search).get("paid") === "1";
 
   useEffect(() => {
-    fetch("/api/invoice-summary?id=" + encodeURIComponent(invoiceId))
+    fetch("/api/pay?id=" + encodeURIComponent(invoiceId))
       .then((r) => r.json())
       .then((d) => (d.error ? setErr(d.error) : setInv(d)))
       .catch(() => setErr("Could not load invoice"));
@@ -19,7 +19,7 @@ export default function PayInvoice() {
   const pay = async () => {
     setLoading(true);
     try {
-      const r = await fetch("/api/create-payment", {
+      const r = await fetch("/api/pay", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ invoiceId }),
