@@ -126,11 +126,15 @@ function ExpenseModal({ expense, onClose, onSave }) {
           <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:10 }}>
             <label style={{ fontSize:12 }}>Amount excl. VAT *<input type="number" step="0.01" value={form.amount_excl} onChange={(e) => set("amount_excl", e.target.value)} /></label>
             <label style={{ fontSize:12 }}>VAT rate %
-              <select value={form.vat_rate} onChange={(e) => set("vat_rate", Number(e.target.value))}>
-                <option value={21}>21% (standard NL)</option>
-                <option value={9}>9% (reduced NL)</option>
-                <option value={0}>0% (exempt / reverse)</option>
+               <select value={[21, 9, 0].includes(Number(form.vat_rate)) ? String(form.vat_rate) : "custom"} onChange={(e) => { if (e.target.value === "custom") set("vat_rate", ""); else set("vat_rate", Number(e.target.value)); }}>
+                <option value="21">21% (NL standard)</option>
+                <option value="9">9% (NL reduced)</option>
+                <option value="0">0% (exempt)</option>
+                <option value="custom">Custom rate…</option>
               </select>
+              {(form.vat_rate === "" || ![21, 9, 0].includes(Number(form.vat_rate))) && (
+                <input type="number" step="0.1" min="0" max="100" placeholder="Enter VAT %" autoFocus value={form.vat_rate} onChange={(e) => set("vat_rate", e.target.value === "" ? "" : Number(e.target.value))} style={{ marginTop: 6 }} />
+              )}
             </label>
           </div>
         </div>

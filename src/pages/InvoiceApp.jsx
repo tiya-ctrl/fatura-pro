@@ -998,7 +998,7 @@ function Settings({ currency, setCurrency, userEmail }) {
           <div className="form-group"><label>Phone</label><input value={profile.phone} onChange={e => setProfile(p => ({ ...p, phone: e.target.value }))} placeholder="+31 6 XX XX XX XX" /></div>
           <div className="form-group"><label>Country</label>
             <select value={profile.country} onChange={e => setProfile(p => ({ ...p, country: e.target.value }))}>
-              {["Morocco","Algeria","Tunisia","Egypt","France","Belgium","Netherlands","United Kingdom","UAE","Saudi Arabia","Qatar","Kuwait","Yemen"].map((l, i) => {
+              {["Netherlands","Belgium","France","Germany","United Kingdom","United States","Spain","Italy","Switzerland","Sweden","Ireland","Austria","Luxembourg","Canada","Australia","UAE","Saudi Arabia","Qatar","Kuwait","Bahrain","Oman","Jordan","Lebanon","Turkey","Egypt","Morocco","Tunisia","Algeria","Libya","Iraq","Yemen"].map((l, i) => {
                 const v = ["MA","DZ","TN","EG","FR","BE","NL","GB","AE","SA","QA","KW","YE"][i];
                 return <option key={v} value={v}>{l}</option>
               })}
@@ -1491,8 +1491,11 @@ function NewClientModal({ onSave, onClose }) {
             <label>Country</label>
             <select value={form.country} onChange={e => setForm(f => ({ ...f, country:e.target.value }))}>
               <option value="">— Choose country —</option>
-              {["Morocco","Algeria","Tunisia","Egypt","Libya","France","Belgium","Netherlands","Germany","United Kingdom","United States","UAE","Saudi Arabia","Qatar","Kuwait","Other"].map(c => <option key={c}>{c}</option>)}
-            </select>
+              {["Netherlands","Belgium","France","Germany","United Kingdom","United States","Spain","Italy","Switzerland","Sweden","Ireland","Austria","Luxembourg","Canada","Australia","UAE","Saudi Arabia","Qatar","Kuwait","Bahrain","Oman","Jordan","Lebanon","Turkey","Egypt","Morocco","Tunisia","Algeria","Libya","Iraq","Yemen","Other"].map(c => <option key={c}>{c}</option>)}
+             </select>
+            {!["Netherlands","Belgium","France","Germany","United Kingdom","United States","Spain","Italy","Switzerland","Sweden","Ireland","Austria","Luxembourg","Canada","Australia","UAE","Saudi Arabia","Qatar","Kuwait","Bahrain","Oman","Jordan","Lebanon","Turkey","Egypt","Morocco","Tunisia","Algeria","Libya","Iraq","Yemen"].includes(form.country) && form.country !== "" && (
+              <input placeholder="Type your country" autoFocus value={form.country.trim() === "" ? "" : form.country} onChange={e => setForm(f => ({ ...f, country: e.target.value }))} style={{ marginTop: 6 }} />
+            )}
           </div>
         </div>
         <div style={{ display:"flex", gap:10, justifyContent:"flex-end", marginTop:8 }}>
