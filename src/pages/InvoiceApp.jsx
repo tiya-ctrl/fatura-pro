@@ -11,7 +11,7 @@ import Analytics from "./Analytics";
 import RecurringList from "./RecurringList";
 import TeamMembers from "./TeamMembers";
 import ApiKeys from "./ApiKeys";
-import { loadTeam, claimInvites } from "../lib/team";
+import { loadTeam, claimInvites, myTeamOwner } from "../lib/team";
 import { loadRecurring, createRecurring } from "../lib/recurring";
 import { loadExpenses } from "../lib/expenses";
 
@@ -397,12 +397,14 @@ export default function InvoiceApp({ onGoHome }) {
       if (!user) return;
       setUserEmail(user.email || "");
       setUserId(user.id);
-      loadQuotes(user.id).then(setQuotes);
-      loadProfiles(user.id).then(setBizProfiles);
-      loadExpenses(user.id).then(setExpenses);
-      loadRecurring(user.id).then(setRecurring);
-      claimInvites().then(() => loadTeam(user.id).then(setTeam));
-      supabase.from("api_keys").select("id, key_prefix, label, last_used_at, created_at").eq("user_id", user.id).then(({ data }) => setApiKeys(data || []));
+      const teamOwnerId = await myTeamOwner(user.id);
+      const dataOwnerId = teamOwnerId || user.id;
+      loadQuotes(dataOwnerId).then(setQuotes);
+      loadProfiles(dataOwnerId).then(setBizProfiles);
+      loadExpenses(dataOwnerId).then(setExpenses);
+      loadRecurring(dataOwnerId).then(setRecurring);
+      claimInvites().then(() => loadTeam(dataOwnerId).then(setTeam));
+      supabase.from("api_keys").select("id, key_prefix, label, last_used_at, created_at").eq("user_id", dataOwnerId).then(({ data }) => setApiKeys(data || []));
       let { data } = await supabase.from("user_plans").select("plan, trial_end").eq("user_id", user.id).maybeSingle();
       if (!data) {
         const trialEndDate = new Date();
@@ -970,7 +972,7 @@ function Settings({ currency, setCurrency, userEmail }) {
     const load = async () => {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) return;
-      const { data } = await supabase.from("business_profile").select("*").eq("user_id", user.id).maybeSingle();
+      const { data } = await supabase.from("business_profile").select("*").eq("user_id", dataOwnerId).maybeSingle();
       if (data) setProfile({ name: data.name || "", email: data.email || "", phone: data.phone || "", country: data.country || "NL", address: data.address || "", default_tax: data.default_tax ?? 20, notes: data.notes || "", invoice_prefix: data.invoice_prefix || "INV-", payment_terms: data.payment_terms ?? 30 });
     };
     load();
