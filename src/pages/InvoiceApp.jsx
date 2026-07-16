@@ -399,6 +399,7 @@ export default function InvoiceApp({ onGoHome }) {
       setUserId(user.id);
       const teamOwnerId = await myTeamOwner(user.id);
       const dataOwnerId = teamOwnerId || user.id;
+      console.log("TEAM DEBUG →", { myId: user.id, teamOwnerId, dataOwnerId });
       loadQuotes(dataOwnerId).then(setQuotes);
       loadProfiles(dataOwnerId).then(setBizProfiles);
       loadExpenses(dataOwnerId).then(setExpenses);
