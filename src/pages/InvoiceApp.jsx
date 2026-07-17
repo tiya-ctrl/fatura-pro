@@ -388,6 +388,16 @@ export default function InvoiceApp({ onGoHome }) {
   const [recurring, setRecurring] = useState([]);
   const [team, setTeam] = useState([]);
   const [apiKeys, setApiKeys] = useState([]);
+  const [ownerId, setOwnerId] = useState(null);
+  React.useEffect(() => {
+    if (!ownerId) return;
+    (async () => {
+      const { data: invData } = await supabase.from("invoices").select("*").eq("user_id", ownerId).order("created_at", { ascending: false });
+      if (invData) setInvoices(invData.map(r => ({ id: r.id, client: r.client, email: r.email, sellerName: r.seller_name, sellerEmail: r.seller_email, sellerPhone: r.seller_phone, sellerAddress: r.seller_address, buyerPhone: r.buyer_phone, buyerAddress: r.buyer_address, date: r.date, due: r.due, status: r.status, amount: r.amount, subtotal: r.subtotal, discountAmt: r.discount_amt, taxAmt: r.tax_amt, total: r.total, tax: r.tax, discount: r.discount, notes: r.notes, bankInfo: r.bank_info, currency: r.currency, items: r.items || [] })));
+      const { data: cliData } = await supabase.from("clients").select("*").eq("user_id", ownerId);
+      if (cliData) setClients(cliData.map(c => ({ id: c.id, name: c.name, email: c.email, phone: c.phone, country: c.country })));
+    })();
+  }, [ownerId]);
   const [trialEnd, setTrialEnd] = useState(null);
   const [showWelcome, setShowWelcome] = useState(false);
 
@@ -399,13 +409,14 @@ export default function InvoiceApp({ onGoHome }) {
       setUserId(user.id);
       const teamOwnerId = await myTeamOwner(user.id);
       const dataOwnerId = teamOwnerId || user.id;
+      setOwnerId(dataOwnerId);
       console.log("TEAM DEBUG →", { myId: user.id, teamOwnerId, dataOwnerId });
       loadQuotes(dataOwnerId).then(setQuotes);
       loadProfiles(dataOwnerId).then(setBizProfiles);
       loadExpenses(dataOwnerId).then(setExpenses);
       loadRecurring(dataOwnerId).then(setRecurring);
-      claimInvites().then(() => loadTeam(dataOwnerId).then(setTeam));
-      supabase.from("api_keys").select("id, key_prefix, label, last_used_at, created_at").eq("user_id", dataOwnerId).then(({ data }) => setApiKeys(data || []));
+      claimInvites().then(() => loadTeam(user.id).then(setTeam));
+      supabase.from("api_keys").select("id, key_prefix, label, last_used_at, created_at").eq("user_id",  user.id).then(({ data }) => setApiKeys(data || []));
       let { data } = await supabase.from("user_plans").select("plan, trial_end").eq("user_id", user.id).maybeSingle();
       if (!data) {
         const trialEndDate = new Date();
@@ -519,8 +530,8 @@ export default function InvoiceApp({ onGoHome }) {
       await new Promise(r => setTimeout(r, 500));
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) return;
-      const { data: invData } = await supabase.from("invoices").select("*").eq("user_id", user.id).order("created_at", { ascending: false });
-      const { data: cliData } = await supabase.from("clients").select("*").eq("user_id", user.id);
+      const { data: invData } = await supabase.from("invoices").select("*").eq("user_id", ownerId || user.id).order("created_at", { ascending: false });
+      const { data: cliData } = await supabase.from("clients").select("*").eq("user_id", ownerId || user.id);
       if (invData) setInvoices(invData.map(r => ({ id: r.id, client: r.client, email: r.email, sellerName: r.seller_name, sellerEmail: r.seller_email, sellerPhone: r.seller_phone, sellerAddress: r.seller_address, buyerPhone: r.buyer_phone, buyerAddress: r.buyer_address, date: r.date, due: r.due, status: r.status, amount: r.amount, subtotal: r.subtotal, discountAmt: r.discount_amt, taxAmt: r.tax_amt, total: r.total, tax: r.tax, discount: r.discount, notes: r.notes, bankInfo: r.bank_info, currency: r.currency, items: r.items || [] })));
       if (cliData) setClients(cliData);
     };
@@ -531,8 +542,8 @@ export default function InvoiceApp({ onGoHome }) {
     const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
       if (session?.user) {
         const reload = async () => {
-          const { data: invData } = await supabase.from("invoices").select("*").eq("user_id", session.user.id).order("created_at", { ascending: false });
-          const { data: cliData } = await supabase.from("clients").select("*").eq("user_id", session.user.id);
+          const { data: invData } = await supabase.from("invoices").select("*").eq("user_id", ownerId || session.user.id).order("created_at", { ascending: false });
+          const { data: cliData } = await supabase.from("clients").select("*").eq("user_id", ownerId || session.user.id);
           if (invData) setInvoices(invData.map(r => ({ id: r.id, client: r.client, email: r.email, sellerName: r.seller_name, sellerEmail: r.seller_email, sellerPhone: r.seller_phone, sellerAddress: r.seller_address, buyerPhone: r.buyer_phone, buyerAddress: r.buyer_address, date: r.date, due: r.due, status: r.status, amount: r.amount, subtotal: r.subtotal, discountAmt: r.discount_amt, taxAmt: r.tax_amt, total: r.total, tax: r.tax, discount: r.discount, notes: r.notes, bankInfo: r.bank_info, currency: r.currency, items: r.items || [] })));
           if (cliData) setClients(cliData);
         };
