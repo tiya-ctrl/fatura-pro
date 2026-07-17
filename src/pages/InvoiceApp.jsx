@@ -393,7 +393,7 @@ export default function InvoiceApp({ onGoHome }) {
     if (!ownerId) return;
     (async () => {
       const { data: invData } = await supabase.from("invoices").select("*").eq("user_id", ownerId).order("created_at", { ascending: false });
-      if (invData) setInvoices(invData.map(r => ({ id: r.id, client: r.client, email: r.email, sellerName: r.seller_name, sellerEmail: r.seller_email, sellerPhone: r.seller_phone, sellerAddress: r.seller_address, buyerPhone: r.buyer_phone, buyerAddress: r.buyer_address, date: r.date, due: r.due, status: r.status, amount: r.amount, subtotal: r.subtotal, discountAmt: r.discount_amt, taxAmt: r.tax_amt, total: r.total, tax: r.tax, discount: r.discount, notes: r.notes, bankInfo: r.bank_info, currency: r.currency, items: r.items || [] })));
+      if (invData) setInvoices(invData.map(r => ({ id: r.id, createdBy: r.created_by, client: r.client, email: r.email, sellerName: r.seller_name, sellerEmail: r.seller_email, sellerPhone: r.seller_phone, sellerAddress: r.seller_address, buyerPhone: r.buyer_phone, buyerAddress: r.buyer_address, date: r.date, due: r.due, status: r.status, amount: r.amount, subtotal: r.subtotal, discountAmt: r.discount_amt, taxAmt: r.tax_amt, total: r.total, tax: r.tax, discount: r.discount, notes: r.notes, bankInfo: r.bank_info, currency: r.currency, items: r.items || [] })));
       const { data: cliData } = await supabase.from("clients").select("*").eq("user_id", ownerId);
       if (cliData) setClients(cliData.map(c => ({ id: c.id, name: c.name, email: c.email, phone: c.phone, country: c.country })));
     })();
@@ -498,7 +498,7 @@ export default function InvoiceApp({ onGoHome }) {
   const addInvoice = async (inv) => {
     const { data: { user } } = await supabase.auth.getUser();
     if (!user) return;
-    const row = { id: inv.id, user_id: ownerId || user.id, client: inv.client, email: inv.email, seller_name: inv.sellerName, seller_email: inv.sellerEmail, seller_phone: inv.sellerPhone, seller_address: inv.sellerAddress, buyer_phone: inv.buyerPhone, buyer_address: inv.buyerAddress, date: inv.date, due: inv.due, status: inv.status, amount: inv.amount, subtotal: inv.subtotal, discount_amt: inv.discountAmt, tax_amt: inv.taxAmt, total: inv.total, tax: inv.tax, discount: inv.discount, notes: inv.notes, bank_info: inv.bankInfo, currency: inv.currency, items: inv.items };
+    const row = { id: inv.id, user_id: ownerId || user.id, created_by: user.email, client: inv.client, email: inv.email, seller_name: inv.sellerName, seller_email: inv.sellerEmail, seller_phone: inv.sellerPhone, seller_address: inv.sellerAddress, buyer_phone: inv.buyerPhone, buyer_address: inv.buyerAddress, date: inv.date, due: inv.due, status: inv.status, amount: inv.amount, subtotal: inv.subtotal, discount_amt: inv.discountAmt, tax_amt: inv.taxAmt, total: inv.total, tax: inv.tax, discount: inv.discount, notes: inv.notes, bank_info: inv.bankInfo, currency: inv.currency, items: inv.items };
     await supabase.from("invoices").insert(row);
     setInvoices(prev => [inv, ...prev]); setInvoiceDraft(null); setShowNewInvoice(false);
   };
@@ -534,7 +534,7 @@ export default function InvoiceApp({ onGoHome }) {
       const owner = (await myTeamOwner(user.id)) || user.id;
       const { data: invData } = await supabase.from("invoices").select("*").eq("user_id", owner).order("created_at", { ascending: false });
       const { data: cliData } = await supabase.from("clients").select("*").eq("user_id", owner);
-      if (invData) setInvoices(invData.map(r => ({ id: r.id, client: r.client, email: r.email, sellerName: r.seller_name, sellerEmail: r.seller_email, sellerPhone: r.seller_phone, sellerAddress: r.seller_address, buyerPhone: r.buyer_phone, buyerAddress: r.buyer_address, date: r.date, due: r.due, status: r.status, amount: r.amount, subtotal: r.subtotal, discountAmt: r.discount_amt, taxAmt: r.tax_amt, total: r.total, tax: r.tax, discount: r.discount, notes: r.notes, bankInfo: r.bank_info, currency: r.currency, items: r.items || [] })));
+      if (invData) setInvoices(invData.map(r => ({ id: r.id, createdBy: r.created_by, client: r.client, email: r.email, sellerName: r.seller_name, sellerEmail: r.seller_email, sellerPhone: r.seller_phone, sellerAddress: r.seller_address, buyerPhone: r.buyer_phone, buyerAddress: r.buyer_address, date: r.date, due: r.due, status: r.status, amount: r.amount, subtotal: r.subtotal, discountAmt: r.discount_amt, taxAmt: r.tax_amt, total: r.total, tax: r.tax, discount: r.discount, notes: r.notes, bankInfo: r.bank_info, currency: r.currency, items: r.items || [] })));
       if (cliData) setClients(cliData);
     };
     loadData();
@@ -547,7 +547,7 @@ export default function InvoiceApp({ onGoHome }) {
           const owner = (await myTeamOwner(session.user.id)) || session.user.id;
           const { data: invData } = await supabase.from("invoices").select("*").eq("user_id", owner).order("created_at", { ascending: false });
           const { data: cliData } = await supabase.from("clients").select("*").eq("user_id", owner);
-          if (invData) setInvoices(invData.map(r => ({ id: r.id, client: r.client, email: r.email, sellerName: r.seller_name, sellerEmail: r.seller_email, sellerPhone: r.seller_phone, sellerAddress: r.seller_address, buyerPhone: r.buyer_phone, buyerAddress: r.buyer_address, date: r.date, due: r.due, status: r.status, amount: r.amount, subtotal: r.subtotal, discountAmt: r.discount_amt, taxAmt: r.tax_amt, total: r.total, tax: r.tax, discount: r.discount, notes: r.notes, bankInfo: r.bank_info, currency: r.currency, items: r.items || [] })));
+          if (invData) setInvoices(invData.map(r => ({ id: r.id, createdBy: r.created_by, client: r.client, email: r.email, sellerName: r.seller_name, sellerEmail: r.seller_email, sellerPhone: r.seller_phone, sellerAddress: r.seller_address, buyerPhone: r.buyer_phone, buyerAddress: r.buyer_address, date: r.date, due: r.due, status: r.status, amount: r.amount, subtotal: r.subtotal, discountAmt: r.discount_amt, taxAmt: r.tax_amt, total: r.total, tax: r.tax, discount: r.discount, notes: r.notes, bankInfo: r.bank_info, currency: r.currency, items: r.items || [] })));
           if (cliData) setClients(cliData);
         };
         reload();
@@ -810,7 +810,7 @@ function Dashboard({ invoices, totalRevenue, totalPending, totalOverdue, setPage
   );
 }
 
-function Invoices({ invoices, filterStatus, setFilterStatus, search, setSearch, onPreview, onDelete, onNew, onEdit, onRemind, remindersLog, f, isPro, onUpgrade, hasDraft, onOpenDraft, onDiscardDraft, onMarkPaid, onMakeRecurring }) {
+function Invoices({ invoices, filterStatus, setFilterStatus, search, setSearch, onPreview, onDelete, onNew, onEdit, onRemind, remindersLog, viewerEmail, f, isPro, onUpgrade, hasDraft, onOpenDraft, onDiscardDraft, onMarkPaid, onMakeRecurring }) {
   const statuses = ["all", "paid", "pending", "overdue", "draft"];
   return (
     <>
@@ -851,7 +851,7 @@ function Invoices({ invoices, filterStatus, setFilterStatus, search, setSearch, 
                     <td style={{ fontWeight:700, color:"var(--gold)" }}>{inv.id}</td>
                     <td>
                       <div style={{ fontWeight:500 }}>{inv.client}</div>
-                      <div style={{ fontSize:11, color:"var(--text2)" }}>{inv.email}</div>
+                      <div style={{ fontSize:11, color:"var(--text2)" }}>{inv.email}</div>{inv.createdBy && inv.createdBy !== viewerEmail && <div style={{ fontSize:10, color:"var(--gold)", marginTop:2 }}>by {inv.createdBy}</div>}
                       {remindersLog[inv.id] && remindersLog[inv.id].length > 0 && (
                         <div style={{ fontSize:10, color:"var(--orange)", marginTop:2 }}>{remindersLog[inv.id].length} reminder{remindersLog[inv.id].length > 1 ? "s" : ""} sent</div>
                       )}
@@ -967,7 +967,7 @@ function Clients({ clients, invoices, f, onDeleteClient, onEditClient }) {
 
 function Settings({ currency, setCurrency, userEmail }) {
   const cur = getCurrency(currency);
-  const [profile, setProfile] = useState({ name:"", email:"", phone:"", country:"NL", address:"", default_tax:20, notes:"", invoice_prefix:"INV-", payment_terms:30 });
+  const [profile, setProfile] = useState({ name:"", email:"", phone:"", country:"NL", address:"", default_tax:20, notes:"", invoice_prefix:"INV-", payment_terms:30, bank_info:"" });
   const [saving, setSaving] = useState(false);
   const [saved, setSaved] = useState(false);
   const [savingDefaults, setSavingDefaults] = useState(false);
@@ -977,7 +977,7 @@ function Settings({ currency, setCurrency, userEmail }) {
     setSavingDefaults(true);
     const { data: { user } } = await supabase.auth.getUser();
     if (!user) return;
-    await supabase.from("business_profile").upsert({ user_id: user.id, notes: profile.notes || "", default_tax: profile.default_tax ?? 20, invoice_prefix: profile.invoice_prefix || "INV-", payment_terms: profile.payment_terms ?? 30, updated_at: new Date().toISOString() });
+    await supabase.from("business_profile").upsert({ user_id: user.id, notes: profile.notes || "", default_tax: profile.default_tax ?? 20, invoice_prefix: profile.invoice_prefix || "INV-", payment_terms: profile.payment_terms ?? 30, bank_info: profile.bank_info || "", updated_at: new Date().toISOString() });
     setSavingDefaults(false);
     setSavedDefaults(true);
     setTimeout(() => setSavedDefaults(false), 2000);
@@ -989,7 +989,7 @@ function Settings({ currency, setCurrency, userEmail }) {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) return;
       const { data } = await supabase.from("business_profile").select("*").eq("user_id", dataOwnerId).maybeSingle();
-      if (data) setProfile({ name: data.name || "", email: data.email || "", phone: data.phone || "", country: data.country || "NL", address: data.address || "", default_tax: data.default_tax ?? 20, notes: data.notes || "", invoice_prefix: data.invoice_prefix || "INV-", payment_terms: data.payment_terms ?? 30 });
+      if (data) setProfile({ name: data.name || "", email: data.email || "", phone: data.phone || "", country: data.country || "NL", address: data.address || "", default_tax: data.default_tax ?? 20, notes: data.notes || "", invoice_prefix: data.invoice_prefix || "INV-", payment_terms: data.payment_terms ?? 30, bank_info: data.bank_info || "" });
     };
     load();
   }, []);
@@ -1058,6 +1058,10 @@ function Settings({ currency, setCurrency, userEmail }) {
           <div className="form-group full"><label>Invoice Notes</label>
             <textarea rows={3} value={profile.notes || ""} onChange={e => setProfile(p => ({ ...p, notes: e.target.value }))} style={{ resize:"vertical" }} placeholder="Thank you for your business. Payment is due within 30 days." />
           </div>
+
+          <div className="form-group full"><label>Bank / Payment Information</label>
+            <textarea rows={3} value={profile.bank_info || ""} onChange={e => setProfile(p => ({ ...p, bank_info: e.target.value }))} style={{ resize:"vertical" }} placeholder="IBAN: NL00 BANK 0000 0000 00 — BIC — Account name" />
+          </div>
         </div>
         <button className="btn btn-primary" onClick={saveDefaults} disabled={savingDefaults}>{savingDefaults ? "Saving..." : savedDefaults ? "✓ Saved!" : "Save Defaults"}</button>
       </div>
@@ -1112,7 +1116,7 @@ React.useEffect(() => {
           sellerEmail: f.sellerEmail || data.email || "",
           sellerPhone: f.sellerPhone || data.phone || "",
           sellerAddress: f.sellerAddress || data.address || "",
-          notes: f.notes || data.notes || "",
+          notes: f.notes || data.notes || "", bankInfo: f.bankInfo || data.bank_info || "",
           tax: f.tax !== 20 ? f.tax : (data.default_tax ?? 20),
         }));
       }
