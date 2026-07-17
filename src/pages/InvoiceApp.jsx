@@ -453,7 +453,8 @@ export default function InvoiceApp({ onGoHome }) {
   const [reminderInvoice, setReminderInvoice] = useState(null);
   const [remindersLog, setRemindersLog] = useState({});
 
-  const isPro = plan === "pro" || plan === "business";
+  const isTeamMember = !!(ownerId && userId && ownerId !== userId);
+  const isPro = plan === "pro" || plan === "business" || isTeamMember;
   console.log("PLAN:", JSON.stringify(plan), "| ACCESS:", hasBusinessAccess(plan));
   React.useEffect(() => { if (hasBusinessAccess(plan)) loadLiveChat(userEmail); }, [plan, userEmail]);
   const f = (n) => fmtCurrency(n, currency);
@@ -497,7 +498,7 @@ export default function InvoiceApp({ onGoHome }) {
   const addInvoice = async (inv) => {
     const { data: { user } } = await supabase.auth.getUser();
     if (!user) return;
-    const row = { id: inv.id, user_id: user.id, client: inv.client, email: inv.email, seller_name: inv.sellerName, seller_email: inv.sellerEmail, seller_phone: inv.sellerPhone, seller_address: inv.sellerAddress, buyer_phone: inv.buyerPhone, buyer_address: inv.buyerAddress, date: inv.date, due: inv.due, status: inv.status, amount: inv.amount, subtotal: inv.subtotal, discount_amt: inv.discountAmt, tax_amt: inv.taxAmt, total: inv.total, tax: inv.tax, discount: inv.discount, notes: inv.notes, bank_info: inv.bankInfo, currency: inv.currency, items: inv.items };
+    const row = { id: inv.id, user_id: ownerId || user.id, client: inv.client, email: inv.email, seller_name: inv.sellerName, seller_email: inv.sellerEmail, seller_phone: inv.sellerPhone, seller_address: inv.sellerAddress, buyer_phone: inv.buyerPhone, buyer_address: inv.buyerAddress, date: inv.date, due: inv.due, status: inv.status, amount: inv.amount, subtotal: inv.subtotal, discount_amt: inv.discountAmt, tax_amt: inv.taxAmt, total: inv.total, tax: inv.tax, discount: inv.discount, notes: inv.notes, bank_info: inv.bankInfo, currency: inv.currency, items: inv.items };
     await supabase.from("invoices").insert(row);
     setInvoices(prev => [inv, ...prev]); setInvoiceDraft(null); setShowNewInvoice(false);
   };
@@ -513,7 +514,7 @@ export default function InvoiceApp({ onGoHome }) {
   const addClient = async (c) => {
     const { data: { user } } = await supabase.auth.getUser();
     if (!user) return;
-    await supabase.from("clients").insert({ id: c.id, user_id: user.id, name: c.name, email: c.email, phone: c.phone, country: c.country, invoices: 0, total: 0 });
+    await supabase.from("clients").insert({ id: c.id, user_id: ownerId || user.id, name: c.name, email: c.email, phone: c.phone, country: c.country, invoices: 0, total: 0 });
     setClients(prev => [c, ...prev]); setShowNewClient(false);
   };
   const deleteClient = async (id) => {
@@ -562,7 +563,8 @@ export default function InvoiceApp({ onGoHome }) {
     { id: "dashboard", icon: "\u229e", label: "Dashboard" },
     { id: "invoices", icon: "\u229f", label: "Invoices", badge: invoices.filter(i => i.status === "pending").length },
     { id: "clients", icon: "\u2299", label: "Clients" },
-    ...(hasBusinessAccess(plan) ? [{ id: "quotes", icon: "\u2707", label: "Quotes" }, { id: "expenses", icon: "\u2296", label: "Expenses" }, { id: "analytics", icon: "\u2261", label: "Analytics" }] : []),
+    ...((hasBusinessAccess(plan) || isTeamMember) ? [{ id: "quotes", icon: "\u2707", label: "Quotes" }, { id: "expenses", icon: "\u2296", label: "Expenses" }] : []),
+    ...(hasBusinessAccess(plan) ? [{ id: "analytics", icon: "\u2261", label: "Analytics" }] : []),
     { id: "settings", icon: "\u2699", label: "Settings" },
   ];
   
@@ -693,8 +695,8 @@ export default function InvoiceApp({ onGoHome }) {
           <div className="content">
             {page === "dashboard" && <Dashboard invoices={invoicesWithStatus} totalRevenue={totalRevenue} totalPending={totalPending} totalOverdue={totalOverdue} setPage={setPage} setPreviewInvoice={setPreviewInvoice} onEdit={setEditingInvoice} onRemind={(inv) => requirePro("reminders", () => setReminderInvoice(inv))} f={f} />}
             {page === "invoices" && <Invoices invoices={filteredInvoices} filterStatus={filterStatus} setFilterStatus={setFilterStatus} search={search} setSearch={setSearch} onPreview={setPreviewInvoice} onDelete={deleteInvoice} onNew={openNewInvoice} onEdit={setEditingInvoice} onRemind={(inv) => requirePro("reminders", () => setReminderInvoice(inv))} remindersLog={remindersLog} f={f} isPro={isPro} onUpgrade={(feat) => { setUpgradeFeature(feat); setShowUpgrade(true); }} hasDraft={!!invoiceDraft} onOpenDraft={openNewInvoice} onDiscardDraft={discardDraft} onMarkPaid={markAsPaid} onMakeRecurring={hasBusinessAccess(plan) ? async (inv) => { const choice = window.prompt("Repeat this invoice:\n\n1 = Weekly\n2 = Every 2 weeks\n3 = Monthly\n4 = Yearly\n\nType a number:", "3"); const freqMap = { "1": "weekly", "2": "biweekly", "3": "monthly", "4": "yearly" }; const freq = freqMap[(choice || "").trim()]; if (!freq) return; const ok = await createRecurring(inv, freq, userId); if (ok) { loadRecurring(userId).then(setRecurring); const { nextDate } = require("../lib/recurring"); alert("✓ Recurring activated (" + freq + ")\nNext invoice: " + nextDate(new Date(), freq).toISOString().split("T")[0] + "\nManage it in Settings → Recurring invoices."); } } : null} />}
-              {page === "quotes" && hasBusinessAccess(plan) && <Quotes quotes={quotes} setQuotes={setQuotes} userId={userId} f={f} sellerDefaults={{ currency }} onConvert={(q) => { const { quoteToInvoice } = require("../lib/quotes"); const inv = quoteToInvoice(q, "INV-" + String(invoices.length + 1).padStart(3, "0") + "-" + Date.now().toString().slice(-4)); addInvoice(inv); return inv; }} />}
-            {page === "expenses" && hasBusinessAccess(plan) && <Expenses expenses={expenses} setExpenses={setExpenses} invoices={invoicesWithStatus} userId={userId} f={f} />}
+              {page === "quotes" && (hasBusinessAccess(plan) || isTeamMember) && <Quotes quotes={quotes} setQuotes={setQuotes} userId={ownerId || userId} f={f} sellerDefaults={{ currency }} onConvert={(q) => { const { quoteToInvoice } = require("../lib/quotes"); const inv = quoteToInvoice(q, "INV-" + String(invoices.length + 1).padStart(3, "0") + "-" + Date.now().toString().slice(-4)); addInvoice(inv); return inv; }} />}
+            {page === "expenses" && (hasBusinessAccess(plan) || isTeamMember) && <Expenses expenses={expenses} setExpenses={setExpenses} invoices={invoicesWithStatus} userId={ownerId || userId} f={f} />}
             {page === "analytics" && hasBusinessAccess(plan) && <Analytics invoices={invoicesWithStatus} f={f} />}
             {page === "clients" && <Clients clients={clients} invoices={invoicesWithStatus} f={f} onDeleteClient={deleteClient} onEditClient={(c) => setEditingClient(c)} />}
             {page === "settings" && <><Settings currency={currency} setCurrency={setCurrency} userEmail={userEmail} />{hasBusinessAccess(plan) && <BusinessProfiles profiles={bizProfiles} setProfiles={setBizProfiles} userId={userId} />}{hasBusinessAccess(plan) && <RecurringList recurring={recurring} setRecurring={setRecurring} userId={userId} f={f} />}{hasBusinessAccess(plan) && <div className="card" style={{ marginTop: 20 }}><div className="card-title" style={{ marginBottom: 10 }}>Online payments</div><div style={{ fontSize: 13, color: "#999", marginBottom: 12 }}>Connect your Stripe account so clients can pay invoices online. Money goes directly to your bank.</div><button className="btn btn-primary btn-sm" onClick={async () => { const { data: { session } } = await supabase.auth.getSession(); const r = await fetch("/api/connect-stripe", { method: "POST", headers: { Authorization: "Bearer " + (session?.access_token || "") } }); const d = await r.json(); if (d.url) window.location.href = d.url; else alert(d.error || "Could not start Stripe onboarding"); }}>Connect Stripe →</button></div>}{hasBusinessAccess(plan) && <TeamMembers team={team} setTeam={setTeam} userId={userId} />}{hasBusinessAccess(plan) && <ApiKeys keys={apiKeys} setKeys={setApiKeys} userId={userId} />}</>}
