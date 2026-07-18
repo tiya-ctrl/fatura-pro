@@ -988,7 +988,8 @@ function Settings({ currency, setCurrency, userEmail }) {
     const load = async () => {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) return;
-      const { data } = await supabase.from("business_profile").select("*").eq("user_id", dataOwnerId).maybeSingle();
+      const owner = (await myTeamOwner(user.id)) || user.id;
+      const { data } = await supabase.from("business_profile").select("*").eq("user_id", owner).maybeSingle();
       if (data) setProfile({ name: data.name || "", email: data.email || "", phone: data.phone || "", country: data.country || "NL", address: data.address || "", default_tax: data.default_tax ?? 20, notes: data.notes || "", invoice_prefix: data.invoice_prefix || "INV-", payment_terms: data.payment_terms ?? 30, bank_info: data.bank_info || "" });
     };
     load();
