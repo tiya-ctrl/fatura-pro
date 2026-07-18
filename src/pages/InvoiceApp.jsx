@@ -1108,7 +1108,7 @@ React.useEffect(() => {
     const loadProfile = async () => {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) return;
-      const { data } = await supabase.from("business_profile").select("*").eq("user_id", user.id).maybeSingle();
+      const { data } = await supabase.from("business_profile").select("*").eq("user_id", (await myTeamOwner(user.id)) || user.id).maybeSingle();
       if (data) {
         setForm(f => ({
           ...f,
