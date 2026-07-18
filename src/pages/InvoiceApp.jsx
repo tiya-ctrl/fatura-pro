@@ -407,6 +407,13 @@ export default function InvoiceApp({ onGoHome }) {
       if (!user) return;
       setUserEmail(user.email || "");
       setUserId(user.id);
+      if (window.location.search.includes("stripe=connected")) {
+        const { data: { session } } = await supabase.auth.getSession();
+        const vr = await fetch("/api/connect-stripe?action=verify", { method: "POST", headers: { Authorization: "Bearer " + (session?.access_token || "") } });
+        const vd = await vr.json();
+        alert(vd.onboarded ? "✓ Stripe connected! Clients can now pay your invoices online." : "Stripe setup isn't finished yet — click Connect Stripe in Settings to continue.");
+        window.history.replaceState({}, "", "/app");
+      }
       const teamOwnerId = await myTeamOwner(user.id);
       const dataOwnerId = teamOwnerId || user.id;
       setOwnerId(dataOwnerId);
