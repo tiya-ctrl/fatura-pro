@@ -417,7 +417,6 @@ export default function InvoiceApp({ onGoHome }) {
       const teamOwnerId = await myTeamOwner(user.id);
       const dataOwnerId = teamOwnerId || user.id;
       setOwnerId(dataOwnerId);
-      console.log("TEAM DEBUG →", { myId: user.id, teamOwnerId, dataOwnerId });
       loadQuotes(dataOwnerId).then(setQuotes);
       loadProfiles(dataOwnerId).then(setBizProfiles);
       loadExpenses(dataOwnerId).then(setExpenses);
@@ -462,7 +461,6 @@ export default function InvoiceApp({ onGoHome }) {
 
   const isTeamMember = !!(ownerId && userId && ownerId !== userId);
   const isPro = plan === "pro" || plan === "business" || isTeamMember;
-  console.log("PLAN:", JSON.stringify(plan), "| ACCESS:", hasBusinessAccess(plan));
   React.useEffect(() => { if (hasBusinessAccess(plan)) loadLiveChat(userEmail); }, [plan, userEmail]);
   const f = (n) => fmtCurrency(n, currency);
 
