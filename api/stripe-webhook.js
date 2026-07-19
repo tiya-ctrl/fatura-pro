@@ -46,9 +46,14 @@ export default async function handler(req, res) {
       const user = users.users.find(u => u.email === email);
 
       if (user) {
+        let newPlan = "pro";
+        try {
+          const items = await stripe.checkout.sessions.listLineItems(session.id, { limit: 1 });
+          if (items.data[0]?.price?.id === process.env.STRIPE_PRICE_BUSINESS) newPlan = "business";
+        } catch (e) {}
         await supabaseAdmin.from("user_plans").upsert({
           user_id: user.id,
-          plan: "pro",
+          plan: newPlan,
           updated_at: new Date().toISOString(),
         });
       }

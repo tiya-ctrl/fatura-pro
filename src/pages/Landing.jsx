@@ -1,4 +1,5 @@
 import { useState, useRef, useEffect } from "react";
+import { BUSINESS_ENABLED } from "../lib/businessPlan";
 
 /* ─── FONTS & GLOBAL ─────────────────────────────────────────── */
 const FONTS = `
@@ -368,9 +369,13 @@ const PLANS = [
     cta:"Start 7-day Trial", ctaStyle:"btn-gold",
   },
   {
-    name:"Business", price:19, desc:"For agencies and teams managing multiple clients.", badge:"Coming Soon",
+    name:"Business", price:19, desc:"For agencies and teams managing multiple clients.", badge: BUSINESS_ENABLED ? null : "Coming Soon",
     features:[
       { text:"Everything in Pro", ok:true },
+      { text:"Quotes that convert to invoices", ok:true },
+      { text:"Recurring invoices (automatic)", ok:true },
+      { text:"Expenses + VAT/BTW reports", ok:true },
+      { text:"Remove Fatūra branding", ok:true },
       { text:"Team members (up to 5)", ok:true },
       { text:"Multi-business profiles", ok:true },
       { text:"Advanced analytics & reports", ok:true },
@@ -379,7 +384,7 @@ const PLANS = [
       { text:"Accountant export (CSV/Excel)", ok:true },
       { text:"Priority + live chat support", ok:true },
     ],
-    cta:"Join Waitlist", ctaStyle:"btn-outline",
+    cta: BUSINESS_ENABLED ? "Get Business" : "Join Waitlist", ctaStyle:"btn-outline",
   },
 ];
 
