@@ -26,7 +26,7 @@ Key facts:
 Answer in the same language the user writes in (Arabic or English).
 Keep replies short — 2 to 4 sentences max.
 Be friendly, helpful, and specific.
-If unsure, suggest emailing support@fatura.app`;
+If unsure, suggest emailing support@faturapro.app`;
 
 const SUGGESTIONS = [
   "What's in the Pro plan?",
@@ -234,7 +234,7 @@ export default function Chatbot() {
       console.error("Chatbot error:", err.message);
       setMsgs(m => [...m, {
         role: "bot",
-        text: "⚠️ Chat unavailable right now. Email us at support@fatura.app",
+        text: "⚠️ Chat unavailable right now. Email us at support@faturapro.app",
         time: timeStr(),
       }]);
     } finally {
