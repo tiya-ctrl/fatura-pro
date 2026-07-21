@@ -2,6 +2,41 @@ import { useParams, Link } from "react-router-dom";
 import { useEffect } from "react";
 
 const POSTS = [
+{
+    slug: "best-invoicing-app-arabic-support",
+    lang: "en",
+    title: "The Best Invoicing App with Arabic Support (2026)",
+    description: "Looking for invoicing software that truly supports Arabic? Compare your options and learn what to look for in a bilingual Arabic-English invoicing app.",
+    date: "2026-07-19",
+    readTime: "6 min",
+    keywords: "invoicing app Arabic, Arabic invoice software, bilingual invoice, Arabic English invoicing, create invoice in Arabic",
+    sections: [
+      { h: "Why Arabic Support in Invoicing Software Is So Hard to Find", p: "If you've searched for invoicing software that handles Arabic, you already know the frustration. Most international tools are built for the Western market. They either don't support Arabic at all, or they support it cosmetically: the text appears, but the layout breaks, numbers misalign, and the invoice looks unprofessional. For the 420+ million Arabic speakers running businesses worldwide, this is a real gap." },
+      { h: "What Real Arabic Support Actually Means", p: "True Arabic support isn't just translated menu labels. It means full right-to-left layout, correct Arabic script rendering on the invoice itself, the ability to enter client names, company names, and notes in Arabic, and a document that prints cleanly without floating text or broken characters. When you evaluate a tool, create a test invoice in Arabic and export it. If it looks polished, that's real support." },
+      { h: "Bilingual Is Even Better", p: "Many Arabic-speaking business owners work with international clients too. That's why bilingual Arabic-English invoicing matters: you send Arabic invoices to local clients and English ones to international clients, from the same account, without switching tools. This flexibility is rare, and it's exactly what freelancers serving mixed markets need." },
+      { h: "What Else to Look For", p: "Beyond language, the essentials for any modern invoicing app: multiple currencies for international clients, automatic payment reminders so you're not chasing manually, PDF export, a clean dashboard, and fair pricing. Bonus features that save real time include WhatsApp reminders, common in Arabic-speaking markets but rare in Western tools." },
+      { h: "Where Fatura Pro Fits", p: "Fatura Pro was built from the ground up with Arabic in mind, not as an afterthought. You get full Arabic and English support, 17 currencies, WhatsApp and email payment reminders, PDF export, and your own branding, all in a fast, modern interface. It's designed for freelancers and businesses who were underserved by the big international tools." },
+      { h: "Try It Free for 7 Days", p: "You can start using Fatura Pro free and create your first invoices right away, no card needed. If it fits your workflow, the Pro plan is just 9 euros a month with unlimited invoices, reminders, and full customization. And coming very soon: a Business plan for agencies and teams, with quotes, recurring invoices, VAT reports, team access, and more. Join the waitlist to be first in line. Start free at faturapro.app" },
+    ],
+  },
+  {
+    slug: "zzp-invoice-app-english-netherlands",
+    lang: "en",
+    title: "ZZP Invoicing in English: The Complete Guide for Freelancers in the Netherlands",
+    description: "A guide to invoicing as a ZZP'er in the Netherlands with an English interface: BTW rates, KvK numbers, VAT reports, and how to get paid faster.",
+    date: "2026-07-20",
+    readTime: "7 min",
+    keywords: "ZZP invoice, invoicing Netherlands English, BTW report freelancer, Dutch VAT invoice, ZZP freelancer invoicing",
+    sections: [
+      { h: "Invoicing as a ZZP'er Doesn't Have to Be Confusing", p: "With over 1.78 million ZZP'ers registered in the Netherlands, freelancing is huge here, but Dutch invoicing rules can overwhelm newcomers, especially expats. Your invoices need specific fields, the right VAT (BTW) rate, and you must file quarterly VAT returns. The good news: with the right tool and this guide, it becomes simple." },
+      { h: "What a Dutch ZZP Invoice Must Include", p: "Every compliant ZZP invoice needs: your business name and address, your KvK number, your BTW identification number, the client's details, a sequential invoice number, the invoice and delivery dates, a clear description of services with quantities and rates, a VAT breakdown, and the total amount due. Missing any of these can cause problems with the Belastingdienst." },
+      { h: "Understanding BTW (Dutch VAT) Rates", p: "The Netherlands uses three VAT rates: 21% standard, 9% reduced for certain goods and services, and 0% exempt or reverse-charge for EU B2B. Applying the right rate matters, and at the end of each quarter you need to report how much VAT you collected versus paid. Doing this by spreadsheet is error-prone and slow." },
+      { h: "The Quarterly VAT/BTW Report", p: "Four times a year, you file a VAT return with the Belastingdienst showing the VAT you charged clients minus the VAT you paid on business expenses. The difference is what you owe or reclaim. Software that generates this report automatically, collected minus paid, ready to file, saves ZZP'ers hours of stress every quarter." },
+      { h: "Getting Paid Faster", p: "Dutch clients expect professional invoices, and late payments hurt cash flow. Automatic payment reminders, clear due dates, and online payment options all help you get paid sooner. Multi-currency support also matters if you invoice international clients in USD or GBP while keeping your books in EUR." },
+      { h: "How Fatura Pro Helps ZZP'ers", p: "Fatura Pro gives you a clean English interface, plus Arabic and Dutch, fields for your business details, VAT/BTW handling with all three Dutch rates, and automatic reminders, so you send compliant invoices and get paid faster. Quarterly VAT reports and expense tracking are part of the upcoming Business plan, built exactly for this." },
+      { h: "Start Free Today", p: "Try Fatura Pro free, no card required, and send your first ZZP-ready invoice in minutes. The Pro plan is 9 euros a month for unlimited invoices, reminders, and branding. And a Business plan with automatic VAT/BTW reports, recurring invoices, and team access is launching very soon. Join the waitlist so you're first to know. Start free at faturapro.app" },
+    ],
+  },
   {
     slug: "how-to-create-professional-invoice",
     lang: "en",
