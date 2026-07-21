@@ -2,6 +2,47 @@ import { useParams, Link } from "react-router-dom";
 import { useEffect } from "react";
 
 const POSTS = [
+  {
+    slug: "fatura-pro-plan-guide-how-to-use",
+    lang: "en",
+    title: "Fatura Pro Plan: Every Feature and How to Use It (2026 Guide)",
+    description: "A step-by-step guide to the Fatura Pro plan: unlimited invoices, WhatsApp reminders, multi-currency, custom branding, and how to use each feature to get paid faster.",
+    date: "2026-07-21",
+    readTime: "6 min",
+    keywords: "Fatura Pro plan, how to use invoicing app, WhatsApp invoice reminder, unlimited invoices, professional invoice software",
+    sections: [
+      { h: "What You Get With the Pro Plan", p: "The Fatura Pro plan (9 euros a month) is built for freelancers and solo business owners who have outgrown free tools and want a complete, professional invoicing system. This guide walks through every feature and exactly how to use it, so you can send your first professional invoice within minutes of signing up. And yes, there's a free 7-day trial, no card needed." },
+      { h: "Unlimited Invoices and Clients", p: "The free plan caps how many invoices and clients you can have. Pro removes those limits entirely. To create one: from your dashboard, click New Invoice, add your client, list your services as line items, and save. Your clients are stored automatically, so the next invoice to the same client takes seconds." },
+      { h: "WhatsApp and Email Payment Reminders", p: "This is Pro's standout feature, and it's rare among invoicing tools. To use it: open the invoices list, click the reminder icon next to any unpaid invoice, choose WhatsApp or email, pick the language and tone (polite or firm), and send. The message is written for you. Automated reminders are proven to reduce late payments significantly." },
+      { h: "17 Currencies for International Clients", p: "If you work with clients in different countries, you can issue each invoice in its own currency. When creating an invoice, just pick the currency from the dropdown, and the symbols and formatting adjust automatically. Your dashboard still shows your overall picture clearly." },
+      { h: "Custom Branding", p: "Make every invoice look unmistakably yours. Go to Settings, then Invoice Defaults, and add your business name, logo, bank details, and default notes. These appear automatically on every invoice you create, giving clients a polished, trustworthy document every time." },
+      { h: "Your Dashboard", p: "The dashboard gives you an at-a-glance view of your revenue, pending payments, and overdue invoices, so you always know where your money stands and which clients need a follow-up, without opening a single spreadsheet." },
+      { h: "Start Your Free Trial", p: "Try the Pro plan free for 7 days, no card required. It's 9 euros a month after that, with everything above included. And if you run a team or agency, a Business plan with quotes, recurring invoices, VAT reports, and team access is launching very soon, join the waitlist to be first. Start free at faturapro.app" },
+    ],
+  },
+  {
+    slug: "fatura-business-plan-guide-how-to-use",
+    lang: "en",
+    title: "Fatura Business Plan: All 11 Features and How to Use Them",
+    description: "A complete walkthrough of the Fatura Pro Business plan: quotes, recurring invoices, VAT reports, team access, online payments, API, and how each feature works.",
+    date: "2026-07-22",
+    readTime: "8 min",
+    keywords: "invoicing software for agencies, recurring invoices, VAT report freelancer, invoice team members, online invoice payment, quote to invoice",
+    sections: [
+      { h: "Built for Agencies and Teams", p: "The Fatura Business plan is the most complete tier, designed for agencies, teams, and owners of multiple businesses. It includes everything in Pro and adds powerful tools on top, all for 19 euros a month with no per-user fees. This guide covers all 11 features and how to use each. Note: the Business plan is launching very soon, join the waitlist at faturapro.app to be first in line." },
+      { h: "1. Quotes That Convert to Invoices", p: "Send a professional quote, and when the client approves, turn it into a full invoice in one click. How: go to Quotes, click New Quote, add your line items, and save. On approval, click Convert to Invoice, and everything carries over. No re-typing." },
+      { h: "2. Automatic Recurring Invoices", p: "For clients you bill regularly, set it once and let it run. How: open any invoice, click the recurring icon, and choose weekly, biweekly, monthly, or yearly. Invoices generate automatically on schedule, and you manage them all from Settings, Recurring invoices." },
+      { h: "3. Expenses and VAT/BTW Reports", p: "Track expenses and get a ready quarterly tax report. How: go to Expenses, click Add expense, enter the amount and VAT rate. The report at the top calculates automatically: VAT collected from invoices minus VAT paid on expenses equals what you owe. Perfect for freelancers who dread tax season." },
+      { h: "4. Team Members (Up to 5)", p: "Work with your team on one account. How: Settings, Team members, enter a colleague's email, and Invite. They get an email; once they sign up they see the team's invoices and clients, and every action is tracked by name. Settings and billing stay owner-only. No extra fee per member." },
+      { h: "5. Online Payments for Clients", p: "Let clients pay by card directly. How: Settings, Online payments, Connect Stripe (one-time setup). After that every invoice has a payment link, send it, the client pays, and the invoice marks itself paid automatically." },
+      { h: "6. Manage Multiple Businesses", p: "Run more than one business from a single account. How: Settings, My Businesses, Add business. When creating an invoice, choose the business from the selector and its details fill in automatically." },
+      { h: "7. Advanced Analytics", p: "See monthly revenue, your top clients, and average payment times. How: open Analytics from the menu. Spot trends early and understand your business at a glance." },
+      { h: "8. Accountant Export", p: "Export all your invoices as a CSV/Excel file, ready for your accountant, with one click from the invoices page. No manual copying at tax time." },
+      { h: "9. API Access", p: "For store owners and developers: create invoices automatically from your own systems. How: Settings, API access, Generate key. Connect your online store so a new order creates an invoice automatically, real automation for growing businesses." },
+      { h: "10. Remove Branding", p: "Your invoices appear under your name only, with no reference to Fatura Pro, a clean, white-label look for your clients." },
+      { h: "11. Priority Support and Live Chat", p: "Get instant help through in-app live chat. The Business plan grows with your agency or team, for 19 euros a month with no per-user fees. Join the waitlist now at faturapro.app and be first to try it the moment it launches." },
+    ],
+  },
 {
     slug: "best-invoicing-app-arabic-support",
     lang: "en",
