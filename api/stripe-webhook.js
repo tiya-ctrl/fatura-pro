@@ -41,9 +41,17 @@ export default async function handler(req, res) {
     const session = event.data.object;
     const email = session.customer_details?.email;
 
-    if (email) {
+    if (email || session.client_reference_id) {
       const { data: users } = await supabaseAdmin.auth.admin.listUsers();
-      const user = users.users.find(u => u.email === email);
+      let user = null;
+      const refId = session.client_reference_id;
+      if (refId) {
+        try {
+          const r = await supabaseAdmin.auth.admin.getUserById(refId);
+          if (r && r.data && r.data.user) user = r.data.user;
+        } catch (e) {}
+      }
+      if (!user && email) user = users.users.find(u => u.email === email);
 
       if (user) {
         let newPlan = "pro";

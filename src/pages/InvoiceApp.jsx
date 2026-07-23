@@ -744,7 +744,7 @@ export default function InvoiceApp({ onGoHome }) {
         {editingClient && <NewClientModal onSave={async (updated) => { await supabase.from("clients").update({ name:updated.name, email:updated.email, phone:updated.phone, country:updated.country }).eq("id", editingClient.id); setClients(prev => prev.map(c => c.id === editingClient.id ? { ...c, ...updated } : c)); setEditingClient(null); }} onClose={() => setEditingClient(null)} editData={editingClient} />}
         {previewInvoice && <InvoicePreview invoice={previewInvoice} onClose={() => setPreviewInvoice(null)} currency={currency} plan={plan} />}
         {reminderInvoice && <ReminderModal invoice={reminderInvoice} onClose={() => setReminderInvoice(null)} onLog={logReminder} f={f} />}
-        {showUpgrade && <UpgradeModal feature={upgradeFeature} initialPlan={upgradeIntent} onClose={() => setShowUpgrade(false)} onActivate={() => { setPlan("pro"); setShowUpgrade(false); }} />}
+        {showUpgrade && <UpgradeModal feature={upgradeFeature} initialPlan={upgradeIntent} userEmail={userEmail} userId={userId} onClose={() => setShowUpgrade(false)} onActivate={() => { setPlan("pro"); setShowUpgrade(false); }} />}
         {showWelcome && !showUpgrade && (
           <div style={{ position:"fixed", inset:0, background:"rgba(0,0,0,0.8)", zIndex:200, display:"flex", alignItems:"center", justifyContent:"center", padding:16 }}>
             <div style={{ background:"#111118", border:"1px solid rgba(201,168,76,0.3)", borderRadius:16, padding:32, maxWidth:420, width:"100%", textAlign:"center" }}>
@@ -1821,7 +1821,7 @@ function ReminderModal({ invoice, onClose, onLog, f }) {
   );
 }
 
-function UpgradeModal({ feature, onClose, onActivate, initialPlan }) {
+function UpgradeModal({ feature, onClose, onActivate, initialPlan, userEmail, userId }) {
   const [loading, setLoading] = useState(false);
   const [step, setStep] = useState("plans");
   const [selectedPlan, setSelectedPlan] = useState(initialPlan || "pro");
@@ -1844,7 +1844,11 @@ function UpgradeModal({ feature, onClose, onActivate, initialPlan }) {
   const handleStripe = () => {
     const link = PLANS_INFO[selectedPlan]?.stripe_link;
     if (link) {
-      window.location.href = link;
+      const sep = link.indexOf("?") >= 0 ? "&" : "?";
+      const qp = [];
+      if (userEmail) qp.push("prefilled_email=" + encodeURIComponent(userEmail));
+      if (userId) qp.push("client_reference_id=" + encodeURIComponent(userId));
+      window.location.href = qp.length ? link + sep + qp.join("&") : link;
     }
   };
 
