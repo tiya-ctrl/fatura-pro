@@ -57,7 +57,11 @@ export default async function handler(req, res) {
         let newPlan = "pro";
         try {
           const items = await stripe.checkout.sessions.listLineItems(session.id, { limit: 1 });
-          if (items.data[0]?.price?.id === process.env.STRIPE_PRICE_BUSINESS) newPlan = "business";
+          const li = items.data[0];
+          const pid = li && li.price ? li.price.id : null;
+          const amt = li && li.price ? li.price.unit_amount : null;
+          if ((process.env.STRIPE_PRICE_BUSINESS && pid === process.env.STRIPE_PRICE_BUSINESS) || amt === 1900) newPlan = "business";
+          console.log("PLAN MAP:", JSON.stringify({ pid: pid, amt: amt, envPrice: process.env.STRIPE_PRICE_BUSINESS, newPlan: newPlan }));
         } catch (e) {}
         await supabaseAdmin.from("user_plans").upsert({
           user_id: user.id,
