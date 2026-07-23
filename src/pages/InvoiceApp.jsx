@@ -745,7 +745,7 @@ export default function InvoiceApp({ onGoHome }) {
         {previewInvoice && <InvoicePreview invoice={previewInvoice} onClose={() => setPreviewInvoice(null)} currency={currency} plan={plan} />}
         {reminderInvoice && <ReminderModal invoice={reminderInvoice} onClose={() => setReminderInvoice(null)} onLog={logReminder} f={f} />}
         {showUpgrade && <UpgradeModal feature={upgradeFeature} initialPlan={upgradeIntent} onClose={() => setShowUpgrade(false)} onActivate={() => { setPlan("pro"); setShowUpgrade(false); }} />}
-        {showWelcome && (
+        {showWelcome && !showUpgrade && (
           <div style={{ position:"fixed", inset:0, background:"rgba(0,0,0,0.8)", zIndex:200, display:"flex", alignItems:"center", justifyContent:"center", padding:16 }}>
             <div style={{ background:"#111118", border:"1px solid rgba(201,168,76,0.3)", borderRadius:16, padding:32, maxWidth:420, width:"100%", textAlign:"center" }}>
               <div style={{ fontSize:36, marginBottom:12 }}>🎉</div>
