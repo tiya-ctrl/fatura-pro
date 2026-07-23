@@ -1911,7 +1911,7 @@ function UpgradeModal({ feature, onClose, onActivate, initialPlan }) {
           </div>
         </div>
 
-        {selectedPlan === "business" ? (
+        {selectedPlan === "business" && !BUSINESS_ENABLED ? (
           <button className="btn btn-primary" style={{ width:"100%", justifyContent:"center", fontSize:15, padding:"14px", marginBottom:10 }}
             onClick={async () => {
               const email = prompt("Enter your email to join the Business plan waitlist:");
