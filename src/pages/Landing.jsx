@@ -384,7 +384,7 @@ const PLANS = [
       { text:"Accountant export (CSV/Excel)", ok:true },
       { text:"Priority + live chat support", ok:true },
     ],
-    cta: BUSINESS_ENABLED ? "Get Business" : "Join Waitlist", ctaStyle:"btn-outline",
+    cta: BUSINESS_ENABLED ? "Get Business" : "Join Waitlist", ctaStyle: BUSINESS_ENABLED ? "btn-gold" : "btn-outline",
   },
 ];
 
