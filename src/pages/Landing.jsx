@@ -660,6 +660,7 @@ function Pricing({ onOpenApp }) {
                 </div>
               ))}
               <button className={`btn ${p.ctaStyle} price-cta`} onClick={p.cta === "Join Waitlist" ? () => setShowWaitlist(true) : () => { if (p.cta !== "Start Free") localStorage.setItem("fatura_intent_plan", p.cta === "Get Business" ? "business" : "pro"); onOpenApp(); }}>{p.cta}</button>
+              {p.cta === "Get Business" && <div style={{ textAlign:"center", marginTop:10, fontSize:12, color:"var(--gold)" }}>7 days free · Cancel anytime</div>}
             </div>
           ))}
         </div>
