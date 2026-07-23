@@ -454,6 +454,16 @@ export default function InvoiceApp({ onGoHome }) {
   }, []);
   const [showUpgrade, setShowUpgrade] = useState(false);
   const [upgradeFeature, setUpgradeFeature] = useState("");
+  const [upgradeIntent, setUpgradeIntent] = useState(null);
+  useEffect(() => {
+    const intent = localStorage.getItem("fatura_intent_plan");
+    if (!intent || !plan) return;
+    localStorage.removeItem("fatura_intent_plan");
+    if (plan === "business") return;
+    if (intent === "pro" && plan === "pro") return;
+    setUpgradeIntent(intent);
+    setShowUpgrade(true);
+  }, [plan]);
   const [invoiceDraft, setInvoiceDraft] = useState(null);
   const [editDraft, setEditDraft] = useState(null); // unsaved edits for existing invoice
   const [reminderInvoice, setReminderInvoice] = useState(null);
@@ -734,7 +744,7 @@ export default function InvoiceApp({ onGoHome }) {
         {editingClient && <NewClientModal onSave={async (updated) => { await supabase.from("clients").update({ name:updated.name, email:updated.email, phone:updated.phone, country:updated.country }).eq("id", editingClient.id); setClients(prev => prev.map(c => c.id === editingClient.id ? { ...c, ...updated } : c)); setEditingClient(null); }} onClose={() => setEditingClient(null)} editData={editingClient} />}
         {previewInvoice && <InvoicePreview invoice={previewInvoice} onClose={() => setPreviewInvoice(null)} currency={currency} plan={plan} />}
         {reminderInvoice && <ReminderModal invoice={reminderInvoice} onClose={() => setReminderInvoice(null)} onLog={logReminder} f={f} />}
-        {showUpgrade && <UpgradeModal feature={upgradeFeature} onClose={() => setShowUpgrade(false)} onActivate={() => { setPlan("pro"); setShowUpgrade(false); }} />}
+        {showUpgrade && <UpgradeModal feature={upgradeFeature} initialPlan={upgradeIntent} onClose={() => setShowUpgrade(false)} onActivate={() => { setPlan("pro"); setShowUpgrade(false); }} />}
         {showWelcome && (
           <div style={{ position:"fixed", inset:0, background:"rgba(0,0,0,0.8)", zIndex:200, display:"flex", alignItems:"center", justifyContent:"center", padding:16 }}>
             <div style={{ background:"#111118", border:"1px solid rgba(201,168,76,0.3)", borderRadius:16, padding:32, maxWidth:420, width:"100%", textAlign:"center" }}>
@@ -1811,10 +1821,10 @@ function ReminderModal({ invoice, onClose, onLog, f }) {
   );
 }
 
-function UpgradeModal({ feature, onClose, onActivate }) {
+function UpgradeModal({ feature, onClose, onActivate, initialPlan }) {
   const [loading, setLoading] = useState(false);
   const [step, setStep] = useState("plans");
-  const [selectedPlan, setSelectedPlan] = useState("pro");
+  const [selectedPlan, setSelectedPlan] = useState(initialPlan || "pro");
 
   const PLANS_INFO = {
     pro: { name:"Pro", price:"\u20ac9", period:"/month", color:"var(--gold)", stripe_link:"https://buy.stripe.com/fZu4gzepGdT05Gx48j5ZC00",
