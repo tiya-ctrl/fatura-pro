@@ -65,6 +65,7 @@ export default async function handler(req, res) {
         } catch (e) {}
         await supabaseAdmin.from("user_plans").upsert({
           user_id: user.id,
+          email: user.email,
           plan: newPlan,
           updated_at: new Date().toISOString(),
         });
