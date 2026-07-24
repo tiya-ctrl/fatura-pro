@@ -396,7 +396,7 @@ const TESTIMONIALS = [
 
 const FAQS = [
   { q:"Do I need a business registration to use Fatūra?", a:"No. Anyone can use Fatūra — freelancers, solopreneurs, and small businesses alike. You don't need a registered company or VAT number to get started." },
-  { q:"Can I send invoices in Arabic?", a:"You can enter all your content in Arabic including client names, company names, and notes. Full RTL invoice layout is on our roadmap for Q3." },
+  { q:"Can I send invoices in Arabic?", a:"You can enter all your content in Arabic including client names, company names, and notes. Your invoices print correctly in Arabic." },
   { q:"How does the payment reminder work?", a:"Fatūra automatically detects when an invoice passes its due date. You can then send a pre-written reminder via Email or WhatsApp in one click — choose from Polite, Firm, or Final Reminder tone." },
   { q:"What payment methods does Stripe accept?", a:"Stripe accepts all major credit and debit cards (Visa, Mastercard, Amex), Apple Pay, Google Pay, and local methods depending on your region." },
   { q:"Is my data secure?", a:"All data is encrypted in transit (TLS) and at rest. We never sell or share your data with third parties. You can export or delete your data at any time." },
