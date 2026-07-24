@@ -125,6 +125,7 @@ const DEMO_USERS = [
 /* ─── COMPONENT ───────────────────────────────────────── */
 export default function LoginPage({ onLogin, onBack }) {
   const [mode,     setMode]     = useState("login"); // "login" | "signup"
+  const [planChoice, setPlanChoice] = useState(null);
   const [form,     setForm]     = useState({ name:"", email:"", password:"", confirm:"" });
   const [errors,   setErrors]   = useState({});
   const [loading,  setLoading]  = useState(false);
@@ -172,7 +173,7 @@ export default function LoginPage({ onLogin, onBack }) {
 
   const handleKey = (e) => { if (e.key === "Enter") handleSubmit(); };
 
-  const switchMode = (m) => { setMode(m); setErrors({}); setForm({ name:"", email:"", password:"", confirm:"" }); };
+  const switchMode = (m) => { setMode(m); setErrors({}); setPlanChoice(null); setForm({ name:"", email:"", password:"", confirm:"" }); };
 
   /* ── Success screen ── */
   if (success) return (
@@ -223,6 +224,32 @@ export default function LoginPage({ onLogin, onBack }) {
           <div className={`login-tab ${mode==="login" ? "active" : ""}`} onClick={() => switchMode("login")}>Sign In</div>
           <div className={`login-tab ${mode==="signup" ? "active" : ""}`} onClick={() => switchMode("signup")}>Sign Up</div>
         </div>
+
+        {mode === "signup" && !planChoice && (
+          <div style={{ position:"fixed", inset:0, background:"rgba(8,8,14,0.97)", zIndex:300, display:"flex", alignItems:"center", justifyContent:"center", padding:16, overflowY:"auto" }}>
+            <div style={{ maxWidth:430, width:"100%" }}>
+              <div style={{ fontFamily:"Playfair Display, serif", fontSize:24, color:"#e8e4dc", textAlign:"center", marginBottom:6 }}>Choose your plan</div>
+              <div style={{ fontSize:13, color:"#9a9690", textAlign:"center", marginBottom:20 }}>Start free or with a 7-day trial. Upgrade or change anytime.</div>
+              {[
+                { id:"free", name:"Free", price:"€0", desc:"5 invoices · 3 clients · try it out" },
+                { id:"pro", name:"Pro", price:"€9/mo", desc:"Unlimited invoices & clients · WhatsApp reminders · PDF · 7-day free trial", star:true },
+                { id:"business", name:"Business", price:"€19/mo", desc:"Everything in Pro + team (5), quotes, recurring invoices, VAT reports · 7 days free" },
+              ].map(pl => (
+                <div key={pl.id} onClick={() => { if (pl.id === "free") { localStorage.removeItem("fatura_intent_plan"); } else { localStorage.setItem("fatura_intent_plan", pl.id); } setPlanChoice(pl.id); }}
+                  style={{ background:"#111118", border: pl.star ? "1.5px solid #c9a84c" : "1px solid rgba(255,255,255,0.12)", borderRadius:12, padding:"16px 18px", marginBottom:12, cursor:"pointer" }}>
+                  <div style={{ display:"flex", justifyContent:"space-between", marginBottom:4 }}>
+                    <span style={{ color:"#e8e4dc", fontWeight:600, fontSize:15 }}>{pl.name}{pl.star ? " ⭐" : ""}</span>
+                    <span style={{ color:"#c9a84c", fontWeight:600, fontSize:14 }}>{pl.price}</span>
+                  </div>
+                  <div style={{ fontSize:12.5, color:"#9a9690", lineHeight:1.55 }}>{pl.desc}</div>
+                </div>
+              ))}
+              <div style={{ textAlign:"center", marginTop:6 }}>
+                <span style={{ fontSize:12.5, color:"#9a9690", cursor:"pointer", textDecoration:"underline" }} onClick={() => switchMode("login")}>Already have an account? Sign in</span>
+              </div>
+            </div>
+          </div>
+        )}
 
         {/* Name — signup only */}
         {mode === "signup" && (

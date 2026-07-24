@@ -448,7 +448,7 @@ export default function InvoiceApp({ onGoHome }) {
         setPlan("free");
       }
       const isNew = !localStorage.getItem("fatura_welcomed_" + user.id);
-      if (isNew) { setShowWelcome(true); localStorage.setItem("fatura_welcomed_" + user.id, "1"); }
+      if (isNew) { setShowWelcome(true); }
     };
     loadPlan();
   }, []);
@@ -750,15 +750,15 @@ export default function InvoiceApp({ onGoHome }) {
             <div style={{ background:"#111118", border:"1px solid rgba(201,168,76,0.3)", borderRadius:16, padding:32, maxWidth:420, width:"100%", textAlign:"center" }}>
               <div style={{ fontSize:36, marginBottom:12 }}>🎉</div>
               <div style={{ fontFamily:"Playfair Display, serif", fontSize:22, color:"#e8e4dc", marginBottom:8 }}>Welcome to Fatūra Pro!</div>
-              <div style={{ fontSize:13, color:"#9a9690", lineHeight:1.7, marginBottom:20 }}>You have <strong style={{ color:"#c9a84c" }}>7 days free Pro access</strong> — no credit card needed. Enjoy unlimited invoices, clients, PDF export, payment reminders, and more.</div>
+              <div style={{ fontSize:13, color:"#9a9690", lineHeight:1.7, marginBottom:20 }}>{plan === "business" ? <>Your <strong style={{ color:"#c9a84c" }}>Business plan</strong> is active — team access, quotes, recurring invoices, VAT reports and everything in Pro, all unlocked.</> : <>You have <strong style={{ color:"#c9a84c" }}>7 days free Pro access</strong> — no credit card needed. Enjoy unlimited invoices, clients, PDF export, payment reminders, and more.</>}</div>
               <div style={{ background:"rgba(201,168,76,0.1)", border:"1px solid rgba(201,168,76,0.2)", borderRadius:10, padding:"12px 16px", marginBottom:20, textAlign:"left" }}>
-                {["Unlimited invoices & clients","PDF export","Payment reminders (Email & WhatsApp)","Multi-currency support","Business profile auto-fill"].map((f,i) => (
+                {(plan === "business" ? ["Team members (up to 5)","Quotes that convert to invoices","Automatic recurring invoices","Expenses + VAT/BTW reports","Online payments via Stripe"] : ["Unlimited invoices & clients","PDF export","Payment reminders (Email & WhatsApp)","Multi-currency support","Business profile auto-fill"]).map((f,i) => (
                   <div key={i} style={{ fontSize:13, color:"#e8e4dc", marginBottom:i<4?6:0, display:"flex", gap:8 }}>
                     <span style={{ color:"#c9a84c" }}>✓</span>{f}
                   </div>
                 ))}
               </div>
-              <button onClick={() => setShowWelcome(false)} style={{ width:"100%", padding:"12px", borderRadius:8, background:"#c9a84c", border:"none", color:"#000", fontWeight:600, fontSize:14, cursor:"pointer", fontFamily:"DM Sans, sans-serif" }}>Start Using Pro →</button>
+              <button onClick={() => { localStorage.setItem("fatura_welcomed_" + userId, "1"); setShowWelcome(false); }} style={{ width:"100%", padding:"12px", borderRadius:8, background:"#c9a84c", border:"none", color:"#000", fontWeight:600, fontSize:14, cursor:"pointer", fontFamily:"DM Sans, sans-serif" }}>{plan === "business" ? "Start Using Business →" : "Start Using Pro →"}</button>
             </div>
           </div>
         )}
