@@ -66,10 +66,42 @@ export default async function handler(req, res) {
         await supabaseAdmin.from("user_plans").upsert({
           user_id: user.id,
           email: user.email,
+          stripe_customer: session.customer || null,
           plan: newPlan,
           updated_at: new Date().toISOString(),
         });
       }
+    }
+  }
+
+  if (event.type === "customer.subscription.updated" || event.type === "customer.subscription.deleted") {
+    const sub = event.data.object;
+    const custId = sub.customer;
+    let target = null;
+    try {
+      const { data: rows } = await supabaseAdmin.from("user_plans").select("user_id").eq("stripe_customer", custId).limit(1);
+      if (rows && rows.length) target = rows[0].user_id;
+    } catch (e) {}
+    if (!target) {
+      try {
+        const cust = await stripe.customers.retrieve(custId);
+        if (cust && cust.email) {
+          const { data: users } = await supabaseAdmin.auth.admin.listUsers();
+          const u = users.users.find(x => x.email === cust.email);
+          if (u) target = u.id;
+        }
+      } catch (e) {}
+    }
+    if (target) {
+      let newPlan = "free";
+      if (event.type === "customer.subscription.updated" && sub.status !== "canceled" && sub.status !== "unpaid") {
+        const it = sub.items && sub.items.data && sub.items.data[0];
+        const pid = it && it.price ? it.price.id : null;
+        const amt = it && it.price ? it.price.unit_amount : null;
+        newPlan = ((process.env.STRIPE_PRICE_BUSINESS && pid === process.env.STRIPE_PRICE_BUSINESS) || amt === 1900) ? "business" : "pro";
+      }
+      console.log("SUB EVENT:", event.type, custId, "->", newPlan);
+      await supabaseAdmin.from("user_plans").update({ plan: newPlan, stripe_customer: custId, updated_at: new Date().toISOString() }).eq("user_id", target);
     }
   }
 
