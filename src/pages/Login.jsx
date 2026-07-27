@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { signIn, signUp, loginWithGoogle } from "../auth";
 
 /* ─── CSS ─────────────────────────────────────────────── */
@@ -126,6 +126,15 @@ const DEMO_USERS = [
 export default function LoginPage({ onLogin, onBack }) {
   const [mode,     setMode]     = useState("login"); // "login" | "signup"
   const [planChoice, setPlanChoice] = useState(null);
+  useEffect(() => {
+    const inv = new URLSearchParams(window.location.search).get("invited");
+    if (inv) {
+      setMode("signup");
+      setPlanChoice("free");
+      localStorage.removeItem("fatura_intent_plan");
+      setForm(f => ({ ...f, email: inv }));
+    }
+  }, []);
   const [form,     setForm]     = useState({ name:"", email:"", password:"", confirm:"" });
   const [errors,   setErrors]   = useState({});
   const [loading,  setLoading]  = useState(false);

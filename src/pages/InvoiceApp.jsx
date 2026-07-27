@@ -414,6 +414,7 @@ export default function InvoiceApp({ onGoHome }) {
         alert(vd.onboarded ? "✓ Stripe connected! Clients can now pay your invoices online." : "Stripe setup isn't finished yet — click Connect Stripe in Settings to continue.");
         window.history.replaceState({}, "", "/app");
       }
+      await claimInvites();
       const teamOwnerId = await myTeamOwner(user.id);
       const dataOwnerId = teamOwnerId || user.id;
       setOwnerId(dataOwnerId);
@@ -421,7 +422,7 @@ export default function InvoiceApp({ onGoHome }) {
       loadProfiles(dataOwnerId).then(setBizProfiles);
       loadExpenses(dataOwnerId).then(setExpenses);
       loadRecurring(dataOwnerId).then(setRecurring);
-      claimInvites().then(() => loadTeam(user.id).then(setTeam));
+      loadTeam(user.id).then(setTeam);
       supabase.from("api_keys").select("id, key_prefix, label, last_used_at, created_at").eq("user_id",  user.id).then(({ data }) => setApiKeys(data || []));
       let { data } = await supabase.from("user_plans").select("plan, trial_end").eq("user_id", user.id).maybeSingle();
       if (!data) {
@@ -750,7 +751,7 @@ export default function InvoiceApp({ onGoHome }) {
             <div style={{ background:"#111118", border:"1px solid rgba(201,168,76,0.3)", borderRadius:16, padding:32, maxWidth:420, width:"100%", textAlign:"center" }}>
               <div style={{ fontSize:36, marginBottom:12 }}>🎉</div>
               <div style={{ fontFamily:"Playfair Display, serif", fontSize:22, color:"#e8e4dc", marginBottom:8 }}>Welcome to Fatūra Pro!</div>
-              <div style={{ fontSize:13, color:"#9a9690", lineHeight:1.7, marginBottom:20 }}>{plan === "business" ? <>Your <strong style={{ color:"#c9a84c" }}>Business plan</strong> is active — team access, quotes, recurring invoices, VAT reports and everything in Pro, all unlocked.</> : <>You have <strong style={{ color:"#c9a84c" }}>7 days free Pro access</strong> — no credit card needed. Enjoy unlimited invoices, clients, PDF export, payment reminders, and more.</>}</div>
+              <div style={{ fontSize:13, color:"#9a9690", lineHeight:1.7, marginBottom:20 }}>{ownerId && userId && ownerId !== userId ? <>You have joined your team on Fatūra Pro — you can now work on the team's shared invoices, clients, quotes and expenses.</> : plan === "business" ? <>Your <strong style={{ color:"#c9a84c" }}>Business plan</strong> is active — team access, quotes, recurring invoices, VAT reports and everything in Pro, all unlocked.</> : <>You have <strong style={{ color:"#c9a84c" }}>7 days free Pro access</strong> — no credit card needed. Enjoy unlimited invoices, clients, PDF export, payment reminders, and more.</>}</div>
               <div style={{ background:"rgba(201,168,76,0.1)", border:"1px solid rgba(201,168,76,0.2)", borderRadius:10, padding:"12px 16px", marginBottom:20, textAlign:"left" }}>
                 {(plan === "business" ? ["Team members (up to 5)","Quotes that convert to invoices","Automatic recurring invoices","Expenses + VAT/BTW reports","Online payments via Stripe"] : ["Unlimited invoices & clients","PDF export","Payment reminders (Email & WhatsApp)","Multi-currency support","Business profile auto-fill"]).map((f,i) => (
                   <div key={i} style={{ fontSize:13, color:"#e8e4dc", marginBottom:i<4?6:0, display:"flex", gap:8 }}>

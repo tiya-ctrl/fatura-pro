@@ -54,7 +54,7 @@ export default async function handler(req, res) {
               <h2 style="margin:0 0 8px">You're invited 🎉</h2>
               <p style="color:#555;line-height:1.6"><b>${user.email}</b> invited you to join their team on <b>Fatūra Pro</b> — you'll be able to work on their invoices, clients and quotes.</p>
               <p style="color:#555;line-height:1.6">Sign up (or log in) with <b>${invitee}</b> and you'll join the team automatically.</p>
-              <a href="${origin}/register?invite=1" style="display:inline-block;margin:16px 0;padding:12px 22px;background:#1a1a2e;color:#fff;text-decoration:none;border-radius:8px;font-weight:700">Join the team →</a>
+              <a href="${origin}/app?invited=${encodeURIComponent(invitee)}" style="display:inline-block;margin:16px 0;padding:12px 22px;background:#1a1a2e;color:#fff;text-decoration:none;border-radius:8px;font-weight:700">Join the team →</a>
               <p style="color:#999;font-size:12px">If you didn't expect this invite, you can ignore this email.</p>
             </div>
           `,
