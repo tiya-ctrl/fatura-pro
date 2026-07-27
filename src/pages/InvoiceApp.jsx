@@ -631,8 +631,8 @@ export default function InvoiceApp({ onGoHome }) {
             )}
             {isPro ? (
               <div className="plan-badge">
-                <div className="plan-name">✦ PRO PLAN</div>
-                <div className="plan-info">Unlimited everything</div>
+                <div className="plan-name">{plan === "business" ? "✦ BUSINESS PLAN" : isTeamMember ? "✦ TEAM MEMBER" : "✦ PRO PLAN"}</div>
+                <div className="plan-info">{plan === "business" ? "Team, quotes, VAT & more" : isTeamMember ? "Shared team workspace" : "Unlimited everything"}</div>
               </div>
             ) : (
               <div>
