@@ -480,7 +480,7 @@ export default function InvoiceApp({ onGoHome }) {
   };
 
   const openNewInvoice = () => {
-    if (!isPro && invoices.length >= 5) { setUpgradeFeature("unlimited_invoices"); setShowUpgrade(true); }
+    if (!isPro && invoices.length >= 20) { setUpgradeFeature("unlimited_invoices"); setShowUpgrade(true); }
     else setShowNewInvoice(true);
   };
 
@@ -638,9 +638,9 @@ export default function InvoiceApp({ onGoHome }) {
               <div>
                 <div style={{ background:"var(--bg3)", border:"1px solid var(--border)", borderRadius:8, padding:"10px 14px", marginBottom:10 }}>
                   <div style={{ fontSize:11, color:"var(--text2)", fontWeight:600 }}>FREE PLAN</div>
-                  <div style={{ fontSize:11, color:"var(--text2)", marginTop:2 }}>{invoices.length}/5 invoices · {clients.length}/3 clients</div>
+                  <div style={{ fontSize:11, color:"var(--text2)", marginTop:2 }}>{invoices.length}/20 invoices · {clients.length}/5 clients</div>
                   <div style={{ marginTop:8, background:"var(--bg4)", borderRadius:4, height:4, overflow:"hidden" }}>
-                    <div style={{ height:"100%", width:(Math.min(100,(invoices.length/5)*100)) + "%", background:invoices.length>=5?"var(--red)":"var(--gold)", borderRadius:4 }} />
+                    <div style={{ height:"100%", width:(Math.min(100,(invoices.length/20)*100)) + "%", background:invoices.length>=20?"var(--red)":"var(--gold)", borderRadius:4 }} />
                   </div>
                 </div>
                 <button className="btn btn-primary" style={{ width:"100%", justifyContent:"center", fontSize:13, padding:"10px 14px" }} onClick={() => setShowUpgrade(true)}>
@@ -675,7 +675,7 @@ export default function InvoiceApp({ onGoHome }) {
     {!isMobile && (
       <button className="btn btn-primary" onClick={openNewInvoice}>
         <span className="btn-label">
-          {!isPro && invoices.length >= 5
+          {!isPro && invoices.length >= 20
             ? "🔒 New Invoice"
             : "New Invoice"}
         </span>
@@ -687,7 +687,7 @@ export default function InvoiceApp({ onGoHome }) {
       <button
         className="mobile-fab"
         onClick={() => {
-          if (!isPro && invoices.length >= 5) {
+          if (!isPro && invoices.length >= 20) {
             alert("Upgrade to Pro to create more invoices");
             return;
           }
@@ -701,7 +701,7 @@ export default function InvoiceApp({ onGoHome }) {
 )}
               {page === "clients" && (
                 <button className="btn btn-primary" onClick={() => {
-                  if (!isPro && clients.length >= 3) { setUpgradeFeature("unlimited_clients"); setShowUpgrade(true); }
+                  if (!isPro && clients.length >= 5) { setUpgradeFeature("unlimited_clients"); setShowUpgrade(true); }
                   else setShowNewClient(true);
                 }}>+ Client</button>
               )}

@@ -343,8 +343,8 @@ const PLANS = [
   {
     name:"Free", price:0, desc:"Perfect for freelancers just getting started.",
     features:[
-      { text:"5 invoices per month", ok:true },
-      { text:"3 clients", ok:true },
+      { text:"20 invoices", ok:true },
+      { text:"5 clients", ok:true },
       { text:"All currencies", ok:true },
       { text:"Dashboard & analytics", ok:true },
       { text:"Payment reminders", ok:false },
@@ -405,7 +405,7 @@ const FAQS = [
 
 const SYSTEM_PROMPT = `You are Fatūra Pro support assistant at faturapro.app.
 Key facts:
-- Free plan: 5 invoices, 3 clients
+- Free plan: 20 invoices and 5 clients, free forever, no credit card needed
 - Pro plan: 9 EUR/month — unlimited invoices and clients, PDF export, payment reminders (Email and WhatsApp in 4 languages), multi-currency, 7-day free trial
 - Business plan: 19 EUR/month — LIVE NOW, with a 7-day free trial. Everything in Pro plus: quotes that convert to invoices in one click, automatic recurring invoices, expense tracking with quarterly VAT/BTW reports, team members (up to 5 included, no per-user fees), online card payments for your clients via Stripe, multiple business profiles, advanced analytics, accountant CSV export, API access, removal of Fatura branding, and priority support
 - 17+ currencies supported

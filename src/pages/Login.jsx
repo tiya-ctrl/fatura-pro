@@ -240,7 +240,7 @@ export default function LoginPage({ onLogin, onBack }) {
               <div style={{ fontFamily:"Playfair Display, serif", fontSize:24, color:"#e8e4dc", textAlign:"center", marginBottom:6 }}>Choose your plan</div>
               <div style={{ fontSize:13, color:"#9a9690", textAlign:"center", marginBottom:20 }}>Start free or with a 7-day trial. Upgrade or change anytime.</div>
               {[
-                { id:"free", name:"Free", price:"€0", desc:"5 invoices · 3 clients · try it out" },
+                { id:"free", name:"Free", price:"€0", desc:"20 invoices · 5 clients · free forever" },
                 { id:"pro", name:"Pro", price:"€9/mo", desc:"Unlimited invoices & clients · WhatsApp reminders · PDF · 7-day free trial", star:true },
                 { id:"business", name:"Business", price:"€19/mo", desc:"Everything in Pro + team (5), quotes, recurring invoices, VAT reports · 7 days free" },
               ].map(pl => (
