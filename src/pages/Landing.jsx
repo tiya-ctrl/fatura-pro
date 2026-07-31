@@ -460,10 +460,10 @@ function Hero({ onOpenApp }) {
         </div>
       </div>
       <h1 className="hero-title fade-up delay-1">
-        Invoice like a<br /><em>professional.</em>
+        Professional invoices in<br /><em>two minutes.</em>
       </h1>
       <p className="hero-sub fade-up delay-2">
-        Create, send and track professional invoices in minutes. The #1 invoicing app for professionals worldwide — supports EUR, USD, AED, MAD and 14 more currencies.
+        Invoicing built for freelancers, small businesses and agencies. Send branded invoices in 17 currencies, chase payments automatically by email and WhatsApp, and get paid faster — free to start, no credit card.
       </p>
       <div className="hero-actions fade-up delay-3">
         <button className="btn btn-gold btn-xl" onClick={onOpenApp}>Get Paid Faster — Start Free →</button>
@@ -473,7 +473,7 @@ function Hero({ onOpenApp }) {
         <div className="proof-avatars">
           {["🇺🇸","🇬🇧","🇲🇦","🇸🇦","🇳🇱","🇦🇪"].map((f,i) => <div key={i} className="proof-avatar">{f}</div>)}
         </div>
-        <p className="proof-text"><strong>Create your first invoice in under 3 minutes</strong> — free · No credit card needed</p>
+        <p className="proof-text"><strong>Create your first invoice in under 2 minutes</strong> — free · No credit card needed</p>
       </div>
       <div className="mockup-wrap fade-up delay-4" style={{ marginTop:64 }}>
         <div className="mockup-glow" />
