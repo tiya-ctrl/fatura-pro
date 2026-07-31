@@ -484,25 +484,7 @@ function Hero({ onOpenApp }) {
             <div className="mockup-dot" style={{ background:"#28c840" }} />
             <div style={{ flex:1, height:20, background:"var(--bg4)", borderRadius:6, marginLeft:12 }} />
           </div>
-          <div className="mockup-body">
-            <div className="mockup-side">
-              {[1,0,0,0,0].map((a,i) => <div key={i} className={`mockup-nav-item ${a ? "active" : ""}`} />)}
-            </div>
-            <div className="mockup-content">
-              {["gold","","",""].map((c,i) => (
-                <div key={i} className="mockup-stat">
-                  <div style={{ height:8, width:"60%", background:"var(--bg4)", borderRadius:4 }} />
-                  <div className={`mockup-stat-val ${c}`} />
-                </div>
-              ))}
-              {[1,2,3,4].map(i => (
-                <div key={i} className="mockup-row">
-                  <div className="mockup-row-bar" style={{ width:`${[80,60,90,50][i-1]}%` }} />
-                  <div className="mockup-badge" style={{ background: i===1 ? "rgba(76,175,137,0.2)":i===2 ? "rgba(224,154,69,0.2)":"rgba(224,85,85,0.2)" }} />
-                </div>
-              ))}
-            </div>
-          </div>
+          <img src="/hero-dashboard.png" alt="Fatura Pro dashboard showing invoices, revenue, pending and overdue payments" loading="eager" style={{ width:"100%", display:"block" }} />
         </div>
       </div>
     </section>
