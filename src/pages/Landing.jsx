@@ -112,7 +112,7 @@ nav.topnav.scrolled {
 .proof-text { font-size:13px; color:var(--text2); }
 .proof-text strong { color:var(--text); }
 /* dashboard mockup */
-.mockup-wrap { width:100%; max-width:900px; margin:0 auto; position:relative; }
+.mockup-wrap { width:100%; max-width:720px; margin:0 auto; position:relative; }
 .mockup-glow { position:absolute; bottom:-60px; left:50%; transform:translateX(-50%);
   width:80%; height:200px; background:radial-gradient(ellipse, rgba(201,168,76,0.18) 0%, transparent 70%); }
 .mockup-frame {
