@@ -475,7 +475,7 @@ function Hero({ onOpenApp }) {
         </div>
         <p className="proof-text"><strong>Create your first invoice in under 2 minutes</strong> — free · No credit card needed</p>
       </div>
-      <div className="mockup-wrap fade-up delay-4" style={{ marginTop:64 }}>
+      <div className="mockup-wrap fade-up delay-4" onClick={onOpenApp} title="Open the app" style={{ marginTop:64, cursor:"pointer" }}>
         <div className="mockup-glow" />
         <div className="mockup-frame">
           <div className="mockup-bar">
