@@ -328,15 +328,15 @@ footer {
 
 /* ─── DATA ───────────────────────────────────────────────────── */
 const FEATURES = [
-  { icon:"📄", title:"Smart Invoices", desc:"Create professional invoices in seconds. Add your logo, client details, line items, tax, and discounts. Multiple currencies supported.", pro:false },
-  { icon:"🌍", title:"17 Currencies", desc:"Bill clients in EUR, USD, GBP, AED, SAR, MAD, DZD and more. Automatic formatting per locale.", pro:false },
-  { icon:"🔔", title:"Payment Reminders", desc:"Auto-detect overdue invoices and send polite, firm or final payment reminders via Email or WhatsApp with one click.", pro:true },
-  { icon:"📊", title:"Revenue Dashboard", desc:"Track paid, pending and overdue invoices at a glance. Know exactly where your money is at all times.", pro:false },
-  { icon:"👥", title:"Client Management", desc:"Store all your client information, billing history, and contact details in one organised place.", pro:false },
-  { icon:"🖨️", title:"PDF Export & Print", desc:"Generate print-ready, pixel-perfect invoices in PDF format. Share directly with clients or store for accounting.", pro:true },
-  { icon:"✏️", title:"Invoice Editing", desc:"Mistakes happen. Edit any invoice any time — update amounts, dates, items, or client details instantly.", pro:false },
-  { icon:"🏦", title:"Bank Details on Invoice", desc:"Add your IBAN, BIC/Swift, Wise or PayPal info to every invoice so clients always know how to pay.", pro:false },
-  { icon:"📱", title:"Mobile Ready", desc:"Full-featured on phone, tablet and desktop. Create and manage invoices from anywhere.", pro:false },
+  { icon:"invoice", title:"Smart Invoices", desc:"Create professional invoices in seconds. Add your logo, client details, line items, tax, and discounts. Multiple currencies supported.", pro:false },
+  { icon:"globe", title:"17 Currencies", desc:"Bill clients in EUR, USD, GBP, AED, SAR, MAD, DZD and more. Automatic formatting per locale.", pro:false },
+  { icon:"bell", title:"Payment Reminders", desc:"Auto-detect overdue invoices and send polite, firm or final payment reminders via Email or WhatsApp with one click.", pro:true },
+  { icon:"chart", title:"Revenue Dashboard", desc:"Track paid, pending and overdue invoices at a glance. Know exactly where your money is at all times.", pro:false },
+  { icon:"users", title:"Client Management", desc:"Store all your client information, billing history, and contact details in one organised place.", pro:false },
+  { icon:"download", title:"PDF Export & Print", desc:"Generate print-ready, pixel-perfect invoices in PDF format. Share directly with clients or store for accounting.", pro:true },
+  { icon:"pencil", title:"Invoice Editing", desc:"Mistakes happen. Edit any invoice any time — update amounts, dates, items, or client details instantly.", pro:false },
+  { icon:"bank", title:"Bank Details on Invoice", desc:"Add your IBAN, BIC/Swift, Wise or PayPal info to every invoice so clients always know how to pay.", pro:false },
+  { icon:"mobile", title:"Mobile Ready", desc:"Full-featured on phone, tablet and desktop. Create and manage invoices from anywhere.", pro:false },
 ];
 
 const PLANS = [
@@ -490,6 +490,31 @@ function Hero({ onOpenApp }) {
     </section>
   );
 }
+const ICON_PATHS = {
+  invoice: "M7 3h7l5 5v13a1 1 0 0 1-1 1H7a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1zM14 3v5h5M9 13h7M9 17h5",
+  globe: "M12 3a9 9 0 1 0 0 18 9 9 0 0 0 0-18zM3.5 9h17M3.5 15h17M12 3c2.5 2.5 3.5 5.5 3.5 9S14.5 18.5 12 21c-2.5-2.5-3.5-5.5-3.5-9S9.5 5.5 12 3z",
+  bell: "M18 9a6 6 0 1 0-12 0c0 5-2 6-2 6h16s-2-1-2-6M10.5 20a1.8 1.8 0 0 0 3 0",
+  chart: "M4 20V10M10 20V4M16 20v-7M22 20H2",
+  users: "M15.5 20v-1.8a3.6 3.6 0 0 0-3.6-3.6H6.6A3.6 3.6 0 0 0 3 18.2V20M9.2 11.4a3.6 3.6 0 1 0 0-7.2 3.6 3.6 0 0 0 0 7.2zM21 20v-1.8a3.6 3.6 0 0 0-2.7-3.5M15.8 4.3a3.6 3.6 0 0 1 0 7",
+  download: "M12 3v12M7.5 10.5 12 15l4.5-4.5M4 20h16",
+  pencil: "M4 20h4L19.5 8.5a2.1 2.1 0 0 0-3-3L5 17v3zM14.5 6.5l3 3",
+  bank: "M3 10h18M5 10v8M10 10v8M14 10v8M19 10v8M2.5 21h19M12 3l9 5H3l9-5z",
+  mobile: "M7.5 2.5h9a1.5 1.5 0 0 1 1.5 1.5v16a1.5 1.5 0 0 1-1.5 1.5h-9A1.5 1.5 0 0 1 6 20V4a1.5 1.5 0 0 1 1.5-1.5zM11 18.5h2",
+  building: "M4 21V5a1 1 0 0 1 1-1h9a1 1 0 0 1 1 1v16M15 10h4a1 1 0 0 1 1 1v10M3 21h18M8 8h3M8 12h3M8 16h3",
+  user: "M20 21v-2a5 5 0 0 0-5-5H9a5 5 0 0 0-5 5v2M12 11a4 4 0 1 0 0-8 4 4 0 0 0 0 8z",
+  list: "M8 6h13M8 12h13M8 18h13M3.5 6h.01M3.5 12h.01M3.5 18h.01",
+  send: "M22 3 11 14M22 3l-7 19-4-8-8-4 19-7z",
+};
+
+function FIcon({ name, size = 28 }) {
+  const d = ICON_PATHS[name];
+  if (!d) return null;
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="var(--gold)" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+      <path d={d} />
+    </svg>
+  );
+}
 
 function Features() {
   return (
@@ -501,7 +526,7 @@ function Features() {
         <div className="features-grid">
           {FEATURES.map((f, i) => (
             <div key={i} className="feat-card" style={{ animationDelay:`${i*0.07}s` }}>
-              <span className="feat-icon" style={{ animationDelay:`${i*0.3}s` }}>{f.icon}</span>
+              <span className="feat-icon" style={{ animationDelay:`${i*0.3}s` }}><FIcon name={f.icon} /></span>
               <div className="feat-title">{f.title}</div>
               <div className="feat-desc">{f.desc}</div>
               {f.pro && <div className="feat-pro">✦ PRO</div>}
@@ -552,10 +577,10 @@ function InstallApp() {
 
 function HowItWorks({ onOpenApp }) {
   const steps = [
-    { n:"1", icon:"🏢", title:"Set up your profile", desc:"Add your company name, logo, address, and banking details once. It'll appear on every invoice." },
-    { n:"2", icon:"👤", title:"Add your client", desc:"Enter client details or pick from your saved contacts. Phone, email, address — all stored securely." },
-    { n:"3", icon:"📋", title:"Add line items", desc:"List your services or products with quantity and price. Fatūra calculates tax and discounts automatically." },
-    { n:"4", icon:"✉️", title:"Send & get paid", desc:"Preview the invoice, send it by email, or share the PDF. Then track whether it's been paid." },
+    { n:"1", icon:"building", title:"Set up your profile", desc:"Add your company name, logo, address, and banking details once. It'll appear on every invoice." },
+    { n:"2", icon:"user", title:"Add your client", desc:"Enter client details or pick from your saved contacts. Phone, email, address — all stored securely." },
+    { n:"3", icon:"list", title:"Add line items", desc:"List your services or products with quantity and price. Fatūra calculates tax and discounts automatically." },
+    { n:"4", icon:"send", title:"Send & get paid", desc:"Preview the invoice, send it by email, or share the PDF. Then track whether it's been paid." },
   ];
   return (
     <section id="how">
@@ -568,7 +593,7 @@ function HowItWorks({ onOpenApp }) {
           {steps.map((s, i) => (
             <div key={i} className="how-step">
               <div className="how-num">{s.n}</div>
-              <div style={{ fontSize:26, marginBottom:14 }}>{s.icon}</div>
+              <div style={{ fontSize:26, marginBottom:14 }}><FIcon name={s.icon} size={26} /></div>
               <div className="how-title">{s.title}</div>
               <div className="how-desc">{s.desc}</div>
             </div>
