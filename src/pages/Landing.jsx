@@ -504,6 +504,7 @@ const ICON_PATHS = {
   user: "M20 21v-2a5 5 0 0 0-5-5H9a5 5 0 0 0-5 5v2M12 11a4 4 0 1 0 0-8 4 4 0 0 0 0 8z",
   list: "M8 6h13M8 12h13M8 18h13M3.5 6h.01M3.5 12h.01M3.5 18h.01",
   send: "M22 3 11 14M22 3l-7 19-4-8-8-4 19-7z",
+  tablet: "M6 2.5h12a1.5 1.5 0 0 1 1.5 1.5v16a1.5 1.5 0 0 1-1.5 1.5H6A1.5 1.5 0 0 1 4.5 20V4A1.5 1.5 0 0 1 6 2.5zM9.5 18.5h5",
 };
 
 function FIcon({ name, size = 28 }) {
@@ -549,7 +550,7 @@ function InstallApp() {
         </p>
         <div style={{ display:"grid", gridTemplateColumns:"repeat(auto-fit, minmax(220px, 1fr))", gap:20, maxWidth:700, margin:"0 auto 48px" }}>
           <div style={{ background:"var(--bg2)", border:"1px solid var(--border)", borderRadius:14, padding:"24px 20px" }}>
-            <div style={{ fontSize:32, marginBottom:12 }}>🍎</div>
+            <div style={{ fontSize:32, marginBottom:12 }}><FIcon name="mobile" size={30} /></div>
             <div style={{ fontWeight:700, fontSize:15, marginBottom:12, color:"var(--text)" }}>iPhone (Safari)</div>
             <ol style={{ textAlign:"left", paddingLeft:18, color:"var(--text2)", fontSize:13, lineHeight:2 }}>
               <li>Open Fatūra in Safari</li>
@@ -559,7 +560,7 @@ function InstallApp() {
             </ol>
           </div>
           <div style={{ background:"var(--bg2)", border:"1px solid var(--border)", borderRadius:14, padding:"24px 20px" }}>
-            <div style={{ fontSize:32, marginBottom:12 }}>🤖</div>
+            <div style={{ fontSize:32, marginBottom:12 }}><FIcon name="tablet" size={30} /></div>
             <div style={{ fontWeight:700, fontSize:15, marginBottom:12, color:"var(--text)" }}>Android (Chrome)</div>
             <ol style={{ textAlign:"left", paddingLeft:18, color:"var(--text2)", fontSize:13, lineHeight:2 }}>
               <li>Open Fatūra in Chrome</li>
