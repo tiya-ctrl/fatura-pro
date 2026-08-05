@@ -747,7 +747,7 @@ function Footer({ onOpenApp }) {
         </div>
         <div className="footer-col">
           <h4>Product</h4>
-          {[["#features","Invoice Features"],["#pricing","Pricing Plans"],["#how","How It Works"],["#top","Install as App"]].map(([h,l]) => <a key={h} href={h}>{l}</a>)}
+          {[["#features","Invoice Features"],["#pricing","Pricing Plans"],["#how","How It Works"],["#install","Install as App"]].map(([h,l]) => <a key={h} href={h} onClick={h === "#install" ? (e) => { e.preventDefault(); window.dispatchEvent(new Event("fatura-install")); } : undefined}>{l}</a>)}
         </div>
         <div className="footer-col">
           <h4>Use Cases</h4>

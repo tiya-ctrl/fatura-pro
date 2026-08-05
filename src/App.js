@@ -14,6 +14,7 @@ import InvoiceGenerator from "./pages/InvoiceGenerator";
 import Admin from "./pages/Admin";
 import PayInvoice from "./pages/PayInvoice";
 import ApiDocs from "./pages/ApiDocs";
+import InstallPrompt from "./InstallPrompt";
 
 /* ───────── Landing ───────── */
 function LandingWrapper() {
@@ -98,6 +99,7 @@ export default function App() {
   return (
     <BrowserRouter>
       <AppRoutes />
+      <InstallPrompt />
       <Analytics />
     </BrowserRouter>
   );
