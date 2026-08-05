@@ -15,12 +15,17 @@ import Admin from "./pages/Admin";
 import PayInvoice from "./pages/PayInvoice";
 import ApiDocs from "./pages/ApiDocs";
 import InstallPrompt from "./InstallPrompt";
+import { supabase } from "./supabase";
 
 /* ───────── Landing ───────── */
 function LandingWrapper() {
   const navigate = useNavigate();
 
-  return <LandingPage onOpenApp={() => navigate("/login")} onSignIn={() => navigate("/login")} />;
+  const goToApp = async () => {
+    const { data: { session } } = await supabase.auth.getSession();
+    navigate(session ? "/app" : "/login");
+  };
+  return <LandingPage onOpenApp={goToApp} onSignIn={goToApp} />;
 }
 
 /* ───────── Login ───────── */
