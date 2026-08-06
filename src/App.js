@@ -14,7 +14,9 @@ import InvoiceGenerator from "./pages/InvoiceGenerator";
 import Admin from "./pages/Admin";
 import PayInvoice from "./pages/PayInvoice";
 import ApiDocs from "./pages/ApiDocs";
+import LatePaymentScripts from "./pages/LatePaymentScripts";
 import InstallPrompt from "./InstallPrompt";
+import TopBar from "./TopBar";
 import { supabase } from "./supabase";
 
 /* ───────── Landing ───────── */
@@ -86,6 +88,7 @@ function AppRoutes() {
       <Route path="/terms" element={<Legal page="terms" />} />
       <Route path="/blog" element={<BlogIndex />} />
       <Route path="/api-docs" element={<ApiDocs />} />
+      <Route path="/late-payment-scripts" element={<LatePaymentScripts />} />
       <Route path="/invoice-generator" element={<InvoiceGenerator />} />
       <Route path="/blog/:slug" element={<BlogPost />} />
       <Route path="/admin" element={<Admin />} />
@@ -104,6 +107,7 @@ export default function App() {
   return (
     <BrowserRouter>
       <AppRoutes />
+      <TopBar />
       <InstallPrompt />
       <Analytics />
     </BrowserRouter>
