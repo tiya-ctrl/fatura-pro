@@ -110,7 +110,26 @@ export default async function handler(req, res) {
       try {
         const prevAttrs = (event.data && event.data.previous_attributes) || {};
         const flipped = Object.prototype.hasOwnProperty.call(prevAttrs, "cancel_at_period_end");
-        if (event.type === "customer.subscription.updated" && sub.cancel_at_period_end === true && flipped) {
+        // Newer Stripe API versions express "cancel at period end" via cancel_at
+        // rather than cancel_at_period_end, so accept either shape.
+        const wantsCancel = (sub.cancel_at_period_end === true)
+          || (!!sub.cancel_at && sub.status !== "canceled");
+        const changed = flipped
+          || Object.prototype.hasOwnProperty.call(prevAttrs, "cancel_at")
+          || Object.prototype.hasOwnProperty.call(prevAttrs, "cancellation_details");
+
+        if (event.type === "customer.subscription.updated") {
+          console.log("CANCEL DEBUG:",
+            "cape=", sub.cancel_at_period_end,
+            "cancel_at=", sub.cancel_at,
+            "canceled_at=", sub.canceled_at,
+            "status=", sub.status,
+            "wantsCancel=", wantsCancel,
+            "changed=", changed,
+            "prev=", JSON.stringify(prevAttrs));
+        }
+
+        if (event.type === "customer.subscription.updated" && wantsCancel && changed) {
 
           const item0 = sub.items && sub.items.data && sub.items.data[0];
           const endTs = sub.cancel_at || sub.current_period_end || (item0 && item0.current_period_end) || null;
