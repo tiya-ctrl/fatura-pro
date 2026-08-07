@@ -348,7 +348,6 @@ const PLANS = [
       { text:"All currencies", ok:true },
       { text:"Dashboard & analytics", ok:true },
       { text:"PDF export & print", ok:true },
-      { text:"Custom logo & branding", ok:true },
       { text:"Payment reminders (Email + WhatsApp)", ok:false },
       { text:"Unlimited invoices & clients", ok:false },
       { text:"Client card payments (Stripe)", ok:false },
