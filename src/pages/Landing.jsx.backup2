@@ -333,7 +333,7 @@ const FEATURES = [
   { icon:"bell", title:"Payment Reminders", desc:"Auto-detect overdue invoices and send polite, firm or final payment reminders via Email or WhatsApp with one click.", pro:true },
   { icon:"chart", title:"Revenue Dashboard", desc:"Track paid, pending and overdue invoices at a glance. Know exactly where your money is at all times.", pro:false },
   { icon:"users", title:"Client Management", desc:"Store all your client information, billing history, and contact details in one organised place.", pro:false },
-  { icon:"download", title:"PDF Export & Print", desc:"Generate print-ready, pixel-perfect invoices in PDF format. Included on every plan, including Free. Share directly with clients or store for accounting.", pro:false },
+  { icon:"download", title:"PDF Export & Print", desc:"Generate print-ready, pixel-perfect invoices in PDF format. Share directly with clients or store for accounting.", pro:true },
   { icon:"pencil", title:"Invoice Editing", desc:"Mistakes happen. Edit any invoice any time — update amounts, dates, items, or client details instantly.", pro:false },
   { icon:"bank", title:"Bank Details on Invoice", desc:"Add your IBAN, BIC/Swift, Wise or PayPal info to every invoice so clients always know how to pay.", pro:false },
   { icon:"mobile", title:"Mobile Ready", desc:"Full-featured on phone, tablet and desktop. Create and manage invoices from anywhere.", pro:false },
@@ -347,10 +347,9 @@ const PLANS = [
       { text:"5 clients", ok:true },
       { text:"All currencies", ok:true },
       { text:"Dashboard & analytics", ok:true },
-      { text:"PDF export & print", ok:true },
-      { text:"Payment reminders (Email + WhatsApp)", ok:false },
-      { text:"Unlimited invoices & clients", ok:false },
-      { text:"Client card payments (Stripe)", ok:false },
+      { text:"Payment reminders", ok:false },
+      { text:"PDF export", ok:false },
+      { text:"Unlimited invoices", ok:false },
       { text:"Priority support", ok:false },
     ],
     cta:"Start Free", ctaStyle:"btn-outline",
@@ -363,7 +362,7 @@ const PLANS = [
       { text:"All currencies", ok:true },
       { text:"Dashboard & analytics", ok:true },
       { text:"Payment reminders (Email + WhatsApp)", ok:true },
-      { text:"PDF export & print", ok:true },
+      { text:"PDF export", ok:true },
       { text:"Custom logo & branding", ok:true },
       { text:"Priority support", ok:false },
     ],
@@ -406,7 +405,7 @@ const FAQS = [
 
 const SYSTEM_PROMPT = `You are Fatūra Pro support assistant at faturapro.app.
 Key facts:
-- Free plan: 20 invoices and 5 clients, PDF export and print included, free forever, no credit card needed
+- Free plan: 20 invoices and 5 clients, free forever, no credit card needed
 - Pro plan: 9 EUR/month — unlimited invoices and clients, PDF export, payment reminders (Email and WhatsApp in 4 languages), multi-currency, 7-day free trial
 - Business plan: 19 EUR/month — LIVE NOW, with a 7-day free trial. Everything in Pro plus: quotes that convert to invoices in one click, automatic recurring invoices, expense tracking with quarterly VAT/BTW reports, team members (up to 5 included, no per-user fees), online card payments for your clients via Stripe, multiple business profiles, advanced analytics, accountant CSV export, API access, removal of Fatura branding, and priority support
 - 17+ currencies supported
