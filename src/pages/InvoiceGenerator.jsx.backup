@@ -9,7 +9,7 @@ export default function InvoiceGenerator() {
   useEffect(() => {
     document.title = "Free Invoice Generator — Create a Professional Invoice Online | Fatūra Pro";
     const meta = document.querySelector('meta[name="description"]');
-    if (meta) meta.setAttribute("content", "Free online invoice generator. Create a professional invoice in seconds and download it as a PDF — no signup, no account needed. Supports EUR, USD, GBP, AED and more.");
+    if (meta) meta.setAttribute("content", "Free online invoice generator. Create a professional invoice in seconds — no signup needed to preview. Supports EUR, USD, GBP, AED and more.");
   }, []);
 
   const [form, setForm] = useState({
@@ -34,26 +34,10 @@ export default function InvoiceGenerator() {
       <div style={{ maxWidth:1100, margin:"0 auto", padding:"40px 20px" }}>
         <a href="/" style={{ color:"#c9a84c", fontSize:13, textDecoration:"none", display:"inline-block", marginBottom:24 }}>← Fatūra Pro</a>
         <h1 style={{ fontFamily:"Playfair Display, Georgia, serif", fontSize:34, marginBottom:8 }}>Free Invoice Generator</h1>
-        <p style={{ color:"#9a9690", marginBottom:36, fontSize:15, lineHeight:1.7 }}>Create a professional invoice in seconds and download it as a PDF — free, no signup, no account needed. Fill in the details and watch your invoice come to life.</p>
+        <p style={{ color:"#9a9690", marginBottom:36, fontSize:15, lineHeight:1.7 }}>Create a professional invoice in seconds — free, no signup needed. Fill in the details and watch your invoice come to life.</p>
 
         <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:28, alignItems:"start" }} className="gen-grid">
-          <style>{`
-            @media (max-width: 800px) { .gen-grid { grid-template-columns: 1fr !important; } }
-            @media print {
-              html, body { background: #fff !important; margin: 0 !important; padding: 0 !important; }
-              body * { visibility: hidden !important; }
-              .gen-invoice, .gen-invoice * { visibility: visible !important; }
-              .gen-invoice {
-                position: absolute !important; left: 0 !important; top: 0 !important;
-                width: 100% !important; max-width: 100% !important;
-                box-shadow: none !important; border-radius: 0 !important;
-                padding: 0 !important; background: #fff !important;
-              }
-              .gen-noprint { display: none !important; }
-              * { -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; }
-            }
-            @page { size: A4 portrait; margin: 14mm; }
-          `}</style>
+          <style>{`@media (max-width: 800px) { .gen-grid { grid-template-columns: 1fr !important; } }`}</style>
 
           {/* FORM */}
           <div style={{ background:"#111118", border:"1px solid rgba(201,168,76,0.15)", borderRadius:16, padding:28 }}>
@@ -89,7 +73,7 @@ export default function InvoiceGenerator() {
 
           {/* PREVIEW */}
           <div>
-            <div className="gen-invoice" style={{ background:"#fdfcf9", borderRadius:16, padding:"36px 34px", color:"#1a1a2e", boxShadow:"0 20px 60px rgba(0,0,0,0.5)" }}>
+            <div style={{ background:"#fdfcf9", borderRadius:16, padding:"36px 34px", color:"#1a1a2e", boxShadow:"0 20px 60px rgba(0,0,0,0.5)" }}>
               <div style={{ display:"flex", justifyContent:"space-between", alignItems:"flex-start", marginBottom:28 }}>
                 <div style={{ fontFamily:"Playfair Display, Georgia, serif", fontSize:22, fontWeight:700, color:"#c9a84c" }}>{form.yourName || "Your Business"}</div>
                 <div style={{ textAlign:"right" }}>
@@ -126,22 +110,12 @@ export default function InvoiceGenerator() {
                   <div style={{ display:"flex", justifyContent:"space-between", fontWeight:800, fontSize:17, padding:"10px 0", borderTop:"2px solid #eee", marginTop:6 }}><span>Total</span><span style={{ color:"#c9a84c" }}>{f(total)}</span></div>
                 </div>
               </div>
-              <div style={{ borderTop:"1px solid #eee", marginTop:26, paddingTop:12, textAlign:"center", fontSize:10, letterSpacing:0.6, color:"#b3aea4" }}>
-                Created with Fatūra · faturapro.app
-              </div>
-            </div>
-
-            <button className="gen-noprint" onClick={() => window.print()} style={{ width:"100%", marginTop:16, padding:"14px 20px", borderRadius:11, background:"linear-gradient(135deg,#f0d878,#c9a84c)", color:"#0a0a0f", fontWeight:700, fontSize:15, border:"none", cursor:"pointer", fontFamily:"DM Sans, sans-serif" }}>
-              Download PDF
-            </button>
-            <div className="gen-noprint" style={{ fontSize:11.5, color:"#5a5750", textAlign:"center", marginTop:8, lineHeight:1.7 }}>
-              Opens your browser's print window — choose "Save as PDF" as the destination.
             </div>
 
             {/* CTA */}
-            <div className="gen-noprint" style={{ background:"rgba(201,168,76,0.07)", border:"1px solid rgba(201,168,76,0.25)", borderRadius:14, padding:"22px 24px", marginTop:20, textAlign:"center" }}>
-              <div style={{ fontSize:15, fontWeight:700, color:"#e8e4dc", marginBottom:6 }}>Invoicing more than once?</div>
-              <div style={{ fontSize:13, color:"#9a9690", marginBottom:14 }}>Create a free account to add your logo, save clients for repeat billing, track who has paid, and send payment reminders automatically.</div>
+            <div style={{ background:"rgba(201,168,76,0.07)", border:"1px solid rgba(201,168,76,0.25)", borderRadius:14, padding:"22px 24px", marginTop:20, textAlign:"center" }}>
+              <div style={{ fontSize:15, fontWeight:700, color:"#e8e4dc", marginBottom:6 }}>Want to download this as a PDF, add your logo &amp; send it?</div>
+              <div style={{ fontSize:13, color:"#9a9690", marginBottom:14 }}>Create a free account — save clients, track payments, send automatic reminders.</div>
               <a href="/login" style={{ display:"inline-block", padding:"12px 30px", borderRadius:10, background:"linear-gradient(135deg,#f0d878,#c9a84c)", color:"#0a0a0f", fontWeight:700, fontSize:15, textDecoration:"none" }}>Continue Free →</a>
               <div style={{ fontSize:11, color:"#5a5750", marginTop:10 }}>No credit card · 7-day Pro trial included</div>
             </div>
@@ -151,7 +125,7 @@ export default function InvoiceGenerator() {
         {/* SEO text */}
         <div style={{ maxWidth:760, margin:"60px auto 0" }}>
           <h2 style={{ fontFamily:"Playfair Display, Georgia, serif", fontSize:24, color:"#c9a84c", marginBottom:12 }}>How to use this free invoice generator</h2>
-          <p style={{ fontSize:14.5, lineHeight:1.9, color:"rgba(232,228,220,0.75)", marginBottom:20 }}>Enter your business name, your client's details, and your services with quantities and prices. The invoice preview updates instantly. Choose from EUR, USD, GBP, AED, MAD, SAR and more. Add tax or VAT if needed — the totals calculate automatically. When it looks right, press Download PDF and save it straight to your device: no signup, no account, no email address. To add your logo, save clients for repeat billing, track paid and overdue invoices and send payment reminders automatically, create a free Fatūra Pro account. No credit card required.</p>
+          <p style={{ fontSize:14.5, lineHeight:1.9, color:"rgba(232,228,220,0.75)", marginBottom:20 }}>Enter your business name, your client's details, and your services with quantities and prices. The invoice preview updates instantly. Choose from EUR, USD, GBP, AED, MAD, SAR and more. Add tax or VAT if needed — the totals calculate automatically. When you're ready to download your invoice as a PDF, add your logo, save clients for repeat billing, and send automatic payment reminders, create a free Fatūra Pro account. No credit card required.</p>
           <h2 style={{ fontFamily:"Playfair Display, Georgia, serif", fontSize:24, color:"#c9a84c", marginBottom:12 }}>Why professionals choose Fatūra Pro</h2>
           <p style={{ fontSize:14.5, lineHeight:1.9, color:"rgba(232,228,220,0.75)" }}>Fatūra Pro is an online invoicing app for freelancers, consultants and small businesses worldwide. Create unlimited professional invoices, track payment status (paid, pending, overdue), and send payment reminders via Email and WhatsApp in English, Arabic, French and Dutch. Your business profile and clients are saved once and auto-filled on every invoice.</p>
         </div>

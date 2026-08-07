@@ -1,3 +1,25 @@
+#!/usr/bin/env bash
+# ============================================================
+#  Fatura Pro - free PDF download in the invoice generator
+#  Rewrites src/pages/InvoiceGenerator.jsx:
+#   - "Download PDF" button (uses the browser print dialog -> Save as PDF)
+#   - print stylesheet so ONLY the invoice is printed, A4, clean
+#   - "Created with Fatura - faturapro.app" line inside the invoice
+#   - copy updated everywhere: PDF is now free, no signup
+#  Safe to run twice. Creates InvoiceGenerator.jsx.backup
+# ============================================================
+set -e
+
+if [ ! -f package.json ] || [ ! -f src/pages/InvoiceGenerator.jsx ]; then
+  echo "ERROR: run this from the fatura-pro project root (where package.json is)."
+  exit 1
+fi
+
+echo "-> backing up src/pages/InvoiceGenerator.jsx"
+cp src/pages/InvoiceGenerator.jsx src/pages/InvoiceGenerator.jsx.backup
+
+echo "-> writing the new generator page"
+cat > src/pages/InvoiceGenerator.jsx <<'FATURA_GEN_EOF'
 import { useState, useEffect } from "react";
 
 const CURRENCIES = [
@@ -159,3 +181,20 @@ export default function InvoiceGenerator() {
     </div>
   );
 }
+FATURA_GEN_EOF
+
+echo
+echo "-> verification"
+grep -q "Download PDF" src/pages/InvoiceGenerator.jsx   && echo "   OK  download button present"
+grep -q "gen-invoice" src/pages/InvoiceGenerator.jsx    && echo "   OK  print stylesheet present"
+grep -q "Created with" src/pages/InvoiceGenerator.jsx   && echo "   OK  branding line present"
+
+echo
+echo "DONE."
+echo "Test:  npm start   then open  http://localhost:3000/invoice-generator"
+echo "Fill in a couple of items, press Download PDF, and check the preview shows ONLY the invoice."
+echo
+echo "Then:"
+echo "  git add -A"
+echo "  git commit -m \"Free PDF download in the invoice generator\""
+echo "  git push"
