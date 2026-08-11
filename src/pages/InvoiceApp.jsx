@@ -407,7 +407,7 @@ export default function InvoiceApp({ onGoHome }) {
     if (!ownerId) return;
     (async () => {
       const { data: invData } = await supabase.from("invoices").select("*").eq("user_id", ownerId).order("created_at", { ascending: false });
-      if (invData) setInvoices(invData.map(r => ({ id: r.id, createdBy: r.created_by, client: r.client, email: r.email, sellerName: r.seller_name, sellerEmail: r.seller_email, sellerPhone: r.seller_phone, sellerAddress: r.seller_address, buyerPhone: r.buyer_phone, buyerAddress: r.buyer_address, date: r.date, due: r.due, status: r.status, amount: r.amount, subtotal: r.subtotal, discountAmt: r.discount_amt, taxAmt: r.tax_amt, total: r.total, tax: r.tax, discount: r.discount, notes: r.notes, bankInfo: r.bank_info, currency: r.currency, items: r.items || [] })));
+      if (invData) setInvoices(invData.map(r => ({ id: r.id, createdBy: r.created_by, client: r.client, email: r.email, sellerName: r.seller_name, sellerEmail: r.seller_email, sellerPhone: r.seller_phone, sellerAddress: r.seller_address, buyerPhone: r.buyer_phone, buyerAddress: r.buyer_address, date: r.date, due: r.due, status: r.status, amount: r.amount, subtotal: r.subtotal, discountAmt: r.discount_amt, taxAmt: r.tax_amt, total: r.total, tax: r.tax, discount: r.discount, notes: r.notes, bankInfo: r.bank_info, currency: r.currency, docType: r.doc_type, creditOf: r.credit_of, items: r.items || [] })));
       const { data: cliData } = await supabase.from("clients").select("*").eq("user_id", ownerId);
       if (cliData) setClients(cliData.map(c => ({ id: c.id, name: c.name, email: c.email, phone: c.phone, country: c.country })));
     })();
@@ -537,6 +537,53 @@ export default function InvoiceApp({ onGoHome }) {
     await supabase.from("invoices").update(row).eq("id", inv.id);
     setInvoices(prev => prev.map(i => i.id === inv.id ? inv : i)); setEditDraft(null); setEditingInvoice(null);
   };
+  // --- Credit notes -----------------------------------------------------
+  // A credit note is a SEPARATE document with its own sequence and a negative
+  // amount, referencing the original invoice. Issued invoices are never edited
+  // or deleted - the credit note cancels their effect instead.
+  const nextCreditNoteId = () => {
+    const prefix = "CN-" + new Date().getFullYear() + "-";
+    let max = 0;
+    (invoices || []).forEach((i) => {
+      if (i.id && i.id.indexOf(prefix) === 0) {
+        const n = parseInt(i.id.slice(prefix.length), 10);
+        if (!isNaN(n) && n > max) max = n;
+      }
+    });
+    return prefix + String(max + 1).padStart(3, "0");
+  };
+
+  const createCreditNote = async (inv) => {
+    if (!inv || inv.docType === "credit_note") return;
+    const already = (invoices || []).filter((i) => i.creditOf === inv.id);
+    const warn = already.length ? "\n\nNote: this invoice already has a credit note (" + already.map((i) => i.id).join(", ") + ")." : "";
+    if (!window.confirm("Create a credit note for " + inv.id + "?\n\nIt becomes a separate document with a negative amount that cancels this invoice. The invoice itself stays unchanged." + warn)) return;
+    const neg = (v) => -Math.abs(Number(v) || 0);
+    const today = new Date().toISOString().split("T")[0];
+    const cn = {
+      ...inv,
+      id: nextCreditNoteId(),
+      docType: "credit_note",
+      creditOf: inv.id,
+      date: today,
+      due: today,
+      status: "paid",
+      amount: neg(inv.amount),
+      subtotal: neg(inv.subtotal),
+      discountAmt: neg(inv.discountAmt),
+      taxAmt: neg(inv.taxAmt),
+      total: neg(inv.total),
+      items: (inv.items || []).map((it) => ({ ...it, price: neg(it.price) })),
+    };
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) return;
+    const row = { id: cn.id, user_id: ownerId || user.id, created_by: user.email, client: cn.client, email: cn.email, seller_name: cn.sellerName, seller_email: cn.sellerEmail, seller_phone: cn.sellerPhone, seller_address: cn.sellerAddress, buyer_phone: cn.buyerPhone, buyer_address: cn.buyerAddress, date: cn.date, due: cn.due, status: cn.status, amount: cn.amount, subtotal: cn.subtotal, discount_amt: cn.discountAmt, tax_amt: cn.taxAmt, total: cn.total, tax: cn.tax, discount: cn.discount, notes: cn.notes, bank_info: cn.bankInfo, currency: cn.currency, doc_type: "credit_note", credit_of: cn.creditOf, items: cn.items };
+    const { error } = await supabase.from("invoices").insert(row);
+    if (error) { window.alert("Could not create the credit note.\n\n" + error.message); return; }
+    setInvoices((prev) => [cn, ...prev]);
+    setPreviewInvoice(cn);
+  };
+
   const markAsPaid = async (id) => {
     await supabase.from("invoices").update({ status: "paid" }).eq("id", id);
     setInvoices(prev => prev.map(i => i.id === id ? { ...i, status: "paid" } : i));
@@ -564,7 +611,7 @@ export default function InvoiceApp({ onGoHome }) {
       const owner = (await myTeamOwner(user.id)) || user.id;
       const { data: invData } = await supabase.from("invoices").select("*").eq("user_id", owner).order("created_at", { ascending: false });
       const { data: cliData } = await supabase.from("clients").select("*").eq("user_id", owner);
-      if (invData) setInvoices(invData.map(r => ({ id: r.id, createdBy: r.created_by, client: r.client, email: r.email, sellerName: r.seller_name, sellerEmail: r.seller_email, sellerPhone: r.seller_phone, sellerAddress: r.seller_address, buyerPhone: r.buyer_phone, buyerAddress: r.buyer_address, date: r.date, due: r.due, status: r.status, amount: r.amount, subtotal: r.subtotal, discountAmt: r.discount_amt, taxAmt: r.tax_amt, total: r.total, tax: r.tax, discount: r.discount, notes: r.notes, bankInfo: r.bank_info, currency: r.currency, items: r.items || [] })));
+      if (invData) setInvoices(invData.map(r => ({ id: r.id, createdBy: r.created_by, client: r.client, email: r.email, sellerName: r.seller_name, sellerEmail: r.seller_email, sellerPhone: r.seller_phone, sellerAddress: r.seller_address, buyerPhone: r.buyer_phone, buyerAddress: r.buyer_address, date: r.date, due: r.due, status: r.status, amount: r.amount, subtotal: r.subtotal, discountAmt: r.discount_amt, taxAmt: r.tax_amt, total: r.total, tax: r.tax, discount: r.discount, notes: r.notes, bankInfo: r.bank_info, currency: r.currency, docType: r.doc_type, creditOf: r.credit_of, items: r.items || [] })));
       if (cliData) setClients(cliData);
     };
     loadData();
@@ -577,7 +624,7 @@ export default function InvoiceApp({ onGoHome }) {
           const owner = (await myTeamOwner(session.user.id)) || session.user.id;
           const { data: invData } = await supabase.from("invoices").select("*").eq("user_id", owner).order("created_at", { ascending: false });
           const { data: cliData } = await supabase.from("clients").select("*").eq("user_id", owner);
-          if (invData) setInvoices(invData.map(r => ({ id: r.id, createdBy: r.created_by, client: r.client, email: r.email, sellerName: r.seller_name, sellerEmail: r.seller_email, sellerPhone: r.seller_phone, sellerAddress: r.seller_address, buyerPhone: r.buyer_phone, buyerAddress: r.buyer_address, date: r.date, due: r.due, status: r.status, amount: r.amount, subtotal: r.subtotal, discountAmt: r.discount_amt, taxAmt: r.tax_amt, total: r.total, tax: r.tax, discount: r.discount, notes: r.notes, bankInfo: r.bank_info, currency: r.currency, items: r.items || [] })));
+          if (invData) setInvoices(invData.map(r => ({ id: r.id, createdBy: r.created_by, client: r.client, email: r.email, sellerName: r.seller_name, sellerEmail: r.seller_email, sellerPhone: r.seller_phone, sellerAddress: r.seller_address, buyerPhone: r.buyer_phone, buyerAddress: r.buyer_address, date: r.date, due: r.due, status: r.status, amount: r.amount, subtotal: r.subtotal, discountAmt: r.discount_amt, taxAmt: r.tax_amt, total: r.total, tax: r.tax, discount: r.discount, notes: r.notes, bankInfo: r.bank_info, currency: r.currency, docType: r.doc_type, creditOf: r.credit_of, items: r.items || [] })));
           if (cliData) setClients(cliData);
         };
         reload();
@@ -723,8 +770,8 @@ export default function InvoiceApp({ onGoHome }) {
           </div>
 
           <div className="content">
-            {page === "dashboard" && <Dashboard invoices={invoicesWithStatus} totalRevenue={totalRevenue} totalPending={totalPending} totalOverdue={totalOverdue} setPage={setPage} setPreviewInvoice={setPreviewInvoice} onEdit={setEditingInvoice} onRemind={(inv) => requirePro("reminders", () => setReminderInvoice(inv))} f={f} />}
-            {page === "invoices" && <Invoices invoices={filteredInvoices} filterStatus={filterStatus} setFilterStatus={setFilterStatus} search={search} setSearch={setSearch} onPreview={setPreviewInvoice} onDelete={deleteInvoice} onNew={openNewInvoice} onEdit={setEditingInvoice} onRemind={(inv) => requirePro("reminders", () => setReminderInvoice(inv))} remindersLog={remindersLog} f={f} isPro={isPro} onUpgrade={(feat) => { setUpgradeFeature(feat); setShowUpgrade(true); }} hasDraft={!!invoiceDraft} onOpenDraft={openNewInvoice} onDiscardDraft={discardDraft} onMarkPaid={markAsPaid} onMakeRecurring={hasBusinessAccess(plan) ? async (inv) => { const choice = window.prompt("Repeat this invoice:\n\n1 = Weekly\n2 = Every 2 weeks\n3 = Monthly\n4 = Yearly\n\nType a number:", "3"); const freqMap = { "1": "weekly", "2": "biweekly", "3": "monthly", "4": "yearly" }; const freq = freqMap[(choice || "").trim()]; if (!freq) return; const ok = await createRecurring(inv, freq, userId); if (ok) { loadRecurring(userId).then(setRecurring); const { nextDate } = require("../lib/recurring"); alert("✓ Recurring activated (" + freq + ")\nNext invoice: " + nextDate(new Date(), freq).toISOString().split("T")[0] + "\nManage it in Settings → Recurring invoices."); } } : null} />}
+            {page === "dashboard" && <Dashboard onCreditNote={createCreditNote} invoices={invoicesWithStatus} totalRevenue={totalRevenue} totalPending={totalPending} totalOverdue={totalOverdue} setPage={setPage} setPreviewInvoice={setPreviewInvoice} onEdit={setEditingInvoice} onRemind={(inv) => requirePro("reminders", () => setReminderInvoice(inv))} f={f} />}
+            {page === "invoices" && <Invoices invoices={filteredInvoices} filterStatus={filterStatus} setFilterStatus={setFilterStatus} search={search} setSearch={setSearch} onPreview={setPreviewInvoice} onDelete={deleteInvoice} onNew={openNewInvoice} onEdit={setEditingInvoice} onRemind={(inv) => requirePro("reminders", () => setReminderInvoice(inv))} remindersLog={remindersLog} f={f} isPro={isPro} onUpgrade={(feat) => { setUpgradeFeature(feat); setShowUpgrade(true); }} hasDraft={!!invoiceDraft} onOpenDraft={openNewInvoice} onDiscardDraft={discardDraft} onMarkPaid={markAsPaid} onCreditNote={createCreditNote} onMakeRecurring={hasBusinessAccess(plan) ? async (inv) => { const choice = window.prompt("Repeat this invoice:\n\n1 = Weekly\n2 = Every 2 weeks\n3 = Monthly\n4 = Yearly\n\nType a number:", "3"); const freqMap = { "1": "weekly", "2": "biweekly", "3": "monthly", "4": "yearly" }; const freq = freqMap[(choice || "").trim()]; if (!freq) return; const ok = await createRecurring(inv, freq, userId); if (ok) { loadRecurring(userId).then(setRecurring); const { nextDate } = require("../lib/recurring"); alert("✓ Recurring activated (" + freq + ")\nNext invoice: " + nextDate(new Date(), freq).toISOString().split("T")[0] + "\nManage it in Settings → Recurring invoices."); } } : null} />}
               {page === "quotes" && (hasBusinessAccess(plan) || isTeamMember) && <Quotes quotes={quotes} setQuotes={setQuotes} userId={ownerId || userId} f={f} sellerDefaults={{ currency }} onConvert={(q) => { const { quoteToInvoice } = require("../lib/quotes"); const inv = quoteToInvoice(q, "INV-" + String(invoices.length + 1).padStart(3, "0") + "-" + Date.now().toString().slice(-4)); addInvoice(inv); return inv; }} />}
             {page === "expenses" && (hasBusinessAccess(plan) || isTeamMember) && <Expenses expenses={expenses} setExpenses={setExpenses} invoices={invoicesWithStatus} userId={ownerId || userId} f={f} />}
             {page === "analytics" && hasBusinessAccess(plan) && <Analytics invoices={invoicesWithStatus} f={f} fc={fmtCurrency} defaultCurrency={currency} />}
@@ -795,7 +842,7 @@ function MultiMoney({ parts, empty }) {
   );
 }
 
-function Dashboard({ invoices, totalRevenue, totalPending, totalOverdue, setPage, setPreviewInvoice, onEdit, onRemind, f }) {
+function Dashboard({ invoices, totalRevenue, totalPending, totalOverdue, setPage, setPreviewInvoice, onEdit, onRemind, onCreditNote, f }) {
   // Real figures only - no hard-coded percentages on this dashboard.
   const paidCount = invoices.filter(i => i.status === "paid").length;
   const thisMonthKey = new Date().toISOString().slice(0, 7);
@@ -833,7 +880,7 @@ function Dashboard({ invoices, totalRevenue, totalPending, totalOverdue, setPage
             <tbody>
               {recent.map(inv => (
                 <tr key={inv.id}>
-                  <td style={{ fontWeight:600, color:"var(--gold)" }}>{inv.id}</td>
+                  <td style={{ fontWeight:600, color:"var(--gold)" }}>{inv.id}{inv.docType === "credit_note" && <span style={{ marginLeft:6, fontSize:9, fontWeight:800, letterSpacing:0.5, padding:"2px 6px", borderRadius:20, background:"rgba(224,85,85,0.15)", color:"var(--red)", verticalAlign:"middle" }}>CREDIT NOTE</span>}</td>
                   <td>{inv.client}</td>
                   <td style={{ fontWeight:600 }}>{fmtCurrency(inv.amount, inv.currency || "EUR")}</td>
                   <td style={{ color:"var(--text2)" }}>{formatDate(inv.due)}</td>
@@ -841,7 +888,7 @@ function Dashboard({ invoices, totalRevenue, totalPending, totalOverdue, setPage
                   <td>
                     <div className="action-btns">
                       <button className="btn btn-ghost btn-sm" onClick={() => setPreviewInvoice(inv)}>Preview</button>
-                      <button className="btn btn-ghost btn-sm" style={{ color:"var(--gold)" }} onClick={() => onEdit(inv)}>Edit</button>
+                      <button className="btn btn-ghost btn-sm" style={{ color:"var(--gold)" }} onClick={() => onEdit(inv)}>Edit</button>{onCreditNote && inv.docType !== "credit_note" && inv.status !== "draft" && <button className="btn btn-ghost btn-sm" title="Create a credit note for this invoice" onClick={() => onCreditNote(inv)}>Credit</button>}
                       {(inv.status === "overdue" || inv.status === "pending") && (
                         <button className="btn btn-sm" style={{ background:"rgba(224,85,85,0.15)", color:"var(--red)", border:"1px solid rgba(224,85,85,0.3)" }} onClick={() => onRemind(inv)}>Remind</button>
                       )}
@@ -857,7 +904,7 @@ function Dashboard({ invoices, totalRevenue, totalPending, totalOverdue, setPage
   );
 }
 
-function Invoices({ invoices, filterStatus, setFilterStatus, search, setSearch, onPreview, onDelete, onNew, onEdit, onRemind, remindersLog, viewerEmail, f, isPro, onUpgrade, hasDraft, onOpenDraft, onDiscardDraft, onMarkPaid, onMakeRecurring }) {
+function Invoices({ invoices, filterStatus, setFilterStatus, search, setSearch, onPreview, onDelete, onNew, onEdit, onRemind, remindersLog, viewerEmail, f, isPro, onUpgrade, hasDraft, onOpenDraft, onDiscardDraft, onMarkPaid, onCreditNote, onMakeRecurring }) {
   const statuses = ["all", "paid", "pending", "overdue", "draft"];
   return (
     <>
@@ -895,7 +942,7 @@ function Invoices({ invoices, filterStatus, setFilterStatus, search, setSearch, 
               ) : invoices.map(inv => (
                 <React.Fragment key={inv.id}>
                   <tr>
-                    <td style={{ fontWeight:700, color:"var(--gold)" }}>{inv.id}</td>
+                    <td style={{ fontWeight:700, color:"var(--gold)" }}>{inv.id}{inv.docType === "credit_note" && <span style={{ marginLeft:6, fontSize:9, fontWeight:800, letterSpacing:0.5, padding:"2px 6px", borderRadius:20, background:"rgba(224,85,85,0.15)", color:"var(--red)", verticalAlign:"middle" }}>CREDIT NOTE</span>}</td>
                     <td>
                       <div style={{ fontWeight:500 }}>{inv.client}</div>
                       <div style={{ fontSize:11, color:"var(--text2)" }}>{inv.email}</div>{inv.createdBy && inv.createdBy !== viewerEmail && <div style={{ fontSize:10, color:"var(--gold)", marginTop:2 }}>by {inv.createdBy}</div>}
@@ -913,7 +960,7 @@ function Invoices({ invoices, filterStatus, setFilterStatus, search, setSearch, 
                     <td>
                       <div className="action-btns">
                         <button className="btn btn-ghost btn-sm" onClick={() => onPreview(inv)}>View</button>{onMakeRecurring && <button className="btn btn-ghost btn-sm" title="Make recurring" onClick={() => onMakeRecurring(inv)}>🔄</button>}
-                        <button className="btn btn-ghost btn-sm" style={{ color:"var(--gold)" }} onClick={() => onEdit(inv)}>Edit</button>
+                        <button className="btn btn-ghost btn-sm" style={{ color:"var(--gold)" }} onClick={() => onEdit(inv)}>Edit</button>{onCreditNote && inv.docType !== "credit_note" && inv.status !== "draft" && <button className="btn btn-ghost btn-sm" title="Create a credit note for this invoice" onClick={() => onCreditNote(inv)}>Credit</button>}
                         {(inv.status === "overdue" || inv.status === "pending") && (
                           <button className="btn btn-ghost btn-sm" style={{ color:"var(--green)" }} onClick={() => onMarkPaid(inv.id)}>✓ Paid</button>
                         )}
@@ -948,7 +995,7 @@ function Invoices({ invoices, filterStatus, setFilterStatus, search, setSearch, 
             <div className="inv-card" key={inv.id}>
               <div className="inv-card-top">
                 <div>
-                  <div className="inv-card-id">{inv.id}</div>
+                  <div className="inv-card-id">{inv.id}{inv.docType === "credit_note" && <span style={{ marginLeft:6, fontSize:9, fontWeight:800, letterSpacing:0.5, padding:"2px 6px", borderRadius:20, background:"rgba(224,85,85,0.15)", color:"var(--red)", verticalAlign:"middle" }}>CREDIT NOTE</span>}</div>
                   <div className="inv-card-client">{inv.client}</div>
                   <div className="inv-card-email">{inv.email}</div>
                 </div>
@@ -960,7 +1007,7 @@ function Invoices({ invoices, filterStatus, setFilterStatus, search, setSearch, 
               </div>
               <div className="inv-card-actions">
                 <button className="btn btn-ghost btn-sm" onClick={() => onPreview(inv)}>View</button>{onMakeRecurring && <button className="btn btn-ghost btn-sm" title="Make recurring" onClick={() => onMakeRecurring(inv)}>🔄</button>}
-                <button className="btn btn-ghost btn-sm" style={{ color:"var(--gold)" }} onClick={() => onEdit(inv)}>Edit</button>
+                <button className="btn btn-ghost btn-sm" style={{ color:"var(--gold)" }} onClick={() => onEdit(inv)}>Edit</button>{onCreditNote && inv.docType !== "credit_note" && inv.status !== "draft" && <button className="btn btn-ghost btn-sm" title="Create a credit note for this invoice" onClick={() => onCreditNote(inv)}>Credit</button>}
                 {(inv.status === "overdue" || inv.status === "pending") && (
                   <button className="btn btn-ghost btn-sm" style={{ color:"var(--green)" }} onClick={() => onMarkPaid(inv.id)}>✓ Paid</button>
                 )}
@@ -1602,11 +1649,11 @@ function InvoicePreview({ invoice, onClose, currency, plan }) {
               }
             </div>
             <div style={{ textAlign:"right" }}>
-              <div style={{ fontSize:11, color:"#aaa", fontWeight:600, letterSpacing:1, textTransform:"uppercase", marginBottom:4 }}>Invoice</div>
+              <div style={{ fontSize:11, color:"#aaa", fontWeight:600, letterSpacing:1, textTransform:"uppercase", marginBottom:4 }}>{invoice.docType === "credit_note" ? "Credit note" : "Invoice"}</div>
               <div style={{ fontSize:22, fontWeight:800, color:"#1a1a2e" }}>{invoice.id}</div>
               <div style={{ fontSize:12, color:"#777", marginTop:6 }}>
                 <div><span style={{ fontWeight:600 }}>Date:</span> {formatDate(invoice.date)}</div>
-                <div><span style={{ fontWeight:600 }}>Due:</span> {formatDate(invoice.due)}</div>
+                {invoice.docType === "credit_note" ? <div><span style={{ fontWeight:600 }}>Credit for:</span> {invoice.creditOf}</div> : <div><span style={{ fontWeight:600 }}>Due:</span> {formatDate(invoice.due)}</div>}
               </div>
               <div style={{ marginTop:8 }}>
                 <span style={{ display:"inline-block", padding:"3px 10px", borderRadius:20, fontSize:11, fontWeight:700,
