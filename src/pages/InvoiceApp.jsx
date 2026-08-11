@@ -930,7 +930,7 @@ function Dashboard({ invoices, totalRevenue, totalPending, totalOverdue, setPage
                   <td>{inv.client}</td>
                   <td style={{ fontWeight:600 }}>{fmtCurrency(inv.amount, inv.currency || "EUR")}</td>
                   <td style={{ color:"var(--text2)" }}>{formatDate(inv.due)}</td>
-                  <td>{statusBadge(inv.status)}{inv.status === "partial" && <div style={{ fontSize:10, color:"var(--text2)", marginTop:2 }}>{f(outstandingOf(inv))} left</div>}</td>
+                  <td>{statusBadge(inv.status)}{inv.status === "partial" && <div style={{ fontSize:10, color:"var(--text2)", marginTop:2 }}>{fmtCurrency(outstandingOf(inv), inv.currency || "EUR")} left</div>}</td>
                   <td>
                     <div className="action-btns">
                       <button className="btn btn-ghost btn-sm" onClick={() => setPreviewInvoice(inv)}>Preview</button>
@@ -1002,7 +1002,7 @@ function Invoices({ invoices, filterStatus, setFilterStatus, search, setSearch, 
                       {inv.status === "overdue" && <div style={{ fontSize:10, color:"var(--red)" }}>Overdue</div>}
                     </td>
                     <td style={{ fontWeight:700 }}>{fmtCurrency(inv.amount, inv.currency || "EUR")}</td>
-                    <td>{statusBadge(inv.status)}{inv.status === "partial" && <div style={{ fontSize:10, color:"var(--text2)", marginTop:2 }}>{f(outstandingOf(inv))} left</div>}</td>
+                    <td>{statusBadge(inv.status)}{inv.status === "partial" && <div style={{ fontSize:10, color:"var(--text2)", marginTop:2 }}>{fmtCurrency(outstandingOf(inv), inv.currency || "EUR")} left</div>}</td>
                     <td>
                       <div className="action-btns">
                         <button className="btn btn-ghost btn-sm" onClick={() => onPreview(inv)}>View</button>{onMakeRecurring && <button className="btn btn-ghost btn-sm" title="Make recurring" onClick={() => onMakeRecurring(inv)}>🔄</button>}
@@ -1045,7 +1045,7 @@ function Invoices({ invoices, filterStatus, setFilterStatus, search, setSearch, 
                   <div className="inv-card-client">{inv.client}</div>
                   <div className="inv-card-email">{inv.email}</div>
                 </div>
-                {statusBadge(inv.status)}{inv.status === "partial" && <div style={{ fontSize:10, color:"var(--text2)", marginTop:2 }}>{f(outstandingOf(inv))} left</div>}
+                {statusBadge(inv.status)}{inv.status === "partial" && <div style={{ fontSize:10, color:"var(--text2)", marginTop:2 }}>{fmtCurrency(outstandingOf(inv), inv.currency || "EUR")} left</div>}
               </div>
               <div className="inv-card-row">
                 <div className="inv-card-amount">{fmtCurrency(inv.amount, inv.currency || "EUR")}</div>
@@ -1671,7 +1671,7 @@ function NewClientModal({ onSave, onClose }) {
 }
 
 function InvoicePreview({ invoice, onExportUBL, onClose, currency, plan }) {
-  const f = (n) => fmtCurrency(n, currency || "EUR");
+  const f = (n) => fmtCurrency(n, invoice.currency || currency || "EUR");
   const subtotal = invoice.subtotal != null ? invoice.subtotal : invoice.amount;
   const taxAmt = invoice.taxAmt != null ? invoice.taxAmt : invoice.amount * 0.2;
   const discountAmt = invoice.discountAmt != null ? invoice.discountAmt : 0;
@@ -1795,7 +1795,7 @@ function InvoicePreview({ invoice, onExportUBL, onClose, currency, plan }) {
   );
 }
 
-function ReminderModal({ invoice: reminderTarget, onClose, onLog, f }) { const reminderPaid = Number(reminderTarget.paidAmount) || 0; const invoice = reminderPaid > 0 ? { ...reminderTarget, amount: outstandingOf(reminderTarget) } : reminderTarget;
+function ReminderModal({ invoice: reminderTarget, onClose, onLog }) { const f = (n) => fmtCurrency(n, reminderTarget.currency || "EUR"); const reminderPaid = Number(reminderTarget.paidAmount) || 0; const invoice = reminderPaid > 0 ? { ...reminderTarget, amount: outstandingOf(reminderTarget) } : reminderTarget;
   const today = new Date().toISOString().split("T")[0];
   const daysOverdue = invoice.due ? Math.floor((new Date(today) - new Date(invoice.due)) / 86400000) : 0;
   const [tone, setTone] = useState("polite");

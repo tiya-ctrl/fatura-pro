@@ -70,7 +70,7 @@ function partyXml(tag, name, email, phone, address, vat) {
 export function buildUBL(inv) {
   const isCredit = inv.docType === "credit_note";
   const root = isCredit ? "CreditNote" : "Invoice";
-  const qtyTag = isCredit ? "CreditNotedQuantity" : "InvoicedQuantity";
+  const qtyTag = isCredit ? "CreditedQuantity" : "InvoicedQuantity";
   const lineTag = isCredit ? "CreditNoteLine" : "InvoiceLine";
   const cur = inv.currency || "EUR";
   const abs = (v) => Math.abs(Number(v) || 0);
