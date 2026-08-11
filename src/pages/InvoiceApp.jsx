@@ -2,6 +2,7 @@ import React, { useState, useRef, useEffect } from "react";
 import { supabase } from "../supabase";
 import { hasBusinessAccess, BUSINESS_ENABLED } from "../lib/businessPlan";
 import { exportInvoicesCSV } from "../lib/accountantExport";
+import { downloadUBL, ublWarnings } from "../lib/ubl";
 import Quotes, { loadQuotes } from "./Quotes";
 import { loadLiveChat } from "../lib/liveChat";
 import BusinessProfiles from "./BusinessProfiles";
@@ -415,7 +416,7 @@ export default function InvoiceApp({ onGoHome }) {
     if (!ownerId) return;
     (async () => {
       const { data: invData } = await supabase.from("invoices").select("*").eq("user_id", ownerId).order("created_at", { ascending: false });
-      if (invData) setInvoices(invData.map(r => ({ id: r.id, createdBy: r.created_by, client: r.client, email: r.email, sellerName: r.seller_name, sellerEmail: r.seller_email, sellerPhone: r.seller_phone, sellerAddress: r.seller_address, buyerPhone: r.buyer_phone, buyerAddress: r.buyer_address, date: r.date, due: r.due, status: r.status, amount: r.amount, subtotal: r.subtotal, discountAmt: r.discount_amt, taxAmt: r.tax_amt, total: r.total, tax: r.tax, discount: r.discount, notes: r.notes, bankInfo: r.bank_info, currency: r.currency, docType: r.doc_type, creditOf: r.credit_of, paidAmount: Number(r.paid_amount) || 0, items: r.items || [] })));
+      if (invData) setInvoices(invData.map(r => ({ id: r.id, createdBy: r.created_by, client: r.client, email: r.email, sellerName: r.seller_name, sellerEmail: r.seller_email, sellerPhone: r.seller_phone, sellerVat: r.seller_vat, sellerAddress: r.seller_address, buyerPhone: r.buyer_phone, buyerAddress: r.buyer_address, date: r.date, due: r.due, status: r.status, amount: r.amount, subtotal: r.subtotal, discountAmt: r.discount_amt, taxAmt: r.tax_amt, total: r.total, tax: r.tax, discount: r.discount, notes: r.notes, bankInfo: r.bank_info, currency: r.currency, docType: r.doc_type, creditOf: r.credit_of, paidAmount: Number(r.paid_amount) || 0, items: r.items || [] })));
       const { data: cliData } = await supabase.from("clients").select("*").eq("user_id", ownerId);
       if (cliData) setClients(cliData.map(c => ({ id: c.id, name: c.name, email: c.email, phone: c.phone, country: c.country })));
     })();
@@ -536,12 +537,12 @@ export default function InvoiceApp({ onGoHome }) {
   const addInvoice = async (inv) => {
     const { data: { user } } = await supabase.auth.getUser();
     if (!user) return;
-    const row = { id: inv.id, user_id: ownerId || user.id, created_by: user.email, client: inv.client, email: inv.email, seller_name: inv.sellerName, seller_email: inv.sellerEmail, seller_phone: inv.sellerPhone, seller_address: inv.sellerAddress, buyer_phone: inv.buyerPhone, buyer_address: inv.buyerAddress, date: inv.date, due: inv.due, status: inv.status, amount: inv.amount, subtotal: inv.subtotal, discount_amt: inv.discountAmt, tax_amt: inv.taxAmt, total: inv.total, tax: inv.tax, discount: inv.discount, notes: inv.notes, bank_info: inv.bankInfo, currency: inv.currency, items: inv.items };
+    const row = { id: inv.id, user_id: ownerId || user.id, created_by: user.email, client: inv.client, email: inv.email, seller_name: inv.sellerName, seller_email: inv.sellerEmail, seller_phone: inv.sellerPhone, seller_vat: inv.sellerVat || null, seller_address: inv.sellerAddress, buyer_phone: inv.buyerPhone, buyer_address: inv.buyerAddress, date: inv.date, due: inv.due, status: inv.status, amount: inv.amount, subtotal: inv.subtotal, discount_amt: inv.discountAmt, tax_amt: inv.taxAmt, total: inv.total, tax: inv.tax, discount: inv.discount, notes: inv.notes, bank_info: inv.bankInfo, currency: inv.currency, items: inv.items };
     await supabase.from("invoices").insert(row);
     setInvoices(prev => [inv, ...prev]); setInvoiceDraft(null); setShowNewInvoice(false);
   };
   const updateInvoice = async (inv) => {
-    const row = { client: inv.client, email: inv.email, seller_name: inv.sellerName, seller_email: inv.sellerEmail, seller_phone: inv.sellerPhone, seller_address: inv.sellerAddress, buyer_phone: inv.buyerPhone, buyer_address: inv.buyerAddress, date: inv.date, due: inv.due, status: inv.status, amount: inv.amount, subtotal: inv.subtotal, discount_amt: inv.discountAmt, tax_amt: inv.taxAmt, total: inv.total, tax: inv.tax, discount: inv.discount, notes: inv.notes, bank_info: inv.bankInfo, currency: inv.currency, items: inv.items };
+    const row = { client: inv.client, email: inv.email, seller_name: inv.sellerName, seller_email: inv.sellerEmail, seller_phone: inv.sellerPhone, seller_vat: inv.sellerVat || null, seller_address: inv.sellerAddress, buyer_phone: inv.buyerPhone, buyer_address: inv.buyerAddress, date: inv.date, due: inv.due, status: inv.status, amount: inv.amount, subtotal: inv.subtotal, discount_amt: inv.discountAmt, tax_amt: inv.taxAmt, total: inv.total, tax: inv.tax, discount: inv.discount, notes: inv.notes, bank_info: inv.bankInfo, currency: inv.currency, items: inv.items };
     await supabase.from("invoices").update(row).eq("id", inv.id);
     setInvoices(prev => prev.map(i => i.id === inv.id ? inv : i)); setEditDraft(null); setEditingInvoice(null);
   };
@@ -585,7 +586,7 @@ export default function InvoiceApp({ onGoHome }) {
     };
     const { data: { user } } = await supabase.auth.getUser();
     if (!user) return;
-    const row = { id: cn.id, user_id: ownerId || user.id, created_by: user.email, client: cn.client, email: cn.email, seller_name: cn.sellerName, seller_email: cn.sellerEmail, seller_phone: cn.sellerPhone, seller_address: cn.sellerAddress, buyer_phone: cn.buyerPhone, buyer_address: cn.buyerAddress, date: cn.date, due: cn.due, status: cn.status, amount: cn.amount, subtotal: cn.subtotal, discount_amt: cn.discountAmt, tax_amt: cn.taxAmt, total: cn.total, tax: cn.tax, discount: cn.discount, notes: cn.notes, bank_info: cn.bankInfo, currency: cn.currency, doc_type: "credit_note", credit_of: cn.creditOf, items: cn.items };
+    const row = { id: cn.id, user_id: ownerId || user.id, created_by: user.email, client: cn.client, email: cn.email, seller_name: cn.sellerName, seller_email: cn.sellerEmail, seller_phone: cn.sellerPhone, seller_vat: cn.sellerVat || null, seller_address: cn.sellerAddress, buyer_phone: cn.buyerPhone, buyer_address: cn.buyerAddress, date: cn.date, due: cn.due, status: cn.status, amount: cn.amount, subtotal: cn.subtotal, discount_amt: cn.discountAmt, tax_amt: cn.taxAmt, total: cn.total, tax: cn.tax, discount: cn.discount, notes: cn.notes, bank_info: cn.bankInfo, currency: cn.currency, doc_type: "credit_note", credit_of: cn.creditOf, items: cn.items };
     const { error } = await supabase.from("invoices").insert(row);
     if (error) { window.alert("Could not create the credit note.\n\n" + error.message); return; }
     setInvoices((prev) => [cn, ...prev]);
@@ -616,6 +617,19 @@ export default function InvoiceApp({ onGoHome }) {
     setInvoices((prev) => prev.map((i) => (i.id === inv.id ? { ...i, paidAmount: newPaid, status: newStatus } : i)));
   };
 
+  // --- UBL / e-invoicing export ------------------------------------------
+  const exportUBL = (inv) => {
+    if (!inv) return;
+    const missing = ublWarnings(inv);
+    if (missing.length) {
+      const go = window.confirm(
+        "This document is missing:\n\n  " + missing.join("\n  ") +
+        "\n\nThe file will still download, but a strict receiver may reject it.\nDownload anyway?");
+      if (!go) return;
+    }
+    downloadUBL(inv);
+  };
+
   const markAsPaid = async (id) => {
     await supabase.from("invoices").update({ status: "paid" }).eq("id", id);
     setInvoices(prev => prev.map(i => i.id === id ? { ...i, status: "paid" } : i));
@@ -643,7 +657,7 @@ export default function InvoiceApp({ onGoHome }) {
       const owner = (await myTeamOwner(user.id)) || user.id;
       const { data: invData } = await supabase.from("invoices").select("*").eq("user_id", owner).order("created_at", { ascending: false });
       const { data: cliData } = await supabase.from("clients").select("*").eq("user_id", owner);
-      if (invData) setInvoices(invData.map(r => ({ id: r.id, createdBy: r.created_by, client: r.client, email: r.email, sellerName: r.seller_name, sellerEmail: r.seller_email, sellerPhone: r.seller_phone, sellerAddress: r.seller_address, buyerPhone: r.buyer_phone, buyerAddress: r.buyer_address, date: r.date, due: r.due, status: r.status, amount: r.amount, subtotal: r.subtotal, discountAmt: r.discount_amt, taxAmt: r.tax_amt, total: r.total, tax: r.tax, discount: r.discount, notes: r.notes, bankInfo: r.bank_info, currency: r.currency, docType: r.doc_type, creditOf: r.credit_of, paidAmount: Number(r.paid_amount) || 0, items: r.items || [] })));
+      if (invData) setInvoices(invData.map(r => ({ id: r.id, createdBy: r.created_by, client: r.client, email: r.email, sellerName: r.seller_name, sellerEmail: r.seller_email, sellerPhone: r.seller_phone, sellerVat: r.seller_vat, sellerAddress: r.seller_address, buyerPhone: r.buyer_phone, buyerAddress: r.buyer_address, date: r.date, due: r.due, status: r.status, amount: r.amount, subtotal: r.subtotal, discountAmt: r.discount_amt, taxAmt: r.tax_amt, total: r.total, tax: r.tax, discount: r.discount, notes: r.notes, bankInfo: r.bank_info, currency: r.currency, docType: r.doc_type, creditOf: r.credit_of, paidAmount: Number(r.paid_amount) || 0, items: r.items || [] })));
       if (cliData) setClients(cliData);
     };
     loadData();
@@ -656,7 +670,7 @@ export default function InvoiceApp({ onGoHome }) {
           const owner = (await myTeamOwner(session.user.id)) || session.user.id;
           const { data: invData } = await supabase.from("invoices").select("*").eq("user_id", owner).order("created_at", { ascending: false });
           const { data: cliData } = await supabase.from("clients").select("*").eq("user_id", owner);
-          if (invData) setInvoices(invData.map(r => ({ id: r.id, createdBy: r.created_by, client: r.client, email: r.email, sellerName: r.seller_name, sellerEmail: r.seller_email, sellerPhone: r.seller_phone, sellerAddress: r.seller_address, buyerPhone: r.buyer_phone, buyerAddress: r.buyer_address, date: r.date, due: r.due, status: r.status, amount: r.amount, subtotal: r.subtotal, discountAmt: r.discount_amt, taxAmt: r.tax_amt, total: r.total, tax: r.tax, discount: r.discount, notes: r.notes, bankInfo: r.bank_info, currency: r.currency, docType: r.doc_type, creditOf: r.credit_of, paidAmount: Number(r.paid_amount) || 0, items: r.items || [] })));
+          if (invData) setInvoices(invData.map(r => ({ id: r.id, createdBy: r.created_by, client: r.client, email: r.email, sellerName: r.seller_name, sellerEmail: r.seller_email, sellerPhone: r.seller_phone, sellerVat: r.seller_vat, sellerAddress: r.seller_address, buyerPhone: r.buyer_phone, buyerAddress: r.buyer_address, date: r.date, due: r.due, status: r.status, amount: r.amount, subtotal: r.subtotal, discountAmt: r.discount_amt, taxAmt: r.tax_amt, total: r.total, tax: r.tax, discount: r.discount, notes: r.notes, bankInfo: r.bank_info, currency: r.currency, docType: r.doc_type, creditOf: r.credit_of, paidAmount: Number(r.paid_amount) || 0, items: r.items || [] })));
           if (cliData) setClients(cliData);
         };
         reload();
@@ -836,7 +850,7 @@ export default function InvoiceApp({ onGoHome }) {
         {editingInvoice && <NewInvoiceModal bizProfiles={hasBusinessAccess(plan) ? bizProfiles : []} clients={clients} onSave={updateInvoice} onClose={(draftData) => { if (draftData) setEditDraft(draftData); setEditingInvoice(null); }} invoiceCount={invoices.length} currency={currency} f={f} editData={editingInvoice} editDraft={editDraft} onDiscardEditDraft={() => setEditDraft(null)} />}
         {showNewClient && <NewClientModal onSave={addClient} onClose={() => setShowNewClient(false)} />}
         {editingClient && <NewClientModal onSave={async (updated) => { await supabase.from("clients").update({ name:updated.name, email:updated.email, phone:updated.phone, country:updated.country }).eq("id", editingClient.id); setClients(prev => prev.map(c => c.id === editingClient.id ? { ...c, ...updated } : c)); setEditingClient(null); }} onClose={() => setEditingClient(null)} editData={editingClient} />}
-        {previewInvoice && <InvoicePreview invoice={previewInvoice} onClose={() => setPreviewInvoice(null)} currency={currency} plan={plan} />}
+        {previewInvoice && <InvoicePreview invoice={previewInvoice} onExportUBL={exportUBL} onClose={() => setPreviewInvoice(null)} currency={currency} plan={plan} />}
         {reminderInvoice && <ReminderModal invoice={reminderInvoice} onClose={() => setReminderInvoice(null)} onLog={logReminder} f={f} />}
         {showUpgrade && <UpgradeModal feature={upgradeFeature} initialPlan={upgradeIntent} userEmail={userEmail} userId={userId} onClose={() => setShowUpgrade(false)} onActivate={() => { setPlan("pro"); setShowUpgrade(false); }} />}
         {showWelcome && !showUpgrade && (
@@ -1223,7 +1237,7 @@ React.useEffect(() => {
 
   const emptyForm = {
     invoiceNumber:"",
-    sellerName:"", sellerEmail:"", sellerPhone:"", sellerAddress:"", sellerLogo:null,
+    sellerName:"", sellerEmail:"", sellerPhone:"", sellerVat:"", sellerAddress:"", sellerLogo:null,
     client:(clients[0] && clients[0].name) || "", email:(clients[0] && clients[0].email) || "",
     buyerPhone:"", buyerAddress:"", buyerLogo:null,
     date:new Date().toISOString().split("T")[0], due:"",
@@ -1255,7 +1269,7 @@ React.useEffect(() => {
     sellerName: sourceData.sellerName || "",
     sellerEmail: sourceData.sellerEmail || "",
     sellerPhone: sourceData.sellerPhone || "",
-    sellerAddress: sourceData.sellerAddress || "",
+    sellerVat: sourceData.sellerVat || "", sellerAddress: sourceData.sellerAddress || "",
     sellerLogo: sourceData.sellerLogo || null,
     client: sourceData.client || "",
     email: sourceData.email || "",
@@ -1390,7 +1404,7 @@ React.useEffect(() => {
         setShowEditDraftBanner(false);
         setForm({
           sellerName: editData.sellerName || "", sellerEmail: editData.sellerEmail || "",
-          sellerPhone: editData.sellerPhone || "", sellerAddress: editData.sellerAddress || "",
+          sellerPhone: editData.sellerPhone || "", sellerVat: editData.sellerVat || "", sellerAddress: editData.sellerAddress || "",
           sellerLogo: editData.sellerLogo || null, client: editData.client || "",
           email: editData.email || "", buyerPhone: editData.buyerPhone || "",
           buyerAddress: editData.buyerAddress || "", buyerLogo: editData.buyerLogo || null,
@@ -1468,7 +1482,7 @@ React.useEffect(() => {
               <div className="form-group full"><label>Seller / Company Name</label><input value={form.sellerName} onChange={e => set("sellerName", e.target.value)} placeholder="e.g. Vyynd Agency BV" /></div>
               <div className="form-group"><label>Email</label><input value={form.sellerEmail} onChange={e => set("sellerEmail", e.target.value)} placeholder="contact@yourcompany.com" /></div>
               <div className="form-group"><label>Phone</label><input value={form.sellerPhone} onChange={e => set("sellerPhone", e.target.value)} placeholder="+31 6 XX XX XX XX" /></div>
-              <div className="form-group full"><label>Address</label><textarea rows={2} value={form.sellerAddress} onChange={e => set("sellerAddress", e.target.value)} placeholder="e.g. Keizersgracht 123, Amsterdam" style={{ resize:"none" }} /></div>
+              <div className="form-group"><label>VAT / BTW number</label><input value={form.sellerVat || ""} onChange={e => set("sellerVat", e.target.value)} placeholder="e.g. NL123456789B01" /></div><div className="form-group full"><label>Address</label><textarea rows={2} value={form.sellerAddress} onChange={e => set("sellerAddress", e.target.value)} placeholder="e.g. Keizersgracht 123, Amsterdam" style={{ resize:"none" }} /></div>
             </div>
           </div>
         )}
@@ -1656,7 +1670,7 @@ function NewClientModal({ onSave, onClose }) {
   );
 }
 
-function InvoicePreview({ invoice, onClose, currency, plan }) {
+function InvoicePreview({ invoice, onExportUBL, onClose, currency, plan }) {
   const f = (n) => fmtCurrency(n, currency || "EUR");
   const subtotal = invoice.subtotal != null ? invoice.subtotal : invoice.amount;
   const taxAmt = invoice.taxAmt != null ? invoice.taxAmt : invoice.amount * 0.2;
@@ -1669,7 +1683,7 @@ function InvoicePreview({ invoice, onClose, currency, plan }) {
     <div className="modal-overlay"> {/* إزالة خاصية الإغلاق بالنقر هنا */}
       <div className="invoice-preview-wrapper" style={{ width:"100%", maxWidth:760, maxHeight:"95vh", overflow:"auto", borderRadius:16, margin:"0 auto" }}>
         <div className="print-hide" style={{ display:"flex", justifyContent:"space-between", padding:"12px 0 16px" }}>
-          <button className="btn btn-ghost btn-sm" onClick={() => window.print()}>Print / PDF</button>
+          <div style={{ display:"flex", gap:8 }}><button className="btn btn-ghost btn-sm" onClick={() => window.print()}>Print / PDF</button><button className="btn btn-ghost btn-sm" title="Download as a European e-invoice (EN 16931)" onClick={() => onExportUBL && onExportUBL(invoice)}>UBL (XML)</button></div>
           <button className="btn btn-ghost btn-sm" onClick={onClose}>Close</button>
         </div>
         <div className="invoice-preview">
@@ -1706,7 +1720,7 @@ function InvoicePreview({ invoice, onClose, currency, plan }) {
               <div style={{ fontWeight:700, fontSize:14, color:"#1a1a2e", marginBottom:4 }}>{invoice.sellerName || "—"}</div>
               {invoice.sellerEmail && <div style={{ fontSize:12, color:"#555" }}>{invoice.sellerEmail}</div>}
               {invoice.sellerPhone && <div style={{ fontSize:12, color:"#555" }}>{invoice.sellerPhone}</div>}
-              {invoice.sellerAddress && <div style={{ fontSize:12, color:"#777", marginTop:4, lineHeight:1.5 }}>{invoice.sellerAddress}</div>}
+              {invoice.sellerAddress && <div style={{ fontSize:12, color:"#777", marginTop:4, lineHeight:1.5 }}>{invoice.sellerAddress}</div>}{invoice.sellerVat && <div style={{ fontSize:12, color:"#777", marginTop:2 }}>VAT: {invoice.sellerVat}</div>}
             </div>
             <div style={{ borderLeft:"1px solid #e8dfc8", paddingLeft:24 }}>
               <div style={{ fontSize:10, fontWeight:800, color:"#c9a84c", letterSpacing:1.5, textTransform:"uppercase", marginBottom:10, display:"flex", alignItems:"center", gap:6 }}>
