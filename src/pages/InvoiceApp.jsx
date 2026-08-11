@@ -344,6 +344,20 @@ const fmtCurrency = (n, currencyCode) => {
   return isRTL ? (num + " " + cur.symbol) : (cur.symbol + num);
 };
 
+// --- Per-currency totals. Amounts are NEVER converted between currencies. ---
+const sumByCurrency = (list) => {
+  const map = {};
+  (list || []).forEach((inv) => {
+    const c = inv.currency || "EUR";
+    map[c] = (map[c] || 0) + (Number(inv.amount) || 0);
+  });
+  return Object.entries(map)
+    .map(([currency, total]) => ({ currency, total }))
+    .filter((x) => x.total !== 0)
+    .sort((a, b) => b.total - a.total);
+};
+const fmtMulti = (parts) => (parts || []).map((p) => fmtCurrency(p.total, p.currency)).join(" \u00b7 ");
+
 const formatDate = (dateString) => {
   if (!dateString) return "—";
   const parts = dateString.split("-");
@@ -501,9 +515,9 @@ export default function InvoiceApp({ onGoHome }) {
     return inv;
   });
 
-  const totalRevenue = invoicesWithStatus.filter(i => i.status === "paid").reduce((a, b) => a + b.amount, 0);
-  const totalPending = invoicesWithStatus.filter(i => i.status === "pending").reduce((a, b) => a + b.amount, 0);
-  const totalOverdue = invoicesWithStatus.filter(i => i.status === "overdue").reduce((a, b) => a + b.amount, 0);
+  const totalRevenue = sumByCurrency(invoicesWithStatus.filter(i => i.status === "paid"));
+  const totalPending = sumByCurrency(invoicesWithStatus.filter(i => i.status === "pending"));
+  const totalOverdue = sumByCurrency(invoicesWithStatus.filter(i => i.status === "overdue"));
 
   const filteredInvoices = invoicesWithStatus.filter(inv => {
     const matchStatus = filterStatus === "all" || inv.status === filterStatus;
@@ -713,7 +727,7 @@ export default function InvoiceApp({ onGoHome }) {
             {page === "invoices" && <Invoices invoices={filteredInvoices} filterStatus={filterStatus} setFilterStatus={setFilterStatus} search={search} setSearch={setSearch} onPreview={setPreviewInvoice} onDelete={deleteInvoice} onNew={openNewInvoice} onEdit={setEditingInvoice} onRemind={(inv) => requirePro("reminders", () => setReminderInvoice(inv))} remindersLog={remindersLog} f={f} isPro={isPro} onUpgrade={(feat) => { setUpgradeFeature(feat); setShowUpgrade(true); }} hasDraft={!!invoiceDraft} onOpenDraft={openNewInvoice} onDiscardDraft={discardDraft} onMarkPaid={markAsPaid} onMakeRecurring={hasBusinessAccess(plan) ? async (inv) => { const choice = window.prompt("Repeat this invoice:\n\n1 = Weekly\n2 = Every 2 weeks\n3 = Monthly\n4 = Yearly\n\nType a number:", "3"); const freqMap = { "1": "weekly", "2": "biweekly", "3": "monthly", "4": "yearly" }; const freq = freqMap[(choice || "").trim()]; if (!freq) return; const ok = await createRecurring(inv, freq, userId); if (ok) { loadRecurring(userId).then(setRecurring); const { nextDate } = require("../lib/recurring"); alert("✓ Recurring activated (" + freq + ")\nNext invoice: " + nextDate(new Date(), freq).toISOString().split("T")[0] + "\nManage it in Settings → Recurring invoices."); } } : null} />}
               {page === "quotes" && (hasBusinessAccess(plan) || isTeamMember) && <Quotes quotes={quotes} setQuotes={setQuotes} userId={ownerId || userId} f={f} sellerDefaults={{ currency }} onConvert={(q) => { const { quoteToInvoice } = require("../lib/quotes"); const inv = quoteToInvoice(q, "INV-" + String(invoices.length + 1).padStart(3, "0") + "-" + Date.now().toString().slice(-4)); addInvoice(inv); return inv; }} />}
             {page === "expenses" && (hasBusinessAccess(plan) || isTeamMember) && <Expenses expenses={expenses} setExpenses={setExpenses} invoices={invoicesWithStatus} userId={ownerId || userId} f={f} />}
-            {page === "analytics" && hasBusinessAccess(plan) && <Analytics invoices={invoicesWithStatus} f={f} />}
+            {page === "analytics" && hasBusinessAccess(plan) && <Analytics invoices={invoicesWithStatus} f={f} fc={fmtCurrency} defaultCurrency={currency} />}
             {page === "clients" && <Clients clients={clients} invoices={invoicesWithStatus} f={f} onDeleteClient={deleteClient} onEditClient={(c) => setEditingClient(c)} />}
             {page === "settings" && <><Settings currency={currency} setCurrency={setCurrency} userEmail={userEmail} />{hasBusinessAccess(plan) && <BusinessProfiles profiles={bizProfiles} setProfiles={setBizProfiles} userId={userId} />}{hasBusinessAccess(plan) && <RecurringList recurring={recurring} setRecurring={setRecurring} userId={userId} f={f} />}{hasBusinessAccess(plan) && <div className="card" style={{ marginTop: 20 }}><div className="card-title" style={{ marginBottom: 10 }}>Online payments</div><div style={{ fontSize: 13, color: "#999", marginBottom: 12 }}>Connect your Stripe account so clients can pay invoices online. Money goes directly to your bank.</div><button className="btn btn-primary btn-sm" onClick={async () => { const { data: { session } } = await supabase.auth.getSession(); const r = await fetch("/api/connect-stripe", { method: "POST", headers: { Authorization: "Bearer " + (session?.access_token || "") } }); const d = await r.json(); if (d.url) window.location.href = d.url; else alert(d.error || "Could not start Stripe onboarding"); }}>Connect Stripe →</button></div>}{hasBusinessAccess(plan) && <TeamMembers team={team} setTeam={setTeam} userId={userId} />}{hasBusinessAccess(plan) && <ApiKeys keys={apiKeys} setKeys={setApiKeys} userId={userId} />}{(plan === "pro" || plan === "business") && <div className="card" style={{ marginTop: 20 }}><div className="card-title" style={{ marginBottom: 10 }}>Subscription</div><div style={{ fontSize: 13, color: "#999", marginBottom: 12 }}>Switch between Pro and Business, update your card, view invoices, or cancel anytime.</div><a className="btn btn-primary btn-sm" href="https://billing.stripe.com/p/login/fZu4gzepGdT05Gx48j5ZC00" target="_blank" rel="noreferrer">Manage subscription →</a></div>}{plan === "free" && <div className="card" style={{ marginTop: 20 }}><div className="card-title" style={{ marginBottom: 10 }}>Plan</div><div style={{ fontSize: 13, color: "#999", marginBottom: 12 }}>You are on the Free plan. Upgrade for unlimited invoices, reminders, and more.</div><button className="btn btn-primary btn-sm" onClick={() => { setUpgradeIntent(null); setShowUpgrade(true); }}>Upgrade →</button></div>}</>}
           </div>
@@ -768,7 +782,24 @@ export default function InvoiceApp({ onGoHome }) {
   );
 }
 
+// Renders a per-currency list of totals. One line per currency, no conversion.
+function MultiMoney({ parts, empty }) {
+  if (!parts || parts.length === 0) return <>{empty}</>;
+  if (parts.length === 1) return <>{fmtCurrency(parts[0].total, parts[0].currency)}</>;
+  return (
+    <span style={{ display: "block" }}>
+      {parts.map((p) => (
+        <span key={p.currency} style={{ display: "block", fontSize: 18, lineHeight: 1.35 }}>{fmtCurrency(p.total, p.currency)}</span>
+      ))}
+    </span>
+  );
+}
+
 function Dashboard({ invoices, totalRevenue, totalPending, totalOverdue, setPage, setPreviewInvoice, onEdit, onRemind, f }) {
+  // Real figures only - no hard-coded percentages on this dashboard.
+  const paidCount = invoices.filter(i => i.status === "paid").length;
+  const thisMonthKey = new Date().toISOString().slice(0, 7);
+  const newThisMonth = invoices.filter(i => (i.date || "").slice(0, 7) === thisMonthKey).length;
   const recent = invoices.slice(0, 5);
   const overdue = invoices.filter(i => i.status === "overdue");
   return (
@@ -779,17 +810,17 @@ function Dashboard({ invoices, totalRevenue, totalPending, totalOverdue, setPage
             <span style={{ fontSize:20, fontWeight: 700, color:"var(--red)" }}>!</span>
             <div>
               <div style={{ fontWeight:700, color:"var(--red)", fontSize:14 }}>{overdue.length} Overdue Invoice{overdue.length > 1 ? "s" : ""}</div>
-              <div style={{ fontSize:12, color:"var(--text2)", marginTop:2 }}>{overdue.map(i => i.client).join(", ")} — Total: <strong style={{ color:"var(--red)" }}>{f(overdue.reduce((a,b) => a+b.amount,0))}</strong></div>
+              <div style={{ fontSize:12, color:"var(--text2)", marginTop:2 }}>{overdue.map(i => i.client).join(", ")} — Total: <strong style={{ color:"var(--red)" }}>{fmtMulti(sumByCurrency(overdue))}</strong></div>
             </div>
           </div>
           <button className="btn btn-sm" style={{ background:"rgba(224,85,85,0.2)", color:"var(--red)", border:"1px solid rgba(224,85,85,0.4)", whiteSpace:"nowrap" }} onClick={() => setPage("invoices")}>View Overdue →</button>
         </div>
       )}
       <div className="stats-grid">
-        <div className="stat-card"><div className="stat-label">Total Revenue</div><div className="stat-value">{f(totalRevenue)}</div><div className="stat-change">↑ +12.4% this month</div></div>
-        <div className="stat-card"><div className="stat-label">Pending</div><div className="stat-value">{f(totalPending)}</div><div className="stat-change">{invoices.filter(i => i.status === "pending").length} invoices</div></div>
-        <div className="stat-card"><div className="stat-label">Overdue</div><div className="stat-value" style={{ color:"var(--red)" }}>{f(totalOverdue)}</div><div className="stat-change down">Needs attention</div></div>
-        <div className="stat-card"><div className="stat-label">Total Invoices</div><div className="stat-value">{invoices.length}</div><div className="stat-change">↑ +3 this month</div></div>
+        <div className="stat-card"><div className="stat-label">Total Revenue</div><div className="stat-value"><MultiMoney parts={totalRevenue} empty={f(0)} /></div><div className="stat-change">{paidCount} paid invoice{paidCount === 1 ? "" : "s"}</div></div>
+        <div className="stat-card"><div className="stat-label">Pending</div><div className="stat-value"><MultiMoney parts={totalPending} empty={f(0)} /></div><div className="stat-change">{invoices.filter(i => i.status === "pending").length} invoices</div></div>
+        <div className="stat-card"><div className="stat-label">Overdue</div><div className="stat-value" style={{ color:"var(--red)" }}><MultiMoney parts={totalOverdue} empty={f(0)} /></div><div className="stat-change down">Needs attention</div></div>
+        <div className="stat-card"><div className="stat-label">Total Invoices</div><div className="stat-value">{invoices.length}</div><div className="stat-change">{newThisMonth > 0 ? "+" + newThisMonth + " this month" : "None added this month"}</div></div>
       </div>
       <div className="card">
         <div className="card-header">

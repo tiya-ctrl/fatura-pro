@@ -1,18 +1,37 @@
 // Fatura Pro - Advanced Analytics page (Business plan)
+import { useState } from "react";
 import { monthlyRevenue, topClients, avgPaymentDays, collectionStats, revenueByCurrency } from "../lib/analytics";
 
-export default function Analytics({ invoices, f }) {
-  const months = monthlyRevenue(invoices);
-  const clients = topClients(invoices);
-  const avgDays = avgPaymentDays(invoices);
-  const stats = collectionStats(invoices);
-  const byCurrency = revenueByCurrency(invoices);
-  const fmt = (n) => (f ? f(n) : Number(n).toFixed(2));
+export default function Analytics({ invoices, f, fc, defaultCurrency }) {
+  // Every figure below belongs to ONE currency. Nothing is ever converted.
+  const list = invoices || [];
+  const codes = [];
+  list.forEach((i) => { const c = i.currency || "EUR"; if (codes.indexOf(c) < 0) codes.push(c); });
+  if (codes.length === 0) codes.push(defaultCurrency || "EUR");
+  const [curSel, setCurSel] = useState(defaultCurrency || "EUR");
+  const active = codes.indexOf(curSel) >= 0 ? curSel : codes[0];
+  const scoped = list.filter((i) => (i.currency || "EUR") === active);
+  const months = monthlyRevenue(scoped);
+  const clients = topClients(scoped);
+  const avgDays = avgPaymentDays(scoped);
+  const stats = collectionStats(scoped);
+  const byCurrency = revenueByCurrency(list);
+  const fmt = (n) => (fc ? fc(n, active) : (f ? f(n) : Number(n).toFixed(2)));
   const maxMonth = Math.max(...months.map((m) => m.total), 1);
   const totalCollectable = stats.paid.total + stats.pending.total + stats.overdue.total;
 
   return (
     <div>
+      {/* Currency scope - totals are never converted */}
+      {codes.length > 1 && (
+        <div style={{ display:"flex", alignItems:"center", gap:8, flexWrap:"wrap", marginBottom:14 }}>
+          <span style={{ fontSize:12, color:"#999" }}>Currency</span>
+          {codes.map((c) => (
+            <button key={c} onClick={() => setCurSel(c)} style={{ cursor:"pointer", padding:"4px 12px", borderRadius:20, fontSize:12, fontWeight: c === active ? 700 : 500, background: c === active ? "var(--gold)" : "transparent", color: c === active ? "#111" : "var(--text2)", border: "1px solid " + (c === active ? "var(--gold)" : "var(--border)") }}>{c}</button>
+          ))}
+          <span style={{ fontSize:11, color:"#777" }}>each currency is reported on its own - no conversion</span>
+        </div>
+      )}
       {/* KPI cards */}
       <div style={{ display:"grid", gridTemplateColumns:"repeat(auto-fit, minmax(160px, 1fr))", gap:12, marginBottom:20 }}>
         <div className="stat-card"><div className="stat-label">Avg. payment terms</div><div className="stat-value" style={{ fontSize:22 }}>{avgDays === null ? "—" : avgDays + " days"}</div><div className="stat-change">invoice to due date</div></div>
@@ -23,7 +42,7 @@ export default function Analytics({ invoices, f }) {
 
       {/* Monthly revenue chart */}
       <div className="card" style={{ marginBottom:20 }}>
-        <div className="card-title" style={{ marginBottom:16 }}>Revenue — last 12 months (paid)</div>
+        <div className="card-title" style={{ marginBottom:16 }}>Revenue — last 12 months (paid){" \u00b7 "}{active}</div>
         <div style={{ display:"flex", alignItems:"flex-end", gap:6, height:160 }}>
           {months.map((m) => (
             <div key={m.key} style={{ flex:1, display:"flex", flexDirection:"column", alignItems:"center", gap:4 }} title={m.label + ": " + fmt(m.total)}>
@@ -52,7 +71,7 @@ export default function Analytics({ invoices, f }) {
           {byCurrency.length === 0 && <div style={{ color:"#999", fontSize:13 }}>No paid invoices yet.</div>}
           {byCurrency.map((c) => (
             <div key={c.currency} style={{ display:"flex", justifyContent:"space-between", padding:"8px 0", borderBottom:"1px solid var(--border)" }}>
-              <span>{c.currency}</span><b>{c.total.toFixed(2)}</b>
+              <span>{c.currency}</span><b>{fc ? fc(c.total, c.currency) : c.total.toFixed(2)}</b>
             </div>
           ))}
         </div>
