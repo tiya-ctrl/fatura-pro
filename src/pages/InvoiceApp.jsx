@@ -365,10 +365,18 @@ const formatDate = (dateString) => {
   return dateString;
 };
 
+// How much is still owed on a document, after any partial payments / deposits.
+// Credit notes (negative totals) are returned untouched.
+const outstandingOf = (inv) => {
+  const totalOf = Number(inv.total != null ? inv.total : inv.amount) || 0;
+  if (totalOf < 0) return totalOf;
+  return Math.max(0, totalOf - (Number(inv.paidAmount) || 0));
+};
+
 const statusBadge = (s) => {
   const map = {
     paid: ["badge-paid", "Paid"],
-    pending: ["badge-pending", "Pending"],
+    pending: ["badge-pending", "Pending"], partial: ["badge-pending", "Partially paid"],
     overdue: ["badge-overdue", "Overdue"],
     draft: ["badge-draft", "Draft"]
   };
@@ -407,7 +415,7 @@ export default function InvoiceApp({ onGoHome }) {
     if (!ownerId) return;
     (async () => {
       const { data: invData } = await supabase.from("invoices").select("*").eq("user_id", ownerId).order("created_at", { ascending: false });
-      if (invData) setInvoices(invData.map(r => ({ id: r.id, createdBy: r.created_by, client: r.client, email: r.email, sellerName: r.seller_name, sellerEmail: r.seller_email, sellerPhone: r.seller_phone, sellerAddress: r.seller_address, buyerPhone: r.buyer_phone, buyerAddress: r.buyer_address, date: r.date, due: r.due, status: r.status, amount: r.amount, subtotal: r.subtotal, discountAmt: r.discount_amt, taxAmt: r.tax_amt, total: r.total, tax: r.tax, discount: r.discount, notes: r.notes, bankInfo: r.bank_info, currency: r.currency, docType: r.doc_type, creditOf: r.credit_of, items: r.items || [] })));
+      if (invData) setInvoices(invData.map(r => ({ id: r.id, createdBy: r.created_by, client: r.client, email: r.email, sellerName: r.seller_name, sellerEmail: r.seller_email, sellerPhone: r.seller_phone, sellerAddress: r.seller_address, buyerPhone: r.buyer_phone, buyerAddress: r.buyer_address, date: r.date, due: r.due, status: r.status, amount: r.amount, subtotal: r.subtotal, discountAmt: r.discount_amt, taxAmt: r.tax_amt, total: r.total, tax: r.tax, discount: r.discount, notes: r.notes, bankInfo: r.bank_info, currency: r.currency, docType: r.doc_type, creditOf: r.credit_of, paidAmount: Number(r.paid_amount) || 0, items: r.items || [] })));
       const { data: cliData } = await supabase.from("clients").select("*").eq("user_id", ownerId);
       if (cliData) setClients(cliData.map(c => ({ id: c.id, name: c.name, email: c.email, phone: c.phone, country: c.country })));
     })();
@@ -511,13 +519,13 @@ export default function InvoiceApp({ onGoHome }) {
 
   const today = new Date().toISOString().split("T")[0];
   const invoicesWithStatus = invoices.map(inv => {
-    if (inv.status === "pending" && inv.due && inv.due < today) return { ...inv, status: "overdue" };
+    const paidSoFar = Number(inv.paidAmount) || 0; const invTotal = Math.abs(Number(inv.total != null ? inv.total : inv.amount) || 0); if (paidSoFar > 0 && paidSoFar < invTotal && inv.status !== "paid" && inv.status !== "draft") return { ...inv, status: "partial" }; if (inv.status === "pending" && inv.due && inv.due < today) return { ...inv, status: "overdue" };
     return inv;
   });
 
-  const totalRevenue = sumByCurrency(invoicesWithStatus.filter(i => i.status === "paid"));
-  const totalPending = sumByCurrency(invoicesWithStatus.filter(i => i.status === "pending"));
-  const totalOverdue = sumByCurrency(invoicesWithStatus.filter(i => i.status === "overdue"));
+  const totalRevenue = sumByCurrency(invoicesWithStatus.filter(i => i.status === "paid").concat(invoicesWithStatus.filter(i => i.status === "partial").map(i => ({ ...i, amount: Number(i.paidAmount) || 0 }))));
+  const totalPending = sumByCurrency(invoicesWithStatus.filter(i => i.status === "pending" || i.status === "partial").map(i => ({ ...i, amount: outstandingOf(i) })));
+  const totalOverdue = sumByCurrency(invoicesWithStatus.filter(i => i.status === "overdue").map(i => ({ ...i, amount: outstandingOf(i) })));
 
   const filteredInvoices = invoicesWithStatus.filter(inv => {
     const matchStatus = filterStatus === "all" || inv.status === filterStatus;
@@ -584,6 +592,30 @@ export default function InvoiceApp({ onGoHome }) {
     setPreviewInvoice(cn);
   };
 
+  // --- Deposits / partial payments ---------------------------------------
+  // Records money actually received. "partial" is derived at display time,
+  // so only draft / pending / paid are ever written to the database.
+  const recordPayment = async (inv) => {
+    if (!inv || inv.docType === "credit_note") return;
+    const invTotal = Math.abs(Number(inv.total != null ? inv.total : inv.amount) || 0);
+    const already = Number(inv.paidAmount) || 0;
+    const balance = Math.max(0, invTotal - already);
+    if (balance <= 0) { window.alert("This invoice is already fully paid."); return; }
+    const suggested = already > 0 ? balance : invTotal / 2;
+    const answer = window.prompt(
+      "Record a payment for " + inv.id + "\n\nInvoice total: " + invTotal.toFixed(2) +
+      "\nReceived so far: " + already.toFixed(2) + "\nBalance: " + balance.toFixed(2) +
+      "\n\nAmount received now:", suggested.toFixed(2));
+    if (answer === null) return;
+    const add = Number(String(answer).replace(",", ".").trim());
+    if (!add || isNaN(add) || add <= 0) { window.alert("Please enter an amount greater than 0."); return; }
+    const newPaid = Math.min(invTotal, already + add);
+    const newStatus = newPaid >= invTotal - 0.005 ? "paid" : "pending";
+    const { error } = await supabase.from("invoices").update({ paid_amount: newPaid, status: newStatus }).eq("id", inv.id);
+    if (error) { window.alert("Could not save the payment.\n\n" + error.message); return; }
+    setInvoices((prev) => prev.map((i) => (i.id === inv.id ? { ...i, paidAmount: newPaid, status: newStatus } : i)));
+  };
+
   const markAsPaid = async (id) => {
     await supabase.from("invoices").update({ status: "paid" }).eq("id", id);
     setInvoices(prev => prev.map(i => i.id === id ? { ...i, status: "paid" } : i));
@@ -611,7 +643,7 @@ export default function InvoiceApp({ onGoHome }) {
       const owner = (await myTeamOwner(user.id)) || user.id;
       const { data: invData } = await supabase.from("invoices").select("*").eq("user_id", owner).order("created_at", { ascending: false });
       const { data: cliData } = await supabase.from("clients").select("*").eq("user_id", owner);
-      if (invData) setInvoices(invData.map(r => ({ id: r.id, createdBy: r.created_by, client: r.client, email: r.email, sellerName: r.seller_name, sellerEmail: r.seller_email, sellerPhone: r.seller_phone, sellerAddress: r.seller_address, buyerPhone: r.buyer_phone, buyerAddress: r.buyer_address, date: r.date, due: r.due, status: r.status, amount: r.amount, subtotal: r.subtotal, discountAmt: r.discount_amt, taxAmt: r.tax_amt, total: r.total, tax: r.tax, discount: r.discount, notes: r.notes, bankInfo: r.bank_info, currency: r.currency, docType: r.doc_type, creditOf: r.credit_of, items: r.items || [] })));
+      if (invData) setInvoices(invData.map(r => ({ id: r.id, createdBy: r.created_by, client: r.client, email: r.email, sellerName: r.seller_name, sellerEmail: r.seller_email, sellerPhone: r.seller_phone, sellerAddress: r.seller_address, buyerPhone: r.buyer_phone, buyerAddress: r.buyer_address, date: r.date, due: r.due, status: r.status, amount: r.amount, subtotal: r.subtotal, discountAmt: r.discount_amt, taxAmt: r.tax_amt, total: r.total, tax: r.tax, discount: r.discount, notes: r.notes, bankInfo: r.bank_info, currency: r.currency, docType: r.doc_type, creditOf: r.credit_of, paidAmount: Number(r.paid_amount) || 0, items: r.items || [] })));
       if (cliData) setClients(cliData);
     };
     loadData();
@@ -624,7 +656,7 @@ export default function InvoiceApp({ onGoHome }) {
           const owner = (await myTeamOwner(session.user.id)) || session.user.id;
           const { data: invData } = await supabase.from("invoices").select("*").eq("user_id", owner).order("created_at", { ascending: false });
           const { data: cliData } = await supabase.from("clients").select("*").eq("user_id", owner);
-          if (invData) setInvoices(invData.map(r => ({ id: r.id, createdBy: r.created_by, client: r.client, email: r.email, sellerName: r.seller_name, sellerEmail: r.seller_email, sellerPhone: r.seller_phone, sellerAddress: r.seller_address, buyerPhone: r.buyer_phone, buyerAddress: r.buyer_address, date: r.date, due: r.due, status: r.status, amount: r.amount, subtotal: r.subtotal, discountAmt: r.discount_amt, taxAmt: r.tax_amt, total: r.total, tax: r.tax, discount: r.discount, notes: r.notes, bankInfo: r.bank_info, currency: r.currency, docType: r.doc_type, creditOf: r.credit_of, items: r.items || [] })));
+          if (invData) setInvoices(invData.map(r => ({ id: r.id, createdBy: r.created_by, client: r.client, email: r.email, sellerName: r.seller_name, sellerEmail: r.seller_email, sellerPhone: r.seller_phone, sellerAddress: r.seller_address, buyerPhone: r.buyer_phone, buyerAddress: r.buyer_address, date: r.date, due: r.due, status: r.status, amount: r.amount, subtotal: r.subtotal, discountAmt: r.discount_amt, taxAmt: r.tax_amt, total: r.total, tax: r.tax, discount: r.discount, notes: r.notes, bankInfo: r.bank_info, currency: r.currency, docType: r.doc_type, creditOf: r.credit_of, paidAmount: Number(r.paid_amount) || 0, items: r.items || [] })));
           if (cliData) setClients(cliData);
         };
         reload();
@@ -770,8 +802,8 @@ export default function InvoiceApp({ onGoHome }) {
           </div>
 
           <div className="content">
-            {page === "dashboard" && <Dashboard onCreditNote={createCreditNote} invoices={invoicesWithStatus} totalRevenue={totalRevenue} totalPending={totalPending} totalOverdue={totalOverdue} setPage={setPage} setPreviewInvoice={setPreviewInvoice} onEdit={setEditingInvoice} onRemind={(inv) => requirePro("reminders", () => setReminderInvoice(inv))} f={f} />}
-            {page === "invoices" && <Invoices invoices={filteredInvoices} filterStatus={filterStatus} setFilterStatus={setFilterStatus} search={search} setSearch={setSearch} onPreview={setPreviewInvoice} onDelete={deleteInvoice} onNew={openNewInvoice} onEdit={setEditingInvoice} onRemind={(inv) => requirePro("reminders", () => setReminderInvoice(inv))} remindersLog={remindersLog} f={f} isPro={isPro} onUpgrade={(feat) => { setUpgradeFeature(feat); setShowUpgrade(true); }} hasDraft={!!invoiceDraft} onOpenDraft={openNewInvoice} onDiscardDraft={discardDraft} onMarkPaid={markAsPaid} onCreditNote={createCreditNote} onMakeRecurring={hasBusinessAccess(plan) ? async (inv) => { const choice = window.prompt("Repeat this invoice:\n\n1 = Weekly\n2 = Every 2 weeks\n3 = Monthly\n4 = Yearly\n\nType a number:", "3"); const freqMap = { "1": "weekly", "2": "biweekly", "3": "monthly", "4": "yearly" }; const freq = freqMap[(choice || "").trim()]; if (!freq) return; const ok = await createRecurring(inv, freq, userId); if (ok) { loadRecurring(userId).then(setRecurring); const { nextDate } = require("../lib/recurring"); alert("✓ Recurring activated (" + freq + ")\nNext invoice: " + nextDate(new Date(), freq).toISOString().split("T")[0] + "\nManage it in Settings → Recurring invoices."); } } : null} />}
+            {page === "dashboard" && <Dashboard onCreditNote={createCreditNote} onRecordPayment={recordPayment} invoices={invoicesWithStatus} totalRevenue={totalRevenue} totalPending={totalPending} totalOverdue={totalOverdue} setPage={setPage} setPreviewInvoice={setPreviewInvoice} onEdit={setEditingInvoice} onRemind={(inv) => requirePro("reminders", () => setReminderInvoice(inv))} f={f} />}
+            {page === "invoices" && <Invoices invoices={filteredInvoices} filterStatus={filterStatus} setFilterStatus={setFilterStatus} search={search} setSearch={setSearch} onPreview={setPreviewInvoice} onDelete={deleteInvoice} onNew={openNewInvoice} onEdit={setEditingInvoice} onRemind={(inv) => requirePro("reminders", () => setReminderInvoice(inv))} remindersLog={remindersLog} f={f} isPro={isPro} onUpgrade={(feat) => { setUpgradeFeature(feat); setShowUpgrade(true); }} hasDraft={!!invoiceDraft} onOpenDraft={openNewInvoice} onDiscardDraft={discardDraft} onMarkPaid={markAsPaid} onCreditNote={createCreditNote} onRecordPayment={recordPayment} onMakeRecurring={hasBusinessAccess(plan) ? async (inv) => { const choice = window.prompt("Repeat this invoice:\n\n1 = Weekly\n2 = Every 2 weeks\n3 = Monthly\n4 = Yearly\n\nType a number:", "3"); const freqMap = { "1": "weekly", "2": "biweekly", "3": "monthly", "4": "yearly" }; const freq = freqMap[(choice || "").trim()]; if (!freq) return; const ok = await createRecurring(inv, freq, userId); if (ok) { loadRecurring(userId).then(setRecurring); const { nextDate } = require("../lib/recurring"); alert("✓ Recurring activated (" + freq + ")\nNext invoice: " + nextDate(new Date(), freq).toISOString().split("T")[0] + "\nManage it in Settings → Recurring invoices."); } } : null} />}
               {page === "quotes" && (hasBusinessAccess(plan) || isTeamMember) && <Quotes quotes={quotes} setQuotes={setQuotes} userId={ownerId || userId} f={f} sellerDefaults={{ currency }} onConvert={(q) => { const { quoteToInvoice } = require("../lib/quotes"); const inv = quoteToInvoice(q, "INV-" + String(invoices.length + 1).padStart(3, "0") + "-" + Date.now().toString().slice(-4)); addInvoice(inv); return inv; }} />}
             {page === "expenses" && (hasBusinessAccess(plan) || isTeamMember) && <Expenses expenses={expenses} setExpenses={setExpenses} invoices={invoicesWithStatus} userId={ownerId || userId} f={f} />}
             {page === "analytics" && hasBusinessAccess(plan) && <Analytics invoices={invoicesWithStatus} f={f} fc={fmtCurrency} defaultCurrency={currency} />}
@@ -842,7 +874,7 @@ function MultiMoney({ parts, empty }) {
   );
 }
 
-function Dashboard({ invoices, totalRevenue, totalPending, totalOverdue, setPage, setPreviewInvoice, onEdit, onRemind, onCreditNote, f }) {
+function Dashboard({ invoices, totalRevenue, totalPending, totalOverdue, setPage, setPreviewInvoice, onEdit, onRemind, onCreditNote, onRecordPayment, f }) {
   // Real figures only - no hard-coded percentages on this dashboard.
   const paidCount = invoices.filter(i => i.status === "paid").length;
   const thisMonthKey = new Date().toISOString().slice(0, 7);
@@ -884,11 +916,11 @@ function Dashboard({ invoices, totalRevenue, totalPending, totalOverdue, setPage
                   <td>{inv.client}</td>
                   <td style={{ fontWeight:600 }}>{fmtCurrency(inv.amount, inv.currency || "EUR")}</td>
                   <td style={{ color:"var(--text2)" }}>{formatDate(inv.due)}</td>
-                  <td>{statusBadge(inv.status)}</td>
+                  <td>{statusBadge(inv.status)}{inv.status === "partial" && <div style={{ fontSize:10, color:"var(--text2)", marginTop:2 }}>{f(outstandingOf(inv))} left</div>}</td>
                   <td>
                     <div className="action-btns">
                       <button className="btn btn-ghost btn-sm" onClick={() => setPreviewInvoice(inv)}>Preview</button>
-                      <button className="btn btn-ghost btn-sm" style={{ color:"var(--gold)" }} onClick={() => onEdit(inv)}>Edit</button>{onCreditNote && inv.docType !== "credit_note" && inv.status !== "draft" && <button className="btn btn-ghost btn-sm" title="Create a credit note for this invoice" onClick={() => onCreditNote(inv)}>Credit</button>}
+                      <button className="btn btn-ghost btn-sm" style={{ color:"var(--gold)" }} onClick={() => onEdit(inv)}>Edit</button>{onCreditNote && inv.docType !== "credit_note" && inv.status !== "draft" && <button className="btn btn-ghost btn-sm" title="Create a credit note for this invoice" onClick={() => onCreditNote(inv)}>Credit</button>}{onRecordPayment && inv.docType !== "credit_note" && inv.status !== "paid" && inv.status !== "draft" && <button className="btn btn-ghost btn-sm" title="Record a payment received" onClick={() => onRecordPayment(inv)}>Payment</button>}
                       {(inv.status === "overdue" || inv.status === "pending") && (
                         <button className="btn btn-sm" style={{ background:"rgba(224,85,85,0.15)", color:"var(--red)", border:"1px solid rgba(224,85,85,0.3)" }} onClick={() => onRemind(inv)}>Remind</button>
                       )}
@@ -904,8 +936,8 @@ function Dashboard({ invoices, totalRevenue, totalPending, totalOverdue, setPage
   );
 }
 
-function Invoices({ invoices, filterStatus, setFilterStatus, search, setSearch, onPreview, onDelete, onNew, onEdit, onRemind, remindersLog, viewerEmail, f, isPro, onUpgrade, hasDraft, onOpenDraft, onDiscardDraft, onMarkPaid, onCreditNote, onMakeRecurring }) {
-  const statuses = ["all", "paid", "pending", "overdue", "draft"];
+function Invoices({ invoices, filterStatus, setFilterStatus, search, setSearch, onPreview, onDelete, onNew, onEdit, onRemind, remindersLog, viewerEmail, f, isPro, onUpgrade, hasDraft, onOpenDraft, onDiscardDraft, onMarkPaid, onCreditNote, onRecordPayment, onMakeRecurring }) {
+  const statuses = ["all", "paid", "partial", "pending", "overdue", "draft"];
   return (
     <>
       {hasDraft && (
@@ -956,11 +988,11 @@ function Invoices({ invoices, filterStatus, setFilterStatus, search, setSearch, 
                       {inv.status === "overdue" && <div style={{ fontSize:10, color:"var(--red)" }}>Overdue</div>}
                     </td>
                     <td style={{ fontWeight:700 }}>{fmtCurrency(inv.amount, inv.currency || "EUR")}</td>
-                    <td>{statusBadge(inv.status)}</td>
+                    <td>{statusBadge(inv.status)}{inv.status === "partial" && <div style={{ fontSize:10, color:"var(--text2)", marginTop:2 }}>{f(outstandingOf(inv))} left</div>}</td>
                     <td>
                       <div className="action-btns">
                         <button className="btn btn-ghost btn-sm" onClick={() => onPreview(inv)}>View</button>{onMakeRecurring && <button className="btn btn-ghost btn-sm" title="Make recurring" onClick={() => onMakeRecurring(inv)}>🔄</button>}
-                        <button className="btn btn-ghost btn-sm" style={{ color:"var(--gold)" }} onClick={() => onEdit(inv)}>Edit</button>{onCreditNote && inv.docType !== "credit_note" && inv.status !== "draft" && <button className="btn btn-ghost btn-sm" title="Create a credit note for this invoice" onClick={() => onCreditNote(inv)}>Credit</button>}
+                        <button className="btn btn-ghost btn-sm" style={{ color:"var(--gold)" }} onClick={() => onEdit(inv)}>Edit</button>{onCreditNote && inv.docType !== "credit_note" && inv.status !== "draft" && <button className="btn btn-ghost btn-sm" title="Create a credit note for this invoice" onClick={() => onCreditNote(inv)}>Credit</button>}{onRecordPayment && inv.docType !== "credit_note" && inv.status !== "paid" && inv.status !== "draft" && <button className="btn btn-ghost btn-sm" title="Record a payment received" onClick={() => onRecordPayment(inv)}>Payment</button>}
                         {(inv.status === "overdue" || inv.status === "pending") && (
                           <button className="btn btn-ghost btn-sm" style={{ color:"var(--green)" }} onClick={() => onMarkPaid(inv.id)}>✓ Paid</button>
                         )}
@@ -999,7 +1031,7 @@ function Invoices({ invoices, filterStatus, setFilterStatus, search, setSearch, 
                   <div className="inv-card-client">{inv.client}</div>
                   <div className="inv-card-email">{inv.email}</div>
                 </div>
-                {statusBadge(inv.status)}
+                {statusBadge(inv.status)}{inv.status === "partial" && <div style={{ fontSize:10, color:"var(--text2)", marginTop:2 }}>{f(outstandingOf(inv))} left</div>}
               </div>
               <div className="inv-card-row">
                 <div className="inv-card-amount">{fmtCurrency(inv.amount, inv.currency || "EUR")}</div>
@@ -1007,7 +1039,7 @@ function Invoices({ invoices, filterStatus, setFilterStatus, search, setSearch, 
               </div>
               <div className="inv-card-actions">
                 <button className="btn btn-ghost btn-sm" onClick={() => onPreview(inv)}>View</button>{onMakeRecurring && <button className="btn btn-ghost btn-sm" title="Make recurring" onClick={() => onMakeRecurring(inv)}>🔄</button>}
-                <button className="btn btn-ghost btn-sm" style={{ color:"var(--gold)" }} onClick={() => onEdit(inv)}>Edit</button>{onCreditNote && inv.docType !== "credit_note" && inv.status !== "draft" && <button className="btn btn-ghost btn-sm" title="Create a credit note for this invoice" onClick={() => onCreditNote(inv)}>Credit</button>}
+                <button className="btn btn-ghost btn-sm" style={{ color:"var(--gold)" }} onClick={() => onEdit(inv)}>Edit</button>{onCreditNote && inv.docType !== "credit_note" && inv.status !== "draft" && <button className="btn btn-ghost btn-sm" title="Create a credit note for this invoice" onClick={() => onCreditNote(inv)}>Credit</button>}{onRecordPayment && inv.docType !== "credit_note" && inv.status !== "paid" && inv.status !== "draft" && <button className="btn btn-ghost btn-sm" title="Record a payment received" onClick={() => onRecordPayment(inv)}>Payment</button>}
                 {(inv.status === "overdue" || inv.status === "pending") && (
                   <button className="btn btn-ghost btn-sm" style={{ color:"var(--green)" }} onClick={() => onMarkPaid(inv.id)}>✓ Paid</button>
                 )}
@@ -1716,7 +1748,7 @@ function InvoicePreview({ invoice, onClose, currency, plan }) {
                 <div className="preview-total-row"><span>Subtotal</span><span>{f(subtotal)}</span></div>
                 {discountAmt > 0 && <div className="preview-total-row" style={{ color:"#2d8c65" }}><span>Discount ({discount}%)</span><span>- {f(discountAmt)}</span></div>}
                 <div className="preview-total-row"><span>Tax ({tax}%)</span><span>{f(taxAmt)}</span></div>
-                <div className="preview-total-row grand"><span>Total Due</span><span>{f(total)}</span></div>
+                <div className="preview-total-row grand"><span>Total Due</span><span>{f(total)}</span></div>{(Number(invoice.paidAmount) || 0) > 0 && <><div className="preview-total-row"><span>Paid</span><span>{f(Number(invoice.paidAmount) || 0)}</span></div><div className="preview-total-row grand"><span>Balance due</span><span>{f(Math.max(0, Math.abs(total) - (Number(invoice.paidAmount) || 0)))}</span></div></>}
               </div>
             </div>
           </div>
@@ -1749,7 +1781,7 @@ function InvoicePreview({ invoice, onClose, currency, plan }) {
   );
 }
 
-function ReminderModal({ invoice, onClose, onLog, f }) {
+function ReminderModal({ invoice: reminderTarget, onClose, onLog, f }) { const reminderPaid = Number(reminderTarget.paidAmount) || 0; const invoice = reminderPaid > 0 ? { ...reminderTarget, amount: outstandingOf(reminderTarget) } : reminderTarget;
   const today = new Date().toISOString().split("T")[0];
   const daysOverdue = invoice.due ? Math.floor((new Date(today) - new Date(invoice.due)) / 86400000) : 0;
   const [tone, setTone] = useState("polite");
