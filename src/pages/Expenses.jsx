@@ -1,18 +1,22 @@
 // Fatura Pro - Expenses + VAT/BTW report (Business plan)
 import { useState } from "react";
 import { loadExpenses, saveExpense, deleteExpense, vatReport } from "../lib/expenses";
+import { CURRENCIES, fmtCurrency, codesUsed } from "../lib/currencies";
 
 const CATEGORIES = ["software", "hardware", "office", "travel", "marketing", "services", "other"];
 
-export default function Expenses({ expenses, setExpenses, invoices, userId, f }) {
+export default function Expenses({ expenses, setExpenses, invoices, userId }) {
   const now = new Date();
   const [editing, setEditing] = useState(null);
   const [year, setYear] = useState(now.getFullYear());
   const [quarter, setQuarter] = useState(Math.floor(now.getMonth() / 3) + 1);
 
   const refresh = async () => setExpenses(await loadExpenses(userId));
-  const report = vatReport(invoices, expenses, year, quarter);
-  const fmt = (n) => (f ? f(n) : Number(n).toFixed(2));
+  const currencyCodes = codesUsed((invoices || []).concat(expenses || []), "EUR");
+  const [reportCur, setReportCur] = useState("");
+  const activeCur = currencyCodes.indexOf(reportCur) > -1 ? reportCur : currencyCodes[0];
+  const report = vatReport(invoices, expenses, year, quarter, activeCur);
+  const fmt = (n) => fmtCurrency(n, activeCur);
 
   const handleDelete = async (e) => {
     if (!window.confirm("Delete expense \"" + e.description + "\"?")) return;
@@ -25,8 +29,13 @@ export default function Expenses({ expenses, setExpenses, invoices, userId, f })
       {/* VAT Report */}
       <div className="card" style={{ marginBottom: 20 }}>
         <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center", flexWrap:"wrap", gap:10, marginBottom:14 }}>
-          <div className="card-title">VAT / BTW Report</div>
+          <div className="card-title">VAT / BTW Report{currencyCodes.length > 1 ? " (" + activeCur + ")" : ""}</div>
           <div style={{ display:"flex", gap:8 }}>
+            {currencyCodes.length > 1 && (
+              <select value={activeCur} onChange={(e) => setReportCur(e.target.value)}>
+                {currencyCodes.map(c => <option key={c} value={c}>{c}</option>)}
+              </select>
+            )}
             <select value={quarter} onChange={(e) => setQuarter(Number(e.target.value))}>
               <option value={1}>Q1 (Jan–Mar)</option><option value={2}>Q2 (Apr–Jun)</option>
               <option value={3}>Q3 (Jul–Sep)</option><option value={4}>Q4 (Oct–Dec)</option>
@@ -67,7 +76,7 @@ export default function Expenses({ expenses, setExpenses, invoices, userId, f })
             <div style={{ fontSize:12, color:"#999" }}>{e.date} · {e.category}{e.supplier ? " · " + e.supplier : ""} · VAT {e.vat_rate}%</div>
           </div>
           <div style={{ display:"flex", alignItems:"center", gap:10 }}>
-            <span style={{ fontWeight:700 }}>{fmt(e.amount_incl)}</span>
+            <span style={{ fontWeight:700 }}>{fmtCurrency(e.amount_incl, e.currency || "EUR")}</span>
             <button className="btn btn-ghost btn-sm" onClick={() => setEditing(e)}>Edit</button>
             <button className="btn btn-ghost btn-sm" style={{ color:"#e05555" }} onClick={() => handleDelete(e)}>✕</button>
           </div>
@@ -78,6 +87,7 @@ export default function Expenses({ expenses, setExpenses, invoices, userId, f })
         <ExpenseModal
           expense={editing === "new" ? null : editing}
           onClose={() => setEditing(null)}
+          defaultCurrency={activeCur}
           onSave={async (e) => { await saveExpense(e, userId); setEditing(null); refresh(); }}
         />
       )}
@@ -85,12 +95,12 @@ export default function Expenses({ expenses, setExpenses, invoices, userId, f })
   );
 }
 
-function ExpenseModal({ expense, onClose, onSave }) {
+function ExpenseModal({ expense, onClose, onSave, defaultCurrency }) {
   const isEdit = !!expense;
   const [form, setForm] = useState(expense || {
     date: new Date().toISOString().split("T")[0],
     description:"", category:"other", supplier:"",
-    amount_excl:"", vat_rate:21, currency:"EUR",
+    amount_excl:"", vat_rate:21, currency: defaultCurrency || "EUR",
   });
   const set = (k, v) => setForm((p) => ({ ...p, [k]: v }));
 
@@ -116,6 +126,7 @@ function ExpenseModal({ expense, onClose, onSave }) {
           <input placeholder="Description * (e.g. Adobe subscription)" value={form.description} onChange={(e) => set("description", e.target.value)} />
           <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:10 }}>
             <label style={{ fontSize:12 }}>Date<input type="date" value={form.date} onChange={(e) => set("date", e.target.value)} /></label>
+            <label style={{ fontSize:12 }}>Currency<select value={form.currency} onChange={(e) => set("currency", e.target.value)}>{CURRENCIES.map(g => (<optgroup key={g.group} label={g.group}>{g.items.map(c => <option key={c.value} value={c.value}>{c.label}</option>)}</optgroup>))}</select></label>
             <label style={{ fontSize:12 }}>Category
               <select value={form.category} onChange={(e) => set("category", e.target.value)}>
                 {CATEGORIES.map(c => <option key={c} value={c}>{c}</option>)}

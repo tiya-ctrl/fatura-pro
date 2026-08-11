@@ -1,10 +1,11 @@
 // Fatura Pro - Quotes page (Business plan)
 import { useState } from "react";
+import { CURRENCIES, fmtCurrency } from "../lib/currencies";
 import { loadQuotes, saveQuote, deleteQuote, quoteToInvoice, nextQuoteId } from "../lib/quotes";
 
 export { loadQuotes };
 
-export default function Quotes({ quotes, setQuotes, userId, f, onConvert, sellerDefaults }) {
+export default function Quotes({ quotes, setQuotes, userId, onConvert, sellerDefaults }) {
   const [editing, setEditing] = useState(null); // null | "new" | quote object
 
   const refresh = async () => setQuotes(await loadQuotes(userId));
@@ -50,7 +51,7 @@ export default function Quotes({ quotes, setQuotes, userId, f, onConvert, seller
           </div>
           <div style={{ display:"flex", alignItems:"center", gap:10, flexWrap:"wrap" }}>
             <span style={{ fontSize:11, fontWeight:800, textTransform:"uppercase", color:statusColor[q.status] || "#999" }}>{q.status}</span>
-            <span style={{ fontWeight:700 }}>{f ? f(q.total, q.currency) : q.total}</span>
+            <span style={{ fontWeight:700 }}>{fmtCurrency(q.total, q.currency)}</span>
             <button className="btn btn-ghost btn-sm" onClick={() => setEditing(q)}>Edit</button>
             {!q.convertedInvoiceId && <button className="btn btn-sm" style={{ background:"rgba(45,140,101,0.15)", color:"#2d8c65", border:"1px solid rgba(45,140,101,0.4)" }} onClick={() => handleConvert(q)}>→ Invoice</button>}
             <button className="btn btn-ghost btn-sm" style={{ color:"#e05555" }} onClick={() => handleDelete(q)}>✕</button>
@@ -127,6 +128,7 @@ function QuoteModal({ quote, quoteCount, sellerDefaults, onClose, onSave }) {
         <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr 1fr", gap:10, marginBottom:10 }}>
           <label style={{ fontSize:12 }}>Tax %<input type="number" value={form.tax} onChange={(e) => set("tax", e.target.value)} /></label>
           <label style={{ fontSize:12 }}>Discount %<input type="number" value={form.discount} onChange={(e) => set("discount", e.target.value)} /></label>
+          <label style={{ fontSize:12 }}>Currency<select value={form.currency} onChange={(e) => set("currency", e.target.value)}>{CURRENCIES.map(g => (<optgroup key={g.group} label={g.group}>{g.items.map(c => <option key={c.value} value={c.value}>{c.label}</option>)}</optgroup>))}</select></label>
           <label style={{ fontSize:12 }}>Status
             <select value={form.status} onChange={(e) => set("status", e.target.value)}>
               <option value="draft">Draft</option><option value="sent">Sent</option>
