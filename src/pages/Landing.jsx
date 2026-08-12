@@ -328,6 +328,9 @@ footer {
 
 /* ─── DATA ───────────────────────────────────────────────────── */
 const FEATURES = [
+  { icon:"send", title:"UBL E-Invoicing (EN 16931)", desc:"Export any invoice as a European e-invoice in UBL XML. Your client imports it straight into their bookkeeping - no retyping, no PDF to read. Validated against the EN 16931 standard.", pro:true },
+  { icon:"list", title:"Credit Notes", desc:"Cancel or correct an issued invoice the proper way: a credit note with its own numbering, a negative amount and a reference to the original. It flows straight into your VAT report. Free on every plan.", pro:false },
+  { icon:"bank", title:"Deposits & Partial Payments", desc:"Ask for 50% up front and the rest on delivery. Record each payment, see the balance still owed, and let reminders chase only what is left.", pro:true },
   { icon:"invoice", title:"Smart Invoices", desc:"Create professional invoices in seconds. Add your logo, client details, line items, tax, and discounts. Multiple currencies supported.", pro:false },
   { icon:"globe", title:"17 Currencies", desc:"Bill clients in EUR, USD, GBP, AED, SAR, MAD, DZD and more. Automatic formatting per locale.", pro:false },
   { icon:"bell", title:"Payment Reminders", desc:"Auto-detect overdue invoices and send polite, firm or final payment reminders via Email or WhatsApp with one click.", pro:true },
@@ -349,7 +352,10 @@ const PLANS = [
       { text:"Dashboard & analytics", ok:true },
       { text:"PDF export & print", ok:true },
       { text:"Custom logo & branding", ok:true },
+      { text:"Credit notes (creditnota)", ok:true },
       { text:"Payment reminders (Email + WhatsApp)", ok:false },
+      { text:"UBL e-invoicing (EN 16931)", ok:false },
+      { text:"Deposits & partial payments", ok:false },
       { text:"Unlimited invoices & clients", ok:false },
       { text:"Client card payments (Stripe)", ok:false },
       { text:"Priority support", ok:false },
@@ -363,6 +369,9 @@ const PLANS = [
       { text:"Unlimited clients", ok:true },
       { text:"All currencies", ok:true },
       { text:"Dashboard & analytics", ok:true },
+      { text:"UBL e-invoicing (EN 16931)", ok:true },
+      { text:"Deposits & partial payments", ok:true },
+      { text:"Credit notes (creditnota)", ok:true },
       { text:"Payment reminders (Email + WhatsApp)", ok:true },
       { text:"PDF export & print", ok:true },
       { text:"Custom logo & branding", ok:true },
@@ -375,8 +384,8 @@ const PLANS = [
     features:[
       { text:"Everything in Pro", ok:true },
       { text:"Quotes that convert to invoices", ok:true },
+      { text:"Expenses & VAT/BTW report per quarter", ok:true },
       { text:"Recurring invoices (automatic)", ok:true },
-      { text:"Expenses + VAT/BTW reports", ok:true },
       { text:"Remove Fatūra branding", ok:true },
       { text:"Team members (up to 5)", ok:true },
       { text:"Multi-business profiles", ok:true },
@@ -397,6 +406,11 @@ const TESTIMONIALS = [
 ];
 
 const FAQS = [
+  { q:"Can I create a UBL invoice with Fatura Pro?", a:"Yes. Every invoice can be exported as a UBL XML file that follows the European EN 16931 standard, the same format used for e-facturatie in the Netherlands and across the EU. Your client imports the file into their accounting software instead of typing your invoice over by hand. Credit notes are exported too, as document type 381 with a reference to the original invoice." },
+  { q:"What is e-facturatie and do I have to use it in 2026?", a:"An e-invoice is a structured file a computer can read, not a PDF. Public sector suppliers in the Netherlands already have to send them, and the rules keep widening across the EU. Fatura Pro exports the UBL format that meets the EN 16931 standard, so you are ready when your client asks - or when the rules reach you." },
+  { q:"How do I make a credit note (creditnota)?", a:"Open the invoice and press Credit. You get a separate document with its own number, a negative amount and a reference to the original invoice - which is exactly what the Belastingdienst expects, since an issued invoice may never be deleted or edited. It is included on every plan, including Free." },
+  { q:"Can I ask for a deposit and invoice the rest later?", a:"Yes. Record what you received - 50% up front, for example - and the invoice shows as partially paid with the balance still owed. Your dashboard counts the received part as revenue and the rest as outstanding, and reminders chase the balance rather than the full amount." },
+  { q:"Can I invoice in different currencies?", a:"Yes, in 17 currencies. Amounts are never converted between them: each currency keeps its own total, so you always see exactly what you were paid in the currency you were paid in. No exchange rates are applied anywhere." },
   { q:"Do I need a business registration to use Fatūra?", a:"No. Anyone can use Fatūra — freelancers, solopreneurs, and small businesses alike. You don't need a registered company or VAT number to get started." },
   { q:"Can I send invoices in Arabic?", a:"You can enter all your content in Arabic including client names, company names, and notes. Your invoices print correctly in Arabic." },
   { q:"How does the payment reminder work?", a:"Fatūra automatically detects when an invoice passes its due date. You can then send a pre-written reminder via Email or WhatsApp in one click — choose from Polite, Firm, or Final Reminder tone." },
