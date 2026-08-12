@@ -503,6 +503,13 @@ export default function InvoiceApp({ onGoHome }) {
   const recordPaymentGated = (inv) => requirePro("deposits", () => recordPayment(inv));
   const exportUBLGated = (inv) => requirePro("ubl", () => exportUBL(inv));
 
+  // A locked menu item is shown, not hidden - a Pro customer should be able to
+  // see that quotes, expenses and analytics exist before deciding to upgrade.
+  const openNav = (n) => {
+    if (n.locked) { setUpgradeIntent("business"); setUpgradeFeature(n.id); setShowUpgrade(true); return; }
+    setPage(n.id);
+  };
+
   const requirePro = (feature, cb) => {
     if (isPro) { cb(); } else { setUpgradeFeature(feature); setShowUpgrade(true); }
   };
@@ -707,8 +714,9 @@ export default function InvoiceApp({ onGoHome }) {
     { id: "dashboard", icon: "\u229e", label: "Dashboard" },
     { id: "invoices", icon: "\u229f", label: "Invoices", badge: invoicesWithStatus.filter(i => i.status === "pending" && i.docType !== "credit_note").length },
     { id: "clients", icon: "\u2299", label: "Clients" },
-    ...((hasBusinessAccess(plan) || isTeamMember) ? [{ id: "quotes", icon: "\u2707", label: "Quotes" }, { id: "expenses", icon: "\u2296", label: "Expenses" }] : []),
-    ...(hasBusinessAccess(plan) ? [{ id: "analytics", icon: "\u2261", label: "Analytics" }] : []),
+    { id: "quotes", icon: "\u2707", label: "Quotes", locked: !(hasBusinessAccess(plan) || isTeamMember) },
+    { id: "expenses", icon: "\u2296", label: "Expenses", locked: !(hasBusinessAccess(plan) || isTeamMember) },
+    { id: "analytics", icon: "\u2261", label: "Analytics", locked: !hasBusinessAccess(plan) },
     { id: "settings", icon: "\u2699", label: "Settings" },
   ];
   
@@ -739,9 +747,10 @@ export default function InvoiceApp({ onGoHome }) {
           <div className="nav-section">
             <div className="nav-label">Main</div>
             {navItems.map(n => (
-              <div key={n.id} className={"nav-item" + (page === n.id ? " active" : "")} onClick={() => { setPage(n.id); setSidebarOpen(false); }}>
+              <div key={n.id} className={"nav-item" + (page === n.id ? " active" : "")} onClick={() => { openNav(n); setSidebarOpen(false); }} style={n.locked ? { opacity:0.45 } : undefined} title={n.locked ? "Business plan feature" : undefined}>
                 <span className="icon">{n.icon}</span>
                 {n.label}
+                {n.locked && <span style={{ marginLeft:"auto", fontSize:10, color:"var(--text2)", border:"1px solid var(--border)", borderRadius:20, padding:"1px 7px" }}>Business</span>}
                 {n.badge > 0 && <span className="nav-badge">{n.badge}</span>}
               </div>
             ))}
@@ -838,7 +847,7 @@ export default function InvoiceApp({ onGoHome }) {
 
           <div className="content">
             {page === "dashboard" && <Dashboard onCreditNote={createCreditNote} onRecordPayment={recordPaymentGated} invoices={invoicesWithStatus} totalRevenue={totalRevenue} totalPending={totalPending} totalOverdue={totalOverdue} totalCredited={totalCredited} setPage={setPage} setPreviewInvoice={setPreviewInvoice} onEdit={setEditingInvoice} onRemind={(inv) => requirePro("reminders", () => setReminderInvoice(inv))} f={f} />}
-            {page === "invoices" && <Invoices invoices={filteredInvoices} filterStatus={filterStatus} setFilterStatus={setFilterStatus} search={search} setSearch={setSearch} onPreview={setPreviewInvoice} onDelete={deleteInvoice} onNew={openNewInvoice} onEdit={setEditingInvoice} onRemind={(inv) => requirePro("reminders", () => setReminderInvoice(inv))} remindersLog={remindersLog} f={f} isPro={isPro} onUpgrade={(feat) => { setUpgradeFeature(feat); setShowUpgrade(true); }} hasDraft={!!invoiceDraft} onOpenDraft={openNewInvoice} onDiscardDraft={discardDraft} onMarkPaid={markAsPaid} onCreditNote={createCreditNote} onRecordPayment={recordPaymentGated} onMakeRecurring={hasBusinessAccess(plan) ? async (inv) => { const choice = window.prompt("Repeat this invoice:\n\n1 = Weekly\n2 = Every 2 weeks\n3 = Monthly\n4 = Yearly\n\nType a number:", "3"); const freqMap = { "1": "weekly", "2": "biweekly", "3": "monthly", "4": "yearly" }; const freq = freqMap[(choice || "").trim()]; if (!freq) return; const ok = await createRecurring(inv, freq, userId); if (ok) { loadRecurring(userId).then(setRecurring); const { nextDate } = require("../lib/recurring"); alert("✓ Recurring activated (" + freq + ")\nNext invoice: " + nextDate(new Date(), freq).toISOString().split("T")[0] + "\nManage it in Settings → Recurring invoices."); } } : null} />}
+            {page === "invoices" && <Invoices invoices={filteredInvoices} filterStatus={filterStatus} setFilterStatus={setFilterStatus} search={search} setSearch={setSearch} onPreview={setPreviewInvoice} onDelete={deleteInvoice} onNew={openNewInvoice} onEdit={setEditingInvoice} onRemind={(inv) => requirePro("reminders", () => setReminderInvoice(inv))} remindersLog={remindersLog} f={f} isPro={isPro} onUpgrade={(feat) => { setUpgradeFeature(feat); setShowUpgrade(true); }} hasDraft={!!invoiceDraft} onOpenDraft={openNewInvoice} onDiscardDraft={discardDraft} onMarkPaid={markAsPaid} onCreditNote={createCreditNote} onRecordPayment={recordPaymentGated} onMakeRecurring={hasBusinessAccess(plan) ? async (inv) => { const choice = window.prompt("Repeat this invoice:\n\n1 = Weekly\n2 = Every 2 weeks\n3 = Monthly\n4 = Yearly\n\nType a number:", "3"); const freqMap = { "1": "weekly", "2": "biweekly", "3": "monthly", "4": "yearly" }; const freq = freqMap[(choice || "").trim()]; if (!freq) return; const ok = await createRecurring(inv, freq, userId); if (ok) { loadRecurring(userId).then(setRecurring); const { nextDate } = require("../lib/recurring"); alert("✓ Recurring activated (" + freq + ")\nNext invoice: " + nextDate(new Date(), freq).toISOString().split("T")[0] + "\nManage it in Settings → Recurring invoices."); } } : () => { setUpgradeIntent("business"); setUpgradeFeature("recurring"); setShowUpgrade(true); }} />}
               {page === "quotes" && (hasBusinessAccess(plan) || isTeamMember) && <Quotes quotes={quotes} setQuotes={setQuotes} userId={ownerId || userId} f={f} sellerDefaults={{ currency }} onConvert={(q) => { const { quoteToInvoice } = require("../lib/quotes"); const inv = quoteToInvoice(q, "INV-" + String(invoices.length + 1).padStart(3, "0") + "-" + Date.now().toString().slice(-4)); addInvoice(inv); return inv; }} />}
             {page === "expenses" && (hasBusinessAccess(plan) || isTeamMember) && <Expenses expenses={expenses} setExpenses={setExpenses} invoices={invoicesWithStatus} userId={ownerId || userId} f={f} />}
             {page === "analytics" && hasBusinessAccess(plan) && <Analytics invoices={invoicesWithStatus} f={f} fc={fmtCurrency} defaultCurrency={currency} />}
@@ -850,7 +859,7 @@ export default function InvoiceApp({ onGoHome }) {
         <nav className="mobile-nav">
           <div className="mobile-nav-inner">
             {navItems.map(n => (
-              <div key={n.id} className={"mobile-nav-item" + (page === n.id ? " active" : "")} onClick={() => setPage(n.id)}>
+              <div key={n.id} className={"mobile-nav-item" + (page === n.id ? " active" : "")} onClick={() => openNav(n)} style={n.locked ? { opacity:0.45 } : undefined}>
                 <span className="m-icon">{n.icon}</span>
                 <span className="m-label">{n.label}</span>
                 {n.badge > 0 && <span className="mobile-nav-dot" />}
@@ -1996,6 +2005,10 @@ function UpgradeModal({ feature, onClose, onActivate, initialPlan, userEmail, us
     unlimited_invoices: { icon:"!", label:"Unlimited Invoices", desc:"You've hit the 5 invoice limit on the Free plan" },
     deposits: { icon:"!", label:"Deposits & Partial Payments", desc:"Ask for a deposit up front and track what is still owed" },
     ubl: { icon:"!", label:"UBL E-Invoicing (EN 16931)", desc:"Send your invoice as a European e-invoice your client can import straight into their bookkeeping" },
+    recurring: { icon:"!", label:"Recurring Invoices", desc:"Set an invoice to repeat weekly, monthly or yearly and let it send itself" },
+    quotes: { icon:"!", label:"Quotes", desc:"Send quotes and turn an accepted one into an invoice in a click" },
+    expenses: { icon:"!", label:"Expenses & VAT/BTW Report", desc:"Track expenses and get your VAT return figures per quarter" },
+    analytics: { icon:"!", label:"Advanced Analytics", desc:"Revenue per month, top clients, collection rate and payment terms" },
     unlimited_clients: { icon:"!", label:"Unlimited Clients", desc:"You've hit the 3 client limit on the Free plan" },
   };
 
