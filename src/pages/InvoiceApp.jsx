@@ -529,7 +529,7 @@ export default function InvoiceApp({ onGoHome }) {
   const totalOverdue = sumByCurrency(invoicesWithStatus.filter(i => i.status === "overdue").map(i => ({ ...i, amount: outstandingOf(i) })));
 
   const filteredInvoices = invoicesWithStatus.filter(inv => {
-    const matchStatus = filterStatus === "all" || inv.status === filterStatus;
+    const matchStatus = filterStatus === "all" ? true : filterStatus === "credit notes" ? inv.docType === "credit_note" : (inv.status === filterStatus && inv.docType !== "credit_note");
     const matchSearch = inv.client.toLowerCase().includes(search.toLowerCase()) || inv.id.includes(search);
     return matchStatus && matchSearch;
   });
@@ -951,7 +951,7 @@ function Dashboard({ invoices, totalRevenue, totalPending, totalOverdue, setPage
 }
 
 function Invoices({ invoices, filterStatus, setFilterStatus, search, setSearch, onPreview, onDelete, onNew, onEdit, onRemind, remindersLog, viewerEmail, f, isPro, onUpgrade, hasDraft, onOpenDraft, onDiscardDraft, onMarkPaid, onCreditNote, onRecordPayment, onMakeRecurring }) {
-  const statuses = ["all", "paid", "partial", "pending", "overdue", "draft"];
+  const statuses = ["all", "paid", "partial", "pending", "overdue", "draft", "credit notes"];
   return (
     <>
       {hasDraft && (

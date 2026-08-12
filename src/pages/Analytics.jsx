@@ -19,6 +19,11 @@ export default function Analytics({ invoices, f, fc, defaultCurrency }) {
   const fmt = (n) => (fc ? fc(n, active) : (f ? f(n) : Number(n).toFixed(2)));
   const maxMonth = Math.max(...months.map((m) => m.total), 1);
   const totalCollectable = stats.paid.total + stats.pending.total + stats.overdue.total;
+  // Credit notes are stored as paid documents with a negative amount, so they
+  // already reduce revenue above. This just makes the amount visible.
+  const creditNotes = scoped.filter((i) => i.docType === "credit_note");
+  const creditCount = creditNotes.length;
+  const credited = creditNotes.reduce((a2, i) => a2 + Math.abs(Number(i.total != null ? i.total : i.amount) || 0), 0);
 
   return (
     <div>
@@ -34,6 +39,7 @@ export default function Analytics({ invoices, f, fc, defaultCurrency }) {
       )}
       {/* KPI cards */}
       <div style={{ display:"grid", gridTemplateColumns:"repeat(auto-fit, minmax(160px, 1fr))", gap:12, marginBottom:20 }}>
+        <div className="stat-card"><div className="stat-label">Credited</div><div className="stat-value" style={{ fontSize:22, color: credited > 0 ? "var(--red)" : undefined }}>{credited > 0 ? "-" + fmt(credited) : fmt(0)}</div><div className="stat-change">{creditCount} credit note{creditCount === 1 ? "" : "s"}</div></div>
         <div className="stat-card"><div className="stat-label">Avg. payment terms</div><div className="stat-value" style={{ fontSize:22 }}>{avgDays === null ? "—" : avgDays + " days"}</div><div className="stat-change">invoice to due date</div></div>
         <div className="stat-card"><div className="stat-label">Collection rate</div><div className="stat-value" style={{ fontSize:22 }}>{totalCollectable ? Math.round((stats.paid.total / totalCollectable) * 100) + "%" : "—"}</div><div className="stat-change">{stats.paid.count} paid invoices</div></div>
         <div className="stat-card"><div className="stat-label">Outstanding</div><div className="stat-value" style={{ fontSize:22 }}>{fmt(stats.pending.total)}</div><div className="stat-change">{stats.pending.count} pending</div></div>
