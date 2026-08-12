@@ -87,7 +87,7 @@ const STYLES = `
   .stats-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 14px; margin-bottom: 28px; }
   .stat-card { background: var(--bg2); border: 1px solid var(--border); border-radius: 12px; padding: 18px 20px; }
   .stat-label { font-size: 11px; color: var(--text2); font-weight: 600; letter-spacing: 0.5px; text-transform: uppercase; }
-  .stat-value { font-family: 'Playfair Display', serif; font-size: 26px; color: var(--text); margin: 5px 0 4px; }
+  .stat-value { font-family: 'DM Sans', sans-serif; font-variant-numeric: tabular-nums; font-weight: 600; letter-spacing: -0.3px; font-size: 26px; color: var(--text); margin: 5px 0 4px; }
   .stat-change { font-size: 12px; color: var(--green); }
   .stat-change.down { color: var(--red); }
   .card { background: var(--bg2); border: 1px solid var(--border); border-radius: 12px; overflow: hidden; }
@@ -128,7 +128,7 @@ const STYLES = `
   .totals-box { background: var(--bg3); border-radius: 10px; padding: 18px 20px; margin-top: 14px; }
   .totals-row { display: flex; justify-content: space-between; align-items: center; font-size: 13px; padding: 5px 0; }
   .totals-row.grand { font-size: 18px; font-weight: 700; color: var(--gold);
-    border-top: 1px solid var(--border); padding-top: 12px; margin-top: 8px; font-family: 'Playfair Display', serif; }
+    border-top: 1px solid var(--border); padding-top: 12px; margin-top: 8px; font-family: 'DM Sans', sans-serif; font-variant-numeric: tabular-nums; }
   .invoice-preview { background: #fff; color: #1a1a2e; border-radius: 12px; padding: 40px 48px;
     max-width: 700px; margin: 0 auto; box-shadow: 0 20px 60px rgba(0,0,0,0.5); }
   .preview-label { font-size: 10px; font-weight: 700; color: #999; letter-spacing: 1px; text-transform: uppercase; margin-bottom: 6px; }
@@ -140,7 +140,7 @@ const STYLES = `
   .preview-table tr:last-child td { border-bottom: none; }
   .preview-total-section { background: #faf8f3; border-radius: 8px; padding: 16px 20px; }
   .preview-total-row { display: flex; justify-content: space-between; font-size: 13px; padding: 4px 0; color: #555; }
-  .preview-total-row.grand { font-size: 17px; font-weight: 700; color: #1a1a2e; border-top: 1px solid #e8d9a0; padding-top: 12px; margin-top: 8px; }
+  .preview-total-row.grand { font-size: 17px; font-weight: 700; color: #1a1a2e; border-top: 1px solid #e8d9a0; padding-top: 12px; margin-top: 8px; font-variant-numeric: tabular-nums; }
   .preview-footer { margin-top: 40px; padding-top: 20px; border-top: 1px solid #f0f0f0; font-size: 12px; color: #999; text-align: center; }
   .clients-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; }
   .client-card { background: var(--bg2); border: 1px solid var(--border); border-radius: 12px; padding: 18px; }
@@ -379,7 +379,7 @@ const statusBadge = (s) => {
     paid: ["badge-paid", "Paid"],
     pending: ["badge-pending", "Pending"], partial: ["badge-pending", "Partially paid"],
     overdue: ["badge-overdue", "Overdue"],
-    draft: ["badge-draft", "Draft"]
+    draft: ["badge-draft", "Draft"], cancelled: ["badge-draft", "Cancelled"]
   };
   const entry = map[s] || ["badge-draft", s];
   return React.createElement("span", { className: "badge " + entry[0] }, entry[1]);
@@ -498,12 +498,17 @@ export default function InvoiceApp({ onGoHome }) {
   React.useEffect(() => { if (hasBusinessAccess(plan)) loadLiveChat(userEmail); }, [plan, userEmail]);
   const f = (n) => fmtCurrency(n, currency);
 
+  // Pro-only: deposits and the UBL e-invoice export. Credit notes stay free -
+  // correcting a wrong invoice is a legal necessity, not a paid extra.
+  const recordPaymentGated = (inv) => requirePro("deposits", () => recordPayment(inv));
+  const exportUBLGated = (inv) => requirePro("ubl", () => exportUBL(inv));
+
   const requirePro = (feature, cb) => {
     if (isPro) { cb(); } else { setUpgradeFeature(feature); setShowUpgrade(true); }
   };
 
   const openNewInvoice = () => {
-    if (!isPro && invoices.length >= 20) { setUpgradeFeature("unlimited_invoices"); setShowUpgrade(true); }
+    if (!isPro && invoiceOnlyCount >= 20) { setUpgradeFeature("unlimited_invoices"); setShowUpgrade(true); }
     else setShowNewInvoice(true);
   };
 
@@ -519,14 +524,26 @@ export default function InvoiceApp({ onGoHome }) {
   };
 
   const today = new Date().toISOString().split("T")[0];
+  // An invoice that has a credit note against it is cancelled - unless money
+  // was actually received on it, in which case the credit note is a refund.
+  const creditedIds = {};
+  invoices.forEach((i) => { if (i.docType === "credit_note" && i.creditOf) creditedIds[i.creditOf] = true; });
+  const paidOriginalIds = { has: (id) => { const o = invoices.find((x) => x.id === id); return !!o && (o.status === "paid" || (Number(o.paidAmount) || 0) > 0); } };
+  // The Free plan limit counts invoices only - a credit note is a correction,
+  // it should not use up a slot.
+  const invoiceOnlyCount = invoices.filter(i => i.docType !== "credit_note").length;
   const invoicesWithStatus = invoices.map(inv => {
+    if (inv.docType !== "credit_note" && creditedIds[inv.id] && inv.status !== "paid" && inv.status !== "draft" && (Number(inv.paidAmount) || 0) === 0) return { ...inv, status: "cancelled" };
     const paidSoFar = Number(inv.paidAmount) || 0; const invTotal = Math.abs(Number(inv.total != null ? inv.total : inv.amount) || 0); if (paidSoFar > 0 && paidSoFar < invTotal && inv.status !== "paid" && inv.status !== "draft") return { ...inv, status: "partial" }; if (inv.status === "pending" && inv.due && inv.due < today) return { ...inv, status: "overdue" };
     return inv;
   });
 
-  const totalRevenue = sumByCurrency(invoicesWithStatus.filter(i => i.status === "paid").concat(invoicesWithStatus.filter(i => i.status === "partial").map(i => ({ ...i, amount: Number(i.paidAmount) || 0 }))));
+  const totalRevenue = sumByCurrency(invoicesWithStatus.filter(i => i.status === "paid" && (i.docType !== "credit_note" || paidOriginalIds.has(i.creditOf))).concat(invoicesWithStatus.filter(i => i.status === "partial").map(i => ({ ...i, amount: Number(i.paidAmount) || 0 }))));
   const totalPending = sumByCurrency(invoicesWithStatus.filter(i => i.status === "pending" || i.status === "partial").map(i => ({ ...i, amount: outstandingOf(i) })));
   const totalOverdue = sumByCurrency(invoicesWithStatus.filter(i => i.status === "overdue").map(i => ({ ...i, amount: outstandingOf(i) })));
+  // How much has been cancelled by credit notes. Revenue above is already net
+  // of this - the card only makes the reason visible.
+  const totalCredited = sumByCurrency(invoicesWithStatus.filter(i => i.docType === "credit_note").map(i => ({ ...i, amount: Math.abs(Number(i.amount) || 0) })));
 
   const filteredInvoices = invoicesWithStatus.filter(inv => {
     const matchStatus = filterStatus === "all" ? true : filterStatus === "credit notes" ? inv.docType === "credit_note" : (inv.status === filterStatus && inv.docType !== "credit_note");
@@ -550,16 +567,20 @@ export default function InvoiceApp({ onGoHome }) {
   // A credit note is a SEPARATE document with its own sequence and a negative
   // amount, referencing the original invoice. Issued invoices are never edited
   // or deleted - the credit note cancels their effect instead.
+  // The id is the database row key, so it must be unique across every account -
+  // hence the time suffix, exactly like invoice numbers (INV-001-5823).
+  // The sequence counts your own credit notes, old CN-YYYY-NNN ones included.
   const nextCreditNoteId = () => {
-    const prefix = "CN-" + new Date().getFullYear() + "-";
     let max = 0;
     (invoices || []).forEach((i) => {
-      if (i.id && i.id.indexOf(prefix) === 0) {
-        const n = parseInt(i.id.slice(prefix.length), 10);
-        if (!isNaN(n) && n > max) max = n;
-      }
+      if (!i.id || i.id.indexOf("CN-") !== 0) return;
+      const parts = i.id.split("-");
+      // old format CN-2026-001 -> sequence is the third part; new format CN-001-5823 -> the second
+      const raw = (parts[1] && parts[1].length === 4 && Number(parts[1]) > 1900) ? parts[2] : parts[1];
+      const n = parseInt(raw, 10);
+      if (!isNaN(n) && n > max) max = n;
     });
-    return prefix + String(max + 1).padStart(3, "0");
+    return "CN-" + String(max + 1).padStart(3, "0") + "-" + Date.now().toString().slice(-4);
   };
 
   const createCreditNote = async (inv) => {
@@ -684,7 +705,7 @@ export default function InvoiceApp({ onGoHome }) {
 
   const navItems = [
     { id: "dashboard", icon: "\u229e", label: "Dashboard" },
-    { id: "invoices", icon: "\u229f", label: "Invoices", badge: invoices.filter(i => i.status === "pending").length },
+    { id: "invoices", icon: "\u229f", label: "Invoices", badge: invoicesWithStatus.filter(i => i.status === "pending" && i.docType !== "credit_note").length },
     { id: "clients", icon: "\u2299", label: "Clients" },
     ...((hasBusinessAccess(plan) || isTeamMember) ? [{ id: "quotes", icon: "\u2707", label: "Quotes" }, { id: "expenses", icon: "\u2296", label: "Expenses" }] : []),
     ...(hasBusinessAccess(plan) ? [{ id: "analytics", icon: "\u2261", label: "Analytics" }] : []),
@@ -745,7 +766,7 @@ export default function InvoiceApp({ onGoHome }) {
               <div>
                 <div style={{ background:"var(--bg3)", border:"1px solid var(--border)", borderRadius:8, padding:"10px 14px", marginBottom:10 }}>
                   <div style={{ fontSize:11, color:"var(--text2)", fontWeight:600 }}>FREE PLAN</div>
-                  <div style={{ fontSize:11, color:"var(--text2)", marginTop:2 }}>{invoices.length}/20 invoices · {clients.length}/5 clients</div>
+                  <div style={{ fontSize:11, color:"var(--text2)", marginTop:2 }}>{invoiceOnlyCount}/20 invoices · {clients.length}/5 clients</div>
                   <div style={{ marginTop:8, background:"var(--bg4)", borderRadius:4, height:4, overflow:"hidden" }}>
                     <div style={{ height:"100%", width:(Math.min(100,(invoices.length/20)*100)) + "%", background:invoices.length>=20?"var(--red)":"var(--gold)", borderRadius:4 }} />
                   </div>
@@ -782,7 +803,7 @@ export default function InvoiceApp({ onGoHome }) {
     {!isMobile && (
       <button className="btn btn-primary" onClick={openNewInvoice}>
         <span className="btn-label">
-          {!isPro && invoices.length >= 20
+          {!isPro && invoiceOnlyCount >= 20
             ? "🔒 New Invoice"
             : "New Invoice"}
         </span>
@@ -794,7 +815,7 @@ export default function InvoiceApp({ onGoHome }) {
       <button
         className="mobile-fab"
         onClick={() => {
-          if (!isPro && invoices.length >= 20) {
+          if (!isPro && invoiceOnlyCount >= 20) {
             alert("Upgrade to Pro to create more invoices");
             return;
           }
@@ -816,8 +837,8 @@ export default function InvoiceApp({ onGoHome }) {
           </div>
 
           <div className="content">
-            {page === "dashboard" && <Dashboard onCreditNote={createCreditNote} onRecordPayment={recordPayment} invoices={invoicesWithStatus} totalRevenue={totalRevenue} totalPending={totalPending} totalOverdue={totalOverdue} setPage={setPage} setPreviewInvoice={setPreviewInvoice} onEdit={setEditingInvoice} onRemind={(inv) => requirePro("reminders", () => setReminderInvoice(inv))} f={f} />}
-            {page === "invoices" && <Invoices invoices={filteredInvoices} filterStatus={filterStatus} setFilterStatus={setFilterStatus} search={search} setSearch={setSearch} onPreview={setPreviewInvoice} onDelete={deleteInvoice} onNew={openNewInvoice} onEdit={setEditingInvoice} onRemind={(inv) => requirePro("reminders", () => setReminderInvoice(inv))} remindersLog={remindersLog} f={f} isPro={isPro} onUpgrade={(feat) => { setUpgradeFeature(feat); setShowUpgrade(true); }} hasDraft={!!invoiceDraft} onOpenDraft={openNewInvoice} onDiscardDraft={discardDraft} onMarkPaid={markAsPaid} onCreditNote={createCreditNote} onRecordPayment={recordPayment} onMakeRecurring={hasBusinessAccess(plan) ? async (inv) => { const choice = window.prompt("Repeat this invoice:\n\n1 = Weekly\n2 = Every 2 weeks\n3 = Monthly\n4 = Yearly\n\nType a number:", "3"); const freqMap = { "1": "weekly", "2": "biweekly", "3": "monthly", "4": "yearly" }; const freq = freqMap[(choice || "").trim()]; if (!freq) return; const ok = await createRecurring(inv, freq, userId); if (ok) { loadRecurring(userId).then(setRecurring); const { nextDate } = require("../lib/recurring"); alert("✓ Recurring activated (" + freq + ")\nNext invoice: " + nextDate(new Date(), freq).toISOString().split("T")[0] + "\nManage it in Settings → Recurring invoices."); } } : null} />}
+            {page === "dashboard" && <Dashboard onCreditNote={createCreditNote} onRecordPayment={recordPaymentGated} invoices={invoicesWithStatus} totalRevenue={totalRevenue} totalPending={totalPending} totalOverdue={totalOverdue} totalCredited={totalCredited} setPage={setPage} setPreviewInvoice={setPreviewInvoice} onEdit={setEditingInvoice} onRemind={(inv) => requirePro("reminders", () => setReminderInvoice(inv))} f={f} />}
+            {page === "invoices" && <Invoices invoices={filteredInvoices} filterStatus={filterStatus} setFilterStatus={setFilterStatus} search={search} setSearch={setSearch} onPreview={setPreviewInvoice} onDelete={deleteInvoice} onNew={openNewInvoice} onEdit={setEditingInvoice} onRemind={(inv) => requirePro("reminders", () => setReminderInvoice(inv))} remindersLog={remindersLog} f={f} isPro={isPro} onUpgrade={(feat) => { setUpgradeFeature(feat); setShowUpgrade(true); }} hasDraft={!!invoiceDraft} onOpenDraft={openNewInvoice} onDiscardDraft={discardDraft} onMarkPaid={markAsPaid} onCreditNote={createCreditNote} onRecordPayment={recordPaymentGated} onMakeRecurring={hasBusinessAccess(plan) ? async (inv) => { const choice = window.prompt("Repeat this invoice:\n\n1 = Weekly\n2 = Every 2 weeks\n3 = Monthly\n4 = Yearly\n\nType a number:", "3"); const freqMap = { "1": "weekly", "2": "biweekly", "3": "monthly", "4": "yearly" }; const freq = freqMap[(choice || "").trim()]; if (!freq) return; const ok = await createRecurring(inv, freq, userId); if (ok) { loadRecurring(userId).then(setRecurring); const { nextDate } = require("../lib/recurring"); alert("✓ Recurring activated (" + freq + ")\nNext invoice: " + nextDate(new Date(), freq).toISOString().split("T")[0] + "\nManage it in Settings → Recurring invoices."); } } : null} />}
               {page === "quotes" && (hasBusinessAccess(plan) || isTeamMember) && <Quotes quotes={quotes} setQuotes={setQuotes} userId={ownerId || userId} f={f} sellerDefaults={{ currency }} onConvert={(q) => { const { quoteToInvoice } = require("../lib/quotes"); const inv = quoteToInvoice(q, "INV-" + String(invoices.length + 1).padStart(3, "0") + "-" + Date.now().toString().slice(-4)); addInvoice(inv); return inv; }} />}
             {page === "expenses" && (hasBusinessAccess(plan) || isTeamMember) && <Expenses expenses={expenses} setExpenses={setExpenses} invoices={invoicesWithStatus} userId={ownerId || userId} f={f} />}
             {page === "analytics" && hasBusinessAccess(plan) && <Analytics invoices={invoicesWithStatus} f={f} fc={fmtCurrency} defaultCurrency={currency} />}
@@ -850,7 +871,7 @@ export default function InvoiceApp({ onGoHome }) {
         {editingInvoice && <NewInvoiceModal bizProfiles={hasBusinessAccess(plan) ? bizProfiles : []} clients={clients} onSave={updateInvoice} onClose={(draftData) => { if (draftData) setEditDraft(draftData); setEditingInvoice(null); }} invoiceCount={invoices.length} currency={currency} f={f} editData={editingInvoice} editDraft={editDraft} onDiscardEditDraft={() => setEditDraft(null)} />}
         {showNewClient && <NewClientModal onSave={addClient} onClose={() => setShowNewClient(false)} />}
         {editingClient && <NewClientModal onSave={async (updated) => { await supabase.from("clients").update({ name:updated.name, email:updated.email, phone:updated.phone, country:updated.country }).eq("id", editingClient.id); setClients(prev => prev.map(c => c.id === editingClient.id ? { ...c, ...updated } : c)); setEditingClient(null); }} onClose={() => setEditingClient(null)} editData={editingClient} />}
-        {previewInvoice && <InvoicePreview invoice={previewInvoice} onExportUBL={exportUBL} onClose={() => setPreviewInvoice(null)} currency={currency} plan={plan} />}
+        {previewInvoice && <InvoicePreview invoice={previewInvoice} onExportUBL={exportUBLGated} onClose={() => setPreviewInvoice(null)} currency={currency} plan={plan} />}
         {reminderInvoice && <ReminderModal invoice={reminderInvoice} onClose={() => setReminderInvoice(null)} onLog={logReminder} f={f} />}
         {showUpgrade && <UpgradeModal feature={upgradeFeature} initialPlan={upgradeIntent} userEmail={userEmail} userId={userId} onClose={() => setShowUpgrade(false)} onActivate={() => { setPlan("pro"); setShowUpgrade(false); }} />}
         {showWelcome && !showUpgrade && (
@@ -888,11 +909,13 @@ function MultiMoney({ parts, empty }) {
   );
 }
 
-function Dashboard({ invoices, totalRevenue, totalPending, totalOverdue, setPage, setPreviewInvoice, onEdit, onRemind, onCreditNote, onRecordPayment, f }) {
+function Dashboard({ invoices, totalRevenue, totalPending, totalOverdue, totalCredited, setPage, setPreviewInvoice, onEdit, onRemind, onCreditNote, onRecordPayment, f }) {
   // Real figures only - no hard-coded percentages on this dashboard.
-  const paidCount = invoices.filter(i => i.status === "paid").length;
+  // Credit notes live in the same list with status "paid" - they are not invoices.
+  const realInvoices = invoices.filter(i => i.docType !== "credit_note");
+  const paidCount = realInvoices.filter(i => i.status === "paid").length;
   const thisMonthKey = new Date().toISOString().slice(0, 7);
-  const newThisMonth = invoices.filter(i => (i.date || "").slice(0, 7) === thisMonthKey).length;
+  const newThisMonth = realInvoices.filter(i => (i.date || "").slice(0, 7) === thisMonthKey).length;
   const recent = invoices.slice(0, 5);
   const overdue = invoices.filter(i => i.status === "overdue");
   return (
@@ -913,7 +936,8 @@ function Dashboard({ invoices, totalRevenue, totalPending, totalOverdue, setPage
         <div className="stat-card"><div className="stat-label">Total Revenue</div><div className="stat-value"><MultiMoney parts={totalRevenue} empty={f(0)} /></div><div className="stat-change">{paidCount} paid invoice{paidCount === 1 ? "" : "s"}</div></div>
         <div className="stat-card"><div className="stat-label">Pending</div><div className="stat-value"><MultiMoney parts={totalPending} empty={f(0)} /></div><div className="stat-change">{invoices.filter(i => i.status === "pending").length} invoices</div></div>
         <div className="stat-card"><div className="stat-label">Overdue</div><div className="stat-value" style={{ color:"var(--red)" }}><MultiMoney parts={totalOverdue} empty={f(0)} /></div><div className="stat-change down">Needs attention</div></div>
-        <div className="stat-card"><div className="stat-label">Total Invoices</div><div className="stat-value">{invoices.length}</div><div className="stat-change">{newThisMonth > 0 ? "+" + newThisMonth + " this month" : "None added this month"}</div></div>
+        {totalCredited.length > 0 && (<div className="stat-card"><div className="stat-label">Credited</div><div className="stat-value"><MultiMoney parts={totalCredited} empty={f(0)} /></div><div className="stat-change">{invoices.filter(i => i.docType === "credit_note").length} credit note{invoices.filter(i => i.docType === "credit_note").length === 1 ? "" : "s"}</div></div>)}
+        <div className="stat-card"><div className="stat-label">Total Invoices</div><div className="stat-value">{realInvoices.length}</div><div className="stat-change">{newThisMonth > 0 ? "+" + newThisMonth + " this month" : "None added this month"}</div></div>
       </div>
       <div className="card">
         <div className="card-header">
@@ -951,7 +975,7 @@ function Dashboard({ invoices, totalRevenue, totalPending, totalOverdue, setPage
 }
 
 function Invoices({ invoices, filterStatus, setFilterStatus, search, setSearch, onPreview, onDelete, onNew, onEdit, onRemind, remindersLog, viewerEmail, f, isPro, onUpgrade, hasDraft, onOpenDraft, onDiscardDraft, onMarkPaid, onCreditNote, onRecordPayment, onMakeRecurring }) {
-  const statuses = ["all", "paid", "partial", "pending", "overdue", "draft", "credit notes"];
+  const statuses = ["all", "paid", "partial", "pending", "overdue", "cancelled", "draft", "credit notes"];
   return (
     <>
       {hasDraft && (
@@ -1324,7 +1348,12 @@ React.useEffect(() => {
   const handleSave = () => {
     if (!form.client || !form.due) return alert("Please fill in Client and Due Date (Step 2)");
     const id = isEdit ? editData.id : (form.invoiceNumber && form.invoiceNumber.trim() ? form.invoiceNumber.trim() : "INV-" + String(invoiceCount + 1).padStart(3, "0") + "-" + Date.now().toString().slice(-4));
-    const status = isEdit ? (editData.status || "pending") : "pending";
+    // Only draft / pending / paid are ever stored. "overdue", "partial" and
+    // "cancelled" are worked out on screen from the due date, the payments and
+    // any credit note - writing one back would freeze the invoice in that state.
+    const STORED_STATUSES = ["draft", "pending", "paid"];
+    const prevStatus = isEdit ? (editData.status || "pending") : "pending";
+    const status = STORED_STATUSES.indexOf(prevStatus) > -1 ? prevStatus : "pending";
     onSave({ id, ...form, currency:invoiceCurrency, sellerLogoSize, buyerLogoSize, amount:total, status, items, subtotal, discountAmt, taxAmt, total });
   };
 
@@ -1335,6 +1364,9 @@ React.useEffect(() => {
     { label:"Notes", icon:"4" },
   ];
   const isLast = step === steps.length - 1;
+  // When editing an existing invoice you can save from any step and jump
+  // between steps freely. A brand new invoice still walks the wizard in order.
+  const canJumpSteps = isEdit;
 
   const LogoUploader = ({ logoKey, sizeVal, onSizeChange, inputId, label }) => (
     <div style={{ marginBottom:20 }}>
@@ -1445,7 +1477,7 @@ React.useEffect(() => {
         <div style={{ display:"flex", alignItems:"center", marginBottom:24 }}>
           {steps.map((s, i) => (
             <div key={i} style={{ display:"flex", alignItems:"center", flex:i < steps.length - 1 ? 1 : "none" }}>
-              <div onClick={() => i < step && setStep(i)} style={{ width:34, height:34, borderRadius:"50%", display:"flex", alignItems:"center", justifyItems:"center", justifyContent:"center", fontSize:13, fontWeight:700, flexShrink:0, cursor:i < step ? "pointer" : "default",
+              <div onClick={() => (canJumpSteps || i < step) && setStep(i)} style={{ width:34, height:34, borderRadius:"50%", display:"flex", alignItems:"center", justifyItems:"center", justifyContent:"center", fontSize:13, fontWeight:700, flexShrink:0, cursor:(canJumpSteps || i < step) ? "pointer" : "default",
                 background:i===step?"var(--gold)":i<step?"rgba(201,168,76,0.3)":"var(--bg3)",
                 border:i===step?"2px solid var(--gold)":i<step?"2px solid var(--gold)":"2px solid var(--border)",
                 color:i===step?"#000":i<step?"var(--gold)":"var(--text2)" }}>
@@ -1620,6 +1652,7 @@ React.useEffect(() => {
           </div>
           <div style={{ display:"flex", gap:10, alignItems:"center" }}>
             {!isLast && <span style={{ fontSize:12, color:"var(--text2)" }}>Step {step+1} / {steps.length}</span>}
+            {isEdit && !isLast && <button className="btn btn-primary" onClick={handleSave}>Update Invoice</button>}
             {isLast
               ? <button className="btn btn-primary" onClick={handleSave}>{isEdit ? "Update Invoice" : "Save Invoice"}</button>
               : <button className="btn btn-primary" onClick={() => setStep(s => s+1)}>Next →</button>
@@ -1953,14 +1986,16 @@ function UpgradeModal({ feature, onClose, onActivate, initialPlan, userEmail, us
 
   const PLANS_INFO = {
     pro: { name:"Pro", price:"\u20ac9", period:"/month", color:"var(--gold)", stripe_link:"https://buy.stripe.com/fZu4gzepGdT05Gx48j5ZC00",
-      features:["Unlimited invoices","Unlimited clients","Payment reminders (Email + WhatsApp)","PDF export","Custom logo & branding"] },
+      features:["Unlimited invoices","Unlimited clients","UBL e-invoicing (EN 16931)","Deposits & partial payments","Payment reminders (Email + WhatsApp)","PDF export","Custom logo & branding"] },
     business: { name:"Business", price:"\u20ac19", period:"/month", color:"#a78bfa", badge: BUSINESS_ENABLED ? null : "Coming Soon", stripe_link: BUSINESS_ENABLED ? "https://buy.stripe.com/6oU28repG8yG9WNfR15ZC01" : null,
-      features:["Everything in Pro","Team members (up to 5)","Multi-business profiles","Advanced analytics","Stripe payment integration","API access"] },
+      features:["Everything in Pro","Quotes that convert to invoices","Expenses & VAT/BTW report","Advanced analytics","Team members (up to 5)","Multi-business profiles","Stripe payment integration","API access"] },
   };
 
   const featureLabels = {
     reminders: { icon:"!", label:"Payment Reminders", desc:"Send overdue reminders via Email & WhatsApp" },
     unlimited_invoices: { icon:"!", label:"Unlimited Invoices", desc:"You've hit the 5 invoice limit on the Free plan" },
+    deposits: { icon:"!", label:"Deposits & Partial Payments", desc:"Ask for a deposit up front and track what is still owed" },
+    ubl: { icon:"!", label:"UBL E-Invoicing (EN 16931)", desc:"Send your invoice as a European e-invoice your client can import straight into their bookkeeping" },
     unlimited_clients: { icon:"!", label:"Unlimited Clients", desc:"You've hit the 3 client limit on the Free plan" },
   };
 
