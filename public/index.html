@@ -6,21 +6,21 @@
     <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
     <style>body { padding-top: env(safe-area-inset-top); }</style>
     <meta name="theme-color" content="#c9a84c" />
-    <meta name="description" content="Fatūra Pro — The professional invoicing app for freelancers and entrepreneurs worldwide. Create, send, and track invoices in 17 currencies — in minutes." />
-    <meta name="keywords" content="invoice, invoicing, freelancer, entrepreneur, small business, فاتورة, محاسبة, billing, invoice generator" />
+    <meta name="description" content="Create and send invoices in minutes, in 17 currencies. Export any invoice as a UBL e-invoice (EN 16931) for e-facturatie, issue credit notes, and take deposits with partial payments. Free plan, no card needed." />
+    <meta name="keywords" content="invoice software, invoice generator, UBL factuur, e-facturatie, EN 16931, factuurprogramma, creditnota, credit note, freelance invoicing, BTW aangifte, deposit invoice, multi-currency invoicing" />
     <meta name="author" content="Fatūra Pro" />
 
     <!-- Open Graph -->
-    <meta property="og:title" content="Fatūra Pro — Professional Invoicing" />
-    <meta property="og:description" content="Create and send professional invoices in minutes. Built for freelancers worldwide." />
+    <meta property="og:title" content="Invoice Software with UBL E-Invoicing - Fat&#363;ra Pro" />
+    <meta property="og:description" content="Invoices in 17 currencies, UBL e-invoice export (EN 16931), credit notes and deposits. Built for freelancers and small businesses." />
     <meta property="og:type" content="website" />
     <meta property="og:url" content="https://faturapro.app" />
     <meta property="og:image" content="%PUBLIC_URL%/logo512.png" />
 
     <!-- Twitter -->
     <meta name="twitter:card" content="summary_large_image" />
-    <meta name="twitter:title" content="Fatūra Pro — Professional Invoicing" />
-    <meta name="twitter:description" content="Create and send professional invoices in minutes." />
+    <meta name="twitter:title" content="Invoice Software with UBL E-Invoicing - Fat&#363;ra Pro" />
+    <meta name="twitter:description" content="Invoices in 17 currencies, UBL e-invoice export, credit notes and deposits." />
     <meta name="twitter:image" content="%PUBLIC_URL%/logo512.png" />
 
     <!-- PWA -->
@@ -31,7 +31,7 @@
     <meta name="mobile-web-app-capable" content="yes" />
 
     <link rel="manifest" href="%PUBLIC_URL%/manifest.json" />
-    <title>Fatūra Pro — Professional Invoicing</title>
+    <title>Invoice Software for Freelancers | UBL E-Invoicing &amp; Credit Notes - Fat&#363;ra Pro</title>
     <script type="text/javascript">(function(c,l,a,r,i,t,y){c[a]=c[a]||function(){(c[a].q=c[a].q||[]).push(arguments)};t=l.createElement(r);t.async=1;t.src="https://www.clarity.ms/tag/"+i;y=l.getElementsByTagName(r)[0];y.parentNode.insertBefore(t,y);})(window, document, "clarity", "script", "xjcvo64scy");</script>
     <script type="application/ld+json">
 {
@@ -95,7 +95,10 @@
         "Multi-language invoices with right-to-left support",
         "Recurring invoices",
         "Expense tracking",
-        "Free invoice generator with no signup"
+        "Free invoice generator with no signup",
+        "UBL e-invoice export (EN 16931) for e-facturatie",
+        "Credit notes with their own numbering",
+        "Deposits and partial payments with balance tracking"
       ],
       "offers": [
         {
@@ -118,6 +121,52 @@
           "price": "19",
           "priceCurrency": "EUR",
           "description": "Everything in Pro plus quotes, expenses, VAT reports, recurring invoices, analytics, API and a team of 5."
+        }
+      ]
+    }
+    ,{
+      "@type": "FAQPage",
+      "@id": "https://faturapro.app/#faq",
+      "mainEntity": [
+        {
+          "@type": "Question",
+          "name": "Can I create a UBL invoice?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "Yes. Every invoice can be exported as a UBL XML file that follows the European EN 16931 standard, the format used for e-facturatie in the Netherlands and across the EU. Your client imports the file into their accounting software instead of retyping your invoice. Credit notes export too, as document type 381 with a reference to the original invoice."
+          }
+        },
+        {
+          "@type": "Question",
+          "name": "What is e-facturatie and do I have to use it in 2026?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "An e-invoice is a structured file a computer can read, not a PDF. Suppliers to the Dutch public sector already have to send them, and the rules keep widening across the EU. Fatura Pro exports the UBL format that meets EN 16931, so you are ready when a client asks or when the rules reach you."
+          }
+        },
+        {
+          "@type": "Question",
+          "name": "How do I make a credit note (creditnota)?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "Open the invoice and press Credit. You get a separate document with its own number, a negative amount and a reference to the original invoice, which is what the Belastingdienst expects since an issued invoice may never be deleted or edited. Credit notes are included on every plan, including Free."
+          }
+        },
+        {
+          "@type": "Question",
+          "name": "Can I ask for a deposit and invoice the rest later?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "Yes. Record the amount you received, for example 50 percent up front, and the invoice shows as partially paid with the balance still owed. The dashboard counts the received part as revenue and the rest as outstanding, and reminders chase the balance rather than the full amount."
+          }
+        },
+        {
+          "@type": "Question",
+          "name": "Can I invoice in different currencies?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "Yes, in 17 currencies. Amounts are never converted between currencies: each currency keeps its own total, so you see exactly what you were paid in the currency you were paid in. No exchange rates are applied anywhere in the app."
+          }
         }
       ]
     }
