@@ -471,11 +471,11 @@ function Hero({ onOpenApp }) {
         </div>
       </div>
       <h1 className="hero-title fade-up delay-1">
-        Invoice software your client&rsquo;s
-        <br /><em>system can actually read.</em>
+        Professional invoices in minutes.
+        <br /><em>E-invoices in one click.</em>
       </h1>
       <p className="hero-sub fade-up delay-2">
-        Create and send invoices in 17 currencies, then export them as UBL e-invoices (EN 16931) for e-facturatie &mdash; the file your client&rsquo;s bookkeeping reads by itself. Credit notes and deposits included. Free to start, no credit card.
+        Create and send branded invoices in 17 currencies, chase late payments automatically, and take a deposit up front. Need a UBL e-invoice (EN 16931) for e-facturatie? Export it in one click. Free to start, no credit card.
       </p>
       <div className="hero-actions fade-up delay-3">
         <button className="btn btn-gold btn-xl" onClick={onOpenApp}>Get Paid Faster — Start Free →</button>
