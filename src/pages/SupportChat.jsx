@@ -6,7 +6,7 @@ import React, { useState, useRef, useEffect } from "react";
 
 // --- change these two lines to rename or re-model the assistant -------------
 const NAME = "Edy";
-const MODEL = "claude-sonnet-5"; // if the chat errors, switch to "claude-haiku-4-5-20251001"
+const MODEL = "claude-haiku-4-5-20251001"; // if the chat errors, switch to "claude-haiku-4-5-20251001"
 
 const KNOWLEDGE = `You are ${NAME}, the support assistant inside Fatura Pro (faturapro.app),
 invoicing software for freelancers, small businesses and agencies.
