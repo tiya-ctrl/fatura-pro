@@ -484,6 +484,10 @@ function Hero({ onOpenApp }) {
       <div className="hero-actions fade-up delay-3">
         <button className="btn btn-gold btn-xl" onClick={onOpenApp}>Get Paid Faster — Start Free →</button>
         <a href="#features" className="btn btn-outline btn-lg">See Features</a>
+        <div style={{ marginTop:18, fontSize:14, color:"var(--text2)" }}>
+          Invoicing for <a href="/for-freelancers" style={{ color:"var(--gold)", textDecoration:"none", borderBottom:"1px solid rgba(201,168,76,0.35)" }}>freelancers</a>
+          {" "}and for <a href="/for-agencies" style={{ color:"var(--gold)", textDecoration:"none", borderBottom:"1px solid rgba(201,168,76,0.35)" }}>agencies &amp; small business</a>
+        </div>
       </div>
       <div className="hero-social-proof fade-up delay-4">
         <div className="proof-avatars">
@@ -793,7 +797,7 @@ function Footer({ onOpenApp }) {
         </div>
         <div className="footer-col">
           <h4>Use Cases</h4>
-          {[["/invoice-generator","Free Invoice Generator"],["/blog","Invoicing Guides"],["/api-docs","API Documentation"],["/late-payment-scripts","Late Payment Scripts"],["#pricing","Pricing"],["#faq","FAQ"]].map(([h,l]) => <a key={l} href={h}>{l}</a>)}
+          {[["/for-freelancers","For Freelancers"],["/for-agencies","For Agencies & Small Business"],["/invoice-generator","Free Invoice Generator"],["/blog","Invoicing Guides"],["/api-docs","API Documentation"],["/late-payment-scripts","Late Payment Scripts"],["#pricing","Pricing"],["#faq","FAQ"]].map(([h,l]) => <a key={l} href={h}>{l}</a>)}
         </div>
         <div className="footer-col">
           <h4>Legal</h4>
