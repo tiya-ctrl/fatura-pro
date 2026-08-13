@@ -97,6 +97,19 @@ Mistakes to avoid, explicitly:
 const timeStr = () => new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
 const isRTL = (s) => /[\u0600-\u06FF]/.test(s);
 
+// DM Sans carries no Arabic glyphs, so Arabic falls back to whatever the browser
+// happens to have. Name real Arabic faces, and give the script the size and line
+// height it needs to be read comfortably.
+const AR_FONT = "\"Noto Naskh Arabic\", \"Segoe UI\", Tahoma, \"Traditional Arabic\", serif";
+
+// Edy writes **bold** markdown. Render it instead of printing the asterisks.
+const richText = (text) =>
+  String(text).split(/(\*\*[^*]+\*\*)/g).map((part, i) =>
+    part.startsWith("**") && part.endsWith("**") && part.length > 4
+      ? <strong key={i}>{part.slice(2, -2)}</strong>
+      : <React.Fragment key={i}>{part}</React.Fragment>
+  );
+
 export default function SupportChat({ userEmail, plan }) {
   const firstName = (userEmail || "").split("@")[0].split(/[._-]/)[0];
   const hello = firstName
@@ -178,9 +191,12 @@ export default function SupportChat({ userEmail, plan }) {
                 <div style={{ background: m.role === "user" ? "var(--gold)" : "var(--bg3)",
                   color: m.role === "user" ? "#000" : "var(--text)",
                   border: m.role === "user" ? "none" : "1px solid var(--border)",
-                  padding:"9px 12px", borderRadius:14, fontSize:14, lineHeight:1.55, whiteSpace:"pre-wrap",
+                  padding:"9px 12px", borderRadius:14, whiteSpace:"pre-wrap",
+                  fontFamily: isRTL(m.text) ? AR_FONT : undefined,
+                  fontSize: isRTL(m.text) ? 15.5 : 14,
+                  lineHeight: isRTL(m.text) ? 1.95 : 1.55,
                   direction: isRTL(m.text) ? "rtl" : "ltr", textAlign: isRTL(m.text) ? "right" : "left" }}>
-                  {m.text}
+                  {richText(m.text)}
                 </div>
                 <div style={{ fontSize:10, color:"var(--text2)", marginTop:3,
                   textAlign: m.role === "user" ? "right" : "left" }}>{m.time}</div>
