@@ -1,5 +1,9 @@
 {
-  "rewrites": [{ "source": "/(.*)", "destination": "/index.html" }],
+  "rewrites": [
+    { "source": "/for-freelancers", "destination": "/for-freelancers.html" },
+    { "source": "/for-agencies", "destination": "/for-agencies.html" },
+    { "source": "/(.*)", "destination": "/index.html" }
+  ],
   "crons": [{
     "path": "/api/trial-reminder",
     "schedule": "0 9 * * *"
