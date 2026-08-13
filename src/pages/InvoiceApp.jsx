@@ -4,7 +4,7 @@ import { hasBusinessAccess, BUSINESS_ENABLED } from "../lib/businessPlan";
 import { exportInvoicesCSV } from "../lib/accountantExport";
 import { downloadUBL, ublWarnings } from "../lib/ubl";
 import Quotes, { loadQuotes } from "./Quotes";
-import { loadLiveChat } from "../lib/liveChat";
+import SupportChat from "./SupportChat";
 import BusinessProfiles from "./BusinessProfiles";
 import { loadProfiles } from "../lib/businessProfiles";
 import Expenses from "./Expenses";
@@ -495,7 +495,9 @@ export default function InvoiceApp({ onGoHome }) {
 
   const isTeamMember = !!(ownerId && userId && ownerId !== userId);
   const isPro = plan === "pro" || plan === "business" || isTeamMember;
-  React.useEffect(() => { if (hasBusinessAccess(plan)) loadLiveChat(userEmail); }, [plan, userEmail]);
+  // The in-app assistant replaces Crisp: its AI agent is a paid add-on, and a
+  // human chat nobody is free to answer is worse than none. Change the plan
+  // test below to open it up to every plan.
   const f = (n) => fmtCurrency(n, currency);
 
   // Pro-only: deposits and the UBL e-invoice export. Credit notes stay free -
@@ -882,6 +884,7 @@ export default function InvoiceApp({ onGoHome }) {
         {editingClient && <NewClientModal onSave={async (updated) => { await supabase.from("clients").update({ name:updated.name, email:updated.email, phone:updated.phone, country:updated.country }).eq("id", editingClient.id); setClients(prev => prev.map(c => c.id === editingClient.id ? { ...c, ...updated } : c)); setEditingClient(null); }} onClose={() => setEditingClient(null)} editData={editingClient} />}
         {previewInvoice && <InvoicePreview invoice={previewInvoice} onExportUBL={exportUBLGated} onClose={() => setPreviewInvoice(null)} currency={currency} plan={plan} />}
         {reminderInvoice && <ReminderModal invoice={reminderInvoice} onClose={() => setReminderInvoice(null)} onLog={logReminder} f={f} />}
+        {hasBusinessAccess(plan) && <SupportChat userEmail={userEmail} plan={plan} />}
         {showUpgrade && <UpgradeModal feature={upgradeFeature} initialPlan={upgradeIntent} userEmail={userEmail} userId={userId} onClose={() => setShowUpgrade(false)} onActivate={() => { setPlan("pro"); setShowUpgrade(false); }} />}
         {showWelcome && !showUpgrade && (
           <div style={{ position:"fixed", inset:0, background:"rgba(0,0,0,0.8)", zIndex:200, display:"flex", alignItems:"center", justifyContent:"center", padding:16 }}>
