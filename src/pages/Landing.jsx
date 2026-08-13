@@ -399,11 +399,6 @@ const PLANS = [
   },
 ];
 
-const TESTIMONIALS = [
-  { stars:"★★★★★", text:"Fatūra changed how I bill clients. I used to spend 30 minutes on each invoice — now it takes under 2 minutes and looks 10× more professional.", name:"Karim B.", role:"Freelance Designer · Morocco", avatar:"🇲🇦" },
-  { stars:"★★★★★", text:"The reminder feature alone paid for the subscription. I recovered 3 overdue payments in the first week. Highly recommend for any freelancer.", name:"Sara M.", role:"Social Media Consultant · Netherlands", avatar:"🇳🇱" },
-  { stars:"★★★★★", text:"As someone billing clients in both euros and GBP, the multi-currency support is a lifesaver. Clean, fast, and works perfectly on my phone.", name:"Mark H.", role:"E-commerce Consultant · Germany", avatar:"DE" },
-];
 
 const FAQS = [
   { q:"Can I create a UBL invoice with Fatura Pro?", a:"Yes. Every invoice can be exported as a UBL XML file that follows the European EN 16931 standard, the same format used for e-facturatie in the Netherlands and across the EU. Your client imports the file into their accounting software instead of typing your invoice over by hand. Credit notes are exported too, as document type 381 with a reference to the original invoice." },
@@ -701,26 +696,27 @@ function Pricing({ onOpenApp }) {
   );
 }
 
-function Testimonials() {
+function WhyDifferent() {
+  // Claims a visitor can check for themselves. No invented reviews - when
+  // real customers send one, put it back with their full name.
+  const POINTS = [
+    { title: "A real e-invoice, not just a PDF", text: "Export any invoice as UBL XML meeting the European EN 16931 standard - the format behind e-facturatie. Validated against the standard, not just claimed. Credit notes export too, as type 381." },
+    { title: "Currencies are never converted", text: "Bill in 17 currencies and each keeps its own total. You see EUR 5.410 and USD 1.440 side by side, never one invented figure built on yesterday's exchange rate." },
+    { title: "Correcting an invoice is free", text: "An issued invoice may never be edited or deleted, so you cancel it with a credit note - own numbering, negative amount, reference to the original, straight into your VAT report. Included on every plan, including Free." },
+    { title: "Deposits that actually add up", text: "Take 50% up front and the invoice shows a real balance. Revenue counts what arrived, outstanding counts what did not, and reminders chase the difference." },
+  ];
   return (
     <section>
       <div className="container">
         <div style={{ textAlign:"center" }}>
-          <div className="section-tag" style={{ justifyContent:"center", display:"flex" }}>Testimonials</div>
-          <h2 className="section-title">Trusted by freelancers<br />across <em style={{ color:"var(--gold)", fontStyle:"italic" }}>3 continents.</em></h2>
+          <div className="section-tag" style={{ justifyContent:"center", display:"flex" }}>Why Fat&#363;ra Pro</div>
+          <h2 className="section-title">Built for the parts<br />that <em style={{ color:"var(--gold)", fontStyle:"italic" }}>actually go wrong.</em></h2>
         </div>
         <div className="testi-grid">
-          {TESTIMONIALS.map((t, i) => (
+          {POINTS.map((p, i) => (
             <div key={i} className="testi-card">
-              <div className="testi-stars">{t.stars}</div>
-              <p className="testi-text">"{t.text}"</p>
-              <div className="testi-author">
-                <div className="testi-avatar">{t.avatar}</div>
-                <div>
-                  <div className="testi-name">{t.name}</div>
-                  <div className="testi-role">{t.role}</div>
-                </div>
-              </div>
+              <div style={{ fontSize:16, fontWeight:700, color:"var(--gold)", marginBottom:10 }}>{p.title}</div>
+              <p className="testi-text" style={{ fontStyle:"normal" }}>{p.text}</p>
             </div>
           ))}
         </div>
@@ -765,7 +761,7 @@ function CTASection({ onOpenApp }) {
           Ready to get paid<br /><em style={{ color:"var(--gold)", fontStyle:"italic" }}>faster?</em>
         </h2>
         <p style={{ textAlign:"center", color:"var(--text2)", fontSize:17, marginTop:16, marginBottom:40 }}>
-          Join 2,400+ freelancers who stopped chasing payments.
+          Free to start. No credit card and no business registration needed.
         </p>
         <div style={{ display:"flex", gap:14, justifyContent:"center", flexWrap:"wrap" }}>
           <button className="btn btn-gold btn-xl" onClick={onOpenApp}>Start Now — It's Free →</button>
@@ -933,7 +929,7 @@ export default function LandingPage({ onOpenApp, onSignIn }) {
       <InstallApp />
       <HowItWorks onOpenApp={onOpenApp} />
       <Pricing onOpenApp={onOpenApp} />
-      <Testimonials />
+      <WhyDifferent />
       <FAQ />
       <CTASection onOpenApp={onOpenApp} />
       <Footer onOpenApp={onOpenApp} />
