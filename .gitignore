@@ -26,3 +26,8 @@ yarn-error.log*
 # local backups
 *.backup-*
 *.bak-*
+
+# local helper scripts and backups
+*.sh
+*.backup
+*.backup2
