@@ -94,6 +94,36 @@ export default async function handler(req, res) {
       return res.status(response.status).json(data);
     }
 
+    // تسجيل المحادثة (لا يوقف الرد لو فشل)
+    try {
+      const supaUrl = process.env.REACT_APP_SUPABASE_URL;
+      const supaKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+      let question = "";
+      for (let i = messages.length - 1; i >= 0; i--) {
+        if (messages[i].role === "user") { question = messages[i].content; break; }
+      }
+      const answer = Array.isArray(data.content)
+        ? data.content.map((c) => c.text || "").join(" ")
+        : "";
+      if (supaUrl && supaKey && question) {
+        await fetch(supaUrl + "/rest/v1/chat_logs", {
+          method: "POST",
+          headers: {
+            apikey: supaKey,
+            Authorization: "Bearer " + supaKey,
+            "Content-Type": "application/json",
+            Prefer: "return=minimal",
+          },
+          body: JSON.stringify({
+            bot: system.indexOf("Edy") >= 0 ? "edy" : "landing",
+            question: question.slice(0, 2000),
+            answer: answer.slice(0, 4000),
+            turns: messages.length,
+          }),
+        });
+      }
+    } catch (e) {}
+
     res.status(200).json(data);
   } catch (err) {
     res.status(500).json({ error: err.message });
