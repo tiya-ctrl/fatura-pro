@@ -816,7 +816,7 @@ function Footer({ onOpenApp }) {
         </div>
         <div className="footer-col">
           <h4>Legal</h4>
-          <a href="/privacy" style={{color:"var(--text2)",fontSize:13,textDecoration:"none",display:"block",marginBottom:6}}>Privacy Policy</a><a href="/terms" style={{color:"var(--text2)",fontSize:13,textDecoration:"none",display:"block",marginBottom:6}}>Terms of Service</a><p style={{fontSize:12,color:"var(--text2)",lineHeight:1.8,marginTop:8}}>GDPR Compliant · EU Data Storage</p>
+          <a href="/privacy" style={{color:"var(--text2)",fontSize:13,textDecoration:"none",display:"block",marginBottom:6}}>Privacy Policy</a><a href="/terms" style={{color:"var(--text2)",fontSize:13,textDecoration:"none",display:"block",marginBottom:6}}>Terms of Service</a><p style={{fontSize:12,color:"var(--text2)",lineHeight:1.8,marginTop:8}}>GDPR compliant · Data hosted in the EU (Ireland)</p>
         </div>
       </div>
       <div className="footer-bottom">
