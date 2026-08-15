@@ -21,6 +21,16 @@ const COUNTRIES = {
   uae: "AE", "united arab emirates": "AE", "saudi arabia": "SA", egypt: "EG", turkey: "TR",
 };
 
+export const COUNTRY_OPTIONS = [
+  ["NL","Netherlands"],["BE","Belgium"],["DE","Germany"],["FR","France"],["ES","Spain"],
+  ["IT","Italy"],["PT","Portugal"],["IE","Ireland"],["AT","Austria"],["LU","Luxembourg"],
+  ["SE","Sweden"],["DK","Denmark"],["FI","Finland"],["NO","Norway"],["PL","Poland"],
+  ["CH","Switzerland"],["GB","United Kingdom"],["US","United States"],["CA","Canada"],
+  ["AU","Australia"],["MA","Morocco"],["AE","United Arab Emirates"],["SA","Saudi Arabia"],
+  ["EG","Egypt"],["TR","Turkey"],["QA","Qatar"],["KW","Kuwait"],["BH","Bahrain"],
+  ["OM","Oman"],["JO","Jordan"],["LB","Lebanon"],["TN","Tunisia"],["DZ","Algeria"],
+];
+
 export function countryCodeFrom(address) {
   const t = String(address || "").toLowerCase();
   const hit = Object.keys(COUNTRIES).find((name) => t.indexOf(name) > -1);
@@ -37,8 +47,9 @@ function splitAddress(address) {
   };
 }
 
-function partyXml(tag, name, email, phone, address, vat) {
+function partyXml(tag, name, email, phone, address, vat, country) {
   const a = splitAddress(address);
+  if (country) a.country = country;
   const out = [];
   out.push("  <cac:" + tag + ">");
   out.push("    <cac:Party>");
@@ -100,8 +111,8 @@ export function buildUBL(inv) {
   if (isCredit && inv.creditOf) {
     x.push("  <cac:BillingReference><cac:InvoiceDocumentReference><cbc:ID>" + esc(inv.creditOf) + "</cbc:ID></cac:InvoiceDocumentReference></cac:BillingReference>");
   }
-  partyXml("AccountingSupplierParty", inv.sellerName, inv.sellerEmail, inv.sellerPhone, inv.sellerAddress, inv.sellerVat).forEach((l) => x.push(l));
-  partyXml("AccountingCustomerParty", inv.client, inv.email, inv.buyerPhone, inv.buyerAddress, null).forEach((l) => x.push(l));
+  partyXml("AccountingSupplierParty", inv.sellerName, inv.sellerEmail, inv.sellerPhone, inv.sellerAddress, inv.sellerVat, inv.sellerCountry).forEach((l) => x.push(l));
+  partyXml("AccountingCustomerParty", inv.client, inv.email, inv.buyerPhone, inv.buyerAddress, null, inv.buyerCountry).forEach((l) => x.push(l));
   if (inv.bankInfo) {
     x.push("  <cac:PaymentMeans>");
     x.push("    <cbc:PaymentMeansCode>30</cbc:PaymentMeansCode>");
