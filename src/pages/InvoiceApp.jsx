@@ -385,6 +385,16 @@ const statusBadge = (s) => {
   return React.createElement("span", { className: "badge " + entry[0] }, entry[1]);
 };
 
+function countryLabel(code, address) {
+  if (!code) return "";
+  const hit = COUNTRY_OPTIONS.find((c) => c[0] === code);
+  if (!hit) return "";
+  const name = hit[1];
+  const addr = String(address || "").toLowerCase();
+  if (addr.indexOf(name.toLowerCase()) > -1 || addr.indexOf(code.toLowerCase()) > -1) return "";
+  return name;
+}
+
 export default function InvoiceApp({ onGoHome }) {
   const [page, setPage] = useState("dashboard");
   const [invoices, setInvoices] = useState(INIT_INVOICES);
@@ -1352,7 +1362,7 @@ React.useEffect(() => {
     const STORED_STATUSES = ["draft", "pending", "paid"];
     const prevStatus = isEdit ? (editData.status || "pending") : "pending";
     const status = STORED_STATUSES.indexOf(prevStatus) > -1 ? prevStatus : "pending";
-    onSave({ id, ...form, currency:invoiceCurrency, sellerLogoSize, buyerLogoSize, amount:total, status, items, subtotal, discountAmt, taxAmt, total });
+    onSave({ id, ...form, sellerCountry: form.sellerCountry || countryCodeFrom(form.sellerAddress), buyerCountry: form.buyerCountry || countryCodeFrom(form.buyerAddress), currency:invoiceCurrency, sellerLogoSize, buyerLogoSize, amount:total, status, items, subtotal, discountAmt, taxAmt, total });
   };
 
   const steps = [
@@ -1751,7 +1761,7 @@ function InvoicePreview({ invoice, onExportUBL, onClose, currency, plan }) {
               <div style={{ fontWeight:700, fontSize:14, color:"#1a1a2e", marginBottom:4 }}>{invoice.sellerName || "—"}</div>
               {invoice.sellerEmail && <div style={{ fontSize:12, color:"#555" }}>{invoice.sellerEmail}</div>}
               {invoice.sellerPhone && <div style={{ fontSize:12, color:"#555" }}>{invoice.sellerPhone}</div>}
-              {invoice.sellerAddress && <div style={{ fontSize:12, color:"#777", marginTop:4, lineHeight:1.5 }}>{invoice.sellerAddress}</div>}{invoice.sellerVat && <div style={{ fontSize:12, color:"#777", marginTop:2 }}>VAT: {invoice.sellerVat}</div>}
+              {invoice.sellerAddress && <div style={{ fontSize:12, color:"#777", marginTop:4, lineHeight:1.5 }}>{invoice.sellerAddress}</div>}{countryLabel(invoice.sellerCountry, invoice.sellerAddress) && <div style={{ fontSize:12, color:"#777", lineHeight:1.5 }}>{countryLabel(invoice.sellerCountry, invoice.sellerAddress)}</div>}{invoice.sellerVat && <div style={{ fontSize:12, color:"#777", marginTop:2 }}>VAT: {invoice.sellerVat}</div>}
             </div>
             <div style={{ borderLeft:"1px solid #e8dfc8", paddingLeft:24 }}>
               <div style={{ fontSize:10, fontWeight:800, color:"#c9a84c", letterSpacing:1.5, textTransform:"uppercase", marginBottom:10, display:"flex", alignItems:"center", gap:6 }}>
@@ -1761,7 +1771,7 @@ function InvoicePreview({ invoice, onExportUBL, onClose, currency, plan }) {
               <div style={{ fontWeight:700, fontSize:14, color:"#1a1a2e", marginBottom:4 }}>{invoice.client || "—"}</div>
               {invoice.email && <div style={{ fontSize:12, color:"#555" }}>{invoice.email}</div>}
               {invoice.buyerPhone && <div style={{ fontSize:12, color:"#555" }}>{invoice.buyerPhone}</div>}
-              {invoice.buyerAddress && <div style={{ fontSize:12, color:"#777", marginTop:4, lineHeight:1.5 }}>{invoice.buyerAddress}</div>}
+              {invoice.buyerAddress && <div style={{ fontSize:12, color:"#777", marginTop:4, lineHeight:1.5 }}>{invoice.buyerAddress}</div>}{countryLabel(invoice.buyerCountry, invoice.buyerAddress) && <div style={{ fontSize:12, color:"#777", lineHeight:1.5 }}>{countryLabel(invoice.buyerCountry, invoice.buyerAddress)}</div>}
             </div>
           </div>
 
