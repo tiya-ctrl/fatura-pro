@@ -822,7 +822,7 @@ function Footer({ onOpenApp }) {
       <div className="footer-bottom">
         <span>&copy; 2026 Fat&#363;ra Pro &middot; Invoicing software for freelancers, small businesses and agencies &middot; faturapro.app</span>
         <span style={{ display:"flex", gap:16 }}>
-          <a href="https://x.com" target="_blank" rel="noreferrer" style={{ color:"var(--text2)", fontSize:18, textDecoration:"none" }}>𝕏</a>
+          <a href="https://x.com/Faturapro" target="_blank" rel="noreferrer" style={{ color:"var(--text2)", fontSize:18, textDecoration:"none" }}>𝕏</a>
           <a href="https://linkedin.com" target="_blank" rel="noreferrer" style={{ color:"var(--text2)", fontSize:18, textDecoration:"none" }}>in</a>
           <a href="https://instagram.com" target="_blank" rel="noreferrer" style={{ color:"var(--text2)", fontSize:18, textDecoration:"none" }}>📸</a>
         </span>
