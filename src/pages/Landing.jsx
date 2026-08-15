@@ -812,7 +812,7 @@ function Footer({ onOpenApp }) {
         </div>
         <div className="footer-col">
           <h4>Use Cases</h4>
-          {[["/for-freelancers","For Freelancers"],["/for-agencies","For Agencies & Small Business"],["/invoice-generator","Free Invoice Generator"],["/blog","Invoicing Guides"],["/api-docs","API Documentation"],["/late-payment-scripts","Late Payment Scripts"],["#pricing","Pricing"],["#faq","FAQ"]].map(([h,l]) => <a key={l} href={h}>{l}</a>)}
+          {[["/for-freelancers","For Freelancers"],["/for-agencies","For Agencies & Small Business"],["/nl","Nederlands"],["/invoice-generator","Free Invoice Generator"],["/blog","Invoicing Guides"],["/api-docs","API Documentation"],["/late-payment-scripts","Late Payment Scripts"],["#pricing","Pricing"],["#faq","FAQ"]].map(([h,l]) => <a key={l} href={h}>{l}</a>)}
         </div>
         <div className="footer-col">
           <h4>Legal</h4>
