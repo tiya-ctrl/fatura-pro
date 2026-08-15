@@ -1196,10 +1196,7 @@ function Settings({ currency, setCurrency, userEmail }) {
           <div className="form-group"><label>Phone</label><input value={profile.phone} onChange={e => setProfile(p => ({ ...p, phone: e.target.value }))} placeholder="+31 6 XX XX XX XX" /></div>
           <div className="form-group"><label>Country</label>
             <select value={profile.country} onChange={e => setProfile(p => ({ ...p, country: e.target.value }))}>
-              {["Netherlands","Belgium","France","Germany","United Kingdom","United States","Spain","Italy","Switzerland","Sweden","Ireland","Austria","Luxembourg","Canada","Australia","UAE","Saudi Arabia","Qatar","Kuwait","Bahrain","Oman","Jordan","Lebanon","Turkey","Egypt","Morocco","Tunisia","Algeria","Libya","Iraq","Yemen"].map((l, i) => {
-                const v = ["MA","DZ","TN","EG","FR","BE","NL","GB","AE","SA","QA","KW","YE"][i];
-                return <option key={v} value={v}>{l}</option>
-              })}
+              {COUNTRY_OPTIONS.map(([v, l]) => <option key={v} value={v}>{l}</option>)}
             </select>
           </div>
           <div className="form-group full"><label>Address</label><input value={profile.address} onChange={e => setProfile(p => ({ ...p, address: e.target.value }))} placeholder="Keizersgracht 123, Amsterdam" /></div>
@@ -1288,6 +1285,7 @@ React.useEffect(() => {
           sellerEmail: f.sellerEmail || data.email || "",
           sellerPhone: f.sellerPhone || data.phone || "",
           sellerAddress: f.sellerAddress || data.address || "",
+          sellerCountry: f.sellerCountry || data.country || "",
           notes: f.notes || data.notes || "", bankInfo: f.bankInfo || data.bank_info || "",
           tax: f.tax !== 20 ? f.tax : (data.default_tax ?? 20),
         }));
@@ -1342,7 +1340,7 @@ React.useEffect(() => {
 
   const handleClientChange = (name) => {
     const c = clients.find(x => x.name === name);
-    setForm(f => ({ ...f, client:name, email:(c && c.email)||"", buyerPhone:(c && c.phone)||"", buyerAddress:"" }));
+    setForm(f => ({ ...f, client:name, email:(c && c.email)||"", buyerPhone:(c && c.phone)||"", buyerAddress:"", buyerCountry:(c && c.country) ? countryCodeFrom(c.country) : "" }));
   };
 
   const handleLogo = (key, e) => {
