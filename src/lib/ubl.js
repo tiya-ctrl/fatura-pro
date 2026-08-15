@@ -38,6 +38,17 @@ export function countryCodeFrom(address) {
 }
 
 // Address lines -> { street, city, country }
+export function resolveCountry(value, address) {
+  const v = String(value || "").trim();
+  if (!v) return countryCodeFrom(address);
+  if (/^[A-Za-z]{2}$/.test(v)) return v.toUpperCase();
+  const known = COUNTRY_OPTIONS.find((c) => c[1].toLowerCase() === v.toLowerCase());
+  if (known) return known[0];
+  const guess = COUNTRIES[v.toLowerCase()];
+  if (guess) return guess;
+  return countryCodeFrom(v) || countryCodeFrom(address);
+}
+
 function splitAddress(address) {
   const lines = String(address || "").split(/[\n,]/).map((s) => s.trim()).filter(Boolean);
   return {
@@ -111,8 +122,8 @@ export function buildUBL(inv) {
   if (isCredit && inv.creditOf) {
     x.push("  <cac:BillingReference><cac:InvoiceDocumentReference><cbc:ID>" + esc(inv.creditOf) + "</cbc:ID></cac:InvoiceDocumentReference></cac:BillingReference>");
   }
-  partyXml("AccountingSupplierParty", inv.sellerName, inv.sellerEmail, inv.sellerPhone, inv.sellerAddress, inv.sellerVat, inv.sellerCountry).forEach((l) => x.push(l));
-  partyXml("AccountingCustomerParty", inv.client, inv.email, inv.buyerPhone, inv.buyerAddress, null, inv.buyerCountry).forEach((l) => x.push(l));
+  partyXml("AccountingSupplierParty", inv.sellerName, inv.sellerEmail, inv.sellerPhone, inv.sellerAddress, inv.sellerVat, resolveCountry(inv.sellerCountry, inv.sellerAddress)).forEach((l) => x.push(l));
+  partyXml("AccountingCustomerParty", inv.client, inv.email, inv.buyerPhone, inv.buyerAddress, null, resolveCountry(inv.buyerCountry, inv.buyerAddress)).forEach((l) => x.push(l));
   if (inv.bankInfo) {
     x.push("  <cac:PaymentMeans>");
     x.push("    <cbc:PaymentMeansCode>30</cbc:PaymentMeansCode>");

@@ -803,7 +803,7 @@ function Footer({ onOpenApp }) {
           <p>Professional invoicing software for freelancers, consultants, and entrepreneurs worldwide. Create and send invoices in EUR, USD, GBP, AED and 14 more currencies. No business registration needed.</p>
           <div style={{ marginTop:16, display:"flex", flexDirection:"column", gap:4 }}>
             <span style={{ fontSize:12, color:"var(--text2)" }}>📧 support@faturapro.app</span>
-            <span style={{ fontSize:12, color:"var(--text2)" }}>🌍 Serving NL · MA · DZ · AE · FR & more</span>
+            <span style={{ fontSize:12, color:"var(--text2)" }}>&#127757; Invoicing software for 17 currencies &middot; UBL e-invoicing &middot; VAT &amp; BTW reports</span>
           </div>
         </div>
         <div className="footer-col">
@@ -820,7 +820,7 @@ function Footer({ onOpenApp }) {
         </div>
       </div>
       <div className="footer-bottom">
-        <span>© 2026 Fatūra Pro · Professional Invoicing for Freelancers · faturapro.app</span>
+        <span>&copy; 2026 Fat&#363;ra Pro &middot; Invoicing software for freelancers, small businesses and agencies &middot; faturapro.app</span>
         <span style={{ display:"flex", gap:16 }}>
           <a href="https://x.com" target="_blank" rel="noreferrer" style={{ color:"var(--text2)", fontSize:18, textDecoration:"none" }}>𝕏</a>
           <a href="https://linkedin.com" target="_blank" rel="noreferrer" style={{ color:"var(--text2)", fontSize:18, textDecoration:"none" }}>in</a>
