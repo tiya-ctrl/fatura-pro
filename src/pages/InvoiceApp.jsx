@@ -426,7 +426,7 @@ export default function InvoiceApp({ onGoHome }) {
     if (!ownerId) return;
     (async () => {
       const { data: invData } = await supabase.from("invoices").select("*").eq("user_id", ownerId).order("created_at", { ascending: false });
-      if (invData) setInvoices(invData.map(r => ({ id: r.id, createdBy: r.created_by, client: r.client, email: r.email, sellerName: r.seller_name, sellerEmail: r.seller_email, sellerPhone: r.seller_phone, sellerVat: r.seller_vat, sellerAddress: r.seller_address, sellerCountry: r.seller_country, buyerPhone: r.buyer_phone, buyerAddress: r.buyer_address, buyerCountry: r.buyer_country, date: r.date, due: r.due, status: r.status, amount: r.amount, subtotal: r.subtotal, discountAmt: r.discount_amt, taxAmt: r.tax_amt, total: r.total, tax: r.tax, discount: r.discount, notes: r.notes, bankInfo: r.bank_info, currency: r.currency, docType: r.doc_type, creditOf: r.credit_of, paidAmount: Number(r.paid_amount) || 0, items: r.items || [] })));
+      if (invData) setInvoices(invData.map(r => ({ id: r.id, createdBy: r.created_by, client: r.client, email: r.email, sellerName: r.seller_name, sellerEmail: r.seller_email, sellerPhone: r.seller_phone, sellerVat: r.seller_vat, sellerAddress: r.seller_address, sellerCountry: r.seller_country, buyerPhone: r.buyer_phone, buyerAddress: r.buyer_address, buyerCountry: r.buyer_country, date: r.date, due: r.due, status: r.status, amount: r.amount, subtotal: r.subtotal, discountAmt: r.discount_amt, taxAmt: r.tax_amt, total: r.total, tax: r.tax, discount: r.discount, depositPct: r.deposit_pct, notes: r.notes, bankInfo: r.bank_info, currency: r.currency, docType: r.doc_type, creditOf: r.credit_of, paidAmount: Number(r.paid_amount) || 0, items: r.items || [] })));
       const { data: cliData } = await supabase.from("clients").select("*").eq("user_id", ownerId);
       if (cliData) setClients(cliData.map(c => ({ id: c.id, name: c.name, email: c.email, phone: c.phone, country: c.country })));
     })();
@@ -568,12 +568,12 @@ export default function InvoiceApp({ onGoHome }) {
   const addInvoice = async (inv) => {
     const { data: { user } } = await supabase.auth.getUser();
     if (!user) return;
-    const row = { id: inv.id, user_id: ownerId || user.id, created_by: user.email, client: inv.client, email: inv.email, seller_name: inv.sellerName, seller_email: inv.sellerEmail, seller_phone: inv.sellerPhone, seller_vat: inv.sellerVat || null, seller_address: inv.sellerAddress, seller_country: inv.sellerCountry || null, buyer_phone: inv.buyerPhone, buyer_address: inv.buyerAddress, buyer_country: inv.buyerCountry || null, date: inv.date, due: inv.due, status: inv.status, amount: inv.amount, subtotal: inv.subtotal, discount_amt: inv.discountAmt, tax_amt: inv.taxAmt, total: inv.total, tax: inv.tax, discount: inv.discount, notes: inv.notes, bank_info: inv.bankInfo, currency: inv.currency, items: inv.items };
+    const row = { id: inv.id, user_id: ownerId || user.id, created_by: user.email, client: inv.client, email: inv.email, seller_name: inv.sellerName, seller_email: inv.sellerEmail, seller_phone: inv.sellerPhone, seller_vat: inv.sellerVat || null, seller_address: inv.sellerAddress, seller_country: inv.sellerCountry || null, buyer_phone: inv.buyerPhone, buyer_address: inv.buyerAddress, buyer_country: inv.buyerCountry || null, date: inv.date, due: inv.due, status: inv.status, amount: inv.amount, subtotal: inv.subtotal, discount_amt: inv.discountAmt, tax_amt: inv.taxAmt, total: inv.total, tax: inv.tax, discount: inv.discount, deposit_pct: Number(inv.depositPct) || null, notes: inv.notes, bank_info: inv.bankInfo, currency: inv.currency, items: inv.items };
     await supabase.from("invoices").insert(row);
     setInvoices(prev => [inv, ...prev]); setInvoiceDraft(null); setShowNewInvoice(false);
   };
   const updateInvoice = async (inv) => {
-    const row = { client: inv.client, email: inv.email, seller_name: inv.sellerName, seller_email: inv.sellerEmail, seller_phone: inv.sellerPhone, seller_vat: inv.sellerVat || null, seller_address: inv.sellerAddress, seller_country: inv.sellerCountry || null, buyer_phone: inv.buyerPhone, buyer_address: inv.buyerAddress, buyer_country: inv.buyerCountry || null, date: inv.date, due: inv.due, status: inv.status, amount: inv.amount, subtotal: inv.subtotal, discount_amt: inv.discountAmt, tax_amt: inv.taxAmt, total: inv.total, tax: inv.tax, discount: inv.discount, notes: inv.notes, bank_info: inv.bankInfo, currency: inv.currency, items: inv.items };
+    const row = { client: inv.client, email: inv.email, seller_name: inv.sellerName, seller_email: inv.sellerEmail, seller_phone: inv.sellerPhone, seller_vat: inv.sellerVat || null, seller_address: inv.sellerAddress, seller_country: inv.sellerCountry || null, buyer_phone: inv.buyerPhone, buyer_address: inv.buyerAddress, buyer_country: inv.buyerCountry || null, date: inv.date, due: inv.due, status: inv.status, amount: inv.amount, subtotal: inv.subtotal, discount_amt: inv.discountAmt, tax_amt: inv.taxAmt, total: inv.total, tax: inv.tax, discount: inv.discount, deposit_pct: Number(inv.depositPct) || null, notes: inv.notes, bank_info: inv.bankInfo, currency: inv.currency, items: inv.items };
     await supabase.from("invoices").update(row).eq("id", inv.id);
     setInvoices(prev => prev.map(i => i.id === inv.id ? inv : i)); setEditDraft(null); setEditingInvoice(null);
   };
@@ -692,7 +692,7 @@ export default function InvoiceApp({ onGoHome }) {
       const owner = (await myTeamOwner(user.id)) || user.id;
       const { data: invData } = await supabase.from("invoices").select("*").eq("user_id", owner).order("created_at", { ascending: false });
       const { data: cliData } = await supabase.from("clients").select("*").eq("user_id", owner);
-      if (invData) setInvoices(invData.map(r => ({ id: r.id, createdBy: r.created_by, client: r.client, email: r.email, sellerName: r.seller_name, sellerEmail: r.seller_email, sellerPhone: r.seller_phone, sellerVat: r.seller_vat, sellerAddress: r.seller_address, sellerCountry: r.seller_country, buyerPhone: r.buyer_phone, buyerAddress: r.buyer_address, buyerCountry: r.buyer_country, date: r.date, due: r.due, status: r.status, amount: r.amount, subtotal: r.subtotal, discountAmt: r.discount_amt, taxAmt: r.tax_amt, total: r.total, tax: r.tax, discount: r.discount, notes: r.notes, bankInfo: r.bank_info, currency: r.currency, docType: r.doc_type, creditOf: r.credit_of, paidAmount: Number(r.paid_amount) || 0, items: r.items || [] })));
+      if (invData) setInvoices(invData.map(r => ({ id: r.id, createdBy: r.created_by, client: r.client, email: r.email, sellerName: r.seller_name, sellerEmail: r.seller_email, sellerPhone: r.seller_phone, sellerVat: r.seller_vat, sellerAddress: r.seller_address, sellerCountry: r.seller_country, buyerPhone: r.buyer_phone, buyerAddress: r.buyer_address, buyerCountry: r.buyer_country, date: r.date, due: r.due, status: r.status, amount: r.amount, subtotal: r.subtotal, discountAmt: r.discount_amt, taxAmt: r.tax_amt, total: r.total, tax: r.tax, discount: r.discount, depositPct: r.deposit_pct, notes: r.notes, bankInfo: r.bank_info, currency: r.currency, docType: r.doc_type, creditOf: r.credit_of, paidAmount: Number(r.paid_amount) || 0, items: r.items || [] })));
       if (cliData) setClients(cliData);
     };
     loadData();
@@ -705,7 +705,7 @@ export default function InvoiceApp({ onGoHome }) {
           const owner = (await myTeamOwner(session.user.id)) || session.user.id;
           const { data: invData } = await supabase.from("invoices").select("*").eq("user_id", owner).order("created_at", { ascending: false });
           const { data: cliData } = await supabase.from("clients").select("*").eq("user_id", owner);
-          if (invData) setInvoices(invData.map(r => ({ id: r.id, createdBy: r.created_by, client: r.client, email: r.email, sellerName: r.seller_name, sellerEmail: r.seller_email, sellerPhone: r.seller_phone, sellerVat: r.seller_vat, sellerAddress: r.seller_address, sellerCountry: r.seller_country, buyerPhone: r.buyer_phone, buyerAddress: r.buyer_address, buyerCountry: r.buyer_country, date: r.date, due: r.due, status: r.status, amount: r.amount, subtotal: r.subtotal, discountAmt: r.discount_amt, taxAmt: r.tax_amt, total: r.total, tax: r.tax, discount: r.discount, notes: r.notes, bankInfo: r.bank_info, currency: r.currency, docType: r.doc_type, creditOf: r.credit_of, paidAmount: Number(r.paid_amount) || 0, items: r.items || [] })));
+          if (invData) setInvoices(invData.map(r => ({ id: r.id, createdBy: r.created_by, client: r.client, email: r.email, sellerName: r.seller_name, sellerEmail: r.seller_email, sellerPhone: r.seller_phone, sellerVat: r.seller_vat, sellerAddress: r.seller_address, sellerCountry: r.seller_country, buyerPhone: r.buyer_phone, buyerAddress: r.buyer_address, buyerCountry: r.buyer_country, date: r.date, due: r.due, status: r.status, amount: r.amount, subtotal: r.subtotal, discountAmt: r.discount_amt, taxAmt: r.tax_amt, total: r.total, tax: r.tax, discount: r.discount, depositPct: r.deposit_pct, notes: r.notes, bankInfo: r.bank_info, currency: r.currency, docType: r.doc_type, creditOf: r.credit_of, paidAmount: Number(r.paid_amount) || 0, items: r.items || [] })));
           if (cliData) setClients(cliData);
         };
         reload();
@@ -1269,7 +1269,7 @@ React.useEffect(() => {
     client:(clients[0] && clients[0].name) || "", email:(clients[0] && clients[0].email) || "",
     buyerPhone:"", buyerAddress:"", buyerCountry:"", buyerLogo:null,
     date:new Date().toISOString().split("T")[0], due:"",
-    tax:20, discount:0, notes:"", bankInfo:"",
+    tax:20, discount:0, depositPct:0, notes:"", bankInfo:"",
   };
 
   useEffect(() => {
@@ -1310,6 +1310,7 @@ React.useEffect(() => {
     due: sourceData.due || "",
     tax: sourceData.tax != null ? sourceData.tax : 20,
     discount: sourceData.discount != null ? sourceData.discount : 0,
+    depositPct: sourceData.depositPct != null ? sourceData.depositPct : 0,
     notes: sourceData.notes || "",
     bankInfo: sourceData.bankInfo || "",
   } : emptyForm);
@@ -1600,7 +1601,7 @@ React.useEffect(() => {
             <button className="btn btn-ghost btn-sm" onClick={addItem} style={{ marginBottom:14 }}>+ Add Line Item</button>
             <div className="form-grid" style={{ gridTemplateColumns:"1fr 1fr", marginBottom:0 }}>
               <div className="form-group"><label>Discount (%)</label><input type="number" value={form.discount===0?"":form.discount} min={0} max={100} onChange={e => set("discount", e.target.value===""?0:+e.target.value)} placeholder="0" /></div>
-              <div className="form-group"><label>Tax / VAT (%)</label><input type="number" value={form.tax===0?"":form.tax} min={0} onChange={e => set("tax", e.target.value===""?0:+e.target.value)} placeholder="20" /></div>
+              <div className="form-group"><label>Deposit / upfront (%)</label><input type="number" value={form.depositPct===0?"":form.depositPct} min={0} max={100} placeholder="e.g. 50" onChange={e => set("depositPct", e.target.value==="" ? 0 : +e.target.value)} /></div><div className="form-group"><label>Tax / VAT (%)</label><input type="number" value={form.tax===0?"":form.tax} min={0} onChange={e => set("tax", e.target.value===""?0:+e.target.value)} placeholder="20" /></div>
             </div>
             <div className="totals-box" style={{ marginTop:12 }}>
               <div className="totals-row"><span>Subtotal</span><span>{fLocal(subtotal)}</span></div>
@@ -1801,7 +1802,7 @@ function InvoicePreview({ invoice, onExportUBL, onClose, currency, plan }) {
                 <div className="preview-total-row"><span>Subtotal</span><span>{f(subtotal)}</span></div>
                 {discountAmt > 0 && <div className="preview-total-row" style={{ color:"#2d8c65" }}><span>Discount ({discount}%)</span><span>- {f(discountAmt)}</span></div>}
                 <div className="preview-total-row"><span>Tax ({tax}%)</span><span>{f(taxAmt)}</span></div>
-                <div className="preview-total-row grand"><span>Total Due</span><span>{f(total)}</span></div>{(Number(invoice.paidAmount) || 0) > 0 && <><div className="preview-total-row"><span>Paid</span><span>{f(Number(invoice.paidAmount) || 0)}</span></div><div className="preview-total-row grand"><span>Balance due</span><span>{f(Math.max(0, Math.abs(total) - (Number(invoice.paidAmount) || 0)))}</span></div></>}
+                <div className="preview-total-row grand"><span>Total Due</span><span>{f(total)}</span></div>{(Number(invoice.depositPct) || 0) > 0 && (Number(invoice.paidAmount) || 0) === 0 && <><div className="preview-total-row"><span>Deposit due now ({Number(invoice.depositPct)}%)</span><span>{f(total * Number(invoice.depositPct) / 100)}</span></div><div className="preview-total-row"><span>Remaining on completion</span><span>{f(total - total * Number(invoice.depositPct) / 100)}</span></div></>}{(Number(invoice.paidAmount) || 0) > 0 && <><div className="preview-total-row"><span>Paid</span><span>{f(Number(invoice.paidAmount) || 0)}</span></div><div className="preview-total-row grand"><span>Balance due</span><span>{f(Math.max(0, Math.abs(total) - (Number(invoice.paidAmount) || 0)))}</span></div></>}
               </div>
             </div>
           </div>
