@@ -16,6 +16,7 @@ import PayInvoice from "./pages/PayInvoice";
 import ApiDocs from "./pages/ApiDocs";
 import LatePaymentScripts from "./pages/LatePaymentScripts";
 import InstallPrompt from "./InstallPrompt";
+import CookieConsent from "./CookieConsent";
 import TopBar from "./TopBar";
 import { supabase } from "./supabase";
 
@@ -106,6 +107,7 @@ export default function App() {
       <AppRoutes />
       <TopBar />
       <InstallPrompt />
+      <CookieConsent />
       <Analytics />
     </BrowserRouter>
   );
