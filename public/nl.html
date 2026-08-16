@@ -1,8 +1,8 @@
 <!DOCTYPE html>
 <html lang="nl">
 <head>
-  <title>Factuurprogramma met UBL e-facturatie voor zzp&#039;ers | Fat&#363;ra Pro</title>
-  <meta name="description" content="Factuurprogramma voor zzp&#039;ers, mkb en bureaus: factuur in twee minuten, automatische betalingsherinneringen via e-mail en WhatsApp, aanbetalingen, creditnota&#039;s en UBL e-facturatie volgens EN 16931. Gratis starten, geen creditcard." />
+  <title>Factuurprogramma met UBL e-facturatie | Fat&#363;ra Pro</title>
+  <meta name="description" content="Factuurprogramma voor zzp&#039;ers, mkb en bureaus. Facturen in twee minuten, automatische betalingsherinneringen via e-mail en WhatsApp, aanbetalingen, creditnota&#039;s en UBL e-facturatie (EN 16931). Gratis starten, geen creditcard." />
   <link rel="canonical" href="https://faturapro.app/nl" />
   <link rel="alternate" hreflang="nl" href="https://faturapro.app/nl" />
   <link rel="alternate" hreflang="en" href="https://faturapro.app/" />
@@ -18,116 +18,237 @@
   <link rel="icon" href="/favicon.ico" />
   <link rel="apple-touch-icon" href="/logo192.png" />
   <style>
-    :root { --bg:#0d0d10; --bg2:#141419; --bg3:#1b1b22; --gold:#c9a84c; --text:#e8e4dc; --text2:#9a9690; --border:#26262e; }
+    :root { --bg:#08080e; --bg2:#111118; --bg3:#16161d; --gold:#c9a84c; --gold2:#e8c97a; --text:#e8e4dc; --text2:#9a9690; --border:#26262e; }
     * { box-sizing:border-box; margin:0; padding:0; }
     body { background:var(--bg); color:var(--text); font-family:'DM Sans',-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif; line-height:1.7; -webkit-font-smoothing:antialiased; }
-    .wrap { max-width:860px; margin:0 auto; padding:0 22px; }
-    header { border-bottom:1px solid var(--border); padding:18px 0; }
-    header .wrap { display:flex; align-items:center; justify-content:space-between; gap:16px; }
-    .logo { font-family:Georgia,'Times New Roman',serif; font-size:20px; color:var(--gold); text-decoration:none; letter-spacing:0.5px; }
-    .btn { display:inline-block; background:var(--gold); color:#000; text-decoration:none; font-weight:700; padding:11px 20px; border-radius:10px; font-size:14px; }
-    .btn-ghost { background:transparent; color:var(--gold); border:1px solid var(--border); }
-    h1 { font-family:Georgia,'Times New Roman',serif; font-size:clamp(30px,5vw,44px); line-height:1.18; margin:52px 0 18px; font-weight:400; }
-    h2 { font-family:Georgia,'Times New Roman',serif; font-size:clamp(22px,3.4vw,30px); margin:46px 0 14px; font-weight:400; }
-    h3 { font-size:17px; margin:26px 0 6px; color:var(--text); }
-    p { color:var(--text2); margin-bottom:16px; font-size:16px; }
-    .lead { font-size:19px; color:var(--text); margin-bottom:28px; }
-    ul { color:var(--text2); margin:0 0 18px 20px; }
-    li { margin-bottom:9px; }
-    .card { background:var(--bg2); border:1px solid var(--border); border-radius:14px; padding:22px; margin-bottom:16px; }
-    .cta { background:var(--bg2); border:1px solid var(--border); border-radius:16px; padding:30px; text-align:center; margin:52px 0; }
-    .cta p { margin-bottom:20px; }
-    footer { border-top:1px solid var(--border); margin-top:60px; padding:26px 0 44px; }
-    footer p { font-size:13px; margin:0; }
+    .container { max-width:1120px; margin:0 auto; padding:0 24px; }
+    a { color:inherit; }
+    header { border-bottom:1px solid var(--border); padding:16px 0; position:sticky; top:0; background:rgba(8,8,14,0.92); backdrop-filter:blur(8px); z-index:20; }
+    header .container { display:flex; align-items:center; justify-content:space-between; gap:16px; }
+    .logo { display:flex; align-items:center; gap:10px; text-decoration:none; }
+    .logo-mark { width:30px; height:30px; border-radius:8px; background:var(--gold); color:#000; display:flex; align-items:center; justify-content:center; font-family:Georgia,serif; font-weight:700; }
+    .logo-text { font-family:Georgia,'Times New Roman',serif; font-size:20px; color:var(--gold); letter-spacing:0.5px; }
+    .nav-links { display:none; gap:26px; list-style:none; }
+    .nav-links a { color:var(--text2); text-decoration:none; font-size:14px; }
+    .nav-links a:hover { color:var(--gold); }
+    @media(min-width:900px){ .nav-links { display:flex; } }
+    .btn { display:inline-block; background:var(--gold); color:#000; text-decoration:none; font-weight:700; padding:11px 20px; border-radius:10px; font-size:14px; border:none; cursor:pointer; }
+    .btn-ghost { background:transparent; color:var(--text); border:1px solid var(--border); }
+    .btn-lg { padding:15px 28px; font-size:15px; }
+    .lang { font-size:13px; color:var(--text2); text-decoration:none; border:1px solid var(--border); padding:8px 12px; border-radius:8px; }
+    .hero { text-align:center; padding:70px 0 40px; }
+    .hero-badge { display:inline-block; border:1px solid var(--border); border-radius:999px; padding:7px 16px; font-size:11.5px; letter-spacing:1.4px; text-transform:uppercase; color:var(--gold); margin-bottom:26px; }
+    h1 { font-family:Georgia,'Times New Roman',serif; font-weight:400; font-size:clamp(32px,6vw,58px); line-height:1.12; margin-bottom:20px; }
+    h1 em { color:var(--gold); font-style:italic; }
+    .hero-sub { color:var(--text2); font-size:17px; max-width:640px; margin:0 auto 12px; }
+    .hero-note { color:var(--gold); font-size:14px; font-weight:600; margin:14px 0 24px; }
+    .hero-actions { display:flex; gap:12px; justify-content:center; flex-wrap:wrap; margin-bottom:14px; }
+    .proof { font-size:13px; color:var(--text2); }
+    section { padding:56px 0; }
+    .section-head { text-align:center; max-width:660px; margin:0 auto 40px; }
+    .eyebrow { font-size:11.5px; letter-spacing:1.6px; text-transform:uppercase; color:var(--gold); margin-bottom:12px; }
+    h2 { font-family:Georgia,'Times New Roman',serif; font-weight:400; font-size:clamp(24px,4vw,38px); line-height:1.2; }
+    h2 em { color:var(--gold); font-style:italic; }
+    .grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(280px,1fr)); gap:18px; }
+    .card { background:var(--bg2); border:1px solid var(--border); border-radius:14px; padding:24px; }
+    .card h3 { font-size:16px; margin-bottom:8px; color:var(--text); }
+    .card p { color:var(--text2); font-size:14.5px; }
+    .card .pro-tag { display:inline-block; margin-top:12px; font-size:10.5px; letter-spacing:1.2px; color:var(--gold); border:1px solid var(--gold); border-radius:999px; padding:3px 10px; }
+    .plans { display:grid; grid-template-columns:repeat(auto-fit,minmax(290px,1fr)); gap:20px; align-items:start; }
+    .plan { background:var(--bg2); border:1px solid var(--border); border-radius:16px; padding:28px; }
+    .plan.featured { border-color:var(--gold); }
+    .plan-name { font-size:12px; letter-spacing:1.6px; text-transform:uppercase; color:var(--gold); margin-bottom:10px; }
+    .plan-price { font-family:Georgia,serif; font-size:40px; margin-bottom:4px; }
+    .plan-price span { font-size:14px; color:var(--text2); font-family:inherit; }
+    .plan ul { list-style:none; margin:18px 0 22px; }
+    .plan li { font-size:14px; color:var(--text2); padding:6px 0; display:flex; gap:9px; }
+    .plan li b { color:var(--gold); font-weight:700; }
+    .plan li.off { opacity:0.45; }
+    .plan .btn { display:block; text-align:center; }
+    .faq-item { border-bottom:1px solid var(--border); padding:18px 0; }
+    .faq-item h3 { font-size:15.5px; margin-bottom:7px; color:var(--text); }
+    .faq-item p { color:var(--text2); font-size:14.5px; }
+    .cta-band { background:var(--bg2); border:1px solid var(--border); border-radius:18px; padding:44px 28px; text-align:center; }
+    footer { border-top:1px solid var(--border); padding:34px 0 46px; margin-top:40px; }
+    footer p { font-size:13px; color:var(--text2); }
     footer a { color:var(--gold); text-decoration:none; }
-    .note { font-size:14px; color:var(--text2); border-left:2px solid var(--gold); padding-left:14px; margin:22px 0; }
+    .note { font-size:14px; color:var(--text2); border-left:2px solid var(--gold); padding-left:14px; margin:20px auto 0; max-width:660px; }
     strong { color:var(--text); }
-    .lang { font-size:13px; color:var(--text2); text-decoration:none; border:1px solid var(--border); padding:7px 12px; border-radius:8px; }
   </style>
   <script type="application/ld+json">
   {
     "@context": "https://schema.org",
     "@type": "FAQPage",
     "mainEntity": [
-      { "@type": "Question", "name": "Wat is een UBL factuur?",
-        "acceptedAnswer": { "@type": "Answer", "text": "Een UBL factuur is je factuur als gestructureerd XML bestand in plaats van een PDF. Het systeem van je klant leest de gegevens automatisch, zonder overtypen. Fatura Pro exporteert facturen en creditnota&#039;s als UBL volgens de Europese norm EN 16931." } },
-      { "@type": "Question", "name": "Is e-factureren verplicht in Nederland?",
-        "acceptedAnswer": { "@type": "Answer", "text": "Richting de overheid is elektronisch factureren al verplicht. Voor gewone B2B facturen is het op dit moment nog geen algemene verplichting, maar de richting is duidelijk en steeds meer grote klanten vragen erom. Controleer altijd wat voor jouw situatie geldt." } },
-      { "@type": "Question", "name": "Kan ik een aanbetaling vragen?",
-        "acceptedAnswer": { "@type": "Answer", "text": "Ja. Zet een percentage op de factuur, bijvoorbeeld 50 procent vooraf, en de factuur laat zien wat nu betaald moet worden en wat er bij oplevering openstaat. Ontvangen deelbetalingen registreer je met een klik." } },
+      { "@type": "Question", "name": "Kan ik een UBL factuur maken met Fatura Pro?",
+        "acceptedAnswer": { "@type": "Answer", "text": "Ja. Elke factuur en elke creditnota kun je exporteren als UBL XML volgens de Europese norm EN 16931. Je opent het document, klikt op UBL en stuurt het bestand naar je klant. UBL zit in het Pro plan van 9 euro per maand." } },
+      { "@type": "Question", "name": "Wat is e-facturatie en moet ik het gebruiken?",
+        "acceptedAnswer": { "@type": "Answer", "text": "Een e-factuur is een gestructureerd bestand dat het systeem van je klant zelf uitleest, geen PDF. Richting de overheid is elektronisch factureren al verplicht; voor gewone B2B facturen is het in Nederland op dit moment nog geen algemene verplichting. Dit is geen fiscaal advies, controleer wat voor jou geldt." } },
+      { "@type": "Question", "name": "Hoe maak ik een creditnota?",
+        "acceptedAnswer": { "@type": "Answer", "text": "Open de factuur die je wilt corrigeren en kies Credit. Er wordt een creditnota aangemaakt met een eigen nummer, een negatief bedrag en een verwijzing naar de originele factuur. Creditnota&#039;s zitten in elk plan, ook het gratis plan." } },
+      { "@type": "Question", "name": "Kan ik een aanbetaling vragen en de rest later factureren?",
+        "acceptedAnswer": { "@type": "Answer", "text": "Ja. Zet een percentage op de factuur, bijvoorbeeld 50 procent vooraf, en de factuur toont wat er nu betaald moet worden en wat er bij oplevering openstaat. Ontvangen deelbetalingen registreer je en het openstaande saldo loopt automatisch mee." } },
+      { "@type": "Question", "name": "Kan ik in meerdere valuta factureren?",
+        "acceptedAnswer": { "@type": "Answer", "text": "Ja, 17 valuta. Er wordt nooit omgerekend: elke valuta houdt zijn eigen totaal, dus je ziet EUR 5.410 en USD 1.440 naast elkaar in plaats van een verzonnen bedrag op basis van een wisselkoers." } },
       { "@type": "Question", "name": "Wat kost Fatura Pro?",
-        "acceptedAnswer": { "@type": "Answer", "text": "Er is een gratis plan met 20 facturen en 5 klanten, inclusief creditnota&#039;s. Pro kost 9 euro per maand met onbeperkt factureren, herinneringen, aanbetalingen en UBL export. Business kost 19 euro per maand met offertes, terugkerende facturen, BTW overzicht en vijf teamleden." } }
+        "acceptedAnswer": { "@type": "Answer", "text": "Gratis voor 20 facturen en 5 klanten inclusief creditnota&#039;s. Pro kost 9 euro per maand met onbeperkt factureren, herinneringen, aanbetalingen en UBL export. Business kost 19 euro per maand met offertes, terugkerende facturen, BTW overzicht, Stripe betalingen, API en vijf teamleden." } }
     ]
   }
   </script>
 </head>
 <body>
-  <header><div class="wrap">
-    <a class="logo" href="/nl">Fat&#363;ra</a>
-    <span><a class="lang" href="/">EN</a> &nbsp; <a class="btn" href="/register">Gratis starten</a></span>
-  </div></header>
 
-  <main class="wrap">
-    <h1>Factureren zonder gedoe, ook als je klant om een e-factuur vraagt</h1>
-    <p class="lead">Fat&#363;ra Pro is een factuurprogramma voor zzp&#039;ers, kleine bedrijven en bureaus. Een nette factuur maak je in ongeveer twee minuten, herinneringen sturen zichzelf, en als een klant om een UBL e-factuur vraagt is dat &eacute;&eacute;n knop.</p>
+<header><div class="container">
+  <a class="logo" href="/nl"><span class="logo-mark">F</span><span class="logo-text">Fat&#363;ra</span></a>
+  <ul class="nav-links">
+    <li><a href="#functies">Functies</a></li>
+    <li><a href="#prijzen">Prijzen</a></li>
+    <li><a href="#faq">Veelgestelde vragen</a></li>
+    <li><a href="/blog">Blog</a></li>
+  </ul>
+  <span style="display:flex; gap:10px; align-items:center;">
+    <a class="lang" href="/">EN</a>
+    <a class="btn" href="/register">Gratis starten</a>
+  </span>
+</div></header>
 
-    <h2>Een factuur in twee minuten</h2>
-    <p>Kies een klant die je eerder hebt gefactureerd en zijn gegevens vullen zichzelf in. Je typt je regels, en BTW en korting worden meteen berekend. Je logo, je bankgegevens en je betaaltermijn staan er automatisch op, omdat je die &eacute;&eacute;n keer instelt.</p>
-    <p>Het resultaat is een strakke PDF in de valuta waarin je klant daadwerkelijk betaalt. Zeventien valuta worden ondersteund en er wordt nooit stilletjes omgerekend: elk bedrag blijft precies zoals jij het invoert, en elke valuta houdt zijn eigen totaal.</p>
+<div class="hero"><div class="container">
+  <div class="hero-badge">Geen KvK-inschrijving nodig om te starten</div>
+  <h1>Professionele facturen in minuten.<br /><em>E-facturen met &eacute;&eacute;n klik.</em></h1>
+  <p class="hero-sub">Maak en verstuur facturen met je eigen huisstijl in 17 valuta, herinner late betalers automatisch en vraag een aanbetaling vooraf. Vraagt je klant om een UBL e-factuur (EN 16931) voor e-facturatie? Die exporteer je met &eacute;&eacute;n klik.</p>
+  <p class="hero-note">Gratis starten - geen creditcard nodig</p>
+  <div class="hero-actions">
+    <a class="btn btn-lg" href="/register">Sneller betaald worden - gratis starten</a>
+    <a class="btn btn-ghost btn-lg" href="#functies">Bekijk de functies</a>
+  </div>
+  <p class="proof"><strong>Je eerste factuur maak je in minder dan 2 minuten</strong> - gratis, zonder creditcard</p>
+</div></div>
 
-    <h2>UBL e-facturatie volgens EN 16931</h2>
-    <p>Steeds vaker vraagt een grotere klant of een overheidsinstantie om een <strong>e-factuur</strong> in plaats van een PDF: een gestructureerd bestand dat hun boekhoudsysteem zelf uitleest. Fat&#363;ra Pro exporteert elke factuur en elke creditnota als UBL XML volgens de Europese norm EN 16931.</p>
-    <p>Je hoeft niets van die norm te snappen. Je opent de factuur, klikt op UBL, en stuurt het bestand mee met je PDF. UBL zit bewust in het Pro plan van negen euro, en niet in het duurste pakket, omdat juist zzp&#039;ers hiermee te maken krijgen.</p>
-    <div class="note">UBL is het bestandsformaat. Peppol is het netwerk waarover zulke bestanden verstuurd worden. Je kunt een UBL bestand gewoon meesturen per e-mail of uploaden in het portaal van je klant, ook zonder Peppol.</div>
+<section id="functies"><div class="container">
+  <div class="section-head">
+    <div class="eyebrow">Functies</div>
+    <h2>Alles wat je nodig hebt om <em>netjes te factureren.</em></h2>
+  </div>
+  <div class="grid">
+    <div class="card"><h3>UBL e-facturatie (EN 16931)</h3><p>Exporteer elke factuur als Europese e-factuur in UBL XML. Je klant importeert het bestand rechtstreeks in zijn boekhouding, zonder overtypen. Ook creditnota&#039;s worden correct ge&euml;xporteerd.</p><span class="pro-tag">PRO</span></div>
+    <div class="card"><h3>Creditnota&#039;s</h3><p>Annuleer of corrigeer een verstuurde factuur zoals het hoort: een creditnota met een eigen nummer, een negatief bedrag en een verwijzing naar de originele factuur. In elk plan, ook gratis.</p></div>
+    <div class="card"><h3>Aanbetalingen en deelbetalingen</h3><p>Vraag 50 procent vooraf en de rest bij oplevering. Registreer elke betaling en zie precies welk bedrag nog openstaat, met herinneringen op het restant.</p><span class="pro-tag">PRO</span></div>
+    <div class="card"><h3>Slimme facturen</h3><p>Maak in seconden een verzorgde factuur. Voeg je logo, klantgegevens, regels, BTW en korting toe; alles wordt automatisch berekend.</p></div>
+    <div class="card"><h3>17 valuta</h3><p>Factureer in EUR, USD, GBP, AED, SAR, MAD, DZD en meer, met de juiste notatie per land. Er wordt nooit omgerekend: elke valuta houdt zijn eigen totaal.</p></div>
+    <div class="card"><h3>Betalingsherinneringen</h3><p>Facturen springen zelf op Overdue en met &eacute;&eacute;n klik stuur je een vriendelijke, zakelijke of laatste herinnering via e-mail of WhatsApp.</p><span class="pro-tag">PRO</span></div>
+    <div class="card"><h3>Omzetdashboard</h3><p>Zie in &eacute;&eacute;n oogopslag wat betaald, openstaand en te laat is - per valuta, zodat je altijd weet waar je geld staat.</p></div>
+    <div class="card"><h3>Klantenbeheer</h3><p>Bewaar klantgegevens, contactinformatie en factuurgeschiedenis op &eacute;&eacute;n plek. De volgende factuur voor dezelfde klant kost seconden.</p></div>
+    <div class="card"><h3>PDF export en printen</h3><p>Genereer een strakke, printklare PDF van elke factuur. Inbegrepen in elk plan, ook het gratis plan.</p></div>
+    <div class="card"><h3>Facturen aanpassen</h3><p>Fouten gebeuren. Pas bedragen, datums, regels of klantgegevens aan zolang dat administratief mag - daarna corrigeer je met een creditnota.</p></div>
+    <div class="card"><h3>Bankgegevens op de factuur</h3><p>Zet je IBAN, BIC, Wise of PayPal op elke factuur, zodat je klant nooit hoeft te vragen hoe hij moet betalen.</p></div>
+    <div class="card"><h3>Werkt op elk apparaat</h3><p>Volledig bruikbaar op telefoon, tablet en laptop. Zet de site op je beginscherm en het gedraagt zich als een app.</p></div>
+  </div>
+</div></section>
 
-    <h2>Betaald worden zonder ongemakkelijke mailtjes</h2>
-    <p>Een factuur springt vanzelf op <strong>Overdue</strong> zodra de vervaldatum voorbij is, en je dashboard laat zien wat er openstaat voordat je erover na hoeft te denken.</p>
-    <p>Moet je iemand herinneren, dan schrijft &eacute;&eacute;n klik het bericht: <strong>vriendelijk</strong>, <strong>zakelijk</strong> of <strong>laatste herinnering</strong>, per e-mail of via WhatsApp. Op WhatsApp krijg je meestal dezelfde dag antwoord, terwijl een mail een week kan blijven liggen.</p>
+<section><div class="container">
+  <div class="section-head">
+    <h2>Gebouwd voor de dingen die<br /><em>in de praktijk misgaan.</em></h2>
+  </div>
+  <div class="grid">
+    <div class="card"><h3>Een echte e-factuur, niet alleen een PDF</h3><p>Exporteer elke factuur als UBL XML volgens de Europese norm EN 16931 - het formaat achter e-facturatie. Getoetst aan de norm, niet alleen beweerd. Creditnota&#039;s worden ook ge&euml;xporteerd, als type 381.</p></div>
+    <div class="card"><h3>Valuta worden nooit omgerekend</h3><p>Factureer in 17 valuta waarbij elke valuta zijn eigen totaal houdt. Je ziet EUR 5.410 en USD 1.440 naast elkaar, nooit &eacute;&eacute;n verzonnen bedrag op basis van de koers van gisteren.</p></div>
+    <div class="card"><h3>Corrigeren kost niets</h3><p>Een verstuurde factuur mag je niet aanpassen of verwijderen, dus je annuleert hem met een creditnota: eigen nummering, negatief bedrag, verwijzing naar het origineel en meteen goed in je BTW overzicht. In elk plan.</p></div>
+    <div class="card"><h3>Aanbetalingen die kloppen</h3><p>Vraag 50 procent vooraf en de factuur toont een echt openstaand saldo. Omzet telt wat binnenkwam, openstaand telt wat nog moet komen, en herinneringen gaan over het verschil.</p></div>
+  </div>
+  <p class="note">UBL is het bestandsformaat, Peppol is het netwerk waarover zulke bestanden verstuurd worden. Je kunt een UBL bestand gewoon per e-mail meesturen of uploaden in het portaal van je klant, ook zonder Peppol.</p>
+</div></section>
 
-    <h2>Aanbetaling vragen en de rest volgen</h2>
-    <p>De helft vooraf en de rest bij oplevering is heel gewoon, en je software hoort daar niet moeilijk over te doen. Zet het percentage op de factuur en er verschijnt precies wat er nu betaald moet worden en wat er later openstaat. Ontvang je een deelbetaling, dan registreer je die en zie je meteen het restant.</p>
-
-    <h2>Een fout herstellen zoals het hoort</h2>
-    <p>Een verstuurde factuur verwijder je niet: niet administratief en niet netjes richting je boekhouding. Gaat een opdracht niet door of klopt een bedrag niet, dan maak je een <strong>creditnota</strong> met een eigen nummer die naar de originele factuur verwijst.</p>
-    <p>Creditnota&#039;s zitten in elk plan, ook het gratis plan. Een fout corrigeren is geen betaalde functie.</p>
-
-    <h2>BTW overzicht per kwartaal</h2>
-    <p>Registreer je kosten met het bijbehorende BTW tarief en het overzicht rekent zelf uit wat je per kwartaal moet afdragen: ontvangen BTW op je facturen min betaalde BTW op je kosten. Geen spreadsheet die je elke drie maanden opnieuw bouwt. Dit zit in het Business plan, samen met offertes, terugkerende facturen en teamtoegang.</p>
-
-    <h2>Wat het kost</h2>
-    <div class="card">
-      <h3>Gratis</h3>
-      <p>20 facturen, 5 klanten, alle valuta, PDF export, je eigen logo en creditnota&#039;s. Geen creditcard en geen aftelklok.</p>
+<section id="prijzen"><div class="container">
+  <div class="section-head">
+    <div class="eyebrow">Prijzen</div>
+    <h2>Een eerlijk plan voor <em>elke fase.</em></h2>
+  </div>
+  <div class="plans">
+    <div class="plan">
+      <div class="plan-name">Gratis</div>
+      <div class="plan-price">&euro;0<span> / maand</span></div>
+      <ul>
+        <li><b>+</b> 20 facturen</li>
+        <li><b>+</b> 5 klanten</li>
+        <li><b>+</b> Alle valuta</li>
+        <li><b>+</b> Dashboard en overzichten</li>
+        <li><b>+</b> PDF export en printen</li>
+        <li><b>+</b> Eigen logo en huisstijl</li>
+        <li><b>+</b> Creditnota&#039;s</li>
+        <li class="off">- Betalingsherinneringen</li>
+        <li class="off">- UBL e-facturatie</li>
+        <li class="off">- Aanbetalingen</li>
+      </ul>
+      <a class="btn btn-ghost" href="/register">Gratis starten</a>
     </div>
-    <div class="card">
-      <h3>Pro - &euro;9 per maand</h3>
-      <p>Onbeperkt facturen en klanten, betalingsherinneringen per e-mail en WhatsApp, aanbetalingen en deelbetalingen, en UBL e-facturatie. Elk nieuw account begint met zeven dagen Pro.</p>
+    <div class="plan featured">
+      <div class="plan-name">Pro</div>
+      <div class="plan-price">&euro;9<span> / maand</span></div>
+      <ul>
+        <li><b>+</b> Onbeperkt facturen en klanten</li>
+        <li><b>+</b> Alle valuta</li>
+        <li><b>+</b> UBL e-facturatie (EN 16931)</li>
+        <li><b>+</b> Aanbetalingen en deelbetalingen</li>
+        <li><b>+</b> Creditnota&#039;s</li>
+        <li><b>+</b> Herinneringen via e-mail en WhatsApp</li>
+        <li><b>+</b> PDF export en printen</li>
+        <li><b>+</b> Eigen logo en huisstijl</li>
+        <li><b>+</b> Dashboard en overzichten</li>
+      </ul>
+      <a class="btn" href="/register">Start 7 dagen gratis</a>
     </div>
-    <div class="card">
-      <h3>Business - &euro;19 per maand</h3>
-      <p>Alles uit Pro, plus offertes die je met &eacute;&eacute;n klik omzet naar een factuur, terugkerende facturen, kosten met BTW overzicht, online betalen via Stripe, meerdere bedrijfsprofielen, API toegang en tot vijf teamleden zonder kosten per gebruiker.</p>
+    <div class="plan">
+      <div class="plan-name">Business</div>
+      <div class="plan-price">&euro;19<span> / maand</span></div>
+      <ul>
+        <li><b>+</b> Alles uit Pro</li>
+        <li><b>+</b> Offertes die factuur worden</li>
+        <li><b>+</b> Kosten en BTW overzicht per kwartaal</li>
+        <li><b>+</b> Terugkerende facturen</li>
+        <li><b>+</b> Tot 5 teamleden</li>
+        <li><b>+</b> Meerdere bedrijfsprofielen</li>
+        <li><b>+</b> Online betalen via Stripe</li>
+        <li><b>+</b> API toegang</li>
+        <li><b>+</b> Export voor je boekhouder</li>
+        <li><b>+</b> Fat&#363;ra branding verwijderen</li>
+      </ul>
+      <a class="btn btn-ghost" href="/register">Business kiezen</a>
     </div>
+  </div>
+  <p class="proof" style="text-align:center; margin-top:22px;">Elk nieuw account begint met 7 dagen Pro. Maandelijks opzegbaar, geen jaarcontract.</p>
+</div></section>
 
-    <div class="cta">
-      <p>Gratis starten, geen creditcard. Maak een klant aan en stuur je eerste factuur.</p>
-      <a class="btn" href="/register">Gratis account aanmaken</a>
-      &nbsp;
-      <a class="btn btn-ghost" href="/">Alle functies bekijken</a>
-    </div>
+<section id="faq"><div class="container">
+  <div class="section-head">
+    <div class="eyebrow">Veelgestelde vragen</div>
+    <h2>Kort en <em>eerlijk beantwoord.</em></h2>
+  </div>
+  <div style="max-width:760px; margin:0 auto;">
+    <div class="faq-item"><h3>Kan ik een UBL factuur maken met Fat&#363;ra Pro?</h3><p>Ja. Elke factuur en elke creditnota exporteer je als UBL XML volgens EN 16931. Je opent het document, klikt op UBL en stuurt het bestand mee met je PDF. UBL zit in het Pro plan.</p></div>
+    <div class="faq-item"><h3>Wat is e-facturatie en moet ik het gebruiken?</h3><p>Een e-factuur is een gestructureerd bestand dat het systeem van je klant zelf uitleest, in plaats van een PDF die iemand overtypt. Richting de overheid is elektronisch factureren al verplicht; voor gewone B2B facturen is het op dit moment nog geen algemene verplichting in Nederland. Dit is geen fiscaal advies, dus controleer wat voor jouw situatie geldt.</p></div>
+    <div class="faq-item"><h3>Hoe maak ik een creditnota?</h3><p>Open de factuur die je wilt corrigeren en kies Credit. Je krijgt een creditnota met een eigen nummer, een negatief bedrag en een verwijzing naar de originele factuur. In elk plan, ook gratis.</p></div>
+    <div class="faq-item"><h3>Kan ik een aanbetaling vragen en de rest later factureren?</h3><p>Ja. Zet een percentage op de factuur, bijvoorbeeld 50 procent vooraf, en de factuur laat zien wat er nu betaald moet worden en wat er bij oplevering openstaat. Deelbetalingen registreer je met een klik.</p></div>
+    <div class="faq-item"><h3>Kan ik in verschillende valuta factureren?</h3><p>Ja, 17 valuta, en er wordt nooit omgerekend. Elke valuta houdt zijn eigen totaal, zodat je cijfers kloppen met wat er daadwerkelijk op je rekening komt.</p></div>
+    <div class="faq-item"><h3>Heb ik een KvK-inschrijving nodig om Fat&#363;ra te gebruiken?</h3><p>Om het programma te gebruiken niet. Of je een onderneming moet inschrijven om te mogen factureren hangt af van de regels die op jou van toepassing zijn.</p></div>
+    <div class="faq-item"><h3>Hoe werkt de betalingsherinnering?</h3><p>Een factuur wordt automatisch als te laat gemarkeerd zodra de vervaldatum voorbij is. Met &eacute;&eacute;n klik kies je de toon - vriendelijk, zakelijk of laatste herinnering - en het bericht staat klaar voor e-mail of WhatsApp.</p></div>
+    <div class="faq-item"><h3>Zijn mijn gegevens veilig?</h3><p>Je gegevens staan op servers in de Europese Unie (Ierland) en verbindingen zijn versleuteld. Abonnementsbetalingen lopen via Stripe; wij zien of bewaren geen kaartgegevens.</p></div>
+    <div class="faq-item"><h3>Kan ik op elk moment upgraden of opzeggen?</h3><p>Ja. Je wisselt van plan of zegt op vanuit je instellingen, maandelijks opzegbaar en zonder jaarcontract.</p></div>
+  </div>
+</div></section>
 
-    <h2>Veelgestelde vragen</h2>
-    <h3>Wat is een UBL factuur precies?</h3>
-    <p>Je factuur als gestructureerd XML bestand in plaats van een afbeelding. Het systeem van je klant leest de gegevens er automatisch uit, zonder overtypen. Fat&#363;ra Pro exporteert volgens EN 16931, de Europese norm.</p>
-    <h3>Is e-factureren verplicht?</h3>
-    <p>Richting de overheid al wel. Voor gewone B2B facturen is het op dit moment nog geen algemene verplichting in Nederland, maar de richting is duidelijk en grotere klanten vragen er steeds vaker om. Dit is geen fiscaal advies, dus controleer wat voor jouw situatie geldt.</p>
-    <h3>Heb ik een KvK inschrijving nodig om te factureren?</h3>
-    <p>Je kunt Fat&#363;ra Pro zonder gebruiken. Of je een onderneming moet inschrijven om te mogen factureren hangt af van de regels die op jou van toepassing zijn.</p>
-    <h3>Werkt het op mijn telefoon?</h3>
-    <p>Ja, alles werkt op telefoon en tablet, inclusief facturen maken en versturen. Zet de site op je beginscherm en het gedraagt zich als een app.</p>
-  </main>
+<section><div class="container">
+  <div class="cta-band">
+    <h2>Klaar om je eerste factuur<br /><em>te versturen?</em></h2>
+    <p style="color:var(--text2); margin:16px auto 24px; max-width:520px;">Gratis starten, geen creditcard. Voeg een klant toe en verstuur je eerste factuur binnen een paar minuten.</p>
+    <a class="btn btn-lg" href="/register">Gratis account aanmaken</a>
+  </div>
+</div></section>
 
-  <footer><div class="wrap">
-    <p>Fat&#363;ra Pro - factuurprogramma voor zzp&#039;ers, kleine bedrijven en bureaus. <a href="/">English</a> &middot; <a href="/for-freelancers">For freelancers</a> &middot; <a href="/blog">Blog</a> &middot; <a href="/privacy">Privacy</a></p>
-  </div></footer>
+<footer><div class="container">
+  <p>Fat&#363;ra Pro - factuurprogramma voor zzp&#039;ers, kleine bedrijven en bureaus &middot; 17 valuta &middot; UBL e-facturatie &middot; BTW overzicht</p>
+  <p style="margin-top:10px;"><a href="/">English</a> &middot; <a href="/blog">Blog</a> &middot; <a href="/for-freelancers">For freelancers</a> &middot; <a href="/for-agencies">For agencies</a> &middot; <a href="/privacy">Privacy</a> &middot; <a href="/terms">Voorwaarden</a></p>
+  <p style="margin-top:10px;">&copy; 2026 Fat&#363;ra Pro &middot; GDPR compliant &middot; Gegevens opgeslagen in de EU (Ierland) &middot; faturapro.app</p>
+</div></footer>
+
 </body>
 </html>
