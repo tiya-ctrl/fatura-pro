@@ -127,7 +127,9 @@ export default function LoginPage({ onLogin, onBack }) {
   const [mode,     setMode]     = useState("login"); // "login" | "signup"
   const [planChoice, setPlanChoice] = useState(null);
   useEffect(() => {
-    const inv = new URLSearchParams(window.location.search).get("invited");
+    const sp = new URLSearchParams(window.location.search);
+    if (sp.get("signup")) setMode("signup");
+    const inv = sp.get("invited");
     if (inv) {
       setMode("signup");
       setPlanChoice("free");
