@@ -465,11 +465,12 @@ function NavBar({ onOpenApp, onSignIn }) {
       <button className="nav-hamburger" onClick={() => setMenuOpen(true)}>☰</button>
       <ul className={"nav-links" + (menuOpen ? " open" : "")}>
         {menuOpen && <button className="nav-close" onClick={() => setMenuOpen(false)}>✕</button>}
-        {[["#features","Features"],["#pricing","Pricing"],["/invoice-generator","Free Generator"],["#faq","FAQ"],["/blog","Blog"]].map(([h,l]) => (
+        {[["#features","Features"],["#pricing","Pricing"],["/invoice-generator","Free Generator"],["#faq","FAQ"],["/blog","Blog"],["/nl","Nederlands"]].map(([h,l]) => (
           <li key={h}><a href={h} onClick={() => setMenuOpen(false)}>{l}</a></li>
         ))}
       </ul>
       <div className="nav-cta">
+        <a className="btn btn-outline nav-lang" href="/nl" title="Nederlandse versie" style={{ padding:"8px 12px", fontSize:13, textDecoration:"none" }}>NL</a>
         <button className="btn btn-outline" onClick={onOpenApp}>Sign In</button>
         <button className="btn btn-gold" onClick={onOpenApp}>Try Free →</button>
       </div>
