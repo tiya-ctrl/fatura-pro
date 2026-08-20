@@ -1675,7 +1675,9 @@ function NewClientModal({ onSave, onClose }) {
   const [form, setForm] = useState({ name:"", email:"", phone:"", country:"" });
   const [customCountry, setCustomCountry] = useState("");
   const handleSave = () => {
-    if (!form.name || !form.email) return alert("Name and email are required");
+    // Only the name is required. Plenty of clients are dealt with by phone or
+    // WhatsApp and have no direct email address - that should not block saving them.
+    if (!form.name) return alert("Please enter a client or business name");
     const country = form.country === "Other" ? customCountry : form.country;
     onSave({ ...form, country, id:Date.now(), invoices:0, total:0 });
   };
@@ -1684,7 +1686,7 @@ function NewClientModal({ onSave, onClose }) {
       <div className="modal">
         <div className="modal-title">New Client</div>
         <div className="form-grid" style={{ gridTemplateColumns:"1fr" }}>
-          {[["name","Client / Business Name *"],["email","Email Address *"],["phone","Phone Number"]].map(([k,l]) => (
+          {[["name","Client / Business Name *"],["email","Email Address (optional)"],["phone","Phone Number (optional)"]].map(([k,l]) => (
             <div className="form-group" key={k}>
               <label>{l}</label>
               <input value={form[k]} onChange={e => setForm(f => ({ ...f, [k]:e.target.value }))} />
@@ -1908,6 +1910,10 @@ function ReminderModal({ invoice: reminderTarget, onClose, onLog }) { const f = 
     { id:"final", label:"Final", desc:"Last notice before action", color:"var(--red)" },
   ];
   const handleSend = () => {
+    if (channel === "email" && !invoice.email) {
+      window.alert("This client has no email address on file. Add one on the invoice, or send the reminder by WhatsApp instead.");
+      return;
+    }
     if (channel === "email" && invoice.email) {
       window.open("mailto:" + invoice.email + "?subject=" + encodeURIComponent(TEMPLATES[lang].subjects[tone]) + "&body=" + encodeURIComponent(editedText), "_blank");
     } else if (channel === "whatsapp") {
