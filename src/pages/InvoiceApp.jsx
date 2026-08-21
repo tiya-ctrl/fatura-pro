@@ -859,7 +859,7 @@ export default function InvoiceApp({ onGoHome }) {
             {page === "expenses" && (hasBusinessAccess(plan) || isTeamMember) && <Expenses expenses={expenses} setExpenses={setExpenses} invoices={invoicesWithStatus} userId={ownerId || userId} f={f} />}
             {page === "analytics" && hasBusinessAccess(plan) && <Analytics invoices={invoicesWithStatus} f={f} fc={fmtCurrency} defaultCurrency={currency} />}
             {page === "clients" && <Clients clients={clients} invoices={invoicesWithStatus} f={f} onDeleteClient={deleteClient} onEditClient={(c) => setEditingClient(c)} />}
-            {page === "settings" && <><Settings currency={currency} setCurrency={setCurrency} userEmail={userEmail} />{hasBusinessAccess(plan) && <BusinessProfiles profiles={bizProfiles} setProfiles={setBizProfiles} userId={userId} />}{hasBusinessAccess(plan) && <RecurringList recurring={recurring} setRecurring={setRecurring} userId={userId} f={f} />}{hasBusinessAccess(plan) && <div className="card" style={{ marginTop: 20 }}><div className="card-title" style={{ marginBottom: 10 }}>Online payments</div><div style={{ fontSize: 13, color: "#999", marginBottom: 12 }}>Connect your Stripe account so clients can pay invoices online. Money goes directly to your bank.</div><button className="btn btn-primary btn-sm" onClick={async () => { const { data: { session } } = await supabase.auth.getSession(); const r = await fetch("/api/connect-stripe", { method: "POST", headers: { Authorization: "Bearer " + (session?.access_token || "") } }); const d = await r.json(); if (d.url) window.location.href = d.url; else alert(d.error || "Could not start Stripe onboarding"); }}>Connect Stripe →</button></div>}{hasBusinessAccess(plan) && <TeamMembers team={team} setTeam={setTeam} userId={userId} />}{hasBusinessAccess(plan) && <ApiKeys keys={apiKeys} setKeys={setApiKeys} userId={userId} />}{(plan === "pro" || plan === "business") && <div className="card" style={{ marginTop: 20 }}><div className="card-title" style={{ marginBottom: 10 }}>Subscription</div><div style={{ fontSize: 13, color: "#999", marginBottom: 12 }}>Switch between Pro and Business, update your card, view invoices, or cancel anytime.</div><a className="btn btn-primary btn-sm" href="https://billing.stripe.com/p/login/fZu4gzepGdT05Gx48j5ZC00" target="_blank" rel="noreferrer">Manage subscription →</a></div>}{plan === "free" && <div className="card" style={{ marginTop: 20 }}><div className="card-title" style={{ marginBottom: 10 }}>Plan</div><div style={{ fontSize: 13, color: "#999", marginBottom: 12 }}>You are on the Free plan. Upgrade for unlimited invoices, reminders, and more.</div><button className="btn btn-primary btn-sm" onClick={() => { setUpgradeIntent(null); setShowUpgrade(true); }}>Upgrade →</button></div>}</>}
+            {page === "settings" && <><Settings currency={currency} setCurrency={setCurrency} userEmail={userEmail} invoices={invoicesWithStatus} />{hasBusinessAccess(plan) && <BusinessProfiles profiles={bizProfiles} setProfiles={setBizProfiles} userId={userId} />}{hasBusinessAccess(plan) && <RecurringList recurring={recurring} setRecurring={setRecurring} userId={userId} f={f} />}{hasBusinessAccess(plan) && <div className="card" style={{ marginTop: 20 }}><div className="card-title" style={{ marginBottom: 10 }}>Online payments</div><div style={{ fontSize: 13, color: "#999", marginBottom: 12 }}>Connect your Stripe account so clients can pay invoices online. Money goes directly to your bank.</div><button className="btn btn-primary btn-sm" onClick={async () => { const { data: { session } } = await supabase.auth.getSession(); const r = await fetch("/api/connect-stripe", { method: "POST", headers: { Authorization: "Bearer " + (session?.access_token || "") } }); const d = await r.json(); if (d.url) window.location.href = d.url; else alert(d.error || "Could not start Stripe onboarding"); }}>Connect Stripe →</button></div>}{hasBusinessAccess(plan) && <TeamMembers team={team} setTeam={setTeam} userId={userId} />}{hasBusinessAccess(plan) && <ApiKeys keys={apiKeys} setKeys={setApiKeys} userId={userId} />}{(plan === "pro" || plan === "business") && <div className="card" style={{ marginTop: 20 }}><div className="card-title" style={{ marginBottom: 10 }}>Subscription</div><div style={{ fontSize: 13, color: "#999", marginBottom: 12 }}>Switch between Pro and Business, update your card, view invoices, or cancel anytime.</div><a className="btn btn-primary btn-sm" href="https://billing.stripe.com/p/login/fZu4gzepGdT05Gx48j5ZC00" target="_blank" rel="noreferrer">Manage subscription →</a></div>}{plan === "free" && <div className="card" style={{ marginTop: 20 }}><div className="card-title" style={{ marginBottom: 10 }}>Plan</div><div style={{ fontSize: 13, color: "#999", marginBottom: 12 }}>You are on the Free plan. Upgrade for unlimited invoices, reminders, and more.</div><button className="btn btn-primary btn-sm" onClick={() => { setUpgradeIntent(null); setShowUpgrade(true); }}>Upgrade →</button></div>}</>}
           </div>
         </div>
 
@@ -1146,9 +1146,9 @@ function Clients({ clients, invoices, f, onDeleteClient, onEditClient }) {
   );
 }
 
-function Settings({ currency, setCurrency, userEmail }) {
+function Settings({ currency, setCurrency, userEmail, invoices }) {
   const cur = getCurrency(currency);
-  const [profile, setProfile] = useState({ name:"", email:"", phone:"", country:"NL", address:"", default_tax:20, notes:"", invoice_prefix:"INV-", payment_terms:30, bank_info:"" });
+  const [profile, setProfile] = useState({ name:"", email:"", phone:"", country:"NL", vat_number:"", address:"", default_tax:20, notes:"", invoice_prefix:"INV-", payment_terms:30, bank_info:"" });
   const [saving, setSaving] = useState(false);
   const [saved, setSaved] = useState(false);
   const [savingDefaults, setSavingDefaults] = useState(false);
@@ -1199,11 +1199,27 @@ function Settings({ currency, setCurrency, userEmail }) {
               {COUNTRY_OPTIONS.map(([v, l]) => <option key={v} value={v}>{l}</option>)}
             </select>
           </div>
+          <div className="form-group"><label>VAT / BTW number</label><input value={profile.vat_number || ""} onChange={e => setProfile(p => ({ ...p, vat_number: e.target.value }))} placeholder="e.g. NL123456789B01" /></div>
           <div className="form-group full"><label>Address</label><input value={profile.address} onChange={e => setProfile(p => ({ ...p, address: e.target.value }))} placeholder="Keizersgracht 123, Amsterdam" /></div>
         </div>
         <button className="btn btn-primary" onClick={saveProfile} disabled={saving}>
           {saving ? "Saving..." : saved ? "✓ Saved!" : "Save Changes"}
         </button>
+      </div>
+      {/* Every plan can take its own data out. Portability is a right, and
+          nobody stays because their invoices are locked in. */}
+      <div className="card" style={{ padding:28, marginBottom:20 }}>
+        <div className="card-title" style={{ marginBottom:8 }}>Your data</div>
+        <p style={{ fontSize:13, color:"var(--text2)", marginBottom:16, lineHeight:1.6 }}>
+          Download every invoice and credit note in your account as a CSV file you can open
+          in Excel or hand to your accountant. Available on every plan, including after you cancel.
+        </p>
+        <button className="btn btn-ghost" onClick={() => exportInvoicesCSV(invoices || [], "fatura-pro-my-invoices-" + new Date().toISOString().slice(0, 10) + ".csv")}>
+          Download my invoices (CSV)
+        </button>
+        <div style={{ fontSize:12, color:"var(--text2)", marginTop:12 }}>
+          {(invoices || []).length} document{(invoices || []).length === 1 ? "" : "s"} will be included.
+        </div>
       </div>
       <div className="card" style={{ padding:28 }}>
         <div className="card-title" style={{ marginBottom:20 }}>Invoice Defaults</div>
@@ -1284,6 +1300,7 @@ React.useEffect(() => {
           sellerName: f.sellerName || data.name || "",
           sellerEmail: f.sellerEmail || data.email || "",
           sellerPhone: f.sellerPhone || data.phone || "",
+          sellerVat: f.sellerVat || data.vat_number || "",
           sellerAddress: f.sellerAddress || data.address || "",
           sellerCountry: f.sellerCountry || data.country || "",
           notes: f.notes || data.notes || "", bankInfo: f.bankInfo || data.bank_info || "",
