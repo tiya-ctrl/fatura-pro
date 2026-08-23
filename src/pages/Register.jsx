@@ -1,7 +1,7 @@
 import { useEffect } from "react";
 
 // /register is kept only as an entry point used by the static marketing pages.
-// It sends visitors straight to the real sign-up screen with the plan chooser.
+// It sends visitors straight to the real sign-up screen.
 export default function Register() {
   useEffect(() => {
     const q = window.location.search || "";

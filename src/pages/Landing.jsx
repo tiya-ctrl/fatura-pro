@@ -1,10 +1,9 @@
 import { useState, useRef, useEffect } from "react";
 import { BUSINESS_ENABLED } from "../lib/businessPlan";
+import { trackEvent } from "../lib/tracking";
 
 /* ─── FONTS & GLOBAL ─────────────────────────────────────────── */
-const FONTS = `
-@import url('https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,600;0,700;1,400&family=DM+Sans:wght@300;400;500;600&family=DM+Mono:wght@400;500&display=swap');
-`;
+const FONTS = ``;
 
 const GLOBAL = `
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
@@ -43,8 +42,7 @@ nav.topnav.scrolled {
   border-bottom: 1px solid var(--border);
 }
 .nav-logo { display:flex; align-items:center; gap:10px; text-decoration:none; }
-.nav-logo-icon { width:32px;height:32px;background:var(--gold);border-radius:8px;
-  display:flex;align-items:center;justify-content:center;font-size:15px;font-weight:700;color:#000; }
+.nav-logo-icon { width:36px;height:36px;object-fit:contain; }
 .nav-logo-text { font-family:'Playfair Display',serif; font-size:20px; color:var(--gold); letter-spacing:0.3px; }
 .nav-links { display:flex; gap:32px; list-style:none; }
 .nav-links a { font-size:14px; font-weight:500; color:var(--text2); text-decoration:none; transition:color 0.2s; }
@@ -62,16 +60,17 @@ nav.topnav.scrolled {
 .btn-xl { padding:16px 40px; font-size:16px; border-radius:12px; }
 /* hero */
 .hero {
-  min-height:100vh; display:flex; flex-direction:column; align-items:center; justify-content:center;
-  text-align:center; padding:120px 24px 80px; position:relative; overflow:hidden;
+  min-height:100vh; padding:150px 48px 72px; position:relative; overflow:hidden;
 }
+.hero-stage { width:min(1240px,100%); margin:0 auto; display:grid; grid-template-columns:minmax(0,0.9fr) minmax(460px,1.1fr); align-items:center; gap:72px; position:relative; z-index:1; }
+.hero-copy { text-align:left; }
 .hero-grid {
   position:absolute; inset:0; opacity:0.04;
   background-image: linear-gradient(var(--border2) 1px, transparent 1px), linear-gradient(90deg, var(--border2) 1px, transparent 1px);
   background-size: 50px 50px;
 }
 .hero-glow {
-  position:absolute; top:20%; left:50%; transform:translateX(-50%);
+  position:absolute; top:15%; right:-5%;
   width:700px; height:400px; border-radius:50%;
   background: radial-gradient(ellipse, rgba(201,168,76,0.12) 0%, transparent 70%);
   pointer-events:none;
@@ -92,16 +91,16 @@ nav.topnav.scrolled {
 }
 .hero-tag-dot { width:6px;height:6px;border-radius:50%;background:var(--gold);animation:pulse 2s infinite; }
 .hero-title {
-  font-family:'Playfair Display',serif; font-size:clamp(42px,7vw,84px);
+  font-family:'Playfair Display',serif; font-size:clamp(48px,5.6vw,78px);
   line-height:1.08; color:var(--text); margin-bottom:8px; font-weight:700;
 }
 .hero-title em { font-style:italic; color:var(--gold); }
 .hero-sub {
-  font-size:clamp(16px,2vw,20px); color:var(--text2); max-width:540px;
-  margin:16px auto 40px; line-height:1.65; font-weight:300;
+  font-size:clamp(16px,1.6vw,19px); color:var(--text2); max-width:620px;
+  margin:22px 0 34px; line-height:1.7; font-weight:300;
 }
-.hero-actions { display:flex; gap:14px; justify-content:center; flex-wrap:wrap; margin-bottom:64px; }
-.hero-social-proof { display:flex; align-items:center; gap:16px; justify-content:center; flex-wrap:wrap; }
+.hero-actions { display:flex; gap:14px; justify-content:flex-start; flex-wrap:wrap; margin-bottom:34px; }
+.hero-social-proof { display:flex; align-items:center; gap:16px; justify-content:flex-start; flex-wrap:wrap; }
 .proof-avatars { display:flex; }
 .proof-avatar {
   width:34px;height:34px;border-radius:50%;border:2px solid var(--bg);
@@ -112,7 +111,14 @@ nav.topnav.scrolled {
 .proof-text { font-size:13px; color:var(--text2); }
 .proof-text strong { color:var(--text); }
 /* dashboard mockup */
-.mockup-wrap { width:100%; max-width:720px; margin:0 auto; position:relative; }
+.mockup-wrap { width:100%; max-width:760px; margin:0; position:relative; transform:rotate(1.2deg); }
+.capability-strip { width:min(1240px,100%); margin:54px auto 0; display:flex; justify-content:center; gap:8px; flex-wrap:wrap; position:relative; z-index:1; }
+.capability-pill { padding:8px 14px; border:1px solid var(--border2); border-radius:999px; color:var(--text2); font-size:12px; background:rgba(17,17,24,.7); }
+.fact-strip { width:min(1240px,calc(100% - 40px)); margin:0 auto; display:grid; grid-template-columns:repeat(5,1fr); border:1px solid var(--border2); border-radius:18px; overflow:hidden; background:rgba(15,15,23,.78); position:relative; z-index:2; }
+.fact-item { padding:20px 18px; border-right:1px solid var(--border2); }
+.fact-item:last-child { border-right:0; }
+.fact-value { display:block; color:var(--text); font-family:'Playfair Display',serif; font-size:20px; margin-bottom:3px; }
+.fact-label { color:var(--text2); font-size:11px; line-height:1.45; }
 .mockup-glow { position:absolute; bottom:-60px; left:50%; transform:translateX(-50%);
   width:80%; height:200px; background:radial-gradient(ellipse, rgba(201,168,76,0.18) 0%, transparent 70%); }
 .mockup-frame {
@@ -140,11 +146,14 @@ section { padding:100px 24px; }
 .section-title { font-family:'Playfair Display',serif; font-size:clamp(30px,4vw,48px); color:var(--text); line-height:1.15; margin-bottom:16px; }
 .section-sub { font-size:17px; color:var(--text2); line-height:1.7; max-width:520px; }
 /* features */
-.features-grid { display:grid; grid-template-columns:repeat(3,1fr); gap:20px; margin-top:60px; }
+.features-grid { display:grid; grid-template-columns:repeat(3,1fr); gap:18px; margin-top:52px; }
 .feat-card {
-  background:var(--bg2); border:1px solid var(--border2); border-radius:var(--radius);
-  padding:28px; transition:all 0.25s; position:relative; overflow:hidden;
+  min-height:250px; background:var(--bg2); border:1px solid var(--border2); border-radius:20px;
+  padding:32px; transition:all 0.25s; position:relative; overflow:hidden; display:flex; flex-direction:column; justify-content:flex-end;
 }
+.feat-card:nth-child(1),.feat-card:nth-child(6) { grid-column:span 2; }
+.feat-card:nth-child(1) { background:radial-gradient(circle at 85% 10%,rgba(201,168,76,.17),transparent 38%),var(--bg2); }
+.feat-card:nth-child(6) { background:linear-gradient(135deg,rgba(201,168,76,.12),transparent 55%),var(--bg2); }
 .feat-card::before {
   content:''; position:absolute; top:0; left:0; right:0; height:2px;
   background:linear-gradient(90deg, transparent, var(--gold), transparent);
@@ -152,12 +161,20 @@ section { padding:100px 24px; }
 }
 .feat-card:hover { border-color:var(--border); transform:translateY(-3px); box-shadow:0 12px 40px rgba(0,0,0,0.3); }
 .feat-card:hover::before { opacity:1; }
-.feat-icon { font-size:28px; margin-bottom:16px; display:block; animation:float 4s ease-in-out infinite; }
-.feat-title { font-size:17px; font-weight:700; color:var(--text); margin-bottom:8px; }
-.feat-desc { font-size:14px; color:var(--text2); line-height:1.65; }
+.feat-icon { font-size:28px; margin-bottom:auto; display:block; }
+.feat-title { font-family:'Playfair Display',serif; font-size:clamp(20px,2.5vw,29px); font-weight:600; color:var(--text); margin:24px 0 9px; max-width:520px; }
+.feat-desc { font-size:14px; color:var(--text2); line-height:1.7; max-width:620px; }
 .feat-pro { display:inline-block; font-size:10px; font-weight:700; color:var(--gold);
   background:var(--gold-dim); border:1px solid var(--border); border-radius:20px;
   padding:2px 8px; margin-top:10px; letter-spacing:0.5px; }
+.audience-grid { display:grid; grid-template-columns:repeat(3,1fr); gap:18px; margin-top:48px; }
+.audience-card { min-height:330px; border:1px solid var(--border2); border-radius:20px; padding:30px; background:var(--bg2); position:relative; overflow:hidden; display:flex; flex-direction:column; }
+.audience-card::after { content:attr(data-number); position:absolute; right:20px; top:4px; font-family:'Playfair Display',serif; font-size:92px; color:rgba(201,168,76,.07); }
+.audience-kicker { color:var(--gold); text-transform:uppercase; letter-spacing:1.5px; font-size:10px; font-weight:800; margin-bottom:auto; }
+.audience-card h3 { font-family:'Playfair Display',serif; font-size:28px; line-height:1.14; margin:36px 0 12px; max-width:250px; }
+.audience-card p { color:var(--text2); font-size:14px; line-height:1.7; margin-bottom:22px; }
+.audience-card a { color:var(--gold); text-decoration:none; font-size:13px; font-weight:700; }
+.audience-card a:hover { color:var(--gold-l); }
 /* how it works */
 .how-grid { display:grid; grid-template-columns:repeat(4,1fr); gap:20px; margin-top:60px; position:relative; }
 .how-grid::before {
@@ -201,7 +218,7 @@ section { padding:100px 24px; }
 .price-feature-x { color:var(--text3); font-size:14px; flex-shrink:0; margin-top:1px; }
 .price-cta { width:100%; margin-top:28px; justify-content:center; }
 /* testimonials */
-.testi-grid { display:grid; grid-template-columns:repeat(3,1fr); gap:20px; margin-top:60px; }
+.testi-grid { display:grid; grid-template-columns:repeat(2,1fr); gap:18px; margin-top:52px; }
 .testi-card { background:var(--bg2); border:1px solid var(--border2); border-radius:var(--radius); padding:28px; }
 .testi-stars { color:var(--gold); font-size:14px; margin-bottom:14px; letter-spacing:2px; }
 .testi-text { font-size:14px; color:var(--text); line-height:1.75; margin-bottom:20px; font-style:italic; }
@@ -228,14 +245,14 @@ section { padding:100px 24px; }
 /* footer */
 footer {
   background:var(--bg2); border-top:1px solid var(--border2);
-  padding:48px 48px 32px;
+  padding:64px 48px 32px;
 }
-.footer-grid { display:grid; grid-template-columns:2fr 1fr 1fr 1fr; gap:40px; margin-bottom:48px; }
-.footer-brand p { font-size:13px; color:var(--text2); line-height:1.7; margin-top:12px; max-width:240px; }
+.footer-grid { display:grid; grid-template-columns:minmax(260px,1.8fr) repeat(4,1fr); gap:36px; margin:0 auto 52px; max-width:1240px; }
+.footer-brand p { font-size:13px; color:var(--text2); line-height:1.75; margin-top:14px; max-width:300px; }
 .footer-col h4 { font-size:12px; font-weight:700; color:var(--text2); letter-spacing:1.5px; text-transform:uppercase; margin-bottom:16px; }
 .footer-col a { display:block; font-size:13px; color:var(--text2); text-decoration:none; margin-bottom:10px; transition:color 0.2s; }
 .footer-col a:hover { color:var(--gold); }
-.footer-bottom { border-top:1px solid var(--border2); padding-top:24px; display:flex; justify-content:space-between; align-items:center; font-size:12px; color:var(--text2); flex-wrap:wrap; gap:10px; }
+.footer-bottom { max-width:1240px; margin:0 auto; border-top:1px solid var(--border2); padding-top:24px; display:flex; justify-content:space-between; align-items:center; font-size:12px; color:var(--text2); flex-wrap:wrap; gap:10px; }
 /* chatbot */
 .chat-btn {
   position:fixed; bottom:28px; right:28px; z-index:200;
@@ -306,20 +323,33 @@ footer {
 /* mobile */
 @media(max-width:900px){
   nav.topnav { padding:14px 20px; }
+  .nav-cta .nav-lang { display:none; }
   .nav-links { display:none; }
   .nav-hamburger { display:flex !important; }
   .nav-links.open { display:flex; flex-direction:column; position:fixed; top:0; left:0; width:100vw; height:100vh; background:#08080e !important; z-index:999; align-items:center; justify-content:center; gap:32px; list-style:none; margin:0; padding:0; }
   .nav-links.open a { font-size:22px; color:var(--text); }
   .nav-close { position:fixed; top:20px; right:20px; background:none; border:none; color:var(--text); font-size:28px; cursor:pointer; z-index:1000; }
-  .features-grid,.how-grid,.pricing-grid,.testi-grid { grid-template-columns:1fr; }
+  .features-grid,.how-grid,.pricing-grid,.testi-grid,.audience-grid { grid-template-columns:1fr; }
+  .feat-card:nth-child(1),.feat-card:nth-child(6) { grid-column:span 1; }
+  .fact-strip { grid-template-columns:repeat(2,1fr); }
+  .fact-item { border-bottom:1px solid var(--border2); }
+  .fact-item:nth-child(2n) { border-right:0; }
   .price-card.featured { transform:scale(1); }
-  .footer-grid { grid-template-columns:1fr 1fr; }
+  .footer-grid { grid-template-columns:1.4fr 1fr 1fr; }
   .hero-title { font-size:clamp(36px,8vw,60px); }
+  .hero { padding:120px 22px 64px; }
+  .hero-stage { grid-template-columns:1fr; gap:48px; }
+  .hero-copy { text-align:center; }
+  .hero-sub { margin:18px auto 32px; }
+  .hero-actions,.hero-social-proof { justify-content:center; }
+  .mockup-wrap { margin:0 auto; transform:none; }
   .how-grid::before { display:none; }
 }
 @media(max-width:500px){
   section { padding:70px 18px; }
   .footer-grid { grid-template-columns:1fr; }
+  .fact-strip { grid-template-columns:1fr; }
+  .fact-item { border-right:0; }
   footer { padding:36px 20px 24px; }
   .chat-window { right:14px; bottom:86px; width:calc(100vw - 28px); }
   .chat-btn { right:18px; bottom:20px; }
@@ -328,18 +358,12 @@ footer {
 
 /* ─── DATA ───────────────────────────────────────────────────── */
 const FEATURES = [
-  { icon:"send", title:"UBL E-Invoicing (EN 16931)", desc:"Export any invoice as a European e-invoice in UBL XML. Your client imports it straight into their bookkeeping - no retyping, no PDF to read. Validated against the EN 16931 standard.", pro:true },
-  { icon:"list", title:"Credit Notes", desc:"Cancel or correct an issued invoice the proper way: a credit note with its own numbering, a negative amount and a reference to the original. It flows straight into your VAT report. Free on every plan.", pro:false },
-  { icon:"bank", title:"Deposits & Partial Payments", desc:"Ask for 50% up front and the rest on delivery. Record each payment, see the balance still owed, and let reminders chase only what is left.", pro:true },
-  { icon:"invoice", title:"Smart Invoices", desc:"Create professional invoices in seconds. Add your logo, client details, line items, tax, and discounts. Multiple currencies supported.", pro:false },
-  { icon:"globe", title:"17 Currencies", desc:"Bill clients in EUR, USD, GBP, AED, SAR, MAD, DZD and more. Automatic formatting per locale.", pro:false },
-  { icon:"bell", title:"Payment Reminders", desc:"Auto-detect overdue invoices and send polite, firm or final payment reminders via Email or WhatsApp with one click.", pro:true },
-  { icon:"chart", title:"Revenue Dashboard", desc:"Track paid, pending and overdue invoices at a glance. Know exactly where your money is at all times.", pro:false },
-  { icon:"users", title:"Client Management", desc:"Store all your client information, billing history, and contact details in one organised place.", pro:false },
-  { icon:"download", title:"PDF Export & Print", desc:"Generate print-ready, pixel-perfect invoices in PDF format. Included on every plan, including Free. Share directly with clients or store for accounting.", pro:false },
-  { icon:"pencil", title:"Invoice Editing", desc:"Mistakes happen. Edit any invoice any time — update amounts, dates, items, or client details instantly.", pro:false },
-  { icon:"bank", title:"Bank Details on Invoice", desc:"Add your IBAN, BIC/Swift, Wise or PayPal info to every invoice so clients always know how to pay.", pro:false },
-  { icon:"mobile", title:"Mobile Ready", desc:"Full-featured on phone, tablet and desktop. Create and manage invoices from anywhere.", pro:false },
+  { icon:"globe", title:"Multi-currency invoicing that stays honest", desc:"Invoice international clients in 17 currencies. EUR, USD, GBP, AED and every other balance stays separate—no misleading conversion hiding what you were actually paid.", pro:false },
+  { icon:"users", title:"Enter client details once", desc:"Save clients and business details, then reuse them on every invoice and quote. Less retyping, fewer mistakes, faster billing.", pro:false },
+  { icon:"send", title:"Quotes become invoices", desc:"Turn an accepted quote into an invoice, automate recurring billing, and keep retainers moving without rebuilding the same document.", pro:true },
+  { icon:"bell", title:"Know what is paid—and what is late", desc:"Track pending, partial, paid and overdue invoices. Record deposits and send clear reminders by email or WhatsApp when money is still outstanding.", pro:true },
+  { icon:"chart", title:"Expenses and revenue in one workspace", desc:"See revenue by currency, log expenses, review VAT/BTW summaries and export clean data for your accountant.", pro:true },
+  { icon:"invoice", title:"PDF when people read it. UBL XML when systems do.", desc:"Send branded PDF invoices, export EN 16931 UBL XML when a client requests structured e-invoicing, and issue correctly referenced credit notes. UBL export is not Peppol delivery.", pro:true },
 ];
 
 const PLANS = [
@@ -402,14 +426,14 @@ const PLANS = [
 
 const FAQS = [
   { q:"Can I create a UBL invoice with Fatura Pro?", a:"Yes. Every invoice can be exported as a UBL XML file that follows the European EN 16931 standard, the same format used for e-facturatie in the Netherlands and across the EU. Your client imports the file into their accounting software instead of typing your invoice over by hand. Credit notes are exported too, as document type 381 with a reference to the original invoice." },
-  { q:"What is e-facturatie and do I have to use it in 2026?", a:"An e-invoice is a structured file a computer can read, not a PDF. Public sector suppliers in the Netherlands already have to send them, and the rules keep widening across the EU. Fatura Pro exports the UBL format that meets the EN 16931 standard, so you are ready when your client asks - or when the rules reach you." },
-  { q:"How do I make a credit note (creditnota)?", a:"Open the invoice and press Credit. You get a separate document with its own number, a negative amount and a reference to the original invoice - which is exactly what the Belastingdienst expects, since an issued invoice may never be deleted or edited. It is included on every plan, including Free." },
+  { q:"Does Fatura Pro send invoices through Peppol?", a:"No. Fatura Pro exports a UBL XML file that follows EN 16931, but it is not connected to the Peppol delivery network. You download the UBL file and send it to your client yourself." },
+  { q:"How do I make a credit note (creditnota)?", a:"Open the invoice and press Credit. Fatura Pro creates a separate document with its own number, a negative amount and a reference to the original invoice, so your records keep a clear correction trail. Credit notes are included on every plan, including Free." },
   { q:"Can I ask for a deposit and invoice the rest later?", a:"Yes. Record what you received - 50% up front, for example - and the invoice shows as partially paid with the balance still owed. Your dashboard counts the received part as revenue and the rest as outstanding, and reminders chase the balance rather than the full amount." },
   { q:"Can I invoice in different currencies?", a:"Yes, in 17 currencies. Amounts are never converted between them: each currency keeps its own total, so you always see exactly what you were paid in the currency you were paid in. No exchange rates are applied anywhere." },
   { q:"Do I need a business registration to use Fatūra?", a:"No. Anyone can use Fatūra — freelancers, solopreneurs, and small businesses alike. You don't need a registered company or VAT number to get started." },
   { q:"Can I send invoices in Arabic?", a:"You can enter all your content in Arabic including client names, company names, and notes. Your invoices print correctly in Arabic." },
   { q:"How does the payment reminder work?", a:"Fatūra automatically detects when an invoice passes its due date. You can then send a pre-written reminder via Email or WhatsApp in one click — choose from Polite, Firm, or Final Reminder tone." },
-  { q:"What payment methods does Stripe accept?", a:"Stripe accepts all major credit and debit cards (Visa, Mastercard, Amex), Apple Pay, Google Pay, and local methods depending on your region." },
+  { q:"Can clients pay an invoice online?", a:"Business accounts can connect Stripe so clients can pay by card from the invoice payment page. Available payment methods depend on the connected Stripe account and region." },
   { q:"Is my data secure?", a:"All data is encrypted in transit (TLS) and at rest. We never sell or share your data with third parties. You can export or delete your data at any time." },
   { q:"Can I upgrade or cancel anytime?", a:"Yes, absolutely. No lock-in contracts. Upgrade, downgrade, or cancel at any time directly from your account settings." },
 ];
@@ -459,46 +483,53 @@ function NavBar({ onOpenApp, onSignIn }) {
   return (
     <nav className={`topnav ${scrolled ? "scrolled" : ""}`}>
       <a className="nav-logo" href="#top">
-        <div className="nav-logo-icon">F</div>
+        <img className="nav-logo-icon" src="/fatura-mark.svg" alt="" width="36" height="36" />
         <span className="nav-logo-text">Fatūra</span>
       </a>
       <button className="nav-hamburger" onClick={() => setMenuOpen(true)}>☰</button>
       <ul className={"nav-links" + (menuOpen ? " open" : "")}>
         {menuOpen && <button className="nav-close" onClick={() => setMenuOpen(false)}>✕</button>}
-        {[["#features","Features"],["#pricing","Pricing"],["/invoice-generator","Free Generator"],["#faq","FAQ"],["/blog","Blog"],["/nl","Nederlands"]].map(([h,l]) => (
+        {[["#product","Product"],["#solutions","Solutions"],["#pricing","Pricing"],["/invoice-generator","Free Generator"],["/blog","Guides"],["/nl","Nederlands"]].map(([h,l]) => (
           <li key={h}><a href={h} onClick={() => setMenuOpen(false)}>{l}</a></li>
         ))}
       </ul>
       <div className="nav-cta">
         <a className="btn btn-outline nav-lang" href="/nl" title="Nederlandse versie" style={{ padding:"8px 12px", fontSize:13, textDecoration:"none" }}>NL</a>
         <button className="btn btn-outline" onClick={onOpenApp}>Sign In</button>
-        <button className="btn btn-gold" onClick={onOpenApp}>Try Free →</button>
+        <button className="btn btn-gold" onClick={() => onOpenApp({ signup:true, source:"nav" })}>Try Free →</button>
       </div>
     </nav>
   );
 }
 
 function Hero({ onOpenApp }) {
+  const openSignup = (placement) => {
+    trackEvent("hero_cta_clicked", { placement });
+    onOpenApp({ signup:true, source:placement });
+  };
+
   return (
     <section className="hero" id="top">
       <div className="hero-grid" />
       <div className="hero-glow" />
+      <div className="hero-stage">
+      <div className="hero-copy">
       <div className="fade-up">
         <div className="hero-tag">
           <span className="hero-tag-dot" />
-          No business registration needed
+          Built for freelancers &amp; businesses working across borders
         </div>
       </div>
       <h1 className="hero-title fade-up delay-1">
-        Professional invoices in minutes.
-        <br /><em>E-invoices in one click.</em>
+        Invoice clients anywhere.
+        <br /><em>Run your business in one place.</em>
       </h1>
       <p className="hero-sub fade-up delay-2">
-        Create and send branded invoices in 17 currencies, chase late payments automatically, and take a deposit up front. Need a UBL e-invoice (EN 16931) for e-facturatie? Export it in one click. Free to start, no credit card.
+        Multi-currency invoicing software for freelancers and small service businesses. Create invoices and quotes, track expenses and payments, automate recurring billing, and manage clients—without complicated accounting software.
       </p>
       <div className="hero-actions fade-up delay-3">
-        <button className="btn btn-gold btn-xl" onClick={onOpenApp}>Get Paid Faster — Start Free →</button>
-        <a href="#features" className="btn btn-outline btn-lg">See Features</a>
+        <button className="btn btn-gold btn-xl" onClick={() => openSignup("hero_primary")}>Create your first invoice — free →</button>
+        <a href="#how" className="btn btn-outline btn-lg" onClick={() => trackEvent("hero_secondary_cta_clicked", { placement:"hero" })}>See how it works</a>
         <div style={{ marginTop:18, fontSize:14, color:"var(--text2)" }}>
           Invoicing for <a href="/for-freelancers" style={{ color:"var(--gold)", textDecoration:"none", borderBottom:"1px solid rgba(201,168,76,0.35)" }}>freelancers</a>
           {" "}and for <a href="/for-agencies" style={{ color:"var(--gold)", textDecoration:"none", borderBottom:"1px solid rgba(201,168,76,0.35)" }}>agencies &amp; small business</a>
@@ -508,9 +539,10 @@ function Hero({ onOpenApp }) {
         <div className="proof-avatars">
           {["🇺🇸","🇬🇧","🇲🇦","🇸🇦","🇳🇱","🇦🇪"].map((f,i) => <div key={i} className="proof-avatar">{f}</div>)}
         </div>
-        <p className="proof-text"><strong>Create your first invoice in under 2 minutes</strong> — free · No credit card needed</p>
+        <p className="proof-text"><strong>No credit card</strong> · Free plan available · 17 currencies</p>
       </div>
-      <div className="mockup-wrap fade-up delay-4" onClick={onOpenApp} title="Open the app" style={{ marginTop:64, cursor:"pointer" }}>
+      </div>
+      <div className="mockup-wrap fade-up delay-4" onClick={() => openSignup("hero_visual")} title="Open the app" style={{ marginTop:64, cursor:"pointer" }}>
         <div className="mockup-glow" />
         <div className="mockup-frame">
           <div className="mockup-bar">
@@ -522,7 +554,26 @@ function Hero({ onOpenApp }) {
           <img src="/hero-dashboard.png" alt="Fatura Pro dashboard showing invoices, revenue, pending and overdue payments" loading="eager" style={{ width:"100%", display:"block" }} />
         </div>
       </div>
+      </div>
+      <div className="capability-strip fade-up delay-4" aria-label="Product capabilities">
+        {["Invoices","Quotes","Recurring","Expenses","Payments","UBL XML"].map(item => <span className="capability-pill" key={item}>{item}</span>)}
+      </div>
     </section>
+  );
+}
+
+function ProductFacts() {
+  const facts = [
+    ["17 currencies","Balances stay separate"],
+    ["Free plan","No credit card"],
+    ["4 languages","For payment reminders"],
+    ["UBL XML","EN 16931 export"],
+    ["5 team seats","Included in Business"],
+  ];
+  return (
+    <div className="fact-strip" aria-label="Fatura Pro product facts">
+      {facts.map(([value,label]) => <div className="fact-item" key={value}><span className="fact-value">{value}</span><span className="fact-label">{label}</span></div>)}
+    </div>
   );
 }
 const ICON_PATHS = {
@@ -554,11 +605,11 @@ function FIcon({ name, size = 28 }) {
 
 function Features() {
   return (
-    <section id="features" style={{ background:"var(--bg2)", borderTop:"1px solid var(--border2)", borderBottom:"1px solid var(--border2)" }}>
+    <section id="product" style={{ background:"var(--bg2)", borderTop:"1px solid var(--border2)", borderBottom:"1px solid var(--border2)" }}>
       <div className="container">
-        <div className="section-tag">Features</div>
-        <h2 className="section-title">The smartest way to invoice.<br /><em style={{ fontStyle:"italic", color:"var(--gold)" }}>Built for how you work.</em></h2>
-        <p className="section-sub">Built specifically for freelancers and entrepreneurs who need professional invoicing without the complexity.</p>
+        <div className="section-tag">One workspace, less admin</div>
+        <h2 className="section-title">From “I should invoice them”<br />to <em style={{ fontStyle:"italic", color:"var(--gold)" }}>paid and recorded.</em></h2>
+        <p className="section-sub">The everyday invoicing workflow—built around real clients, multiple currencies, deposits, reminders and repeat work.</p>
         <div className="features-grid">
           {FEATURES.map((f, i) => (
             <div key={i} className="feat-card" style={{ animationDelay:`${i*0.07}s` }}>
@@ -568,6 +619,26 @@ function Features() {
               {f.pro && <div className="feat-pro">✦ PRO</div>}
             </div>
           ))}
+        </div>
+      </div>
+    </section>
+  );
+}
+
+function Audience() {
+  const audiences = [
+    { n:"01", kicker:"Independent", title:"Freelancers with clients in more than one country", text:"Invoice in the client’s currency, reuse their details, ask for a deposit and follow up without turning your work into bookkeeping.", href:"/for-freelancers", link:"Explore invoicing for freelancers →" },
+    { n:"02", kicker:"Client services", title:"Consultants and agencies selling projects or retainers", text:"Move from quote to invoice, schedule recurring work, separate business profiles and see what every client still owes.", href:"/for-agencies", link:"Explore agency workflows →" },
+    { n:"03", kicker:"Growing teams", title:"Small businesses that need structure, not an ERP", text:"Share one client and invoice workspace with up to five people, connect online payments and export clean records for your accountant.", href:"#pricing", link:"Compare plans →" },
+  ];
+  return (
+    <section id="solutions">
+      <div className="container">
+        <div className="section-tag">Built around your work</div>
+        <h2 className="section-title">Not accounting software<br />with invoicing <em style={{ color:"var(--gold)", fontStyle:"italic" }}>buried inside.</em></h2>
+        <p className="section-sub">Fatūra Pro starts where service businesses spend their time: clients, work, invoices and getting paid.</p>
+        <div className="audience-grid">
+          {audiences.map(a => <article className="audience-card" data-number={a.n} key={a.n}><div className="audience-kicker">{a.kicker}</div><h3>{a.title}</h3><p>{a.text}</p><a href={a.href}>{a.link}</a></article>)}
         </div>
       </div>
     </section>
@@ -623,7 +694,7 @@ function HowItWorks({ onOpenApp }) {
       <div className="container">
         <div style={{ textAlign:"center", marginBottom:0 }}>
           <div className="section-tag" style={{ justifyContent:"center", display:"flex" }}>How it works</div>
-          <h2 className="section-title">From zero to sent invoice<br />in <em style={{ color:"var(--gold)", fontStyle:"italic" }}>under 3 minutes.</em></h2>
+          <h2 className="section-title">From setup to sent invoice<br />in <em style={{ color:"var(--gold)", fontStyle:"italic" }}>four clear steps.</em></h2>
         </div>
         <div className="how-grid">
           {steps.map((s, i) => (
@@ -636,7 +707,7 @@ function HowItWorks({ onOpenApp }) {
           ))}
         </div>
         <div style={{ textAlign:"center", marginTop:56 }}>
-          <button className="btn btn-gold btn-lg" onClick={onOpenApp}>Create Your First Invoice →</button>
+          <button className="btn btn-gold btn-lg" onClick={() => { trackEvent("landing_cta_clicked", { placement:"how_it_works" }); onOpenApp({ signup:true, source:"how_it_works" }); }}>Create Your First Invoice →</button>
         </div>
       </div>
     </section>
@@ -702,7 +773,7 @@ function Pricing({ onOpenApp }) {
                   <span style={{ color: f.ok ? "var(--text)" : "var(--text3)" }}>{f.text}</span>
                 </div>
               ))}
-              <button className={`btn ${p.ctaStyle} price-cta`} onClick={p.cta === "Join Waitlist" ? () => setShowWaitlist(true) : () => { if (p.cta !== "Start Free") localStorage.setItem("fatura_intent_plan", p.cta === "Get Business" ? "business" : "pro"); onOpenApp(); }}>{p.cta}</button>
+              <button className={`btn ${p.ctaStyle} price-cta`} onClick={p.cta === "Join Waitlist" ? () => setShowWaitlist(true) : () => { if (p.cta !== "Start Free") localStorage.setItem("fatura_intent_plan", p.cta === "Get Business" ? "business" : "pro"); trackEvent("pricing_cta_clicked", { plan:p.name.toLowerCase() }); onOpenApp({ signup:true, source:`pricing_${p.name.toLowerCase()}` }); }}>{p.cta}</button>
               {p.cta === "Get Business" && <div style={{ textAlign:"center", marginTop:10, fontSize:12, color:"var(--gold)" }}>7 days free · Cancel anytime</div>}
             </div>
           ))}
@@ -720,9 +791,9 @@ function WhyDifferent() {
   // Claims a visitor can check for themselves. No invented reviews - when
   // real customers send one, put it back with their full name.
   const POINTS = [
-    { title: "A real e-invoice, not just a PDF", text: "Export any invoice as UBL XML meeting the European EN 16931 standard - the format behind e-facturatie. Validated against the standard, not just claimed. Credit notes export too, as type 381." },
+    { title: "A real e-invoice, not just a PDF", text: "Export invoices as structured UBL XML built for EN 16931 workflows - the format behind European e-invoicing. Credit notes export too, as document type 381." },
     { title: "Currencies are never converted", text: "Bill in 17 currencies and each keeps its own total. You see EUR 5.410 and USD 1.440 side by side, never one invented figure built on yesterday's exchange rate." },
-    { title: "Correcting an invoice is free", text: "An issued invoice may never be edited or deleted, so you cancel it with a credit note - own numbering, negative amount, reference to the original, straight into your VAT report. Included on every plan, including Free." },
+    { title: "Correcting an invoice is free", text: "When an issued invoice needs correcting, create a credit note instead of silently rewriting its history. It gets its own number, a negative amount and a reference to the original. Included on every plan, including Free." },
     { title: "Deposits that actually add up", text: "Take 50% up front and the invoice shows a real balance. Revenue counts what arrived, outstanding counts what did not, and reminders chase the difference." },
   ];
   return (
@@ -730,7 +801,7 @@ function WhyDifferent() {
       <div className="container">
         <div style={{ textAlign:"center" }}>
           <div className="section-tag" style={{ justifyContent:"center", display:"flex" }}>Why Fat&#363;ra Pro</div>
-          <h2 className="section-title">Built for the parts<br />that <em style={{ color:"var(--gold)", fontStyle:"italic" }}>actually go wrong.</em></h2>
+          <h2 className="section-title">Small details that prevent<br /><em style={{ color:"var(--gold)", fontStyle:"italic" }}>expensive confusion.</em></h2>
         </div>
         <div className="testi-grid">
           {POINTS.map((p, i) => (
@@ -771,6 +842,10 @@ function FAQ() {
 }
 
 function CTASection({ onOpenApp }) {
+  const start = () => {
+    trackEvent("landing_cta_clicked", { placement:"final_cta" });
+    onOpenApp({ signup:true, source:"final_cta" });
+  };
   return (
     <div className="cta-section">
       <div className="container">
@@ -778,13 +853,13 @@ function CTASection({ onOpenApp }) {
           <span className="hero-tag-dot" /> Start today — free forever
         </div>
         <h2 className="section-title" style={{ textAlign:"center", fontSize:"clamp(32px,5vw,56px)" }}>
-          Ready to get paid<br /><em style={{ color:"var(--gold)", fontStyle:"italic" }}>faster?</em>
+          Your next invoice should take<br /><em style={{ color:"var(--gold)", fontStyle:"italic" }}>minutes, not your evening.</em>
         </h2>
         <p style={{ textAlign:"center", color:"var(--text2)", fontSize:17, marginTop:16, marginBottom:40 }}>
-          Free to start. No credit card and no business registration needed.
+          Create an account, add a client and preview your first invoice. Free plan available, no credit card required.
         </p>
         <div style={{ display:"flex", gap:14, justifyContent:"center", flexWrap:"wrap" }}>
-          <button className="btn btn-gold btn-xl" onClick={onOpenApp}>Start Now — It's Free →</button>
+          <button className="btn btn-gold btn-xl" onClick={start}>Create your first invoice — free →</button>
           <a href="#pricing" className="btn btn-outline btn-lg">View Pricing</a>
         </div>
       </div>
@@ -793,35 +868,31 @@ function CTASection({ onOpenApp }) {
 }
 
 function Footer({ onOpenApp }) {
+  const columns = [
+    { title:"Product", links:[["#product","Multi-currency invoicing"],["#how","How it works"],["#pricing","Pricing"],["/invoice-generator","Free invoice generator"],["/api-docs","API documentation"]] },
+    { title:"Solutions", links:[["/for-freelancers","For freelancers"],["/for-agencies","For agencies & teams"],["/ubl-factuur-maken","UBL invoice export"],["/nl","Nederlands factuurprogramma"]] },
+    { title:"Resources", links:[["/blog","Invoicing guides"],["/late-payment-scripts","Late-payment scripts"],["/blog/how-to-create-ubl-invoice-en16931","UBL invoice guide"],["/blog/how-to-create-professional-invoice","Professional invoice guide"]] },
+    { title:"Company", links:[["mailto:support@faturapro.app","Contact support"],["/privacy","Privacy policy"],["/terms","Terms of service"],["https://x.com/Faturapro","Follow on X"]] },
+  ];
   return (
     <footer>
       <div className="footer-grid">
         <div className="footer-brand">
           <div style={{ display:"flex", alignItems:"center", gap:10 }}>
-            <div className="nav-logo-icon">F</div>
+            <img className="nav-logo-icon" src="/fatura-mark.svg" alt="" width="36" height="36" />
             <span className="nav-logo-text">Fatūra</span>
           </div>
-          <p>Professional invoicing software for freelancers, consultants, and entrepreneurs worldwide. Create and send invoices in EUR, USD, GBP, AED and 14 more currencies. No business registration needed.</p>
+          <p>Multi-currency invoicing software for freelancers, consultants and small service businesses working across borders.</p>
           <div style={{ marginTop:16, display:"flex", flexDirection:"column", gap:4 }}>
-            <span style={{ fontSize:12, color:"var(--text2)" }}>📧 support@faturapro.app</span>
-            <span style={{ fontSize:12, color:"var(--text2)" }}>&#127757; Invoicing software for 17 currencies &middot; UBL e-invoicing &middot; VAT &amp; BTW reports</span>
+            <button className="btn btn-gold" style={{ alignSelf:"flex-start", marginTop:8 }} onClick={() => onOpenApp({ signup:true, source:"footer" })}>Start free →</button>
+            <span style={{ fontSize:11, color:"var(--gold)", marginTop:10 }}>GDPR compliant · Data hosted in the EU (Ireland)</span>
+            <span style={{ fontSize:11, color:"var(--text3)", marginTop:8 }}>UBL XML export · Not a Peppol access point</span>
           </div>
         </div>
-        <div className="footer-col">
-          <h4>Product</h4>
-          {[["#features","Invoice Features"],["#pricing","Pricing Plans"],["#how","How It Works"],["#install","Install as App"]].map(([h,l]) => <a key={h} href={h} onClick={h === "#install" ? (e) => { e.preventDefault(); window.dispatchEvent(new Event("fatura-install")); } : undefined}>{l}</a>)}
-        </div>
-        <div className="footer-col">
-          <h4>Use Cases</h4>
-          {[["/for-freelancers","For Freelancers"],["/for-agencies","For Agencies & Small Business"],["/nl","Nederlands"],["/invoice-generator","Free Invoice Generator"],["/blog","Invoicing Guides"],["/api-docs","API Documentation"],["/late-payment-scripts","Late Payment Scripts"],["#pricing","Pricing"],["#faq","FAQ"]].map(([h,l]) => <a key={l} href={h}>{l}</a>)}
-        </div>
-        <div className="footer-col">
-          <h4>Legal</h4>
-          <a href="/privacy" style={{color:"var(--text2)",fontSize:13,textDecoration:"none",display:"block",marginBottom:6}}>Privacy Policy</a><a href="/terms" style={{color:"var(--text2)",fontSize:13,textDecoration:"none",display:"block",marginBottom:6}}>Terms of Service</a><p style={{fontSize:12,color:"var(--text2)",lineHeight:1.8,marginTop:8}}>GDPR compliant · Data hosted in the EU (Ireland)</p>
-        </div>
+        {columns.map(col => <div className="footer-col" key={col.title}><h4>{col.title}</h4>{col.links.map(([h,l]) => <a key={h} href={h} target={h.startsWith("http") ? "_blank" : undefined} rel={h.startsWith("http") ? "noreferrer" : undefined}>{l}</a>)}</div>)}
       </div>
       <div className="footer-bottom">
-        <span>&copy; 2026 Fat&#363;ra Pro &middot; Invoicing software for freelancers, small businesses and agencies &middot; faturapro.app</span>
+        <span>&copy; 2026 Fat&#363;ra Pro &middot; Invoicing software for business without borders</span>
         <span style={{ display:"flex", gap:16 }}>
           <a href="https://x.com/Faturapro" target="_blank" rel="noreferrer" style={{ color:"var(--text2)", fontSize:18, textDecoration:"none" }}>𝕏</a>
         </span>
@@ -939,11 +1010,13 @@ export default function LandingPage({ onOpenApp, onSignIn }) {
       <style>{FONTS + GLOBAL}</style>
       <NavBar onOpenApp={onOpenApp} onSignIn={onSignIn} />
       <Hero onOpenApp={onOpenApp} />
+      <ProductFacts />
       <Features />
-      <InstallApp />
+      <Audience />
       <HowItWorks onOpenApp={onOpenApp} />
-      <Pricing onOpenApp={onOpenApp} />
       <WhyDifferent />
+      <Pricing onOpenApp={onOpenApp} />
+      <InstallApp />
       <FAQ />
       <CTASection onOpenApp={onOpenApp} />
       <Footer onOpenApp={onOpenApp} />
