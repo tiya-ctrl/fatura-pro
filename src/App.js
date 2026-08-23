@@ -24,9 +24,16 @@ import { supabase } from "./supabase";
 function LandingWrapper() {
   const navigate = useNavigate();
 
-  const goToApp = async () => {
+  const goToApp = async (options = {}) => {
     const { data: { session } } = await supabase.auth.getSession();
-    navigate(session ? "/app" : "/login");
+    if (session) {
+      navigate("/app");
+      return;
+    }
+    const params = new URLSearchParams();
+    if (options.signup) params.set("signup", "1");
+    if (options.source) params.set("source", options.source);
+    navigate("/login" + (params.toString() ? `?${params}` : ""));
   };
   return <LandingPage onOpenApp={goToApp} onSignIn={goToApp} />;
 }

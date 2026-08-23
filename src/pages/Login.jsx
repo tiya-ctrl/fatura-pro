@@ -1,5 +1,6 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { signIn, signUp, loginWithGoogle } from "../auth";
+import { trackEvent } from "../lib/tracking";
 
 /* ─── CSS ─────────────────────────────────────────────── */
 const FONTS = `@import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700&family=DM+Sans:wght@300;400;500;600&display=swap');`;
@@ -125,14 +126,19 @@ const DEMO_USERS = [
 /* ─── COMPONENT ───────────────────────────────────────── */
 export default function LoginPage({ onLogin, onBack }) {
   const [mode,     setMode]     = useState("login"); // "login" | "signup"
-  const [planChoice, setPlanChoice] = useState(null);
+  const signupStartTracked = useRef(false);
   useEffect(() => {
     const sp = new URLSearchParams(window.location.search);
-    if (sp.get("signup")) setMode("signup");
+    if (sp.get("signup")) {
+      setMode("signup");
+      if (!signupStartTracked.current) {
+        signupStartTracked.current = true;
+        trackEvent("signup_started", { method:"email", source:sp.get("source") || "landing" });
+      }
+    }
     const inv = sp.get("invited");
     if (inv) {
       setMode("signup");
-      setPlanChoice("free");
       localStorage.removeItem("fatura_intent_plan");
       setForm(f => ({ ...f, email: inv }));
     }
@@ -173,6 +179,7 @@ export default function LoginPage({ onLogin, onBack }) {
       setTimeout(() => onLogin(res.user), 1200);
     } else {
       const res = await signUp(form.email, form.password);
+      trackEvent("signup_completed", { method:"email" });
       setSuccess(true);
       setTimeout(() => onLogin(res.user), 1200);
     }
@@ -184,7 +191,15 @@ export default function LoginPage({ onLogin, onBack }) {
 
   const handleKey = (e) => { if (e.key === "Enter") handleSubmit(); };
 
-  const switchMode = (m) => { setMode(m); setErrors({}); setPlanChoice(null); setForm({ name:"", email:"", password:"", confirm:"" }); };
+  const switchMode = (m) => {
+    setMode(m);
+    if (m === "signup" && !signupStartTracked.current) {
+      signupStartTracked.current = true;
+      trackEvent("signup_started", { method:"email", source:"login_tab" });
+    }
+    setErrors({});
+    setForm({ name:"", email:"", password:"", confirm:"" });
+  };
 
   /* ── Success screen ── */
   if (success) return (
@@ -218,7 +233,7 @@ export default function LoginPage({ onLogin, onBack }) {
 
         {/* Logo */}
         <div className="login-logo">
-          <div className="login-logo-icon">F</div>
+          <img className="login-logo-icon" src="/fatura-mark.svg" alt="" width="36" height="36" />
           <div className="login-logo-text">Fatūra</div>
         </div>
 
@@ -235,32 +250,6 @@ export default function LoginPage({ onLogin, onBack }) {
           <div className={`login-tab ${mode==="login" ? "active" : ""}`} onClick={() => switchMode("login")}>Sign In</div>
           <div className={`login-tab ${mode==="signup" ? "active" : ""}`} onClick={() => switchMode("signup")}>Sign Up</div>
         </div>
-
-        {mode === "signup" && !planChoice && (
-          <div style={{ position:"fixed", inset:0, background:"rgba(8,8,14,0.97)", zIndex:300, display:"flex", alignItems:"center", justifyContent:"center", padding:16, overflowY:"auto" }}>
-            <div style={{ maxWidth:430, width:"100%" }}>
-              <div style={{ fontFamily:"Playfair Display, serif", fontSize:24, color:"#e8e4dc", textAlign:"center", marginBottom:6 }}>Choose your plan</div>
-              <div style={{ fontSize:13, color:"#9a9690", textAlign:"center", marginBottom:20 }}>Start free or with a 7-day trial. Upgrade or change anytime.</div>
-              {[
-                { id:"free", name:"Free", price:"€0", desc:"20 invoices · 5 clients · PDF export · free forever" },
-                { id:"pro", name:"Pro", price:"€9/mo", desc:"Unlimited invoices & clients · WhatsApp reminders · PDF · 7-day free trial", star:true },
-                { id:"business", name:"Business", price:"€19/mo", desc:"Everything in Pro + team (5), quotes, recurring invoices, VAT reports · 7 days free" },
-              ].map(pl => (
-                <div key={pl.id} onClick={() => { if (pl.id === "free") { localStorage.removeItem("fatura_intent_plan"); } else { localStorage.setItem("fatura_intent_plan", pl.id); } setPlanChoice(pl.id); }}
-                  style={{ background:"#111118", border: pl.star ? "1.5px solid #c9a84c" : "1px solid rgba(255,255,255,0.12)", borderRadius:12, padding:"16px 18px", marginBottom:12, cursor:"pointer" }}>
-                  <div style={{ display:"flex", justifyContent:"space-between", marginBottom:4 }}>
-                    <span style={{ color:"#e8e4dc", fontWeight:600, fontSize:15 }}>{pl.name}{pl.star ? " ⭐" : ""}</span>
-                    <span style={{ color:"#c9a84c", fontWeight:600, fontSize:14 }}>{pl.price}</span>
-                  </div>
-                  <div style={{ fontSize:12.5, color:"#9a9690", lineHeight:1.55 }}>{pl.desc}</div>
-                </div>
-              ))}
-              <div style={{ textAlign:"center", marginTop:6 }}>
-                <span style={{ fontSize:12.5, color:"#9a9690", cursor:"pointer", textDecoration:"underline" }} onClick={() => switchMode("login")}>Already have an account? Sign in</span>
-              </div>
-            </div>
-          </div>
-        )}
 
         {/* Name — signup only */}
         {mode === "signup" && (
@@ -346,6 +335,7 @@ export default function LoginPage({ onLogin, onBack }) {
       try {
         setLoading(true);
         const res = await loginWithGoogle();
+        if (mode === "signup") trackEvent("signup_completed", { method:"google" });
         setSuccess(true);
         setTimeout(() => onLogin(res.user), 1200);
       } catch (err) {

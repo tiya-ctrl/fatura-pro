@@ -15,6 +15,7 @@ import ApiKeys from "./ApiKeys";
 import { loadTeam, claimInvites, myTeamOwner } from "../lib/team";
 import { loadRecurring, createRecurring } from "../lib/recurring";
 import { loadExpenses } from "../lib/expenses";
+import { trackEvent } from "../lib/tracking";
 
 const FONTS = `@import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600;700&family=DM+Sans:wght@300;400;500;600&display=swap');`;
 
@@ -43,8 +44,7 @@ const STYLES = `
   .topbar-actions { display: flex; align-items: center; gap: 10px; }
   .content { padding: 28px; }
   .logo { padding: 0 24px 32px; display: flex; align-items: center; gap: 10px; }
-  .logo-icon { width: 34px; height: 34px; background: var(--gold); border-radius: 8px;
-    display: flex; align-items: center; justify-content: center; font-size: 16px; font-weight: 700; color: #000; }
+  .logo-icon { width: 38px; height: 38px; object-fit: contain; }
   .logo-text { font-family: 'Playfair Display', serif; font-size: 18px; color: var(--gold); letter-spacing: 0.5px; }
   .nav-section { padding: 0 12px; margin-bottom: 4px; }
   .nav-label { font-size: 10px; font-weight: 600; color: var(--text2); letter-spacing: 1.5px; text-transform: uppercase; padding: 8px 12px; }
@@ -521,9 +521,12 @@ export default function InvoiceApp({ onGoHome }) {
     if (isPro) { cb(); } else { setUpgradeFeature(feature); setShowUpgrade(true); }
   };
 
-  const openNewInvoice = () => {
+  const openNewInvoice = (source = "app") => {
     if (!isPro && invoiceOnlyCount >= 20) { setUpgradeFeature("unlimited_invoices"); setShowUpgrade(true); }
-    else setShowNewInvoice(true);
+    else {
+      trackEvent("invoice_started", { source, is_first_invoice:invoiceOnlyCount === 0 });
+      setShowNewInvoice(true);
+    }
   };
 
   const handleNewInvoiceClose = (draftData) => {
@@ -570,6 +573,7 @@ export default function InvoiceApp({ onGoHome }) {
     if (!user) return;
     const row = { id: inv.id, user_id: ownerId || user.id, created_by: user.email, client: inv.client, email: inv.email, seller_name: inv.sellerName, seller_email: inv.sellerEmail, seller_phone: inv.sellerPhone, seller_vat: inv.sellerVat || null, seller_address: inv.sellerAddress, seller_country: inv.sellerCountry || null, buyer_phone: inv.buyerPhone, buyer_address: inv.buyerAddress, buyer_country: inv.buyerCountry || null, date: inv.date, due: inv.due, status: inv.status, amount: inv.amount, subtotal: inv.subtotal, discount_amt: inv.discountAmt, tax_amt: inv.taxAmt, total: inv.total, tax: inv.tax, discount: inv.discount, deposit_pct: Number(inv.depositPct) || null, notes: inv.notes, bank_info: inv.bankInfo, currency: inv.currency, items: inv.items };
     await supabase.from("invoices").insert(row);
+    trackEvent("invoice_created", { currency:inv.currency || currency, is_first_invoice:invoiceOnlyCount === 0 });
     setInvoices(prev => [inv, ...prev]); setInvoiceDraft(null); setShowNewInvoice(false);
   };
   const updateInvoice = async (inv) => {
@@ -748,7 +752,7 @@ export default function InvoiceApp({ onGoHome }) {
         <div className={"sidebar-overlay" + (sidebarOpen ? " open" : "")} onClick={() => setSidebarOpen(false)} />
         <aside className={"sidebar" + (sidebarOpen ? " open" : "")}>
           <div className="logo" onClick={onGoHome} style={{ cursor: onGoHome ? "pointer" : "default" }}>
-            <div className="logo-icon">F</div>
+            <img className="logo-icon" src="/fatura-mark.svg" alt="" width="38" height="38" />
             <div className="logo-text">Fatūra</div>
           </div>
           <div className="nav-section">
@@ -853,7 +857,7 @@ export default function InvoiceApp({ onGoHome }) {
           </div>
 
           <div className="content">
-            {page === "dashboard" && <Dashboard onCreditNote={createCreditNote} onRecordPayment={recordPaymentGated} invoices={invoicesWithStatus} totalRevenue={totalRevenue} totalPending={totalPending} totalOverdue={totalOverdue} totalCredited={totalCredited} setPage={setPage} setPreviewInvoice={setPreviewInvoice} onEdit={setEditingInvoice} onRemind={(inv) => requirePro("reminders", () => setReminderInvoice(inv))} f={f} />}
+            {page === "dashboard" && <Dashboard onCreateInvoice={() => openNewInvoice("onboarding_dashboard")} onCreditNote={createCreditNote} onRecordPayment={recordPaymentGated} invoices={invoicesWithStatus} totalRevenue={totalRevenue} totalPending={totalPending} totalOverdue={totalOverdue} totalCredited={totalCredited} setPage={setPage} setPreviewInvoice={setPreviewInvoice} onEdit={setEditingInvoice} onRemind={(inv) => requirePro("reminders", () => setReminderInvoice(inv))} f={f} />}
             {page === "invoices" && <Invoices invoices={filteredInvoices} filterStatus={filterStatus} setFilterStatus={setFilterStatus} search={search} setSearch={setSearch} onPreview={setPreviewInvoice} onDelete={deleteInvoice} onNew={openNewInvoice} onEdit={setEditingInvoice} onRemind={(inv) => requirePro("reminders", () => setReminderInvoice(inv))} remindersLog={remindersLog} f={f} isPro={isPro} onUpgrade={(feat) => { setUpgradeFeature(feat); setShowUpgrade(true); }} hasDraft={!!invoiceDraft} onOpenDraft={openNewInvoice} onDiscardDraft={discardDraft} onMarkPaid={markAsPaid} onCreditNote={createCreditNote} onRecordPayment={recordPaymentGated} onMakeRecurring={hasBusinessAccess(plan) ? async (inv) => { const choice = window.prompt("Repeat this invoice:\n\n1 = Weekly\n2 = Every 2 weeks\n3 = Monthly\n4 = Yearly\n\nType a number:", "3"); const freqMap = { "1": "weekly", "2": "biweekly", "3": "monthly", "4": "yearly" }; const freq = freqMap[(choice || "").trim()]; if (!freq) return; const ok = await createRecurring(inv, freq, userId); if (ok) { loadRecurring(userId).then(setRecurring); const { nextDate } = require("../lib/recurring"); alert("✓ Recurring activated (" + freq + ")\nNext invoice: " + nextDate(new Date(), freq).toISOString().split("T")[0] + "\nManage it in Settings → Recurring invoices."); } } : () => { setUpgradeIntent("business"); setUpgradeFeature("recurring"); setShowUpgrade(true); }} />}
               {page === "quotes" && (hasBusinessAccess(plan) || isTeamMember) && <Quotes quotes={quotes} setQuotes={setQuotes} userId={ownerId || userId} f={f} sellerDefaults={{ currency }} onConvert={(q) => { const { quoteToInvoice } = require("../lib/quotes"); const inv = quoteToInvoice(q, "INV-" + String(invoices.length + 1).padStart(3, "0") + "-" + Date.now().toString().slice(-4)); addInvoice(inv); return inv; }} />}
             {page === "expenses" && (hasBusinessAccess(plan) || isTeamMember) && <Expenses expenses={expenses} setExpenses={setExpenses} invoices={invoicesWithStatus} userId={ownerId || userId} f={f} />}
@@ -894,17 +898,18 @@ export default function InvoiceApp({ onGoHome }) {
         {showWelcome && !showUpgrade && (
           <div style={{ position:"fixed", inset:0, background:"rgba(0,0,0,0.8)", zIndex:200, display:"flex", alignItems:"center", justifyContent:"center", padding:16 }}>
             <div style={{ background:"#111118", border:"1px solid rgba(201,168,76,0.3)", borderRadius:16, padding:32, maxWidth:420, width:"100%", textAlign:"center" }}>
-              <div style={{ fontSize:36, marginBottom:12 }}>🎉</div>
-              <div style={{ fontFamily:"Playfair Display, serif", fontSize:22, color:"#e8e4dc", marginBottom:8 }}>Welcome to Fatūra Pro!</div>
-              <div style={{ fontSize:13, color:"#9a9690", lineHeight:1.7, marginBottom:20 }}>{ownerId && userId && ownerId !== userId ? <>You have joined your team on Fatūra Pro — you can now work on the team's shared invoices, clients, quotes and expenses.</> : plan === "business" ? <>Your <strong style={{ color:"#c9a84c" }}>Business plan</strong> is active — team access, quotes, recurring invoices, VAT reports and everything in Pro, all unlocked.</> : <>You have <strong style={{ color:"#c9a84c" }}>7 days free Pro access</strong> — no credit card needed. Enjoy unlimited invoices, clients, PDF export, payment reminders, and more.</>}</div>
+              <img src="/fatura-mark.svg" alt="" width="64" height="64" style={{ objectFit:"contain", marginBottom:12 }} />
+              <div style={{ fontFamily:"Playfair Display, serif", fontSize:24, color:"#e8e4dc", marginBottom:8 }}>Let’s create your first invoice.</div>
+              <div style={{ fontSize:13, color:"#9a9690", lineHeight:1.7, marginBottom:20 }}>Start with the essentials. You can refine everything later.</div>
               <div style={{ background:"rgba(201,168,76,0.1)", border:"1px solid rgba(201,168,76,0.2)", borderRadius:10, padding:"12px 16px", marginBottom:20, textAlign:"left" }}>
-                {(plan === "business" ? ["Team members (up to 5)","Quotes that convert to invoices","Automatic recurring invoices","Expenses + VAT/BTW reports","Online payments via Stripe"] : ["Unlimited invoices & clients","PDF export","Payment reminders (Email & WhatsApp)","Multi-currency support","Business profile auto-fill"]).map((f,i) => (
+                {["Add your business details","Choose or add a client","Create and preview your invoice"].map((f,i) => (
                   <div key={i} style={{ fontSize:13, color:"#e8e4dc", marginBottom:i<4?6:0, display:"flex", gap:8 }}>
-                    <span style={{ color:"#c9a84c" }}>✓</span>{f}
+                    <span style={{ color:"#c9a84c", fontWeight:700 }}>{i + 1}.</span>{f}
                   </div>
                 ))}
               </div>
-              <button onClick={() => { localStorage.setItem("fatura_welcomed_" + userId, "1"); setShowWelcome(false); }} style={{ width:"100%", padding:"12px", borderRadius:8, background:"#c9a84c", border:"none", color:"#000", fontWeight:600, fontSize:14, cursor:"pointer", fontFamily:"DM Sans, sans-serif" }}>{plan === "business" ? "Start Using Business →" : "Start Using Pro →"}</button>
+              <button onClick={() => { localStorage.setItem("fatura_welcomed_" + userId, "1"); setShowWelcome(false); openNewInvoice("welcome_modal"); }} style={{ width:"100%", padding:"12px", borderRadius:8, background:"#c9a84c", border:"none", color:"#000", fontWeight:600, fontSize:14, cursor:"pointer", fontFamily:"DM Sans, sans-serif" }}>Create my first invoice →</button>
+              <button onClick={() => { localStorage.setItem("fatura_welcomed_" + userId, "1"); setShowWelcome(false); setPage("settings"); }} style={{ marginTop:12, background:"none", border:"none", color:"#9a9690", cursor:"pointer", fontSize:12 }}>Set up business details first</button>
             </div>
           </div>
         )}
@@ -926,7 +931,7 @@ function MultiMoney({ parts, empty }) {
   );
 }
 
-function Dashboard({ invoices, totalRevenue, totalPending, totalOverdue, totalCredited, setPage, setPreviewInvoice, onEdit, onRemind, onCreditNote, onRecordPayment, f }) {
+function Dashboard({ invoices, totalRevenue, totalPending, totalOverdue, totalCredited, setPage, setPreviewInvoice, onEdit, onRemind, onCreditNote, onRecordPayment, onCreateInvoice, f }) {
   // Real figures only - no hard-coded percentages on this dashboard.
   // Credit notes live in the same list with status "paid" - they are not invoices.
   const realInvoices = invoices.filter(i => i.docType !== "credit_note");
@@ -935,6 +940,18 @@ function Dashboard({ invoices, totalRevenue, totalPending, totalOverdue, totalCr
   const newThisMonth = realInvoices.filter(i => (i.date || "").slice(0, 7) === thisMonthKey).length;
   const recent = invoices.slice(0, 5);
   const overdue = invoices.filter(i => i.status === "overdue");
+  if (realInvoices.length === 0) return (
+    <div className="card" style={{ maxWidth:820, margin:"32px auto", padding:"clamp(24px,5vw,52px)", background:"linear-gradient(135deg, rgba(201,168,76,.10), rgba(17,17,24,.92) 48%)" }}>
+      <div style={{ fontSize:11, fontWeight:800, letterSpacing:1.8, textTransform:"uppercase", color:"var(--gold)", marginBottom:14 }}>Your first 2 minutes</div>
+      <h2 style={{ fontFamily:"Playfair Display, serif", fontSize:"clamp(30px,5vw,48px)", lineHeight:1.1, marginBottom:14 }}>Turn a blank workspace into your first invoice.</h2>
+      <p style={{ color:"var(--text2)", lineHeight:1.7, maxWidth:590, marginBottom:26 }}>Add your business and client details once, then reuse them every time. No accounting setup required.</p>
+      <div style={{ display:"flex", gap:10, flexWrap:"wrap" }}>
+        <button className="btn btn-primary" onClick={onCreateInvoice}>Create my first invoice →</button>
+        <button className="btn btn-ghost" onClick={() => setPage("settings")}>Add business details</button>
+        <button className="btn btn-ghost" onClick={() => setPage("clients")}>Add a client</button>
+      </div>
+    </div>
+  );
   return (
     <>
       {overdue.length > 0 && (
@@ -1742,7 +1759,7 @@ function InvoicePreview({ invoice, onExportUBL, onClose, currency, plan }) {
     <div className="modal-overlay"> {/* إزالة خاصية الإغلاق بالنقر هنا */}
       <div className="invoice-preview-wrapper" style={{ width:"100%", maxWidth:760, maxHeight:"95vh", overflow:"auto", borderRadius:16, margin:"0 auto" }}>
         <div className="print-hide" style={{ display:"flex", justifyContent:"space-between", padding:"12px 0 16px" }}>
-          <div style={{ display:"flex", gap:8 }}><button className="btn btn-ghost btn-sm" onClick={() => window.print()}>Print / PDF</button><button className="btn btn-ghost btn-sm" title="Download as a European e-invoice (EN 16931)" onClick={() => onExportUBL && onExportUBL(invoice)}>UBL (XML)</button></div>
+          <div style={{ display:"flex", gap:8 }}><button className="btn btn-ghost btn-sm" onClick={() => { trackEvent("invoice_downloaded", { format:"pdf", invoice_status:invoice.status || "unknown" }); window.print(); }}>Print / PDF</button><button className="btn btn-ghost btn-sm" title="Download as a European e-invoice (EN 16931)" onClick={() => { trackEvent("invoice_downloaded", { format:"ubl", invoice_status:invoice.status || "unknown" }); onExportUBL && onExportUBL(invoice); }}>UBL (XML)</button></div>
           <button className="btn btn-ghost btn-sm" onClick={onClose}>Close</button>
         </div>
         <div className="invoice-preview">
