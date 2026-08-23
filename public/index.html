@@ -2,26 +2,27 @@
 <html lang="en">
   <head>
     <meta charset="utf-8" />
-    <link rel="icon" href="%PUBLIC_URL%/favicon.ico" />
+    <link rel="icon" href="%PUBLIC_URL%/fatura-mark.svg" type="image/svg+xml" />
     <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
     <style>body { padding-top: env(safe-area-inset-top); }</style>
     <meta name="theme-color" content="#c9a84c" />
-    <meta name="description" content="Create and send invoices in minutes, in 17 currencies. Export any invoice as a UBL e-invoice (EN 16931) for e-facturatie, issue credit notes, and take deposits with partial payments. Free plan, no card needed." />
-    <meta name="keywords" content="invoice software, invoice generator, UBL factuur, e-facturatie, EN 16931, factuurprogramma, creditnota, credit note, freelance invoicing, BTW aangifte, deposit invoice, multi-currency invoicing" />
+    <meta name="description" content="Multi-currency invoicing software for freelancers and small businesses working across borders. Create invoices and quotes, track payments and expenses, automate recurring billing, and export UBL XML. Free plan, no credit card." />
     <meta name="author" content="Fatūra Pro" />
 
     <!-- Open Graph -->
-    <meta property="og:title" content="Invoice Software with UBL E-Invoicing - Fat&#363;ra Pro" />
-    <meta property="og:description" content="Invoices in 17 currencies, UBL e-invoice export (EN 16931), credit notes and deposits. Built for freelancers and small businesses." />
+    <meta property="og:title" content="Multi-Currency Invoicing Software - Fat&#363;ra Pro" />
+    <meta property="og:description" content="Invoice international clients, track payments and expenses, automate repeat billing, and keep every currency clear." />
     <meta property="og:type" content="website" />
     <meta property="og:url" content="https://faturapro.app" />
-    <meta property="og:image" content="%PUBLIC_URL%/logo512.png" />
+    <meta property="og:image" content="https://faturapro.app/hero-dashboard.png" />
+    <meta property="og:image:alt" content="Fat&#363;ra Pro dashboard showing invoices, revenue and overdue payments" />
+    <meta property="og:site_name" content="Fat&#363;ra Pro" />
 
     <!-- Twitter -->
     <meta name="twitter:card" content="summary_large_image" />
-    <meta name="twitter:title" content="Invoice Software with UBL E-Invoicing - Fat&#363;ra Pro" />
-    <meta name="twitter:description" content="Invoices in 17 currencies, UBL e-invoice export, credit notes and deposits." />
-    <meta name="twitter:image" content="%PUBLIC_URL%/logo512.png" />
+    <meta name="twitter:title" content="Multi-Currency Invoicing Software - Fat&#363;ra Pro" />
+    <meta name="twitter:description" content="Invoice international clients, track payments and expenses, and automate repeat billing." />
+    <meta name="twitter:image" content="https://faturapro.app/hero-dashboard.png" />
 
     <!-- PWA -->
     <link rel="apple-touch-icon" href="%PUBLIC_URL%/logo192.png" />
@@ -31,7 +32,11 @@
     <meta name="mobile-web-app-capable" content="yes" />
 
     <link rel="manifest" href="%PUBLIC_URL%/manifest.json" />
-    <title>Invoice Software for Freelancers | UBL E-Invoicing &amp; Credit Notes - Fat&#363;ra Pro</title>
+    <link rel="canonical" href="https://faturapro.app/" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,600;0,700;1,400&amp;family=DM+Sans:wght@300;400;500;600&amp;family=DM+Mono:wght@400;500&amp;display=swap" rel="stylesheet" />
+    <title>Multi-Currency Invoicing Software for Freelancers | Fat&#363;ra Pro</title>
     <script type="application/ld+json">
 {
   "@context": "https://schema.org",
@@ -44,7 +49,7 @@
       "url": "https://faturapro.app/",
       "logo": {
         "@type": "ImageObject",
-        "url": "https://faturapro.app/logo512.png"
+        "url": "https://faturapro.app/fatura-mark.svg"
       },
       "address": {
         "@type": "PostalAddress",
@@ -83,7 +88,7 @@
       "operatingSystem": "Web browser (progressive web app) - Windows, macOS, Linux, Android, iOS",
       "browserRequirements": "Requires a modern web browser. No app store download.",
       "publisher": { "@id": "https://faturapro.app/#organization" },
-      "description": "Web-based invoicing for freelancers, small businesses and agencies. Create, send and track branded invoices, quotes and expenses, with automatic tax calculation and payment reminders.",
+      "description": "Multi-currency invoicing software for freelancers, small businesses and agencies working across borders. Create invoices and quotes, manage clients, track expenses and payments, automate recurring billing and export UBL XML.",
       "featureList": [
         "Branded PDF invoices",
         "Quotes and estimates",
@@ -112,7 +117,7 @@
           "name": "Pro",
           "price": "9",
           "priceCurrency": "EUR",
-          "description": "Unlimited invoices and clients, payment reminders, card payments."
+          "description": "Unlimited invoices and clients, payment reminders, deposits and partial payments, and UBL XML export."
         },
         {
           "@type": "Offer",
@@ -137,10 +142,10 @@
         },
         {
           "@type": "Question",
-          "name": "What is e-facturatie and do I have to use it in 2026?",
+          "name": "Does Fatura Pro send invoices through Peppol?",
           "acceptedAnswer": {
             "@type": "Answer",
-            "text": "An e-invoice is a structured file a computer can read, not a PDF. Suppliers to the Dutch public sector already have to send them, and the rules keep widening across the EU. Fatura Pro exports the UBL format that meets EN 16931, so you are ready when a client asks or when the rules reach you."
+            "text": "No. Fatura Pro exports a UBL XML file that follows EN 16931, but it is not connected to the Peppol delivery network. You download the UBL file and send it to your client yourself."
           }
         },
         {
@@ -148,7 +153,7 @@
           "name": "How do I make a credit note (creditnota)?",
           "acceptedAnswer": {
             "@type": "Answer",
-            "text": "Open the invoice and press Credit. You get a separate document with its own number, a negative amount and a reference to the original invoice, which is what the Belastingdienst expects since an issued invoice may never be deleted or edited. Credit notes are included on every plan, including Free."
+            "text": "Open the invoice and press Credit. Fatura Pro creates a separate document with its own number, a negative amount and a reference to the original invoice, so your records keep a clear correction trail. Credit notes are included on every plan, including Free."
           }
         },
         {
