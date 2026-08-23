@@ -358,6 +358,7 @@ const sumByCurrency = (list) => {
     .sort((a, b) => b.total - a.total);
 };
 const fmtMulti = (parts) => (parts || []).map((p) => fmtCurrency(p.total, p.currency)).join(" \u00b7 ");
+const clampPercent = (value) => Math.min(100, Math.max(0, Number(value) || 0));
 
 const formatDate = (dateString) => {
   if (!dateString) return "—";
@@ -1367,6 +1368,9 @@ React.useEffect(() => {
   const discountAmt = subtotal * (form.discount / 100);
   const taxAmt = (subtotal - discountAmt) * (form.tax / 100);
   const total = subtotal - discountAmt + taxAmt;
+  const depositPct = clampPercent(form.depositPct);
+  const depositAmt = total * (depositPct / 100);
+  const remainingAfterDeposit = total - depositAmt;
 
   const addItem = () => setItems(p => [...p, { desc:"", qty:1, price:0, note:"" }]);
   const updateItem = (idx, key, val) => setItems(p => p.map((it, i) => i === idx ? { ...it, [key]: val } : it));
@@ -1395,7 +1399,7 @@ React.useEffect(() => {
     const STORED_STATUSES = ["draft", "pending", "paid"];
     const prevStatus = isEdit ? (editData.status || "pending") : "pending";
     const status = STORED_STATUSES.indexOf(prevStatus) > -1 ? prevStatus : "pending";
-    onSave({ id, ...form, sellerCountry: form.sellerCountry || countryCodeFrom(form.sellerAddress), buyerCountry: form.buyerCountry || countryCodeFrom(form.buyerAddress), currency:invoiceCurrency, sellerLogoSize, buyerLogoSize, amount:total, status, items, subtotal, discountAmt, taxAmt, total });
+    onSave({ id, ...form, depositPct, sellerCountry: form.sellerCountry || countryCodeFrom(form.sellerAddress), buyerCountry: form.buyerCountry || countryCodeFrom(form.buyerAddress), currency:invoiceCurrency, sellerLogoSize, buyerLogoSize, amount:total, status, items, subtotal, discountAmt, taxAmt, total });
   };
 
   const steps = [
@@ -1483,6 +1487,7 @@ React.useEffect(() => {
           buyerAddress: editData.buyerAddress || "", buyerCountry: editData.buyerCountry || "", buyerLogo: editData.buyerLogo || null,
           date: editData.date || new Date().toISOString().split("T")[0],
           due: editData.due || "", tax: editData.tax ?? 20, discount: editData.discount ?? 0,
+          depositPct: editData.depositPct ?? 0,
           notes: editData.notes || "", bankInfo: editData.bankInfo || "",
         });
         setItems(editData.items?.length > 0 ? editData.items : [{ desc: "", qty: 1, price: 0 }]);
@@ -1635,13 +1640,17 @@ React.useEffect(() => {
             <button className="btn btn-ghost btn-sm" onClick={addItem} style={{ marginBottom:14 }}>+ Add Line Item</button>
             <div className="form-grid" style={{ gridTemplateColumns:"1fr 1fr", marginBottom:0 }}>
               <div className="form-group"><label>Discount (%)</label><input type="number" value={form.discount===0?"":form.discount} min={0} max={100} onChange={e => set("discount", e.target.value===""?0:+e.target.value)} placeholder="0" /></div>
-              <div className="form-group"><label>Deposit / upfront (%)</label><input type="number" value={form.depositPct===0?"":form.depositPct} min={0} max={100} placeholder="e.g. 50" onChange={e => set("depositPct", e.target.value==="" ? 0 : +e.target.value)} /></div><div className="form-group"><label>Tax / VAT (%)</label><input type="number" value={form.tax===0?"":form.tax} min={0} onChange={e => set("tax", e.target.value===""?0:+e.target.value)} placeholder="20" /></div>
+              <div className="form-group"><label>Deposit / upfront (%)</label><input type="number" value={form.depositPct===0?"":form.depositPct} min={0} max={100} placeholder="e.g. 50" onChange={e => set("depositPct", e.target.value==="" ? 0 : clampPercent(e.target.value))} /></div><div className="form-group"><label>Tax / VAT (%)</label><input type="number" value={form.tax===0?"":form.tax} min={0} onChange={e => set("tax", e.target.value===""?0:+e.target.value)} placeholder="20" /></div>
             </div>
             <div className="totals-box" style={{ marginTop:12 }}>
               <div className="totals-row"><span>Subtotal</span><span>{fLocal(subtotal)}</span></div>
               {form.discount > 0 && <div className="totals-row" style={{ color:"var(--green)" }}><span>Discount ({form.discount}%)</span><span>-{fLocal(discountAmt)}</span></div>}
               <div className="totals-row"><span>Tax ({form.tax}%)</span><span>{fLocal(taxAmt)}</span></div>
-              <div className="totals-row grand"><span>Total</span><span>{fLocal(total)}</span></div>
+              <div className={"totals-row" + (depositPct > 0 ? "" : " grand")}><span>{depositPct > 0 ? "Invoice total" : "Total"}</span><span>{fLocal(total)}</span></div>
+              {depositPct > 0 && <>
+                <div className="totals-row grand" style={{ gap:20 }}><span>Deposit due now ({depositPct}%)</span><span style={{ whiteSpace:"nowrap", marginLeft:12 }}>{fLocal(depositAmt)}</span></div>
+                <div className="totals-row"><span>Remaining after deposit</span><span>{fLocal(remainingAfterDeposit)}</span></div>
+              </>}
             </div>
           </div>
         )}
@@ -1674,8 +1683,16 @@ React.useEffect(() => {
                 <span style={{ fontWeight:700, color:"var(--gold)" }}>{invoiceCurrency} ({curInfo.symbol})</span>
               </div>
               <div style={{ display:"flex", justifyContent:"space-between", fontSize:16, fontWeight:700, marginTop:8, paddingTop:8, borderTop:"1px solid var(--border)" }}>
-                <span>Total Due</span><span style={{ color:"var(--gold)" }}>{fLocal(total)}</span>
+                <span>{depositPct > 0 ? "Invoice total" : "Total due"}</span><span style={{ color:"var(--gold)" }}>{fLocal(total)}</span>
               </div>
+              {depositPct > 0 && <>
+                <div style={{ display:"flex", justifyContent:"space-between", fontSize:14, fontWeight:700, marginTop:8 }}>
+                  <span>Deposit due now ({depositPct}%)</span><span style={{ color:"var(--gold)" }}>{fLocal(depositAmt)}</span>
+                </div>
+                <div style={{ display:"flex", justifyContent:"space-between", fontSize:13, marginTop:5 }}>
+                  <span style={{ color:"var(--text2)" }}>Remaining after deposit</span><span style={{ fontWeight:600 }}>{fLocal(remainingAfterDeposit)}</span>
+                </div>
+              </>}
             </div>
           </div>
         )}
@@ -1754,6 +1771,10 @@ function InvoicePreview({ invoice, onExportUBL, onClose, currency, plan }) {
   const total = invoice.total != null ? invoice.total : invoice.amount * 1.2;
   const tax = invoice.tax != null ? invoice.tax : 20;
   const discount = invoice.discount != null ? invoice.discount : 0;
+  const depositPct = clampPercent(invoice.depositPct);
+  const paidAmount = Math.max(0, Number(invoice.paidAmount) || 0);
+  const depositAmt = total * (depositPct / 100);
+  const remainingAfterDeposit = total - depositAmt;
 
   return (
     <div className="modal-overlay"> {/* إزالة خاصية الإغلاق بالنقر هنا */}
@@ -1838,7 +1859,17 @@ function InvoicePreview({ invoice, onExportUBL, onClose, currency, plan }) {
                 <div className="preview-total-row"><span>Subtotal</span><span>{f(subtotal)}</span></div>
                 {discountAmt > 0 && <div className="preview-total-row" style={{ color:"#2d8c65" }}><span>Discount ({discount}%)</span><span>- {f(discountAmt)}</span></div>}
                 <div className="preview-total-row"><span>Tax ({tax}%)</span><span>{f(taxAmt)}</span></div>
-                <div className="preview-total-row grand"><span>Total Due</span><span>{f(total)}</span></div>{(Number(invoice.depositPct) || 0) > 0 && (Number(invoice.paidAmount) || 0) === 0 && <><div className="preview-total-row"><span>Deposit due now ({Number(invoice.depositPct)}%)</span><span>{f(total * Number(invoice.depositPct) / 100)}</span></div><div className="preview-total-row"><span>Remaining on completion</span><span>{f(total - total * Number(invoice.depositPct) / 100)}</span></div></>}{(Number(invoice.paidAmount) || 0) > 0 && <><div className="preview-total-row"><span>Paid</span><span>{f(Number(invoice.paidAmount) || 0)}</span></div><div className="preview-total-row grand"><span>Balance due</span><span>{f(Math.max(0, Math.abs(total) - (Number(invoice.paidAmount) || 0)))}</span></div></>}
+                <div className={"preview-total-row" + (depositPct === 0 && paidAmount === 0 ? " grand" : "")}>
+                  <span>{depositPct > 0 || paidAmount > 0 ? "Invoice total" : "Total due"}</span><span>{f(total)}</span>
+                </div>
+                {depositPct > 0 && paidAmount === 0 && <>
+                  <div className="preview-total-row grand" style={{ gap:20 }}><span>Deposit due now ({depositPct}%)</span><span style={{ whiteSpace:"nowrap", marginLeft:12 }}>{f(depositAmt)}</span></div>
+                  <div className="preview-total-row"><span>Remaining after deposit</span><span>{f(remainingAfterDeposit)}</span></div>
+                </>}
+                {paidAmount > 0 && <>
+                  <div className="preview-total-row"><span>Paid</span><span>{f(paidAmount)}</span></div>
+                  <div className="preview-total-row grand"><span>Balance due</span><span>{f(Math.max(0, Math.abs(total) - paidAmount))}</span></div>
+                </>}
               </div>
             </div>
           </div>
