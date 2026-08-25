@@ -99,7 +99,7 @@ export default function Ambassadors() {
     setStatus("submitting");
     try {
       const params = new URLSearchParams(window.location.search);
-      const response = await fetch("/api/ambassador-apply", {
+      const response = await fetch("/api/waitlist-confirm?intent=ambassador", {
         method:"POST",
         headers:{ "Content-Type":"application/json" },
         body:JSON.stringify({
