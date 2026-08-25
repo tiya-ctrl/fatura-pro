@@ -1,6 +1,7 @@
 import { useState, useRef, useEffect } from "react";
 import { BUSINESS_ENABLED } from "../lib/businessPlan";
 import { trackEvent } from "../lib/tracking";
+import { storeReferralCode } from "../lib/referrals";
 
 /* ─── FONTS & GLOBAL ─────────────────────────────────────────── */
 const FONTS = ``;
@@ -217,6 +218,26 @@ section { padding:100px 24px; }
 .price-feature-check { color:var(--green); font-size:14px; flex-shrink:0; margin-top:1px; }
 .price-feature-x { color:var(--text3); font-size:14px; flex-shrink:0; margin-top:1px; }
 .price-cta { width:100%; margin-top:28px; justify-content:center; }
+/* referral loop */
+.referral-shell {
+  position:relative; overflow:hidden; display:grid; grid-template-columns:minmax(0,1.05fr) minmax(360px,.95fr);
+  gap:64px; align-items:center; padding:58px; border:1px solid rgba(201,168,76,.28); border-radius:28px;
+  background:linear-gradient(135deg,rgba(201,168,76,.13),rgba(15,15,23,.96) 46%,rgba(24,19,29,.96));
+  box-shadow:0 28px 80px rgba(0,0,0,.28);
+}
+.referral-shell::after { content:"03"; position:absolute; right:-6px; top:-72px; font-family:'Playfair Display',serif; font-size:230px; font-weight:700; color:rgba(201,168,76,.045); pointer-events:none; }
+.referral-copy,.referral-steps { position:relative; z-index:1; }
+.referral-copy .section-sub { max-width:620px; }
+.referral-location { display:inline-flex; align-items:center; gap:9px; margin:24px 0 30px; padding:9px 13px; border:1px solid var(--border); border-radius:999px; background:rgba(8,8,14,.48); color:var(--text2); font-size:12px; }
+.referral-location strong { color:var(--gold-l); }
+.referral-actions { display:flex; align-items:center; gap:14px; flex-wrap:wrap; }
+.referral-fineprint { color:var(--text3); font-size:11px; line-height:1.5; }
+.referral-steps { display:grid; gap:12px; }
+.referral-step { display:grid; grid-template-columns:42px minmax(0,1fr) auto; gap:14px; align-items:center; padding:18px; border:1px solid var(--border2); border-radius:15px; background:rgba(8,8,14,.64); }
+.referral-step-num { width:42px; height:42px; display:flex; align-items:center; justify-content:center; border-radius:50%; border:1px solid var(--border); background:var(--gold-dim); color:var(--gold); font-family:'Playfair Display',serif; font-weight:700; }
+.referral-step strong { display:block; color:var(--text); font-size:14px; margin-bottom:3px; }
+.referral-step span { color:var(--text2); font-size:12px; line-height:1.5; }
+.referral-reward { color:var(--gold-l); font-family:'Playfair Display',serif; font-size:18px; font-weight:700; white-space:nowrap; }
 /* testimonials */
 .testi-grid { display:grid; grid-template-columns:repeat(2,1fr); gap:18px; margin-top:52px; }
 .testi-card { background:var(--bg2); border:1px solid var(--border2); border-radius:var(--radius); padding:28px; }
@@ -330,6 +351,7 @@ footer {
   .nav-links.open a { font-size:22px; color:var(--text); }
   .nav-close { position:fixed; top:20px; right:20px; background:none; border:none; color:var(--text); font-size:28px; cursor:pointer; z-index:1000; }
   .features-grid,.how-grid,.pricing-grid,.testi-grid,.audience-grid { grid-template-columns:1fr; }
+  .referral-shell { grid-template-columns:1fr; gap:38px; padding:40px; }
   .feat-card:nth-child(1),.feat-card:nth-child(6) { grid-column:span 1; }
   .fact-strip { grid-template-columns:repeat(2,1fr); }
   .fact-item { border-bottom:1px solid var(--border2); }
@@ -353,6 +375,10 @@ footer {
   footer { padding:36px 20px 24px; }
   .chat-window { right:14px; bottom:86px; width:calc(100vw - 28px); }
   .chat-btn { right:18px; bottom:20px; }
+  .referral-shell { padding:30px 22px; border-radius:20px; }
+  .referral-step { grid-template-columns:36px minmax(0,1fr); }
+  .referral-step-num { width:36px; height:36px; }
+  .referral-reward { grid-column:2; }
 }
 `;
 
@@ -425,6 +451,7 @@ const PLANS = [
 
 
 const FAQS = [
+  { q:"Does Fatūra Pro have a referral program?", a:"Yes. Open Settings and choose Earn Pro to copy your personal referral link. A friend who joins through it receives 7 extra Pro days after creating their first valid invoice. Every three activated friends earn you 30 Pro days; paid subscribers can bank those days for later." },
   { q:"Can I create a UBL invoice with Fatura Pro?", a:"Yes. Every invoice can be exported as a UBL XML file that follows the European EN 16931 standard, the same format used for e-facturatie in the Netherlands and across the EU. Your client imports the file into their accounting software instead of typing your invoice over by hand. Credit notes are exported too, as document type 381 with a reference to the original invoice." },
   { q:"Does Fatura Pro send invoices through Peppol?", a:"No. Fatura Pro exports a UBL XML file that follows EN 16931, but it is not connected to the Peppol delivery network. You download the UBL file and send it to your client yourself." },
   { q:"How do I make a credit note (creditnota)?", a:"Open the invoice and press Credit. Fatura Pro creates a separate document with its own number, a negative amount and a reference to the original invoice, so your records keep a clear correction trail. Credit notes are included on every plan, including Free." },
@@ -816,6 +843,48 @@ function WhyDifferent() {
   );
 }
 
+function ReferralSection({ onOpenApp }) {
+  const start = () => {
+    trackEvent("landing_referral_cta_clicked", { placement:"referral_section" });
+    onOpenApp({ signup:true, source:"referral_program" });
+  };
+
+  return (
+    <section id="referrals" aria-labelledby="referral-title">
+      <div className="container">
+        <div className="referral-shell">
+          <div className="referral-copy">
+            <div className="section-tag">Built into your account</div>
+            <h2 className="section-title" id="referral-title">Share good invoicing.<br /><em style={{ color:"var(--gold)", fontStyle:"italic" }}>Earn Pro together.</em></h2>
+            <p className="section-sub">Invite people who would genuinely use Fatūra Pro. Your friend receives 7 extra Pro days after their first real invoice, and every three activated friends earn you 30 Pro days.</p>
+            <div className="referral-location"><span aria-hidden="true">✦</span><span>Find your personal link inside <strong>Settings → Earn Pro</strong></span></div>
+            <div className="referral-actions">
+              <button className="btn btn-gold btn-lg" onClick={start}>Start free &amp; get your link →</button>
+              <span className="referral-fineprint">No credit card required.<br />Only genuine activated accounts count.</span>
+            </div>
+          </div>
+          <div className="referral-steps" aria-label="How referral rewards work">
+            <div className="referral-step">
+              <div className="referral-step-num">1</div>
+              <div><strong>Share your personal link</strong><span>Copy it from Settings or send it directly on WhatsApp.</span></div>
+            </div>
+            <div className="referral-step">
+              <div className="referral-step-num">2</div>
+              <div><strong>Your friend creates a real invoice</strong><span>The reward activates only after meaningful use.</span></div>
+              <div className="referral-reward">+7 days</div>
+            </div>
+            <div className="referral-step">
+              <div className="referral-step-num">3</div>
+              <div><strong>Three active friends unlock Pro</strong><span>If you already subscribe, your earned days stay banked.</span></div>
+              <div className="referral-reward">+30 days</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+  );
+}
+
 function FAQ() {
   const [open, setOpen] = useState(null);
   return (
@@ -869,7 +938,7 @@ function CTASection({ onOpenApp }) {
 
 function Footer({ onOpenApp }) {
   const columns = [
-    { title:"Product", links:[["#product","Multi-currency invoicing"],["#how","How it works"],["#pricing","Pricing"],["/invoice-generator","Free invoice generator"],["/api-docs","API documentation"]] },
+    { title:"Product", links:[["#product","Multi-currency invoicing"],["#how","How it works"],["#pricing","Pricing"],["#referrals","Referral rewards"],["/invoice-generator","Free invoice generator"],["/api-docs","API documentation"]] },
     { title:"Solutions", links:[["/for-freelancers","For freelancers"],["/for-agencies","For agencies & teams"],["/ubl-factuur-maken","UBL invoice export"],["/nl","Nederlands factuurprogramma"]] },
     { title:"Resources", links:[["/blog","Invoicing guides"],["/late-payment-scripts","Late-payment scripts"],["/blog/how-to-create-ubl-invoice-en16931","UBL invoice guide"],["/blog/how-to-create-professional-invoice","Professional invoice guide"]] },
     { title:"Company", links:[["mailto:support@faturapro.app","Contact support"],["/privacy","Privacy policy"],["/terms","Terms of service"],["https://x.com/Faturapro","Follow on X"]] },
@@ -1005,6 +1074,19 @@ function Chatbot() {
 }
 
 export default function LandingPage({ onOpenApp, onSignIn }) {
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const referralCode = params.get("ref");
+    if (storeReferralCode(referralCode)) {
+      trackEvent("referral_link_landing_viewed", { campaign:"member_referral" });
+    }
+    if (params.get("utm_source") !== "invoice") return;
+    trackEvent("invoice_referral_landing_viewed", {
+      medium:(params.get("utm_medium") || "footer").slice(0, 40),
+      campaign:(params.get("utm_campaign") || "made_with_fatura_pro").slice(0, 64),
+    });
+  }, []);
+
   return (
     <>
       <style>{FONTS + GLOBAL}</style>
@@ -1017,6 +1099,7 @@ export default function LandingPage({ onOpenApp, onSignIn }) {
       <WhyDifferent />
       <Pricing onOpenApp={onOpenApp} />
       <InstallApp />
+      <ReferralSection onOpenApp={onOpenApp} />
       <FAQ />
       <CTASection onOpenApp={onOpenApp} />
       <Footer onOpenApp={onOpenApp} />
