@@ -1,4 +1,7 @@
 import { useState, useEffect } from "react";
+import { trackEvent } from "../lib/tracking";
+
+const INVOICE_ATTRIBUTION_URL = "https://faturapro.app/?utm_source=invoice&utm_medium=footer&utm_campaign=free_invoice_generator";
 
 const CURRENCIES = [
   { code: "EUR", symbol: "€" }, { code: "USD", symbol: "$" }, { code: "GBP", symbol: "£" },
@@ -127,11 +130,13 @@ export default function InvoiceGenerator() {
                 </div>
               </div>
               <div style={{ borderTop:"1px solid #eee", marginTop:26, paddingTop:12, textAlign:"center", fontSize:10, letterSpacing:0.6, color:"#b3aea4" }}>
-                Created with Fatūra · faturapro.app
+                <a href={INVOICE_ATTRIBUTION_URL} target="_blank" rel="noreferrer" onClick={() => trackEvent("invoice_brand_link_clicked", { placement:"free_generator_footer", plan:"generator" })} style={{ color:"#9d8647", fontWeight:700, textDecoration:"none" }}>
+                  Made with Fatūra Pro ↗
+                </a>
               </div>
             </div>
 
-            <button className="gen-noprint" onClick={() => window.print()} style={{ width:"100%", marginTop:16, padding:"14px 20px", borderRadius:11, background:"linear-gradient(135deg,#f0d878,#c9a84c)", color:"#0a0a0f", fontWeight:700, fontSize:15, border:"none", cursor:"pointer", fontFamily:"DM Sans, sans-serif" }}>
+            <button className="gen-noprint" onClick={() => { trackEvent("free_generator_pdf_downloaded", { has_items:items.some(item => item.desc || Number(item.price) > 0) }); window.print(); }} style={{ width:"100%", marginTop:16, padding:"14px 20px", borderRadius:11, background:"linear-gradient(135deg,#f0d878,#c9a84c)", color:"#0a0a0f", fontWeight:700, fontSize:15, border:"none", cursor:"pointer", fontFamily:"DM Sans, sans-serif" }}>
               Download PDF
             </button>
             <div className="gen-noprint" style={{ fontSize:11.5, color:"#5a5750", textAlign:"center", marginTop:8, lineHeight:1.7 }}>
