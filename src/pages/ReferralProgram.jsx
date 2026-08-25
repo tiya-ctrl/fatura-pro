@@ -27,6 +27,8 @@ const CSS = `
   .fref-rule { display:grid; grid-template-columns:28px minmax(0,1fr); gap:10px; align-items:start; margin-top:13px; color:var(--text2); font-size:11px; line-height:1.5; }
   .fref-rule-num { width:28px; height:28px; display:flex; align-items:center; justify-content:center; border-radius:8px; color:var(--gold); background:var(--gold-dim); border:1px solid var(--border); font-weight:800; }
   .fref-note { margin-top:13px; padding:10px 12px; border-radius:9px; background:rgba(76,175,137,.09); border:1px solid rgba(76,175,137,.22); color:#7bcaa9; font-size:11px; line-height:1.5; }
+  .fref-ambassador { display:inline-flex; align-items:center; gap:7px; margin-top:16px; color:var(--text2); font-size:11px; font-weight:700; text-decoration:none; transition:color .2s; }
+  .fref-ambassador:hover { color:var(--gold-light); }
   .fref-error { color:var(--red); font-size:12px; margin-top:12px; }
   @media(max-width:800px){ .fref-card{padding:21px 18px}.fref-grid{grid-template-columns:1fr;gap:20px}.fref-linkbox{flex-wrap:wrap}.fref-linkbox .btn{width:100%;justify-content:center} }
 `;
@@ -123,6 +125,7 @@ export default function ReferralProgram({ userId, plan }) {
             {summary.bankedDays > 0 && summary.currentPlan !== "free" && <div className="fref-note">You have {summary.bankedDays} Pro days safely saved. You can use them after your paid subscription ends.</div>}
             {summary.preview && <div className="fref-note">Preview mode: live referral counts begin after this version is published.</div>}
             {error && <div className="fref-error">{error}</div>}
+            <a className="fref-ambassador" href="/ambassadors" onClick={() => trackEvent("ambassador_program_clicked", { placement:"referral_settings" })}>Build an audience or community? Apply to the Founding Ambassador Circle →</a>
           </div>
 
           <div className="fref-progress-card">
