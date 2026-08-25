@@ -127,13 +127,14 @@ const DEMO_USERS = [
 export default function LoginPage({ onLogin, onBack }) {
   const [mode,     setMode]     = useState("login"); // "login" | "signup"
   const signupStartTracked = useRef(false);
+  const signupSource = new URLSearchParams(window.location.search).get("source") || "login_tab";
   useEffect(() => {
     const sp = new URLSearchParams(window.location.search);
     if (sp.get("signup")) {
       setMode("signup");
       if (!signupStartTracked.current) {
         signupStartTracked.current = true;
-        trackEvent("signup_started", { method:"email", source:sp.get("source") || "landing" });
+        trackEvent("signup_started", { method:"email", source:signupSource });
       }
     }
     const inv = sp.get("invited");
@@ -179,7 +180,7 @@ export default function LoginPage({ onLogin, onBack }) {
       setTimeout(() => onLogin(res.user), 1200);
     } else {
       const res = await signUp(form.email, form.password);
-      trackEvent("signup_completed", { method:"email" });
+      trackEvent("signup_completed", { method:"email", source:signupSource });
       setSuccess(true);
       setTimeout(() => onLogin(res.user), 1200);
     }
@@ -195,7 +196,7 @@ export default function LoginPage({ onLogin, onBack }) {
     setMode(m);
     if (m === "signup" && !signupStartTracked.current) {
       signupStartTracked.current = true;
-      trackEvent("signup_started", { method:"email", source:"login_tab" });
+      trackEvent("signup_started", { method:"email", source:signupSource });
     }
     setErrors({});
     setForm({ name:"", email:"", password:"", confirm:"" });
@@ -335,7 +336,7 @@ export default function LoginPage({ onLogin, onBack }) {
       try {
         setLoading(true);
         const res = await loginWithGoogle();
-        if (mode === "signup") trackEvent("signup_completed", { method:"google" });
+        if (mode === "signup") trackEvent("signup_completed", { method:"google", source:signupSource });
         setSuccess(true);
         setTimeout(() => onLogin(res.user), 1200);
       } catch (err) {

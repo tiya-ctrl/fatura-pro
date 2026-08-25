@@ -23,6 +23,9 @@ import { supabase } from "./supabase";
 /* ───────── Landing ───────── */
 function LandingWrapper() {
   const navigate = useNavigate();
+  const landingParams = new URLSearchParams(window.location.search);
+  const invoiceReferral = landingParams.get("utm_source") === "invoice";
+  const memberReferral = /^FP[A-Z0-9]{8}$/i.test(landingParams.get("ref") || "");
 
   const goToApp = async (options = {}) => {
     const { data: { session } } = await supabase.auth.getSession();
@@ -32,7 +35,8 @@ function LandingWrapper() {
     }
     const params = new URLSearchParams();
     if (options.signup) params.set("signup", "1");
-    if (options.source) params.set("source", options.source);
+    const source = memberReferral ? "referral_link" : invoiceReferral ? "invoice_footer" : options.source;
+    if (source) params.set("source", source);
     navigate("/login" + (params.toString() ? `?${params}` : ""));
   };
   return <LandingPage onOpenApp={goToApp} onSignIn={goToApp} />;
