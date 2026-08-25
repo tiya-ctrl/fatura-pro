@@ -12,12 +12,15 @@ import Analytics from "./Analytics";
 import RecurringList from "./RecurringList";
 import TeamMembers from "./TeamMembers";
 import ApiKeys from "./ApiKeys";
+import ReferralProgram from "./ReferralProgram";
 import { loadTeam, claimInvites, myTeamOwner } from "../lib/team";
 import { loadRecurring, createRecurring } from "../lib/recurring";
 import { loadExpenses } from "../lib/expenses";
 import { trackEvent } from "../lib/tracking";
+import { activateReferral, claimStoredReferral } from "../lib/referrals";
 
 const FONTS = `@import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600;700&family=DM+Sans:wght@300;400;500;600&display=swap');`;
+const INVOICE_ATTRIBUTION_URL = "https://faturapro.app/?utm_source=invoice&utm_medium=footer&utm_campaign=made_with_fatura_pro";
 
 const STYLES = `
   * { box-sizing: border-box; margin: 0; padding: 0; }
@@ -56,6 +59,8 @@ const STYLES = `
   .nav-item .icon { font-size: 17px; width: 22px; text-align: center; }
   .nav-badge { margin-left: auto; background: var(--gold); color: #000; font-size: 10px; font-weight: 700; border-radius: 10px; padding: 2px 7px; }
   .sidebar-footer { margin-top: auto; padding: 16px 24px; border-top: 1px solid var(--border); }
+  .referral-nav-card { width:100%; display:flex; align-items:center; justify-content:space-between; gap:9px; margin-bottom:11px; padding:10px 12px; border-radius:9px; border:1px solid rgba(201,168,76,.25); background:linear-gradient(120deg,rgba(201,168,76,.14),var(--bg3)); color:var(--text); cursor:pointer; font-family:'DM Sans',sans-serif; font-size:11px; font-weight:700; text-align:left; }
+  .referral-nav-card:hover { border-color:var(--gold); color:var(--gold); }
   .plan-badge { background: var(--gold-dim); border: 1px solid var(--border); border-radius: 8px; padding: 10px 14px; }
   .plan-name { font-size: 11px; color: var(--gold); font-weight: 600; letter-spacing: 0.5px; }
   .plan-info { font-size: 11px; color: var(--text2); margin-top: 2px; }
@@ -84,6 +89,45 @@ const STYLES = `
   .btn-sm { padding: 6px 11px; font-size: 11px; }
   .btn-danger { background: rgba(224,85,85,0.15); color: var(--red); border: 1px solid rgba(224,85,85,0.3); }
   .btn-danger:hover { background: rgba(224,85,85,0.25); }
+  .dashboard-command { position: relative; overflow: hidden; display: grid; grid-template-columns: minmax(0, 1fr) auto;
+    align-items: end; gap: 24px; padding: 26px 28px; margin-bottom: 18px; border: 1px solid rgba(201,168,76,0.24);
+    border-radius: 16px; background: linear-gradient(120deg, rgba(201,168,76,0.13), rgba(17,17,24,0.96) 44%, rgba(31,31,40,0.9)); }
+  .dashboard-command:after { content: ""; position: absolute; width: 210px; height: 210px; border-radius: 50%;
+    right: -70px; top: -120px; border: 1px solid rgba(201,168,76,0.24); box-shadow: 0 0 0 28px rgba(201,168,76,0.035), 0 0 0 58px rgba(201,168,76,0.025); }
+  .dashboard-command-main, .dashboard-command-actions { position: relative; z-index: 1; }
+  .dashboard-kicker { display: flex; align-items: center; gap: 8px; color: var(--gold); font-size: 10px; font-weight: 800;
+    letter-spacing: 1.8px; text-transform: uppercase; margin-bottom: 9px; }
+  .dashboard-kicker:before { content: ""; width: 22px; height: 1px; background: var(--gold); }
+  .dashboard-command h1 { font-family: 'Playfair Display', serif; font-size: clamp(25px, 3.4vw, 38px); line-height: 1.08; margin-bottom: 8px; max-width: 660px; }
+  .dashboard-command p { color: var(--text2); font-size: 13px; line-height: 1.65; max-width: 680px; }
+  .dashboard-command-actions { display: flex; gap: 8px; flex-wrap: wrap; justify-content: flex-end; }
+  .activation-shell { display: grid; grid-template-columns: minmax(0, 1.15fr) minmax(280px, 0.85fr); gap: 16px; max-width: 1040px; margin: 24px auto; }
+  .activation-hero { min-height: 390px; padding: clamp(26px, 5vw, 48px); display: flex; flex-direction: column; justify-content: space-between;
+    border: 1px solid rgba(201,168,76,0.28); border-radius: 16px; background: linear-gradient(145deg, rgba(201,168,76,0.15), rgba(17,17,24,0.96) 53%); position: relative; overflow: hidden; }
+  .activation-hero:after { content: "01"; position: absolute; right: 24px; bottom: -32px; font-family: 'Playfair Display', serif;
+    font-size: 150px; line-height: 1; font-weight: 700; color: rgba(201,168,76,0.055); pointer-events: none; }
+  .activation-hero h1 { font-family: 'Playfair Display', serif; font-size: clamp(32px, 5vw, 54px); line-height: 1.02; max-width: 610px; margin: 8px 0 16px; }
+  .activation-hero p { color: var(--text2); line-height: 1.75; font-size: 14px; max-width: 570px; }
+  .activation-actions { display: flex; flex-wrap: wrap; gap: 9px; margin-top: 28px; position: relative; z-index: 1; }
+  .quickstart-card { padding: 24px; border-radius: 16px; background: var(--bg2); border: 1px solid var(--border); }
+  .quickstart-head { display: flex; align-items: flex-start; justify-content: space-between; gap: 14px; margin-bottom: 18px; }
+  .quickstart-title { font-family: 'Playfair Display', serif; font-size: 20px; margin-bottom: 4px; }
+  .quickstart-sub { font-size: 12px; color: var(--text2); line-height: 1.5; }
+  .quickstart-progress { flex: 0 0 auto; min-width: 52px; padding: 7px 9px; border-radius: 999px; background: var(--gold-dim);
+    color: var(--gold); border: 1px solid var(--border); text-align: center; font-size: 11px; font-weight: 800; }
+  .quickstart-list { display: flex; flex-direction: column; gap: 9px; }
+  .quickstart-step { width: 100%; display: grid; grid-template-columns: 32px minmax(0, 1fr) auto; align-items: center; gap: 11px;
+    padding: 12px; border-radius: 10px; border: 1px solid var(--border); background: var(--bg3); color: var(--text); text-align: left;
+    cursor: pointer; font-family: 'DM Sans', sans-serif; transition: border-color .18s, background .18s, transform .18s; }
+  .quickstart-step:hover { border-color: var(--gold); background: var(--bg4); transform: translateX(2px); }
+  .quickstart-step.done { cursor: default; opacity: .76; }
+  .quickstart-step.done:hover { border-color: var(--border); background: var(--bg3); transform: none; }
+  .quickstart-number { width: 32px; height: 32px; display: flex; align-items: center; justify-content: center; border-radius: 9px;
+    background: rgba(201,168,76,.12); color: var(--gold); border: 1px solid rgba(201,168,76,.24); font-size: 12px; font-weight: 800; }
+  .quickstart-step.done .quickstart-number { background: rgba(76,175,137,.12); color: var(--green); border-color: rgba(76,175,137,.28); }
+  .quickstart-copy strong { display: block; font-size: 13px; margin-bottom: 2px; }
+  .quickstart-copy span { display: block; color: var(--text2); font-size: 11px; line-height: 1.35; }
+  .quickstart-arrow { color: var(--gold); font-size: 16px; }
   .stats-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 14px; margin-bottom: 28px; }
   .stat-card { background: var(--bg2); border: 1px solid var(--border); border-radius: 12px; padding: 18px 20px; }
   .stat-label { font-size: 11px; color: var(--text2); font-weight: 600; letter-spacing: 0.5px; text-transform: uppercase; }
@@ -207,6 +251,8 @@ const STYLES = `
     .stats-grid { grid-template-columns: repeat(2, 1fr); }
     .clients-grid { grid-template-columns: repeat(2, 1fr); }
     .content { padding: 20px; }
+    .activation-shell { grid-template-columns: 1fr; max-width: 760px; }
+    .activation-hero { min-height: 330px; }
   }
  /* ── MOBILE (≤640px) ── */
 @media (max-width: 640px) {
@@ -230,6 +276,14 @@ const STYLES = `
 }
   .page-title { font-size: 18px; }
   .content { padding: 14px; }
+  .dashboard-command { grid-template-columns: 1fr; align-items: start; padding: 20px; gap: 18px; }
+  .dashboard-command-actions { justify-content: flex-start; }
+  .dashboard-command-actions .btn { flex: 1; }
+  .activation-shell { margin: 8px auto 18px; gap: 12px; }
+  .activation-hero { min-height: 320px; padding: 24px 20px; }
+  .activation-hero h1 { font-size: 36px; }
+  .activation-actions .btn { width: 100%; }
+  .quickstart-card { padding: 18px; }
   .stats-grid { grid-template-columns: repeat(2, 1fr); gap: 10px; margin-bottom: 18px; }
   .stat-card { padding: 14px 16px; }
   .stat-value { font-size: 20px; }
@@ -423,17 +477,24 @@ export default function InvoiceApp({ onGoHome }) {
   const [team, setTeam] = useState([]);
   const [apiKeys, setApiKeys] = useState([]);
   const [ownerId, setOwnerId] = useState(null);
+  const [businessProfileReady, setBusinessProfileReady] = useState(false);
+  const [dashboardDataLoaded, setDashboardDataLoaded] = useState(false);
+  const dashboardTracked = useRef(false);
   React.useEffect(() => {
     if (!ownerId) return;
     (async () => {
+      setDashboardDataLoaded(false);
       const { data: invData } = await supabase.from("invoices").select("*").eq("user_id", ownerId).order("created_at", { ascending: false });
       if (invData) setInvoices(invData.map(r => ({ id: r.id, createdBy: r.created_by, client: r.client, email: r.email, sellerName: r.seller_name, sellerEmail: r.seller_email, sellerPhone: r.seller_phone, sellerVat: r.seller_vat, sellerAddress: r.seller_address, sellerCountry: r.seller_country, buyerPhone: r.buyer_phone, buyerAddress: r.buyer_address, buyerCountry: r.buyer_country, date: r.date, due: r.due, status: r.status, amount: r.amount, subtotal: r.subtotal, discountAmt: r.discount_amt, taxAmt: r.tax_amt, total: r.total, tax: r.tax, discount: r.discount, depositPct: r.deposit_pct, notes: r.notes, bankInfo: r.bank_info, currency: r.currency, docType: r.doc_type, creditOf: r.credit_of, paidAmount: Number(r.paid_amount) || 0, items: r.items || [] })));
+      if (invData?.some(row => row.doc_type !== "credit_note" && Number(row.total ?? row.amount ?? 0) > 0)) activateReferral().catch(() => {});
       const { data: cliData } = await supabase.from("clients").select("*").eq("user_id", ownerId);
       if (cliData) setClients(cliData.map(c => ({ id: c.id, name: c.name, email: c.email, phone: c.phone, country: c.country })));
+      const { data: profileData } = await supabase.from("business_profile").select("name, email, address").eq("user_id", ownerId).maybeSingle();
+      setBusinessProfileReady(Boolean(profileData && profileData.name));
+      setDashboardDataLoaded(true);
     })();
   }, [ownerId]);
   const [trialEnd, setTrialEnd] = useState(null);
-  const [showWelcome, setShowWelcome] = useState(false);
 
   useEffect(() => {
     const loadPlan = async () => {
@@ -441,6 +502,9 @@ export default function InvoiceApp({ onGoHome }) {
       if (!user) return;
       setUserEmail(user.email || "");
       setUserId(user.id);
+      claimStoredReferral()
+        .then(result => { if (result?.claimed) trackEvent("referral_claimed", { status:result.status || "pending" }); })
+        .catch(() => {});
       if (window.location.search.includes("stripe=connected")) {
         const { data: { session } } = await supabase.auth.getSession();
         const vr = await fetch("/api/connect-stripe?action=verify", { method: "POST", headers: { Authorization: "Bearer " + (session?.access_token || "") } });
@@ -477,8 +541,6 @@ export default function InvoiceApp({ onGoHome }) {
       } else {
         setPlan("free");
       }
-      const isNew = !localStorage.getItem("fatura_welcomed_" + user.id);
-      if (isNew) { setShowWelcome(true); }
     };
     loadPlan();
   }, []);
@@ -530,6 +592,12 @@ export default function InvoiceApp({ onGoHome }) {
     }
   };
 
+  const openInvoicePreview = (inv, source = "app") => {
+    if (!inv) return;
+    trackEvent("invoice_previewed", { source, invoice_status:inv.status || "unknown", is_first_invoice:invoiceOnlyCount === 1 });
+    setPreviewInvoice(inv);
+  };
+
   const handleNewInvoiceClose = (draftData) => {
     if (draftData) setInvoiceDraft(draftData);
     setShowNewInvoice(false);
@@ -550,6 +618,16 @@ export default function InvoiceApp({ onGoHome }) {
   // The Free plan limit counts invoices only - a credit note is a correction,
   // it should not use up a slot.
   const invoiceOnlyCount = invoices.filter(i => i.docType !== "credit_note").length;
+  useEffect(() => {
+    if (page !== "dashboard" || !userId || !dashboardDataLoaded || dashboardTracked.current) return;
+    dashboardTracked.current = true;
+    trackEvent("dashboard_viewed", {
+      has_business_profile:businessProfileReady,
+      client_count:clients.length,
+      invoice_count:invoiceOnlyCount,
+      activation_stage:invoiceOnlyCount > 0 ? "invoice_created" : clients.length > 0 ? "client_added" : businessProfileReady ? "profile_saved" : "new_account",
+    });
+  }, [page, userId, dashboardDataLoaded, businessProfileReady, clients.length, invoiceOnlyCount]);
   const invoicesWithStatus = invoices.map(inv => {
     if (inv.docType !== "credit_note" && creditedIds[inv.id] && inv.status !== "paid" && inv.status !== "draft" && (Number(inv.paidAmount) || 0) === 0) return { ...inv, status: "cancelled" };
     const paidSoFar = Number(inv.paidAmount) || 0; const invTotal = Math.abs(Number(inv.total != null ? inv.total : inv.amount) || 0); if (paidSoFar > 0 && paidSoFar < invTotal && inv.status !== "paid" && inv.status !== "draft") return { ...inv, status: "partial" }; if (inv.status === "pending" && inv.due && inv.due < today) return { ...inv, status: "overdue" };
@@ -573,8 +651,48 @@ export default function InvoiceApp({ onGoHome }) {
     const { data: { user } } = await supabase.auth.getUser();
     if (!user) return;
     const row = { id: inv.id, user_id: ownerId || user.id, created_by: user.email, client: inv.client, email: inv.email, seller_name: inv.sellerName, seller_email: inv.sellerEmail, seller_phone: inv.sellerPhone, seller_vat: inv.sellerVat || null, seller_address: inv.sellerAddress, seller_country: inv.sellerCountry || null, buyer_phone: inv.buyerPhone, buyer_address: inv.buyerAddress, buyer_country: inv.buyerCountry || null, date: inv.date, due: inv.due, status: inv.status, amount: inv.amount, subtotal: inv.subtotal, discount_amt: inv.discountAmt, tax_amt: inv.taxAmt, total: inv.total, tax: inv.tax, discount: inv.discount, deposit_pct: Number(inv.depositPct) || null, notes: inv.notes, bank_info: inv.bankInfo, currency: inv.currency, items: inv.items };
-    await supabase.from("invoices").insert(row);
-    trackEvent("invoice_created", { currency:inv.currency || currency, is_first_invoice:invoiceOnlyCount === 0 });
+    const { error } = await supabase.from("invoices").insert(row);
+    if (error) { window.alert("Could not save this invoice.\n\n" + error.message); return; }
+
+    // The first invoice should finish setup, not create more setup work. Reuse
+    // the seller and client details entered in the wizard on future invoices.
+    const dataOwnerId = ownerId || user.id;
+    const shouldSaveProfile = !isTeamMember && !businessProfileReady && Boolean((inv.sellerName || "").trim());
+    const clientExists = clients.some(c => {
+      const sameEmail = inv.email && c.email && c.email.trim().toLowerCase() === inv.email.trim().toLowerCase();
+      const sameName = c.name && inv.client && c.name.trim().toLowerCase() === inv.client.trim().toLowerCase();
+      return sameEmail || sameName;
+    });
+    const shouldSaveClient = Boolean((inv.client || "").trim()) && !clientExists;
+    const autoClient = shouldSaveClient ? {
+      id: Date.now(), name: inv.client, email: inv.email || "", phone: inv.buyerPhone || "",
+      country: inv.buyerCountry || countryCodeFrom(inv.buyerAddress) || "",
+    } : null;
+    const [profileResult, clientResult] = await Promise.all([
+      shouldSaveProfile
+        ? supabase.from("business_profile").upsert({ user_id:dataOwnerId, name:inv.sellerName, email:inv.sellerEmail || "", phone:inv.sellerPhone || "", vat_number:inv.sellerVat || "", address:inv.sellerAddress || "", country:inv.sellerCountry || countryCodeFrom(inv.sellerAddress) || "", updated_at:new Date().toISOString() })
+        : Promise.resolve({ error:null }),
+      shouldSaveClient
+        ? supabase.from("clients").insert({ ...autoClient, user_id:dataOwnerId, invoices:0, total:0 })
+        : Promise.resolve({ error:null }),
+    ]);
+    if (shouldSaveProfile && !profileResult.error) {
+      setBusinessProfileReady(true);
+      trackEvent("onboarding_step_completed", { step:"business_profile", source:"first_invoice" });
+    }
+    if (shouldSaveClient && !clientResult.error) {
+      setClients(prev => [autoClient, ...prev]);
+      trackEvent("onboarding_step_completed", { step:"first_client", source:"first_invoice" });
+    }
+
+    const isFirstInvoice = invoiceOnlyCount === 0;
+    trackEvent("invoice_created", { currency:inv.currency || currency, is_first_invoice:isFirstInvoice });
+    if (isFirstInvoice) {
+      trackEvent("activation_completed", { milestone:"first_invoice_created" });
+      activateReferral()
+        .then(result => { if (result?.activated) trackEvent("referral_activated", { referred_bonus_days:result.referredBonusDays || 7 }); })
+        .catch(() => {});
+    }
     setInvoices(prev => [inv, ...prev]); setInvoiceDraft(null); setShowNewInvoice(false);
   };
   const updateInvoice = async (inv) => {
@@ -677,7 +795,10 @@ export default function InvoiceApp({ onGoHome }) {
   const addClient = async (c) => {
     const { data: { user } } = await supabase.auth.getUser();
     if (!user) return;
-    await supabase.from("clients").insert({ id: c.id, user_id: ownerId || user.id, name: c.name, email: c.email, phone: c.phone, country: c.country, invoices: 0, total: 0 });
+    const isFirstClient = clients.length === 0;
+    const { error } = await supabase.from("clients").insert({ id: c.id, user_id: ownerId || user.id, name: c.name, email: c.email, phone: c.phone, country: c.country, invoices: 0, total: 0 });
+    if (error) { window.alert("Could not save this client.\n\n" + error.message); return; }
+    if (isFirstClient) trackEvent("onboarding_step_completed", { step:"first_client" });
     setClients(prev => [c, ...prev]); setShowNewClient(false);
   };
   const deleteClient = async (id) => {
@@ -768,6 +889,9 @@ export default function InvoiceApp({ onGoHome }) {
             ))}
           </div>
           <div className="sidebar-footer">
+            <button className="referral-nav-card" onClick={() => { trackEvent("referral_program_opened", { placement:"sidebar" }); setPage("settings"); }}>
+              <span>✦ Earn 30 Pro days</span><span style={{ color:"var(--gold)" }}>→</span>
+            </button>
             {userEmail && (
               <div style={{ marginBottom:12, padding:"8px 12px", background:"var(--bg3)", borderRadius:8, border:"1px solid var(--border)" }}>
                 <div style={{ fontSize:10, color:"var(--text2)", fontWeight:600, letterSpacing:0.5, textTransform:"uppercase", marginBottom:2 }}>Signed in as</div>
@@ -815,14 +939,14 @@ export default function InvoiceApp({ onGoHome }) {
               </div>
             </div>
             <div className="topbar-actions">
-              {page === "invoices" && (
+              {(page === "dashboard" || page === "invoices") && (
   <>
-  {hasBusinessAccess(plan) && (
+  {page === "invoices" && hasBusinessAccess(plan) && (
       <button className="btn btn-ghost" onClick={() => exportInvoicesCSV(invoicesWithStatus)}>⬇ Export CSV</button>
     )}
     {/* Desktop button */}
     {!isMobile && (
-      <button className="btn btn-primary" onClick={openNewInvoice}>
+      <button className="btn btn-primary" onClick={() => openNewInvoice(page === "dashboard" ? "dashboard_topbar" : "invoice_list_topbar")}>
         <span className="btn-label">
           {!isPro && invoiceOnlyCount >= 20
             ? "🔒 New Invoice"
@@ -831,21 +955,6 @@ export default function InvoiceApp({ onGoHome }) {
       </button>
     )}
 
-    {/* Mobile FAB */}
-    {isMobile && (
-      <button
-        className="mobile-fab"
-        onClick={() => {
-          if (!isPro && invoiceOnlyCount >= 20) {
-            alert("Upgrade to Pro to create more invoices");
-            return;
-          }
-          openNewInvoice();
-        }}
-      >
-        +
-      </button>
-    )}
   </>
 )}
               {page === "clients" && (
@@ -858,13 +967,13 @@ export default function InvoiceApp({ onGoHome }) {
           </div>
 
           <div className="content">
-            {page === "dashboard" && <Dashboard onCreateInvoice={() => openNewInvoice("onboarding_dashboard")} onCreditNote={createCreditNote} onRecordPayment={recordPaymentGated} invoices={invoicesWithStatus} totalRevenue={totalRevenue} totalPending={totalPending} totalOverdue={totalOverdue} totalCredited={totalCredited} setPage={setPage} setPreviewInvoice={setPreviewInvoice} onEdit={setEditingInvoice} onRemind={(inv) => requirePro("reminders", () => setReminderInvoice(inv))} f={f} />}
-            {page === "invoices" && <Invoices invoices={filteredInvoices} filterStatus={filterStatus} setFilterStatus={setFilterStatus} search={search} setSearch={setSearch} onPreview={setPreviewInvoice} onDelete={deleteInvoice} onNew={openNewInvoice} onEdit={setEditingInvoice} onRemind={(inv) => requirePro("reminders", () => setReminderInvoice(inv))} remindersLog={remindersLog} f={f} isPro={isPro} onUpgrade={(feat) => { setUpgradeFeature(feat); setShowUpgrade(true); }} hasDraft={!!invoiceDraft} onOpenDraft={openNewInvoice} onDiscardDraft={discardDraft} onMarkPaid={markAsPaid} onCreditNote={createCreditNote} onRecordPayment={recordPaymentGated} onMakeRecurring={hasBusinessAccess(plan) ? async (inv) => { const choice = window.prompt("Repeat this invoice:\n\n1 = Weekly\n2 = Every 2 weeks\n3 = Monthly\n4 = Yearly\n\nType a number:", "3"); const freqMap = { "1": "weekly", "2": "biweekly", "3": "monthly", "4": "yearly" }; const freq = freqMap[(choice || "").trim()]; if (!freq) return; const ok = await createRecurring(inv, freq, userId); if (ok) { loadRecurring(userId).then(setRecurring); const { nextDate } = require("../lib/recurring"); alert("✓ Recurring activated (" + freq + ")\nNext invoice: " + nextDate(new Date(), freq).toISOString().split("T")[0] + "\nManage it in Settings → Recurring invoices."); } } : () => { setUpgradeIntent("business"); setUpgradeFeature("recurring"); setShowUpgrade(true); }} />}
+            {page === "dashboard" && <Dashboard clients={clients} businessProfileReady={businessProfileReady} userEmail={userEmail} onCreateInvoice={() => openNewInvoice("onboarding_dashboard")} onCreditNote={createCreditNote} onRecordPayment={recordPaymentGated} invoices={invoicesWithStatus} totalRevenue={totalRevenue} totalPending={totalPending} totalOverdue={totalOverdue} totalCredited={totalCredited} setPage={setPage} setPreviewInvoice={(inv) => openInvoicePreview(inv, "dashboard")} onEdit={setEditingInvoice} onRemind={(inv) => requirePro("reminders", () => setReminderInvoice(inv))} f={f} />}
+            {page === "invoices" && <Invoices invoices={filteredInvoices} filterStatus={filterStatus} setFilterStatus={setFilterStatus} search={search} setSearch={setSearch} onPreview={(inv) => openInvoicePreview(inv, "invoice_list")} onDelete={deleteInvoice} onNew={() => openNewInvoice("invoice_list_empty")} onEdit={setEditingInvoice} onRemind={(inv) => requirePro("reminders", () => setReminderInvoice(inv))} remindersLog={remindersLog} f={f} isPro={isPro} onUpgrade={(feat) => { setUpgradeFeature(feat); setShowUpgrade(true); }} hasDraft={!!invoiceDraft} onOpenDraft={() => openNewInvoice("invoice_draft")} onDiscardDraft={discardDraft} onMarkPaid={markAsPaid} onCreditNote={createCreditNote} onRecordPayment={recordPaymentGated} onMakeRecurring={hasBusinessAccess(plan) ? async (inv) => { const choice = window.prompt("Repeat this invoice:\n\n1 = Weekly\n2 = Every 2 weeks\n3 = Monthly\n4 = Yearly\n\nType a number:", "3"); const freqMap = { "1": "weekly", "2": "biweekly", "3": "monthly", "4": "yearly" }; const freq = freqMap[(choice || "").trim()]; if (!freq) return; const ok = await createRecurring(inv, freq, userId); if (ok) { loadRecurring(userId).then(setRecurring); const { nextDate } = require("../lib/recurring"); alert("✓ Recurring activated (" + freq + ")\nNext invoice: " + nextDate(new Date(), freq).toISOString().split("T")[0] + "\nManage it in Settings → Recurring invoices."); } } : () => { setUpgradeIntent("business"); setUpgradeFeature("recurring"); setShowUpgrade(true); }} />}
               {page === "quotes" && (hasBusinessAccess(plan) || isTeamMember) && <Quotes quotes={quotes} setQuotes={setQuotes} userId={ownerId || userId} f={f} sellerDefaults={{ currency }} onConvert={(q) => { const { quoteToInvoice } = require("../lib/quotes"); const inv = quoteToInvoice(q, "INV-" + String(invoices.length + 1).padStart(3, "0") + "-" + Date.now().toString().slice(-4)); addInvoice(inv); return inv; }} />}
             {page === "expenses" && (hasBusinessAccess(plan) || isTeamMember) && <Expenses expenses={expenses} setExpenses={setExpenses} invoices={invoicesWithStatus} userId={ownerId || userId} f={f} />}
             {page === "analytics" && hasBusinessAccess(plan) && <Analytics invoices={invoicesWithStatus} f={f} fc={fmtCurrency} defaultCurrency={currency} />}
             {page === "clients" && <Clients clients={clients} invoices={invoicesWithStatus} f={f} onDeleteClient={deleteClient} onEditClient={(c) => setEditingClient(c)} />}
-            {page === "settings" && <><Settings currency={currency} setCurrency={setCurrency} userEmail={userEmail} invoices={invoicesWithStatus} />{hasBusinessAccess(plan) && <BusinessProfiles profiles={bizProfiles} setProfiles={setBizProfiles} userId={userId} />}{hasBusinessAccess(plan) && <RecurringList recurring={recurring} setRecurring={setRecurring} userId={userId} f={f} />}{hasBusinessAccess(plan) && <div className="card" style={{ marginTop: 20 }}><div className="card-title" style={{ marginBottom: 10 }}>Online payments</div><div style={{ fontSize: 13, color: "#999", marginBottom: 12 }}>Connect your Stripe account so clients can pay invoices online. Money goes directly to your bank.</div><button className="btn btn-primary btn-sm" onClick={async () => { const { data: { session } } = await supabase.auth.getSession(); const r = await fetch("/api/connect-stripe", { method: "POST", headers: { Authorization: "Bearer " + (session?.access_token || "") } }); const d = await r.json(); if (d.url) window.location.href = d.url; else alert(d.error || "Could not start Stripe onboarding"); }}>Connect Stripe →</button></div>}{hasBusinessAccess(plan) && <TeamMembers team={team} setTeam={setTeam} userId={userId} />}{hasBusinessAccess(plan) && <ApiKeys keys={apiKeys} setKeys={setApiKeys} userId={userId} />}{(plan === "pro" || plan === "business") && <div className="card" style={{ marginTop: 20 }}><div className="card-title" style={{ marginBottom: 10 }}>Subscription</div><div style={{ fontSize: 13, color: "#999", marginBottom: 12 }}>Switch between Pro and Business, update your card, view invoices, or cancel anytime.</div><a className="btn btn-primary btn-sm" href="https://billing.stripe.com/p/login/fZu4gzepGdT05Gx48j5ZC00" target="_blank" rel="noreferrer">Manage subscription →</a></div>}{plan === "free" && <div className="card" style={{ marginTop: 20 }}><div className="card-title" style={{ marginBottom: 10 }}>Plan</div><div style={{ fontSize: 13, color: "#999", marginBottom: 12 }}>You are on the Free plan. Upgrade for unlimited invoices, reminders, and more.</div><button className="btn btn-primary btn-sm" onClick={() => { setUpgradeIntent(null); setShowUpgrade(true); }}>Upgrade →</button></div>}</>}
+            {page === "settings" && <><ReferralProgram userId={userId} plan={plan} /><Settings currency={currency} setCurrency={setCurrency} userEmail={userEmail} invoices={invoicesWithStatus} onProfileSaved={setBusinessProfileReady} />{hasBusinessAccess(plan) && <BusinessProfiles profiles={bizProfiles} setProfiles={setBizProfiles} userId={userId} />}{hasBusinessAccess(plan) && <RecurringList recurring={recurring} setRecurring={setRecurring} userId={userId} f={f} />}{hasBusinessAccess(plan) && <div className="card" style={{ marginTop: 20 }}><div className="card-title" style={{ marginBottom: 10 }}>Online payments</div><div style={{ fontSize: 13, color: "#999", marginBottom: 12 }}>Connect your Stripe account so clients can pay invoices online. Money goes directly to your bank.</div><button className="btn btn-primary btn-sm" onClick={async () => { const { data: { session } } = await supabase.auth.getSession(); const r = await fetch("/api/connect-stripe", { method: "POST", headers: { Authorization: "Bearer " + (session?.access_token || "") } }); const d = await r.json(); if (d.url) window.location.href = d.url; else alert(d.error || "Could not start Stripe onboarding"); }}>Connect Stripe →</button></div>}{hasBusinessAccess(plan) && <TeamMembers team={team} setTeam={setTeam} userId={userId} />}{hasBusinessAccess(plan) && <ApiKeys keys={apiKeys} setKeys={setApiKeys} userId={userId} />}{(plan === "pro" || plan === "business") && <div className="card" style={{ marginTop: 20 }}><div className="card-title" style={{ marginBottom: 10 }}>Subscription</div><div style={{ fontSize: 13, color: "#999", marginBottom: 12 }}>Switch between Pro and Business, update your card, view invoices, or cancel anytime.</div><a className="btn btn-primary btn-sm" href="https://billing.stripe.com/p/login/fZu4gzepGdT05Gx48j5ZC00" target="_blank" rel="noreferrer">Manage subscription →</a></div>}{plan === "free" && <div className="card" style={{ marginTop: 20 }}><div className="card-title" style={{ marginBottom: 10 }}>Plan</div><div style={{ fontSize: 13, color:"#999", marginBottom:12 }}>You are on the Free plan. Upgrade for unlimited invoices, reminders, and more.</div><button className="btn btn-primary btn-sm" onClick={() => { setUpgradeIntent(null); setShowUpgrade(true); }}>Upgrade →</button></div>}</>}
           </div>
         </div>
 
@@ -886,34 +995,16 @@ export default function InvoiceApp({ onGoHome }) {
           </div>
         </nav>
 
-        {page === "invoices" && <button className="mobile-fab" onClick={openNewInvoice}>+</button>}
+        {(page === "dashboard" || page === "invoices") && <button className="mobile-fab" aria-label="Create invoice" onClick={() => openNewInvoice(page === "dashboard" ? "dashboard_fab" : "invoice_list_fab")}>+</button>}
 
         {showNewInvoice && <NewInvoiceModal bizProfiles={hasBusinessAccess(plan) ? bizProfiles : []} clients={clients} onSave={addInvoice} onClose={handleNewInvoiceClose} invoiceCount={invoices.length} currency={currency} f={f} draftData={invoiceDraft} onDiscardDraft={discardDraft} />}
         {editingInvoice && <NewInvoiceModal bizProfiles={hasBusinessAccess(plan) ? bizProfiles : []} clients={clients} onSave={updateInvoice} onClose={(draftData) => { if (draftData) setEditDraft(draftData); setEditingInvoice(null); }} invoiceCount={invoices.length} currency={currency} f={f} editData={editingInvoice} editDraft={editDraft} onDiscardEditDraft={() => setEditDraft(null)} />}
         {showNewClient && <NewClientModal onSave={addClient} onClose={() => setShowNewClient(false)} />}
         {editingClient && <NewClientModal onSave={async (updated) => { await supabase.from("clients").update({ name:updated.name, email:updated.email, phone:updated.phone, country:updated.country }).eq("id", editingClient.id); setClients(prev => prev.map(c => c.id === editingClient.id ? { ...c, ...updated } : c)); setEditingClient(null); }} onClose={() => setEditingClient(null)} editData={editingClient} />}
-        {previewInvoice && <InvoicePreview invoice={previewInvoice} onExportUBL={exportUBLGated} onClose={() => setPreviewInvoice(null)} currency={currency} plan={plan} />}
+        {previewInvoice && <InvoicePreview invoice={previewInvoice} onExportUBL={exportUBLGated} onClose={() => setPreviewInvoice(null)} currency={currency} plan={plan} isFirstInvoice={invoiceOnlyCount === 1 && previewInvoice.docType !== "credit_note"} />}
         {reminderInvoice && <ReminderModal invoice={reminderInvoice} onClose={() => setReminderInvoice(null)} onLog={logReminder} f={f} />}
         {hasBusinessAccess(plan) && <SupportChat userEmail={userEmail} plan={plan} />}
         {showUpgrade && <UpgradeModal feature={upgradeFeature} initialPlan={upgradeIntent} userEmail={userEmail} userId={userId} onClose={() => setShowUpgrade(false)} onActivate={() => { setPlan("pro"); setShowUpgrade(false); }} />}
-        {showWelcome && !showUpgrade && (
-          <div style={{ position:"fixed", inset:0, background:"rgba(0,0,0,0.8)", zIndex:200, display:"flex", alignItems:"center", justifyContent:"center", padding:16 }}>
-            <div style={{ background:"#111118", border:"1px solid rgba(201,168,76,0.3)", borderRadius:16, padding:32, maxWidth:420, width:"100%", textAlign:"center" }}>
-              <img src="/fatura-mark.svg" alt="" width="64" height="64" style={{ objectFit:"contain", marginBottom:12 }} />
-              <div style={{ fontFamily:"Playfair Display, serif", fontSize:24, color:"#e8e4dc", marginBottom:8 }}>Let’s create your first invoice.</div>
-              <div style={{ fontSize:13, color:"#9a9690", lineHeight:1.7, marginBottom:20 }}>Start with the essentials. You can refine everything later.</div>
-              <div style={{ background:"rgba(201,168,76,0.1)", border:"1px solid rgba(201,168,76,0.2)", borderRadius:10, padding:"12px 16px", marginBottom:20, textAlign:"left" }}>
-                {["Add your business details","Choose or add a client","Create and preview your invoice"].map((f,i) => (
-                  <div key={i} style={{ fontSize:13, color:"#e8e4dc", marginBottom:i<4?6:0, display:"flex", gap:8 }}>
-                    <span style={{ color:"#c9a84c", fontWeight:700 }}>{i + 1}.</span>{f}
-                  </div>
-                ))}
-              </div>
-              <button onClick={() => { localStorage.setItem("fatura_welcomed_" + userId, "1"); setShowWelcome(false); openNewInvoice("welcome_modal"); }} style={{ width:"100%", padding:"12px", borderRadius:8, background:"#c9a84c", border:"none", color:"#000", fontWeight:600, fontSize:14, cursor:"pointer", fontFamily:"DM Sans, sans-serif" }}>Create my first invoice →</button>
-              <button onClick={() => { localStorage.setItem("fatura_welcomed_" + userId, "1"); setShowWelcome(false); setPage("settings"); }} style={{ marginTop:12, background:"none", border:"none", color:"#9a9690", cursor:"pointer", fontSize:12 }}>Set up business details first</button>
-            </div>
-          </div>
-        )}
       </div>
     </>
   );
@@ -932,29 +1023,87 @@ function MultiMoney({ parts, empty }) {
   );
 }
 
-function Dashboard({ invoices, totalRevenue, totalPending, totalOverdue, totalCredited, setPage, setPreviewInvoice, onEdit, onRemind, onCreditNote, onRecordPayment, onCreateInvoice, f }) {
+function Dashboard({ invoices, clients, businessProfileReady, userEmail, totalRevenue, totalPending, totalOverdue, totalCredited, setPage, setPreviewInvoice, onEdit, onRemind, onCreditNote, onRecordPayment, onCreateInvoice, f }) {
   // Real figures only - no hard-coded percentages on this dashboard.
   // Credit notes live in the same list with status "paid" - they are not invoices.
   const realInvoices = invoices.filter(i => i.docType !== "credit_note");
   const paidCount = realInvoices.filter(i => i.status === "paid").length;
+  const pendingCount = realInvoices.filter(i => i.status === "pending" || i.status === "partial").length;
   const thisMonthKey = new Date().toISOString().slice(0, 7);
   const newThisMonth = realInvoices.filter(i => (i.date || "").slice(0, 7) === thisMonthKey).length;
   const recent = invoices.slice(0, 5);
   const overdue = invoices.filter(i => i.status === "overdue");
+  const rawName = (userEmail || "").split("@")[0].replace(/[._-]+/g, " ").trim();
+  const firstName = rawName ? rawName.split(" ").map(part => part.charAt(0).toUpperCase() + part.slice(1)).join(" ") : "there";
+  const completedSteps = [businessProfileReady, (clients || []).length > 0, realInvoices.length > 0].filter(Boolean).length;
+
+  const openSetupStep = (step, destination) => {
+    trackEvent("onboarding_step_clicked", { step, destination });
+    setPage(destination);
+  };
+
   if (realInvoices.length === 0) return (
-    <div className="card" style={{ maxWidth:820, margin:"32px auto", padding:"clamp(24px,5vw,52px)", background:"linear-gradient(135deg, rgba(201,168,76,.10), rgba(17,17,24,.92) 48%)" }}>
-      <div style={{ fontSize:11, fontWeight:800, letterSpacing:1.8, textTransform:"uppercase", color:"var(--gold)", marginBottom:14 }}>Your first 2 minutes</div>
-      <h2 style={{ fontFamily:"Playfair Display, serif", fontSize:"clamp(30px,5vw,48px)", lineHeight:1.1, marginBottom:14 }}>Turn a blank workspace into your first invoice.</h2>
-      <p style={{ color:"var(--text2)", lineHeight:1.7, maxWidth:590, marginBottom:26 }}>Add your business and client details once, then reuse them every time. No accounting setup required.</p>
-      <div style={{ display:"flex", gap:10, flexWrap:"wrap" }}>
-        <button className="btn btn-primary" onClick={onCreateInvoice}>Create my first invoice →</button>
-        <button className="btn btn-ghost" onClick={() => setPage("settings")}>Add business details</button>
-        <button className="btn btn-ghost" onClick={() => setPage("clients")}>Add a client</button>
-      </div>
+    <div className="activation-shell">
+      <section className="activation-hero">
+        <div>
+          <div className="dashboard-kicker">Your first payment starts here</div>
+          <h1>Create the invoice that gets you paid.</h1>
+          <p>Enter the essentials, preview the finished document, and send it to your client. Your business and client details can be saved during the same guided flow.</p>
+        </div>
+        <div className="activation-actions">
+          <button className="btn btn-primary" onClick={onCreateInvoice}>Create my first invoice →</button>
+          {!businessProfileReady && <button className="btn btn-ghost" onClick={() => openSetupStep("business_profile", "settings")}>Add business details</button>}
+        </div>
+      </section>
+
+      <aside className="quickstart-card">
+        <div className="quickstart-head">
+          <div>
+            <div className="quickstart-title">Ready to invoice</div>
+            <div className="quickstart-sub">Three useful steps. Complete them in any order.</div>
+          </div>
+          <div className="quickstart-progress">{completedSteps}/3</div>
+        </div>
+        <div className="quickstart-list">
+          <button className={"quickstart-step" + (businessProfileReady ? " done" : "")} aria-disabled={businessProfileReady} onClick={businessProfileReady ? undefined : () => openSetupStep("business_profile", "settings")}>
+            <span className="quickstart-number">{businessProfileReady ? "✓" : "1"}</span>
+            <span className="quickstart-copy"><strong>Business details</strong><span>{businessProfileReady ? "Saved and ready to reuse" : "Add your name, address, and VAT details"}</span></span>
+            {!businessProfileReady && <span className="quickstart-arrow">→</span>}
+          </button>
+          <button className={"quickstart-step" + ((clients || []).length > 0 ? " done" : "")} aria-disabled={(clients || []).length > 0} onClick={(clients || []).length > 0 ? undefined : () => openSetupStep("first_client", "clients")}>
+            <span className="quickstart-number">{(clients || []).length > 0 ? "✓" : "2"}</span>
+            <span className="quickstart-copy"><strong>First client</strong><span>{(clients || []).length > 0 ? "Client saved for future invoices" : "Save once, reuse on every invoice"}</span></span>
+            {(clients || []).length === 0 && <span className="quickstart-arrow">→</span>}
+          </button>
+          <button className="quickstart-step" onClick={onCreateInvoice}>
+            <span className="quickstart-number">3</span>
+            <span className="quickstart-copy"><strong>Create and preview</strong><span>Review the total before you send or download</span></span>
+            <span className="quickstart-arrow">→</span>
+          </button>
+        </div>
+      </aside>
     </div>
   );
+
+  const commandCopy = overdue.length > 0
+    ? `${overdue.length} overdue invoice${overdue.length === 1 ? " needs" : "s need"} your attention today.`
+    : pendingCount > 0
+      ? `${pendingCount} invoice${pendingCount === 1 ? " is" : "s are"} awaiting payment. Keep the next one moving.`
+      : "Everything is up to date. Create the next invoice while the work is fresh.";
+
   return (
     <>
+      <div className="dashboard-command">
+        <div className="dashboard-command-main">
+          <div className="dashboard-kicker">Welcome back, {firstName}</div>
+          <h1>Keep invoices moving and payments visible.</h1>
+          <p>{commandCopy}</p>
+        </div>
+        <div className="dashboard-command-actions">
+          <button className="btn btn-primary" onClick={onCreateInvoice}>New invoice →</button>
+          <button className="btn btn-ghost" onClick={() => setPage("invoices")}>View invoices</button>
+        </div>
+      </div>
       {overdue.length > 0 && (
         <div style={{ background:"rgba(224,85,85,0.1)", border:"1px solid rgba(224,85,85,0.35)", borderRadius:10, padding:"12px 20px", marginBottom:24, display:"flex", alignItems:"center", justifyContent:"space-between", gap:16 }}>
           <div style={{ display:"flex", alignItems:"center", gap:12 }}>
@@ -968,11 +1117,11 @@ function Dashboard({ invoices, totalRevenue, totalPending, totalOverdue, totalCr
         </div>
       )}
       <div className="stats-grid">
-        <div className="stat-card"><div className="stat-label">Total Revenue</div><div className="stat-value"><MultiMoney parts={totalRevenue} empty={f(0)} /></div><div className="stat-change">{paidCount} paid invoice{paidCount === 1 ? "" : "s"}</div></div>
-        <div className="stat-card"><div className="stat-label">Pending</div><div className="stat-value"><MultiMoney parts={totalPending} empty={f(0)} /></div><div className="stat-change">{invoices.filter(i => i.status === "pending").length} invoices</div></div>
+        <div className="stat-card"><div className="stat-label">Collected</div><div className="stat-value"><MultiMoney parts={totalRevenue} empty={f(0)} /></div><div className="stat-change">{paidCount} paid invoice{paidCount === 1 ? "" : "s"}</div></div>
+        <div className="stat-card"><div className="stat-label">Awaiting payment</div><div className="stat-value"><MultiMoney parts={totalPending} empty={f(0)} /></div><div className="stat-change">{pendingCount} open invoice{pendingCount === 1 ? "" : "s"}</div></div>
         <div className="stat-card"><div className="stat-label">Overdue</div><div className="stat-value" style={{ color:"var(--red)" }}><MultiMoney parts={totalOverdue} empty={f(0)} /></div><div className="stat-change down">Needs attention</div></div>
         {totalCredited.length > 0 && (<div className="stat-card"><div className="stat-label">Credited</div><div className="stat-value"><MultiMoney parts={totalCredited} empty={f(0)} /></div><div className="stat-change">{invoices.filter(i => i.docType === "credit_note").length} credit note{invoices.filter(i => i.docType === "credit_note").length === 1 ? "" : "s"}</div></div>)}
-        <div className="stat-card"><div className="stat-label">Total Invoices</div><div className="stat-value">{realInvoices.length}</div><div className="stat-change">{newThisMonth > 0 ? "+" + newThisMonth + " this month" : "None added this month"}</div></div>
+        <div className="stat-card"><div className="stat-label">Documents</div><div className="stat-value">{realInvoices.length}</div><div className="stat-change">{newThisMonth > 0 ? "+" + newThisMonth + " this month" : "None added this month"}</div></div>
       </div>
       <div className="card">
         <div className="card-header">
@@ -1164,7 +1313,7 @@ function Clients({ clients, invoices, f, onDeleteClient, onEditClient }) {
   );
 }
 
-function Settings({ currency, setCurrency, userEmail, invoices }) {
+function Settings({ currency, setCurrency, userEmail, invoices, onProfileSaved }) {
   const cur = getCurrency(currency);
   const [profile, setProfile] = useState({ name:"", email:"", phone:"", country:"NL", vat_number:"", address:"", default_tax:20, notes:"", invoice_prefix:"INV-", payment_terms:30, bank_info:"" });
   const [saving, setSaving] = useState(false);
@@ -1197,9 +1346,13 @@ function Settings({ currency, setCurrency, userEmail, invoices }) {
   const saveProfile = async () => {
     setSaving(true);
     const { data: { user } } = await supabase.auth.getUser();
-    if (!user) return;
-    await supabase.from("business_profile").upsert({ user_id: user.id, ...profile, default_tax: profile.default_tax ?? 20, updated_at: new Date().toISOString() });
+    if (!user) { setSaving(false); return; }
+    const { error } = await supabase.from("business_profile").upsert({ user_id: user.id, ...profile, default_tax: profile.default_tax ?? 20, updated_at: new Date().toISOString() });
     setSaving(false);
+    if (error) { alert("Could not save your business details. Please try again."); return; }
+    const profileComplete = Boolean((profile.name || "").trim());
+    onProfileSaved && onProfileSaved(profileComplete);
+    if (profileComplete) trackEvent("onboarding_step_completed", { step:"business_profile", source:"settings" });
     setSaved(true);
     setTimeout(() => setSaved(false), 2000);
   };
@@ -1763,8 +1916,21 @@ function NewClientModal({ onSave, onClose }) {
   );
 }
 
-function InvoicePreview({ invoice, onExportUBL, onClose, currency, plan }) {
+function InvoicePreview({ invoice, onExportUBL, onClose, currency, plan, isFirstInvoice }) {
   const f = (n) => fmtCurrency(n, invoice.currency || currency || "EUR");
+  const firstExportTracked = useRef(false);
+  const showAttribution = !hasBusinessAccess(plan);
+  useEffect(() => {
+    if (!showAttribution) return;
+    trackEvent("invoice_brand_link_viewed", { placement:"invoice_footer", plan:plan || "free" });
+  }, [invoice.id, plan, showAttribution]);
+  const trackDownload = (format, completed = true) => {
+    trackEvent("invoice_downloaded", { format, invoice_status:invoice.status || "unknown", is_first_invoice:Boolean(isFirstInvoice) });
+    if (completed && isFirstInvoice && !firstExportTracked.current) {
+      firstExportTracked.current = true;
+      trackEvent("activation_completed", { milestone:"first_invoice_exported", format });
+    }
+  };
   const subtotal = invoice.subtotal != null ? invoice.subtotal : invoice.amount;
   const taxAmt = invoice.taxAmt != null ? invoice.taxAmt : invoice.amount * 0.2;
   const discountAmt = invoice.discountAmt != null ? invoice.discountAmt : 0;
@@ -1780,7 +1946,7 @@ function InvoicePreview({ invoice, onExportUBL, onClose, currency, plan }) {
     <div className="modal-overlay"> {/* إزالة خاصية الإغلاق بالنقر هنا */}
       <div className="invoice-preview-wrapper" style={{ width:"100%", maxWidth:760, maxHeight:"95vh", overflow:"auto", borderRadius:16, margin:"0 auto" }}>
         <div className="print-hide" style={{ display:"flex", justifyContent:"space-between", padding:"12px 0 16px" }}>
-          <div style={{ display:"flex", gap:8 }}><button className="btn btn-ghost btn-sm" onClick={() => { trackEvent("invoice_downloaded", { format:"pdf", invoice_status:invoice.status || "unknown" }); window.print(); }}>Print / PDF</button><button className="btn btn-ghost btn-sm" title="Download as a European e-invoice (EN 16931)" onClick={() => { trackEvent("invoice_downloaded", { format:"ubl", invoice_status:invoice.status || "unknown" }); onExportUBL && onExportUBL(invoice); }}>UBL (XML)</button></div>
+          <div style={{ display:"flex", gap:8 }}><button className="btn btn-ghost btn-sm" onClick={() => { trackDownload("pdf"); window.print(); }}>Print / PDF</button><button className="btn btn-ghost btn-sm" title="Download as a European e-invoice (EN 16931)" onClick={() => { const canExport = plan === "pro" || plan === "business"; trackDownload("ubl", canExport); onExportUBL && onExportUBL(invoice); }}>UBL (XML)</button></div>
           <button className="btn btn-ghost btn-sm" onClick={onClose}>Close</button>
         </div>
         <div className="invoice-preview">
@@ -1894,7 +2060,18 @@ function InvoicePreview({ invoice, onExportUBL, onClose, currency, plan }) {
               <button className="btn btn-ghost btn-sm" onClick={() => { const url = window.location.origin + "/pay/" + encodeURIComponent(invoice.id); navigator.clipboard.writeText(url); alert("Payment link copied:\n" + url); }}>🔗 Copy payment link</button>
             </div>
           )}
-            {invoice.sellerName ? (invoice.sellerName + " · ") : ""}Thank you for your business{hasBusinessAccess(plan) ? "" : " · Fatūra Invoicing"}
+            <div>{invoice.sellerName ? (invoice.sellerName + " · ") : ""}Thank you for your business</div>
+            {showAttribution && (
+              <a
+                href={INVOICE_ATTRIBUTION_URL}
+                target="_blank"
+                rel="noreferrer"
+                onClick={() => trackEvent("invoice_brand_link_clicked", { placement:"invoice_footer", plan:plan || "free" })}
+                style={{ display:"inline-block", marginTop:5, color:"#9d8647", fontWeight:700, letterSpacing:0.25, textDecoration:"none" }}
+              >
+                Made with Fatūra Pro ↗
+              </a>
+            )}
           </div>
         </div>
       </div>
