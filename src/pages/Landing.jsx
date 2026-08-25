@@ -232,6 +232,8 @@ section { padding:100px 24px; }
 .referral-location strong { color:var(--gold-l); }
 .referral-actions { display:flex; align-items:center; gap:14px; flex-wrap:wrap; }
 .referral-fineprint { color:var(--text3); font-size:11px; line-height:1.5; }
+.referral-ambassador-link { display:inline-flex; align-items:center; gap:7px; margin-top:20px; color:var(--text2); font-size:12px; font-weight:700; text-decoration:none; transition:color .2s; }
+.referral-ambassador-link:hover { color:var(--gold-l); }
 .referral-steps { display:grid; gap:12px; }
 .referral-step { display:grid; grid-template-columns:42px minmax(0,1fr) auto; gap:14px; align-items:center; padding:18px; border:1px solid var(--border2); border-radius:15px; background:rgba(8,8,14,.64); }
 .referral-step-num { width:42px; height:42px; display:flex; align-items:center; justify-content:center; border-radius:50%; border:1px solid var(--border); background:var(--gold-dim); color:var(--gold); font-family:'Playfair Display',serif; font-weight:700; }
@@ -862,6 +864,7 @@ function ReferralSection({ onOpenApp }) {
               <button className="btn btn-gold btn-lg" onClick={start}>Start free &amp; get your link →</button>
               <span className="referral-fineprint">No credit card required.<br />Only genuine activated accounts count.</span>
             </div>
+            <a className="referral-ambassador-link" href="/ambassadors" onClick={() => trackEvent("ambassador_program_clicked", { placement:"landing_referral_section" })}>Creator, consultant or community leader? Explore the Founding Ambassador Circle →</a>
           </div>
           <div className="referral-steps" aria-label="How referral rewards work">
             <div className="referral-step">
@@ -941,7 +944,7 @@ function Footer({ onOpenApp }) {
     { title:"Product", links:[["#product","Multi-currency invoicing"],["#how","How it works"],["#pricing","Pricing"],["#referrals","Referral rewards"],["/invoice-generator","Free invoice generator"],["/api-docs","API documentation"]] },
     { title:"Solutions", links:[["/for-freelancers","For freelancers"],["/for-agencies","For agencies & teams"],["/ubl-factuur-maken","UBL invoice export"],["/nl","Nederlands factuurprogramma"]] },
     { title:"Resources", links:[["/blog","Invoicing guides"],["/late-payment-scripts","Late-payment scripts"],["/blog/how-to-create-ubl-invoice-en16931","UBL invoice guide"],["/blog/how-to-create-professional-invoice","Professional invoice guide"]] },
-    { title:"Company", links:[["mailto:support@faturapro.app","Contact support"],["/privacy","Privacy policy"],["/terms","Terms of service"],["https://x.com/Faturapro","Follow on X"]] },
+    { title:"Company", links:[["/ambassadors","Ambassador program"],["mailto:support@faturapro.app","Contact support"],["/privacy","Privacy policy"],["/terms","Terms of service"],["https://x.com/Faturapro","Follow on X"]] },
   ];
   return (
     <footer>
