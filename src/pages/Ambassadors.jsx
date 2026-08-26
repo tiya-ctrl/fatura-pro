@@ -78,7 +78,7 @@ export default function Ambassadors() {
   useEffect(() => {
     document.title = "Founding Ambassador Program | Fatūra Pro";
     const meta = document.querySelector('meta[name="description"]');
-    if (meta) meta.setAttribute("content", "Apply to the Fatūra Pro Founding Ambassador Circle. Help freelancers and small businesses invoice professionally with a personal tracked link, practical partner resources and transparent rewards.");
+    if (meta) meta.setAttribute("content", "Apply to the Fatūra Pro Founding Ambassador Circle. Earn transparent cash commission on qualified paid subscriptions with a personal tracked link and live partner dashboard.");
     let canonical = document.querySelector('link[rel="canonical"]');
     if (!canonical) { canonical = document.createElement("link"); canonical.rel = "canonical"; document.head.appendChild(canonical); }
     canonical.href = "https://faturapro.app/ambassadors";
@@ -134,11 +134,11 @@ export default function Ambassadors() {
             <div>
               <div className="amb-kicker">Founding Ambassador Circle · Applications open</div>
               <h1 className="amb-title">Teach useful business skills.<em>Grow with the people you help.</em></h1>
-              <p className="amb-lead">We are building a small first circle of creators, consultants and community leaders who help freelancers and service businesses work more professionally. Share Fatūra Pro only when it genuinely solves a problem—and get rewarded for activated users, not empty clicks.</p>
+              <p className="amb-lead">We are building a small first circle of creators, consultants and community leaders who help freelancers and service businesses work more professionally. Share Fatūra Pro only when it genuinely solves a problem—and earn recurring cash commission from qualified paid subscriptions.</p>
               <div className="amb-promise" aria-label="Ambassador program benefits">
-                <div><strong>Your link</strong><span>A personal tracked referral link with clear activation progress.</span></div>
+                <div><strong>Your link</strong><span>A personal tracked link with clicks, sign-ups, paid customers and earnings.</span></div>
                 <div><strong>Your voice</strong><span>Direct product feedback and early access to useful releases.</span></div>
-                <div><strong>Your terms</strong><span>Performance rewards confirmed transparently before you publish.</span></div>
+                <div><strong>25–35%</strong><span>Cash commission tier confirmed before you publish, for a fixed term per customer.</span></div>
               </div>
               <div className="amb-principle"><span>✦</span><span><b>This is not an affiliate-link dump.</b> We value honest tutorials, useful templates and real recommendations. Spam, fake accounts and misleading claims are never rewarded.</span></div>
             </div>
@@ -170,7 +170,7 @@ export default function Ambassadors() {
                       </div>
                       <button className="amb-submit" type="submit" disabled={status === "submitting"}>{status === "submitting" ? "Sending application…" : "Submit application →"}</button>
                       {error && <div className="amb-error" role="alert">{error}</div>}
-                      <div className="amb-form-note">By submitting, you agree that Fatūra Pro may contact you about this ambassador application. No marketing list is created from this form. <a href="/privacy" style={{ color:"#8f8a84" }}>Privacy details</a>.</div>
+                      <div className="amb-form-note">By submitting, you agree that Fatūra Pro may contact you about this ambassador application. No marketing list is created from this form. <a href="/privacy" style={{ color:"#8f8a84" }}>Privacy</a> · <a href="/ambassador-terms" style={{ color:"#8f8a84" }}>Program terms</a>.</div>
                     </form>
                   </>
                 )}
@@ -185,14 +185,14 @@ export default function Ambassadors() {
             <div className="amb-path">
               <article className="amb-step"><div className="amb-step-num">01</div><h3>Show us your audience</h3><p>Tell us who you help, where you publish and why invoicing is relevant to their work.</p></article>
               <article className="amb-step"><div className="amb-step-num">02</div><h3>Agree on the fit</h3><p>We review content quality, audience relevance and expectations before either side commits.</p></article>
-              <article className="amb-step"><div className="amb-step-num">03</div><h3>Receive a clear kit</h3><p>Approved ambassadors receive accurate product facts, a tracked link and agreed reward terms.</p></article>
-              <article className="amb-step"><div className="amb-step-num">04</div><h3>Measure real activation</h3><p>We focus on people who create a valid first invoice—not vanity clicks or forced sign-ups.</p></article>
+              <article className="amb-step"><div className="amb-step-num">03</div><h3>Receive your link & dashboard</h3><p>See aggregate clicks, sign-ups, paying customers, pending commission and completed payouts.</p></article>
+              <article className="amb-step"><div className="amb-step-num">04</div><h3>Get paid automatically</h3><p>Connect Stripe once. Eligible commission is transferred after the holding period and stops at the agreed end date.</p></article>
             </div>
           </div>
         </section>
       </main>
 
-      <footer className="amb-footer"><div className="amb-wrap"><span>© 2026 Fatūra Pro · Founding Ambassador Circle</span><span><a href="/privacy">Privacy</a> · <a href="mailto:support@faturapro.app">Questions?</a></span></div></footer>
+      <footer className="amb-footer"><div className="amb-wrap"><span>© 2026 Fatūra Pro · Founding Ambassador Circle</span><span><a href="/ambassador-terms">Program terms</a> · <a href="/privacy">Privacy</a> · <a href="mailto:support@faturapro.app">Questions?</a></span></div></footer>
     </div>
   );
 }
