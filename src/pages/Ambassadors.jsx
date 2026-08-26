@@ -170,7 +170,7 @@ export default function Ambassadors() {
                       </div>
                       <button className="amb-submit" type="submit" disabled={status === "submitting"}>{status === "submitting" ? "Sending application…" : "Submit application →"}</button>
                       {error && <div className="amb-error" role="alert">{error}</div>}
-                      <div className="amb-form-note">By submitting, you agree that Fatūra Pro may contact you about this ambassador application. No marketing list is created from this form.</div>
+                      <div className="amb-form-note">By submitting, you agree that Fatūra Pro may contact you about this ambassador application. No marketing list is created from this form. <a href="/privacy" style={{ color:"#8f8a84" }}>Privacy details</a>.</div>
                     </form>
                   </>
                 )}
