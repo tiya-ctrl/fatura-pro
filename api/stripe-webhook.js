@@ -1,5 +1,6 @@
 import Stripe from "stripe";
 import { createClient } from "@supabase/supabase-js";
+import { recordAmbassadorCommission, reverseAmbassadorCommission } from "../server/ambassador-commissions.js";
 
 export const config = {
   api: {
@@ -71,6 +72,49 @@ export default async function handler(req, res) {
           updated_at: new Date().toISOString(),
         });
       }
+    }
+  }
+
+  // Keep partner bookkeeping isolated from subscription-access updates. A
+  // ledger error must not make Stripe retry an otherwise valid plan event.
+  if (event.type === "invoice.paid") {
+    try {
+      const result = await recordAmbassadorCommission(stripe, supabaseAdmin, event.data.object);
+      console.log("AMBASSADOR COMMISSION:", event.data.object.id, result.reason || result.commission?.id);
+    } catch (error) {
+      console.error("AMBASSADOR COMMISSION ERROR:", error?.message || error);
+    }
+  }
+
+  if (event.type === "charge.refunded") {
+    try {
+      const charge = event.data.object;
+      const invoiceId = typeof charge.invoice === "string" ? charge.invoice : charge.invoice?.id;
+      if (invoiceId) await reverseAmbassadorCommission(supabaseAdmin, invoiceId, "payment_refunded");
+    } catch (error) {
+      console.error("AMBASSADOR REFUND ERROR:", error?.message || error);
+    }
+  }
+
+  if (event.type === "charge.dispute.created") {
+    try {
+      const dispute = event.data.object;
+      const chargeId = typeof dispute.charge === "string" ? dispute.charge : dispute.charge?.id;
+      const charge = chargeId ? await stripe.charges.retrieve(chargeId) : null;
+      const invoiceId = typeof charge?.invoice === "string" ? charge.invoice : charge?.invoice?.id;
+      if (invoiceId) await reverseAmbassadorCommission(supabaseAdmin, invoiceId, "payment_disputed");
+    } catch (error) {
+      console.error("AMBASSADOR DISPUTE ERROR:", error?.message || error);
+    }
+  }
+
+  if (event.type === "credit_note.created") {
+    try {
+      const creditNote = event.data.object;
+      const invoiceId = typeof creditNote.invoice === "string" ? creditNote.invoice : creditNote.invoice?.id;
+      if (invoiceId) await reverseAmbassadorCommission(supabaseAdmin, invoiceId, "credit_note_created");
+    } catch (error) {
+      console.error("AMBASSADOR CREDIT NOTE ERROR:", error?.message || error);
     }
   }
 
