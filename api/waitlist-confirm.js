@@ -1,4 +1,5 @@
 import { createClient } from "@supabase/supabase-js";
+import { createHmac } from "node:crypto";
 
 const CHANNELS = new Set(["YouTube", "TikTok", "Instagram", "LinkedIn", "Newsletter", "Community", "Consulting", "Other"]);
 const AUDIENCE_SIZES = new Set(["under_1k", "1k_5k", "5k_25k", "25k_plus"]);
@@ -30,14 +31,51 @@ function html(value) {
 
 async function sendEmail(payload) {
   if (!process.env.RESEND_API_KEY) return;
-  await fetch("https://api.resend.com/emails", {
+  const response = await fetch("https://api.resend.com/emails", {
     method:"POST",
     headers:{ "Content-Type":"application/json", Authorization:`Bearer ${process.env.RESEND_API_KEY}` },
     body:JSON.stringify(payload),
   });
+  if (!response.ok) throw new Error(`Email provider rejected the request (${response.status})`);
 }
 
-async function handleAmbassadorApplication(req, res) {
+function adminClient() {
+  const url = process.env.REACT_APP_SUPABASE_URL;
+  const secret = process.env.SUPABASE_SERVICE_ROLE_KEY;
+  if (!url || !secret) throw new Error("Server configuration is incomplete");
+  return createClient(url, secret, { auth:{ persistSession:false, autoRefreshToken:false } });
+}
+
+function requestOriginIsAllowed(req) {
+  const origin = text(req.headers.origin, 300);
+  if (!origin) return true;
+  try {
+    const { hostname, protocol } = new URL(origin);
+    if (protocol !== "https:" && protocol !== "http:") return false;
+    return hostname === "faturapro.app" || hostname === "www.faturapro.app" || hostname === "localhost" || hostname === "127.0.0.1" || hostname.endsWith(".vercel.app");
+  } catch {
+    return false;
+  }
+}
+
+function requestActorHash(req, subject = "") {
+  const forwarded = String(req.headers["x-forwarded-for"] || "").split(",")[0].trim();
+  const ip = forwarded || String(req.headers["x-real-ip"] || req.socket?.remoteAddress || "unknown");
+  const secret = process.env.SUPABASE_SERVICE_ROLE_KEY || "unconfigured";
+  return createHmac("sha256", secret).update(`${ip}|${subject}`).digest("hex");
+}
+
+async function consumeRateLimit(supabaseAdmin, formKey, actorHash, limit) {
+  const { data, error } = await supabaseAdmin.rpc("consume_public_form_rate_limit", {
+    p_form_key:formKey,
+    p_actor_hash:actorHash,
+    p_limit:limit,
+  });
+  if (error) throw error;
+  return data === true;
+}
+
+async function handleAmbassadorApplication(req, res, supabaseAdmin) {
   const body = req.body || {};
 
   // Quietly accept honeypot submissions so automated spam receives no signal.
@@ -68,11 +106,9 @@ async function handleAmbassadorApplication(req, res) {
   if (!validHttpUrl(application.profile_url)) return res.status(400).json({ error:"Enter a valid public profile or community URL." });
   if (!application.languages || !application.country || application.motivation.length < 40) return res.status(400).json({ error:"Please complete every field and tell us a little more about your audience." });
 
-  const supabaseAdmin = createClient(
-    process.env.REACT_APP_SUPABASE_URL,
-    process.env.SUPABASE_SERVICE_ROLE_KEY,
-    { auth:{ persistSession:false, autoRefreshToken:false } }
-  );
+  const ipAllowed = await consumeRateLimit(supabaseAdmin, "ambassador_ip", requestActorHash(req), 5);
+  const emailAllowed = await consumeRateLimit(supabaseAdmin, "ambassador_email", requestActorHash(req, application.email), 2);
+  if (!ipAllowed || !emailAllowed) return res.status(429).json({ error:"Too many applications. Please try again later." });
 
   const { error } = await supabaseAdmin.from("ambassador_applications").insert(application);
   if (error?.code === "23505") return res.status(200).json({ ok:true, already:true });
@@ -96,9 +132,13 @@ async function handleAmbassadorApplication(req, res) {
   return res.status(201).json({ ok:true });
 }
 
-async function handleWaitlistConfirmation(req, res) {
+async function handleWaitlistConfirmation(req, res, supabaseAdmin) {
   const email = text(req.body?.email, 160).toLowerCase();
   if (!validEmail(email)) return res.status(400).json({ error:"Email required" });
+
+  const ipAllowed = await consumeRateLimit(supabaseAdmin, "waitlist_ip", requestActorHash(req), 10);
+  const emailAllowed = await consumeRateLimit(supabaseAdmin, "waitlist_email", requestActorHash(req, email), 1);
+  if (!ipAllowed || !emailAllowed) return res.status(429).json({ error:"Please wait before requesting another email." });
 
   await sendEmail({
     from:"Fatūra Pro <noreply@faturapro.app>",
@@ -112,14 +152,22 @@ async function handleWaitlistConfirmation(req, res) {
 
 export default async function handler(req, res) {
   res.setHeader("Cache-Control", "no-store");
+  res.setHeader("X-Content-Type-Options", "nosniff");
   if (req.method !== "POST") {
     res.setHeader("Allow", "POST");
     return res.status(405).json({ error:"Method not allowed" });
   }
 
   try {
-    if (req.query?.intent === "ambassador") return await handleAmbassadorApplication(req, res);
-    return await handleWaitlistConfirmation(req, res);
+    if (!requestOriginIsAllowed(req)) return res.status(403).json({ error:"Request origin is not allowed" });
+    const contentLength = Number(req.headers["content-length"] || 0);
+    if (contentLength > 12_000 || JSON.stringify(req.body || {}).length > 12_000) {
+      return res.status(413).json({ error:"Request is too large" });
+    }
+
+    const supabaseAdmin = adminClient();
+    if (req.query?.intent === "ambassador") return await handleAmbassadorApplication(req, res, supabaseAdmin);
+    return await handleWaitlistConfirmation(req, res, supabaseAdmin);
   } catch (error) {
     console.error("Public form error:", error?.message || error);
     return res.status(500).json({ error:"We could not submit your request. Please try again." });
