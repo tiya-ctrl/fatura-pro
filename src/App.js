@@ -16,6 +16,7 @@ import PayInvoice from "./pages/PayInvoice";
 import ApiDocs from "./pages/ApiDocs";
 import LatePaymentScripts from "./pages/LatePaymentScripts";
 import Ambassadors from "./pages/Ambassadors";
+import AmbassadorDashboard from "./pages/AmbassadorDashboard";
 import InstallPrompt from "./InstallPrompt";
 import CookieConsent from "./CookieConsent";
 import TopBar from "./TopBar";
@@ -89,6 +90,21 @@ function InvoiceWrapper() {
   return <InvoiceApp user={user} onGoHome={() => navigate("/")} />;
 }
 
+function AccountPageWrapper({ component: Component }) {
+  const navigate = useNavigate();
+  const [user, setUser] = useState(null);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => onAuthChange(current => {
+    setUser(current);
+    setLoading(false);
+  }), []);
+
+  if (loading) return null;
+  if (!user) return <Login onLogin={() => window.location.reload()} onBack={() => navigate("/")} />;
+  return <Component user={user} />;
+}
+
 /* ───────── Routes ───────── */
 function AppRoutes() {
   return (
@@ -99,13 +115,15 @@ function AppRoutes() {
       <Route path="/reset-password" element={<ResetPassword onDone={() => window.location.href="/login"} />} />
       <Route path="/privacy" element={<Legal page="privacy" />} />
       <Route path="/terms" element={<Legal page="terms" />} />
+      <Route path="/ambassador-terms" element={<Legal page="ambassador-terms" />} />
       <Route path="/blog" element={<BlogIndex />} />
       <Route path="/api-docs" element={<ApiDocs />} />
       <Route path="/late-payment-scripts" element={<LatePaymentScripts />} />
       <Route path="/ambassadors" element={<Ambassadors />} />
+      <Route path="/ambassador" element={<AccountPageWrapper component={AmbassadorDashboard} />} />
       <Route path="/invoice-generator" element={<InvoiceGenerator />} />
       <Route path="/blog/:slug" element={<BlogPost />} />
-      <Route path="/admin" element={<Admin />} />
+      <Route path="/admin" element={<AccountPageWrapper component={Admin} />} />
       <Route path="/pay/:invoiceId" element={<PayInvoice />} />
       <Route path="/app" element={<InvoiceWrapper />} />
       <Route path="*" element={<LandingWrapper />} />

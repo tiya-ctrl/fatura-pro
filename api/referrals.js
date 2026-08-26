@@ -1,4 +1,12 @@
 import { createClient } from "@supabase/supabase-js";
+import { createHmac } from "node:crypto";
+import {
+  ambassadorAdminSummary,
+  ambassadorSummary,
+  approveAmbassador,
+  trackAmbassadorClick,
+  updateAmbassador,
+} from "../server/ambassador-program.js";
 
 const supabaseAdmin = createClient(
   process.env.REACT_APP_SUPABASE_URL,
@@ -7,6 +15,25 @@ const supabaseAdmin = createClient(
 );
 
 const DAYS_MS = 24 * 60 * 60 * 1000;
+
+function requestActorHash(req) {
+  const forwarded = String(req.headers["x-forwarded-for"] || "").split(",")[0].trim();
+  const actor = forwarded || String(req.headers["x-real-ip"] || req.socket?.remoteAddress || "unknown");
+  return createHmac("sha256", process.env.SUPABASE_SERVICE_ROLE_KEY || "unconfigured").update(actor).digest("hex");
+}
+function requestOriginIsAllowed(req) {
+  if (!req.headers.origin) return true;
+  try {
+    const { hostname, protocol } = new URL(req.headers.origin);
+    const deploymentHost = String(process.env.VERCEL_URL || "").toLowerCase();
+    const isLocal = process.env.NODE_ENV !== "production"
+      && (hostname === "localhost" || hostname === "127.0.0.1");
+    return (protocol === "https:" || protocol === "http:") && (
+      hostname === "faturapro.app" || hostname === "www.faturapro.app"
+      || (deploymentHost && hostname === deploymentHost) || isLocal
+    );
+  } catch { return false; }
+}
 
 function referralCodeForUser(userId) {
   return "FP" + String(userId || "").replace(/-/g, "").slice(0, 8).toUpperCase();
@@ -56,8 +83,8 @@ async function extendTrial(userId, rewardDays) {
 async function referralSummary(userId) {
   const code = await ensureReferralCode(userId);
   const [pendingResult, activatedResult, rewardsResult, planResult] = await Promise.all([
-    supabaseAdmin.from("referrals").select("id", { count: "exact", head: true }).eq("referrer_id", userId).eq("status", "pending"),
-    supabaseAdmin.from("referrals").select("id", { count: "exact", head: true }).eq("referrer_id", userId).eq("status", "activated"),
+    supabaseAdmin.from("referrals").select("id", { count: "exact", head: true }).eq("referrer_id", userId).eq("status", "pending").eq("program", "member"),
+    supabaseAdmin.from("referrals").select("id", { count: "exact", head: true }).eq("referrer_id", userId).eq("status", "activated").eq("program", "member"),
     supabaseAdmin.from("referral_rewards").select("status, reward_days").eq("user_id", userId),
     supabaseAdmin.from("user_plans").select("plan, trial_end").eq("user_id", userId).maybeSingle(),
   ]);
@@ -100,6 +127,22 @@ async function claimReferral(user, code) {
   if (!owner) return { status: 404, body: { error: "Referral code not found" } };
   if (owner.user_id === user.id) return { status: 409, body: { error: "You cannot refer yourself" } };
 
+  const { data: ambassadorAccount, error: ambassadorError } = await supabaseAdmin
+    .from("ambassador_accounts")
+    .select("status, agreement_started_at, agreement_ends_at")
+    .eq("user_id", owner.user_id)
+    .maybeSingle();
+  if (ambassadorError) throw ambassadorError;
+  const now = new Date().toISOString();
+  if (ambassadorAccount && (
+    ambassadorAccount.status !== "active"
+    || ambassadorAccount.agreement_started_at > now
+    || (ambassadorAccount.agreement_ends_at && ambassadorAccount.agreement_ends_at <= now)
+  )) {
+    return { status: 410, body: { error: "This ambassador link is no longer active" } };
+  }
+  const program = ambassadorAccount ? "ambassador" : "member";
+
   const { data: existing, error: existingError } = await supabaseAdmin
     .from("referrals")
     .select("status")
@@ -113,6 +156,7 @@ async function claimReferral(user, code) {
     referred_user_id: user.id,
     code: normalized,
     status: "pending",
+    program,
   });
   if (error) throw error;
   return { status: 201, body: { claimed: true, status: "pending" } };
@@ -138,7 +182,7 @@ async function activateReferral(user) {
     .update({ status: "activated", activated_at: new Date().toISOString() })
     .eq("referred_user_id", user.id)
     .eq("status", "pending")
-    .select("referrer_id")
+    .select("referrer_id, program")
     .maybeSingle();
   if (activationError) throw activationError;
   if (!activated) return { status: 200, body: { activated: false, reason: "not_pending" } };
@@ -150,11 +194,12 @@ async function activateReferral(user) {
     .from("referrals")
     .select("id", { count: "exact", head: true })
     .eq("referrer_id", activated.referrer_id)
-    .eq("status", "activated");
+    .eq("status", "activated")
+    .eq("program", activated.program);
   if (countError) throw countError;
 
   let reward = null;
-  if ((count || 0) > 0 && count % 3 === 0) {
+  if (activated.program === "member" && (count || 0) > 0 && count % 3 === 0) {
     const milestone = count / 3;
     const { data: createdReward, error: rewardError } = await supabaseAdmin
       .from("referral_rewards")
@@ -229,24 +274,46 @@ async function redeemBankedRewards(userId) {
 
 export default async function handler(req, res) {
   res.setHeader("Cache-Control", "no-store");
+  res.setHeader("X-Content-Type-Options", "nosniff");
   if (req.method !== "GET" && req.method !== "POST") {
     res.setHeader("Allow", "GET, POST");
     return res.status(405).json({ error: "Method not allowed" });
   }
 
   try {
+    const action = String(req.query.action || "");
+    if (req.method === "POST" && action === "track-click") {
+      if (!requestOriginIsAllowed(req)) return res.status(403).json({ error: "Request origin is not allowed" });
+      if (Number(req.headers["content-length"] || 0) > 1000) return res.status(413).json({ error: "Request is too large" });
+      const limited = await supabaseAdmin.rpc("consume_public_form_rate_limit", {
+        p_form_key: "ambassador_click_ip",
+        p_actor_hash: requestActorHash(req),
+        p_limit: 20,
+      });
+      if (limited.error) throw limited.error;
+      if (limited.data !== true) return res.status(429).json({ tracked: false });
+      const result = await trackAmbassadorClick(supabaseAdmin, req.body?.code, req.body?.clickToken);
+      return res.status(result.status).json(result.body);
+    }
+
     const user = await authenticatedUser(req);
     if (!user) return res.status(401).json({ error: "Unauthorized" });
 
     if (req.method === "GET") {
+      if (action === "ambassador-summary") return res.status(200).json(await ambassadorSummary(supabaseAdmin, user));
+      if (action === "ambassador-admin") {
+        const result = await ambassadorAdminSummary(supabaseAdmin, user);
+        return res.status(result.status).json(result.body);
+      }
       return res.status(200).json(await referralSummary(user.id));
     }
 
-    const action = String(req.query.action || "");
     let result;
     if (action === "claim") result = await claimReferral(user, req.body?.code);
     else if (action === "activate") result = await activateReferral(user);
     else if (action === "redeem") result = await redeemBankedRewards(user.id);
+    else if (action === "ambassador-admin-approve") result = await approveAmbassador(supabaseAdmin, user, req.body);
+    else if (action === "ambassador-admin-update") result = await updateAmbassador(supabaseAdmin, user, req.body);
     else result = { status: 400, body: { error: "Unknown action" } };
     return res.status(result.status).json(result.body);
   } catch (error) {
