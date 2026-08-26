@@ -1,11 +1,22 @@
 import { createClient } from "@supabase/supabase-js";
+import Stripe from "stripe";
+import { runAutomaticAmbassadorPayouts } from "../server/ambassador-commissions.js";
 
 const supabase = createClient(
   process.env.REACT_APP_SUPABASE_URL,
   process.env.SUPABASE_SERVICE_ROLE_KEY
 );
+const stripe = process.env.STRIPE_SECRET_KEY ? new Stripe(process.env.STRIPE_SECRET_KEY) : null;
 
 export default async function handler(req, res) {
+
+  const cronSecret = process.env.CRON_SECRET;
+  if (!cronSecret) {
+    return res.status(503).json({ error: "Scheduled task is not configured" });
+  }
+  if (req.headers.authorization !== `Bearer ${cronSecret}`) {
+    return res.status(401).json({ error: "Unauthorized" });
+  }
 
   const tomorrow = new Date();
   tomorrow.setDate(tomorrow.getDate() + 1);
@@ -19,10 +30,8 @@ export default async function handler(req, res) {
     .gte("trial_end", tomorrow.toISOString())
     .lte("trial_end", dayAfter.toISOString());
 
-  if (!users || users.length === 0) return res.status(200).json({ sent: 0 });
-
   let sent = 0;
-  for (const u of users) {
+  for (const u of users || []) {
     const { data: { user } } = await supabase.auth.admin.getUserById(u.user_id);
     if (!user?.email) continue;
 
@@ -59,5 +68,13 @@ export default async function handler(req, res) {
     sent++;
   }
 
-  res.status(200).json({ sent });
+  let payouts = [];
+  try {
+    if (!stripe) throw new Error("Stripe is not configured");
+    payouts = await runAutomaticAmbassadorPayouts(stripe, supabase);
+  } catch (error) {
+    console.error("Automatic ambassador payouts:", error?.message || error);
+  }
+
+  res.status(200).json({ sent, ambassadorPayouts: payouts.filter(item => item.paid).length });
 }
