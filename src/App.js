@@ -15,6 +15,7 @@ import Admin from "./pages/Admin";
 import PayInvoice from "./pages/PayInvoice";
 import ApiDocs from "./pages/ApiDocs";
 import LatePaymentScripts from "./pages/LatePaymentScripts";
+import Ambassadors from "./pages/Ambassadors";
 import InstallPrompt from "./InstallPrompt";
 import CookieConsent from "./CookieConsent";
 import TopBar from "./TopBar";
@@ -101,6 +102,7 @@ function AppRoutes() {
       <Route path="/blog" element={<BlogIndex />} />
       <Route path="/api-docs" element={<ApiDocs />} />
       <Route path="/late-payment-scripts" element={<LatePaymentScripts />} />
+      <Route path="/ambassadors" element={<Ambassadors />} />
       <Route path="/invoice-generator" element={<InvoiceGenerator />} />
       <Route path="/blog/:slug" element={<BlogPost />} />
       <Route path="/admin" element={<Admin />} />
