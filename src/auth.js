@@ -37,10 +37,13 @@ export const onAuthChange = (callback) => {
   });
   return () => subscription.unsubscribe();
 };
-export const loginWithGoogle = async () => {
+export const loginWithGoogle = async (returnPath = "/app") => {
+  const safeReturnPath = String(returnPath || "/app").startsWith("/")
+    ? String(returnPath || "/app")
+    : "/app";
   const { data, error } = await supabase.auth.signInWithOAuth({
     provider: "google",
-    options: { redirectTo: window.location.origin + "/app", queryParams: { prompt: "select_account" } }
+    options: { redirectTo: window.location.origin + safeReturnPath, queryParams: { prompt: "select_account" } }
   });
   if (error) throw error;
   return data;
