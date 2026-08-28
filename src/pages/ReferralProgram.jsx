@@ -30,7 +30,15 @@ const CSS = `
   .fref-ambassador { display:inline-flex; align-items:center; gap:7px; margin-top:16px; color:var(--text2); font-size:11px; font-weight:700; text-decoration:none; transition:color .2s; }
   .fref-ambassador:hover { color:var(--gold-light); }
   .fref-error { color:var(--red); font-size:12px; margin-top:12px; }
-  @media(max-width:800px){ .fref-card{padding:21px 18px}.fref-grid{grid-template-columns:1fr;gap:20px}.fref-linkbox{flex-wrap:wrap}.fref-linkbox .btn{width:100%;justify-content:center} }
+  .fref-compact { display:flex; align-items:center; justify-content:space-between; gap:20px; margin-bottom:20px; padding:17px 19px; border-radius:13px; border:1px solid rgba(201,168,76,.22); background:linear-gradient(120deg,rgba(201,168,76,.09),rgba(17,17,24,.97) 58%); }
+  .fref-compact-copy { min-width:0; }
+  .fref-compact-title { margin:2px 0 4px; font:700 18px 'Playfair Display',serif; color:var(--text); }
+  .fref-compact-sub { color:var(--text2); font-size:11px; line-height:1.5; }
+  .fref-compact-side { display:flex; align-items:center; gap:13px; flex:0 0 auto; }
+  .fref-compact-progress { color:var(--gold); font-size:12px; font-weight:800; white-space:nowrap; }
+  .fref-close { position:absolute; right:18px; top:16px; z-index:2; border:0; background:transparent; color:var(--text2); cursor:pointer; font:700 11px 'DM Sans',sans-serif; }
+  .fref-close:hover { color:var(--gold-light); }
+  @media(max-width:800px){ .fref-card{padding:48px 18px 21px}.fref-grid{grid-template-columns:1fr;gap:20px}.fref-linkbox{flex-wrap:wrap}.fref-linkbox .btn{width:100%;justify-content:center}.fref-compact{align-items:flex-start;flex-direction:column}.fref-compact-side{width:100%;justify-content:space-between} }
 `;
 
 function previewSummary(userId, plan) {
@@ -52,6 +60,7 @@ export default function ReferralProgram({ userId, plan }) {
   const [error, setError] = useState("");
   const [copied, setCopied] = useState(false);
   const [redeeming, setRedeeming] = useState(false);
+  const [expanded, setExpanded] = useState(false);
 
   const load = async () => {
     if (!userId) return;
@@ -99,16 +108,34 @@ export default function ReferralProgram({ userId, plan }) {
     }
   };
 
-  if (!summary && !error) return <div className="card" style={{ padding:24, marginBottom:20, color:"var(--text2)" }}>Loading your referral link…</div>;
-  if (!summary) return <div className="card" style={{ padding:24, marginBottom:20 }}><div className="card-title">Earn free Pro</div><div className="fref-error">{error}</div><button className="btn btn-ghost btn-sm" style={{ marginTop:12 }} onClick={load}>Try again</button></div>;
+  if (!summary && !error) return <><style>{CSS}</style><div className="fref-compact"><div className="fref-compact-copy"><div className="fref-kicker">Referral rewards</div><div className="fref-compact-title">Earn 30 Pro days</div><div className="fref-compact-sub">Loading your private invite link…</div></div></div></>;
+  if (!summary) return <><style>{CSS}</style><div className="fref-compact"><div className="fref-compact-copy"><div className="fref-kicker">Referral rewards</div><div className="fref-compact-title">Earn free Pro</div><div className="fref-error">{error}</div></div><button className="btn btn-ghost btn-sm" onClick={load}>Try again</button></div></>;
 
   const progress = Number(summary.progress || 0);
   const earnedDays = Number(summary.appliedRewards || 0) * 30 + Number(summary.bankedDays || 0);
+
+  if (!expanded) return (
+    <>
+      <style>{CSS}</style>
+      <section className="fref-compact">
+        <div className="fref-compact-copy">
+          <div className="fref-kicker">Optional referral rewards</div>
+          <h2 className="fref-compact-title">Invite 3 active friends. Earn 30 Pro days.</h2>
+          <p className="fref-compact-sub">Your friend gets 7 extra Pro days. Open this only when you want to share or check progress.</p>
+        </div>
+        <div className="fref-compact-side">
+          <span className="fref-compact-progress">{progress}/3 active</span>
+          <button className="btn btn-ghost btn-sm" aria-expanded="false" onClick={() => { setExpanded(true); trackEvent("referral_program_opened", { placement:"settings_card" }); }}>View &amp; share</button>
+        </div>
+      </section>
+    </>
+  );
 
   return (
     <>
       <style>{CSS}</style>
       <section className="fref-card">
+        <button className="fref-close" aria-expanded="true" onClick={() => setExpanded(false)}>Collapse ↑</button>
         <div className="fref-grid">
           <div>
             <div className="fref-kicker">Rewards that follow real use</div>

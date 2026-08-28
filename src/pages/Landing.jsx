@@ -864,7 +864,7 @@ function ReferralSection({ onOpenApp }) {
               <button className="btn btn-gold btn-lg" onClick={start}>Start free &amp; get your link →</button>
               <span className="referral-fineprint">No credit card required.<br />Only genuine activated accounts count.</span>
             </div>
-            <a className="referral-ambassador-link" href="/ambassadors" onClick={() => trackEvent("ambassador_program_clicked", { placement:"landing_referral_section" })}>Creator, consultant or community leader? Earn 25–35% cash commission with the Founding Ambassador Circle →</a>
+            <a className="referral-ambassador-link" href="/ambassadors" onClick={() => trackEvent("ambassador_program_clicked", { placement:"landing_referral_section" })}>Creator, consultant or community leader? Earn 25% on Pro and 35% on Business for 12 months →</a>
           </div>
           <div className="referral-steps" aria-label="How referral rewards work">
             <div className="referral-step">

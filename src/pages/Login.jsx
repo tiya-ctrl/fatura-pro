@@ -124,7 +124,7 @@ const DEMO_USERS = [
 ];
 
 /* ─── COMPONENT ───────────────────────────────────────── */
-export default function LoginPage({ onLogin, onBack }) {
+export default function LoginPage({ onLogin, onBack, returnTo = "/app" }) {
   const [mode,     setMode]     = useState("login"); // "login" | "signup"
   const signupStartTracked = useRef(false);
   const signupSource = new URLSearchParams(window.location.search).get("source") || "login_tab";
@@ -335,7 +335,7 @@ export default function LoginPage({ onLogin, onBack }) {
     onClick={async () => {
       try {
         setLoading(true);
-        const res = await loginWithGoogle();
+        const res = await loginWithGoogle(returnTo);
         if (mode === "signup") trackEvent("signup_completed", { method:"google", source:signupSource });
         setSuccess(true);
         setTimeout(() => onLogin(res.user), 1200);
