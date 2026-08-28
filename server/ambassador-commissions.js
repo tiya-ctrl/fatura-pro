@@ -1,3 +1,5 @@
+import { AMBASSADOR_POLICY, ambassadorPlanPolicy } from "../src/lib/ambassadorPolicy.js";
+
 const MONTH_LIMIT = 36;
 
 function id(value) {
@@ -35,10 +37,10 @@ async function userForStripeCustomer(stripe, supabaseAdmin, customerId) {
   if (!customerId) return null;
   const { data: plans } = await supabaseAdmin
     .from("user_plans")
-    .select("user_id")
+    .select("user_id, plan")
     .eq("stripe_customer", customerId)
     .limit(1);
-  if (plans?.[0]?.user_id) return plans[0].user_id;
+  if (plans?.[0]?.user_id) return { userId:plans[0].user_id, plan:plans[0].plan };
 
   try {
     const customer = await stripe.customers.retrieve(customerId);
@@ -46,11 +48,30 @@ async function userForStripeCustomer(stripe, supabaseAdmin, customerId) {
     for (let page = 1; page <= 10; page += 1) {
       const { data } = await supabaseAdmin.auth.admin.listUsers({ page, perPage: 1000 });
       const match = data?.users?.find(user => user.email?.toLowerCase() === customer.email.toLowerCase());
-      if (match) return match.id;
+      if (match) {
+        const planResult = await supabaseAdmin.from("user_plans").select("plan").eq("user_id", match.id).maybeSingle();
+        return { userId:match.id, plan:planResult.data?.plan || null };
+      }
       if (!data?.users || data.users.length < 1000) break;
     }
   } catch {}
   return null;
+}
+
+function invoiceSubscriptionPlan(invoice, fallbackPlan) {
+  const lines = invoice?.lines?.data || [];
+  const first = lines[0] || {};
+  const price = first.price || first.pricing?.price_details || {};
+  const priceId = id(price.price) || id(first.price);
+  const unitAmount = Number(price.unit_amount ?? price.unit_amount_decimal ?? first.amount);
+  if ((process.env.STRIPE_PRICE_BUSINESS && priceId === process.env.STRIPE_PRICE_BUSINESS) || unitAmount === 1900) return "business";
+  if ((process.env.STRIPE_PRICE_PRO && priceId === process.env.STRIPE_PRICE_PRO) || unitAmount === 900) return "pro";
+  return fallbackPlan === "business" ? "business" : "pro";
+}
+
+export function ambassadorCommissionTerms(invoice, fallbackPlan) {
+  const plan = invoiceSubscriptionPlan(invoice, fallbackPlan);
+  return { plan, policy:ambassadorPlanPolicy(plan) };
 }
 
 export async function recordAmbassadorCommission(stripe, supabaseAdmin, invoice) {
@@ -58,8 +79,11 @@ export async function recordAmbassadorCommission(stripe, supabaseAdmin, invoice)
     return { created: false, reason: "not_paid" };
   }
 
-  const referredUserId = await userForStripeCustomer(stripe, supabaseAdmin, id(invoice.customer));
-  if (!referredUserId) return { created: false, reason: "customer_not_linked" };
+  const referredUser = await userForStripeCustomer(stripe, supabaseAdmin, id(invoice.customer));
+  if (!referredUser?.userId) return { created: false, reason: "customer_not_linked" };
+  const referredUserId = referredUser.userId;
+  const { plan:subscriptionPlan, policy:planPolicy } = ambassadorCommissionTerms(invoice, referredUser.plan);
+  if (!planPolicy) return { created:false, reason:"ineligible_plan" };
 
   const { data: referral, error: referralError } = await supabaseAdmin
     .from("referrals")
@@ -93,7 +117,7 @@ export async function recordAmbassadorCommission(stripe, supabaseAdmin, invoice)
   if (customerError) throw customerError;
 
   if (!customer) {
-    const customerEnd = addMonths(earnedAt, account.commission_months);
+    const customerEnd = addMonths(earnedAt, AMBASSADOR_POLICY.commissionMonths);
     const commissionEnd = agreementEnd && agreementEnd < customerEnd ? agreementEnd : customerEnd;
     const created = await supabaseAdmin
       .from("ambassador_customers")
@@ -125,7 +149,7 @@ export async function recordAmbassadorCommission(stripe, supabaseAdmin, invoice)
   }
 
   const revenueCents = commissionRevenue(invoice);
-  const amountCents = Math.floor((revenueCents * Number(account.commission_bps)) / 10000);
+  const amountCents = Math.floor((revenueCents * planPolicy.commissionBps) / 10000);
   if (amountCents <= 0) return { created: false, reason: "zero_commission" };
   const availableAt = new Date(earnedAt.getTime() + Number(account.hold_days || 30) * 86400000);
 
@@ -140,7 +164,7 @@ export async function recordAmbassadorCommission(stripe, supabaseAdmin, invoice)
       stripe_charge_id: id(invoice.charge),
       currency: String(invoice.currency || "eur").toLowerCase(),
       revenue_cents: revenueCents,
-      commission_bps: account.commission_bps,
+      commission_bps: planPolicy.commissionBps,
       amount_cents: amountCents,
       earned_at: earnedAt.toISOString(),
       available_at: availableAt.toISOString(),
@@ -149,7 +173,7 @@ export async function recordAmbassadorCommission(stripe, supabaseAdmin, invoice)
     .single();
   if (error?.code === "23505") return { created: false, reason: "already_recorded" };
   if (error) throw error;
-  return { created: true, commission };
+  return { created: true, commission, subscriptionPlan };
 }
 
 export async function reverseAmbassadorCommission(supabaseAdmin, stripeInvoiceId, reason = "refunded") {
@@ -248,5 +272,3 @@ export async function runAutomaticAmbassadorPayouts(stripe, supabaseAdmin) {
   }
   return results;
 }
-
-

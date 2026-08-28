@@ -1,20 +1,8 @@
+import { AMBASSADOR_POLICY, publicAmbassadorPolicy } from "../src/lib/ambassadorPolicy.js";
+import { htmlEscape, sendEmail } from "./email.js";
+
 function normalizedEmail(value) {
   return String(value || "").trim().toLowerCase();
-}
-
-function numberBetween(value, min, max, fallback) {
-  const number = Number(value);
-  return Number.isFinite(number) ? Math.max(min, Math.min(max, Math.round(number))) : fallback;
-}
-
-function addMonths(value, months) {
-  const date = new Date(value);
-  const day = date.getUTCDate();
-  date.setUTCDate(1);
-  date.setUTCMonth(date.getUTCMonth() + months);
-  const finalDay = new Date(Date.UTC(date.getUTCFullYear(), date.getUTCMonth() + 1, 0)).getUTCDate();
-  date.setUTCDate(Math.min(day, finalDay));
-  return date;
 }
 
 async function findUserByEmail(supabaseAdmin, email) {
@@ -36,6 +24,32 @@ export function isAmbassadorAdmin(user) {
     .map(normalizedEmail)
     .filter(Boolean);
   return configured.includes(normalizedEmail(user.email));
+}
+
+function ambassadorLinks(code) {
+  const safeCode = encodeURIComponent(String(code || "").trim().toUpperCase());
+  return {
+    referral: `https://faturapro.app/?ref=${safeCode}&utm_source=ambassador&utm_medium=partner&utm_campaign=founding_ambassadors`,
+    dashboard: "https://faturapro.app/ambassador",
+  };
+}
+
+export function ambassadorAcceptanceEmail(application, account) {
+  const links = ambassadorLinks(account?.code);
+  return {
+    to:application.email,
+    subject:"You’re approved for the Fatūra Pro Ambassador Program",
+    html:`<div style="font-family:Arial,sans-serif;max-width:600px;margin:0 auto;padding:32px;color:#222"><div style="color:#a68123;font-size:12px;font-weight:700;letter-spacing:1px;text-transform:uppercase">Fatūra Pro Ambassador Program</div><h1 style="font-size:27px;margin:12px 0">Welcome, ${htmlEscape(application.name)}.</h1><p style="line-height:1.7">Your application has been approved. Your personal tracking link is active and your private dashboard is ready.</p><div style="margin:24px 0;padding:18px;border-radius:10px;background:#f7f3e8"><b>Fixed commission terms</b><p style="margin:8px 0 0;line-height:1.7">Pro: 25% · Business: 35% · First 12 paid months of each qualified customer. Refunds, disputes and tax are excluded automatically.</p></div><div style="margin:20px 0;padding:18px;border:1px solid #e4d7b5;border-radius:10px"><b>Your personal ambassador link</b><p style="margin:9px 0 15px;word-break:break-all;font-size:13px"><a href="${htmlEscape(links.referral)}">${htmlEscape(links.referral)}</a></p><a href="${htmlEscape(links.referral)}" style="display:inline-block;background:#c9a84c;color:#000;padding:12px 20px;border-radius:8px;text-decoration:none;font-weight:700">Open personal link →</a></div><p style="margin:28px 0"><a href="${links.dashboard}" style="display:inline-block;background:#17171f;color:#fff;padding:12px 20px;border-radius:8px;text-decoration:none;font-weight:700">Open tracking dashboard →</a></p><p style="color:#777;font-size:12px;line-height:1.6">Sign in with ${htmlEscape(application.email)}. Your dashboard shows clicks, sign-ups, paid customers, commission and payouts while customer identities remain private.</p></div>`,
+  };
+}
+
+async function deliverAmbassadorAcceptance(application, account) {
+  try {
+    return await sendEmail(ambassadorAcceptanceEmail(application, account));
+  } catch (error) {
+    console.error("Ambassador acceptance email error:", error?.message || error);
+    return { sent:false, reason:"provider_rejected" };
+  }
 }
 
 export async function trackAmbassadorClick(supabaseAdmin, code, clickToken) {
@@ -104,8 +118,8 @@ export async function ambassadorSummary(supabaseAdmin, user) {
     account: {
       status: effectiveStatus,
       code: account.code,
-      commissionPercent: account.commission_bps / 100,
-      commissionMonths: account.commission_months,
+      commissionMonths: AMBASSADOR_POLICY.commissionMonths,
+      commissionByPlan: publicAmbassadorPolicy().plans,
       holdDays: account.hold_days,
       payoutThresholdCents: account.payout_threshold_cents,
       recoveryCents: account.recovery_cents,
@@ -159,15 +173,12 @@ export async function ambassadorAdminSummary(supabaseAdmin, user) {
       paid_out_cents: Number(paidTotal.data || 0),
     };
   }));
-  return { status: 200, body: { applications: applications.data || [], accounts: accountRows } };
+  return { status: 200, body: { applications: applications.data || [], accounts: accountRows, policy: publicAmbassadorPolicy() } };
 }
 
 export async function approveAmbassador(supabaseAdmin, user, body) {
   if (!isAmbassadorAdmin(user)) return { status: 403, body: { error: "Administrator access required" } };
   const applicationId = String(body?.applicationId || "");
-  const commissionBps = numberBetween(Number(body?.commissionPercent) * 100, 500, 5000, 2500);
-  const commissionMonths = numberBetween(body?.commissionMonths, 1, 36, 12);
-  const agreementMonths = numberBetween(body?.agreementMonths, 1, 36, 12);
   const { data: application, error } = await supabaseAdmin.from("ambassador_applications").select("*").eq("id", applicationId).single();
   if (error || !application) return { status: 404, body: { error: "Application not found" } };
 
@@ -180,7 +191,6 @@ export async function approveAmbassador(supabaseAdmin, user, body) {
   const referralCode = await supabaseAdmin.from("referral_codes").upsert({ user_id: ambassadorUser.id, code }, { onConflict: "user_id" });
   if (referralCode.error) throw referralCode.error;
   const startedAt = new Date();
-  const endsAt = addMonths(startedAt, agreementMonths);
   const accountResult = await supabaseAdmin
     .from("ambassador_accounts")
     .upsert({
@@ -188,10 +198,10 @@ export async function approveAmbassador(supabaseAdmin, user, body) {
       user_id: ambassadorUser.id,
       code,
       status: "active",
-      commission_bps: commissionBps,
-      commission_months: commissionMonths,
+      commission_bps: AMBASSADOR_POLICY.plans.pro.commissionBps,
+      commission_months: AMBASSADOR_POLICY.commissionMonths,
       agreement_started_at: startedAt.toISOString(),
-      agreement_ends_at: endsAt.toISOString(),
+      agreement_ends_at: null,
       automatic_payouts: true,
       updated_at: startedAt.toISOString(),
     }, { onConflict: "user_id" })
@@ -201,7 +211,65 @@ export async function approveAmbassador(supabaseAdmin, user, body) {
   const updatedApplication = await supabaseAdmin.from("ambassador_applications").update({ status: "approved", reviewed_at: startedAt.toISOString() }).eq("id", application.id);
   if (updatedApplication.error) throw updatedApplication.error;
 
-  return { status: 200, body: { approved: true, account: accountResult.data } };
+  const notification = await deliverAmbassadorAcceptance(application, accountResult.data);
+
+  return { status: 200, body: { approved: true, account: accountResult.data, notification, policy: publicAmbassadorPolicy() } };
+}
+
+export async function resendAmbassadorAcceptance(supabaseAdmin, user, body) {
+  if (!isAmbassadorAdmin(user)) return { status: 403, body: { error:"Administrator access required" } };
+  const applicationId = String(body?.applicationId || "");
+  const applicationResult = await supabaseAdmin
+    .from("ambassador_applications")
+    .select("*")
+    .eq("id", applicationId)
+    .single();
+  if (applicationResult.error || !applicationResult.data) return { status:404, body:{ error:"Application not found" } };
+  if (applicationResult.data.status !== "approved") return { status:409, body:{ error:"Only approved applications can receive an acceptance email" } };
+
+  const accountResult = await supabaseAdmin
+    .from("ambassador_accounts")
+    .select("*")
+    .eq("application_id", applicationId)
+    .maybeSingle();
+  if (accountResult.error) throw accountResult.error;
+  if (!accountResult.data) return { status:409, body:{ error:"The ambassador account was not created. Approve the application again after checking the account email." } };
+
+  const notification = await deliverAmbassadorAcceptance(applicationResult.data, accountResult.data);
+  return { status:notification.sent ? 200 : 502, body:notification.sent
+    ? { sent:true, notification }
+    : { error:"The acceptance email was not sent. Check the Resend sender/domain settings, then try again.", notification } };
+}
+
+export async function declineAmbassador(supabaseAdmin, user, body) {
+  if (!isAmbassadorAdmin(user)) return { status: 403, body: { error: "Administrator access required" } };
+  const applicationId = String(body?.applicationId || "");
+  const { data: application, error } = await supabaseAdmin
+    .from("ambassador_applications")
+    .select("*")
+    .eq("id", applicationId)
+    .single();
+  if (error || !application) return { status: 404, body: { error: "Application not found" } };
+  if (application.status === "approved") return { status: 409, body: { error: "An approved ambassador must be ended from Active partnerships." } };
+
+  const reviewedAt = new Date().toISOString();
+  const updated = await supabaseAdmin
+    .from("ambassador_applications")
+    .update({ status:"declined", reviewed_at:reviewedAt })
+    .eq("id", application.id);
+  if (updated.error) throw updated.error;
+
+  let notification = { sent:false };
+  try {
+    notification = await sendEmail({
+      to:application.email,
+      subject:"Update on your Fatūra Pro ambassador application",
+      html:`<div style="font-family:Arial,sans-serif;max-width:560px;margin:0 auto;padding:32px;color:#222"><div style="color:#a68123;font-size:12px;font-weight:700;letter-spacing:1px;text-transform:uppercase">Fatūra Pro Ambassador Program</div><h1 style="font-size:25px;margin:12px 0">Thank you, ${htmlEscape(application.name)}.</h1><p style="line-height:1.7">We reviewed your application carefully. We are keeping the first ambassador group intentionally small, and we are not able to offer a place in this round.</p><p style="line-height:1.7">This is not a judgment on the quality of your work, and you are welcome to apply again in a future intake.</p><p style="color:#777;font-size:12px;margin-top:28px">Fatūra Pro · Business without borders</p></div>`,
+    });
+  } catch (emailError) {
+    console.error("Ambassador decline email error:", emailError?.message || emailError);
+  }
+  return { status: 200, body: { declined:true, notification } };
 }
 
 export async function updateAmbassador(supabaseAdmin, user, body) {
@@ -210,8 +278,6 @@ export async function updateAmbassador(supabaseAdmin, user, body) {
   const allowedStatus = new Set(["active", "paused", "ended"]);
   const updates = { updated_at: new Date().toISOString() };
   if (allowedStatus.has(body?.status)) updates.status = body.status;
-  if (body?.commissionPercent != null) updates.commission_bps = numberBetween(Number(body.commissionPercent) * 100, 500, 5000, 2500);
-  if (body?.commissionMonths != null) updates.commission_months = numberBetween(body.commissionMonths, 1, 36, 12);
   if (body?.automaticPayouts != null) updates.automatic_payouts = body.automaticPayouts === true;
   if (body?.agreementEndsAt) {
     const date = new Date(body.agreementEndsAt);

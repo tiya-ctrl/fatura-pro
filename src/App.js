@@ -52,6 +52,7 @@ function LoginWrapper() {
     <Login
       onLogin={() => navigate("/app")}
       onBack={() => navigate("/")}
+      returnTo="/app"
     />
   );
 }
@@ -101,7 +102,7 @@ function AccountPageWrapper({ component: Component }) {
   }), []);
 
   if (loading) return null;
-  if (!user) return <Login onLogin={() => window.location.reload()} onBack={() => navigate("/")} />;
+  if (!user) return <Login onLogin={() => window.location.reload()} onBack={() => navigate("/")} returnTo={window.location.pathname + window.location.search} />;
   return <Component user={user} />;
 }
 

@@ -4,6 +4,9 @@ import {
   ambassadorAdminSummary,
   ambassadorSummary,
   approveAmbassador,
+  declineAmbassador,
+  isAmbassadorAdmin,
+  resendAmbassadorAcceptance,
   trackAmbassadorClick,
   updateAmbassador,
 } from "../server/ambassador-program.js";
@@ -301,6 +304,7 @@ export default async function handler(req, res) {
 
     if (req.method === "GET") {
       if (action === "ambassador-summary") return res.status(200).json(await ambassadorSummary(supabaseAdmin, user));
+      if (action === "ambassador-admin-access") return res.status(200).json({ allowed:isAmbassadorAdmin(user) });
       if (action === "ambassador-admin") {
         const result = await ambassadorAdminSummary(supabaseAdmin, user);
         return res.status(result.status).json(result.body);
@@ -313,6 +317,8 @@ export default async function handler(req, res) {
     else if (action === "activate") result = await activateReferral(user);
     else if (action === "redeem") result = await redeemBankedRewards(user.id);
     else if (action === "ambassador-admin-approve") result = await approveAmbassador(supabaseAdmin, user, req.body);
+    else if (action === "ambassador-admin-decline") result = await declineAmbassador(supabaseAdmin, user, req.body);
+    else if (action === "ambassador-admin-resend-acceptance") result = await resendAmbassadorAcceptance(supabaseAdmin, user, req.body);
     else if (action === "ambassador-admin-update") result = await updateAmbassador(supabaseAdmin, user, req.body);
     else result = { status: 400, body: { error: "Unknown action" } };
     return res.status(result.status).json(result.body);

@@ -18,6 +18,7 @@ import { loadRecurring, createRecurring } from "../lib/recurring";
 import { loadExpenses } from "../lib/expenses";
 import { trackEvent } from "../lib/tracking";
 import { activateReferral, claimStoredReferral } from "../lib/referrals";
+import { fetchAmbassadorAdminAccess } from "../lib/ambassadors";
 
 const FONTS = `@import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600;700&family=DM+Sans:wght@300;400;500;600&display=swap');`;
 const INVOICE_ATTRIBUTION_URL = "https://faturapro.app/?utm_source=invoice&utm_medium=footer&utm_campaign=made_with_fatura_pro";
@@ -470,6 +471,7 @@ export default function InvoiceApp({ onGoHome }) {
   const [plan, setPlan] = useState("free");
   const [userEmail, setUserEmail] = useState("");
   const [userId, setUserId] = useState(null);
+  const [ambassadorAdminAccess, setAmbassadorAdminAccess] = useState(false);
   const [quotes, setQuotes] = useState([]);
   const [bizProfiles, setBizProfiles] = useState([]);
   const [expenses, setExpenses] = useState([]);
@@ -576,6 +578,7 @@ export default function InvoiceApp({ onGoHome }) {
   // A locked menu item is shown, not hidden - a Pro customer should be able to
   // see that quotes, expenses and analytics exist before deciding to upgrade.
   const openNav = (n) => {
+    if (n.href) { window.location.href = n.href; return; }
     if (n.locked) { setUpgradeIntent("business"); setUpgradeFeature(n.id); setShowUpgrade(true); return; }
     setPage(n.id);
   };
@@ -825,6 +828,13 @@ export default function InvoiceApp({ onGoHome }) {
   }, []);
 
   useEffect(() => {
+    if (!userId) return;
+    fetchAmbassadorAdminAccess()
+      .then(result => setAmbassadorAdminAccess(result.allowed === true))
+      .catch(() => setAmbassadorAdminAccess(false));
+  }, [userId]);
+
+  useEffect(() => {
     const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
       if (session?.user) {
         const reload = async () => {
@@ -851,6 +861,7 @@ export default function InvoiceApp({ onGoHome }) {
     { id: "expenses", icon: "\u2296", label: "Expenses", locked: !(hasBusinessAccess(plan) || isTeamMember) },
     { id: "analytics", icon: "\u2261", label: "Analytics", locked: !hasBusinessAccess(plan) },
     { id: "settings", icon: "\u2699", label: "Settings" },
+    ...(ambassadorAdminAccess ? [{ id:"ambassador-admin", icon:"✦", label:"Ambassador requests", href:"/admin" }] : []),
   ];
   
   const [isMobile, setIsMobile] = React.useState(false);

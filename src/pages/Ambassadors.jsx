@@ -138,7 +138,7 @@ export default function Ambassadors() {
               <div className="amb-promise" aria-label="Ambassador program benefits">
                 <div><strong>Your link</strong><span>A personal tracked link with clicks, sign-ups, paid customers and earnings.</span></div>
                 <div><strong>Your voice</strong><span>Direct product feedback and early access to useful releases.</span></div>
-                <div><strong>25–35%</strong><span>Cash commission tier confirmed before you publish, for a fixed term per customer.</span></div>
+                <div><strong>25% / 35%</strong><span>Pro pays 25%; Business pays 35%. Both run for each customer’s first 12 paid months.</span></div>
               </div>
               <div className="amb-principle"><span>✦</span><span><b>This is not an affiliate-link dump.</b> We value honest tutorials, useful templates and real recommendations. Spam, fake accounts and misleading claims are never rewarded.</span></div>
             </div>
@@ -184,9 +184,9 @@ export default function Ambassadors() {
             <div className="amb-section-head"><div className="amb-section-tag">A deliberate first cohort</div><h2 className="amb-section-title">From application to useful, measurable partnership.</h2></div>
             <div className="amb-path">
               <article className="amb-step"><div className="amb-step-num">01</div><h3>Show us your audience</h3><p>Tell us who you help, where you publish and why invoicing is relevant to their work.</p></article>
-              <article className="amb-step"><div className="amb-step-num">02</div><h3>Agree on the fit</h3><p>We review content quality, audience relevance and expectations before either side commits.</p></article>
+              <article className="amb-step"><div className="amb-step-num">02</div><h3>We review the fit</h3><p>We review content quality and audience relevance. The commission rates and 12-month customer term are fixed automatically.</p></article>
               <article className="amb-step"><div className="amb-step-num">03</div><h3>Receive your link & dashboard</h3><p>See aggregate clicks, sign-ups, paying customers, pending commission and completed payouts.</p></article>
-              <article className="amb-step"><div className="amb-step-num">04</div><h3>Get paid automatically</h3><p>Connect Stripe once. Eligible commission is transferred after the holding period and stops at the agreed end date.</p></article>
+              <article className="amb-step"><div className="amb-step-num">04</div><h3>Get paid automatically</h3><p>Connect Stripe once. Eligible commission is transferred after the holding period and stops after each customer’s first 12 paid months.</p></article>
             </div>
           </div>
         </section>
