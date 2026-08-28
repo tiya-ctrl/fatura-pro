@@ -32,10 +32,10 @@ export function fetchAmbassadorAdminAccess() {
   return request("ambassador-admin-access");
 }
 
-export function approveAmbassador(applicationId) {
+export function approveAmbassador(applicationId, terms = {}) {
   return request("ambassador-admin-approve", {
     method: "POST",
-    body: JSON.stringify({ applicationId }),
+    body: JSON.stringify({ applicationId, ...terms }),
   });
 }
 
@@ -73,4 +73,3 @@ export async function connectAmbassadorPayout(action = "connect") {
   if (!response.ok) throw new Error(data.error || "Stripe payout setup could not be completed");
   return data;
 }
-

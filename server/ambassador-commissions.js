@@ -1,4 +1,4 @@
-import { AMBASSADOR_POLICY, ambassadorPlanPolicy } from "../src/lib/ambassadorPolicy.js";
+import { ambassadorAccountPolicy, ambassadorPlanPolicy } from "../src/lib/ambassadorPolicy.js";
 
 const MONTH_LIMIT = 36;
 
@@ -69,9 +69,10 @@ function invoiceSubscriptionPlan(invoice, fallbackPlan) {
   return fallbackPlan === "business" ? "business" : "pro";
 }
 
-export function ambassadorCommissionTerms(invoice, fallbackPlan) {
+export function ambassadorCommissionTerms(invoice, fallbackPlan, account = null) {
   const plan = invoiceSubscriptionPlan(invoice, fallbackPlan);
-  return { plan, policy:ambassadorPlanPolicy(plan) };
+  const terms = account ? ambassadorAccountPolicy(account) : null;
+  return { plan, policy:terms?.plans?.[plan] || ambassadorPlanPolicy(plan), terms };
 }
 
 export async function recordAmbassadorCommission(stripe, supabaseAdmin, invoice) {
@@ -82,9 +83,6 @@ export async function recordAmbassadorCommission(stripe, supabaseAdmin, invoice)
   const referredUser = await userForStripeCustomer(stripe, supabaseAdmin, id(invoice.customer));
   if (!referredUser?.userId) return { created: false, reason: "customer_not_linked" };
   const referredUserId = referredUser.userId;
-  const { plan:subscriptionPlan, policy:planPolicy } = ambassadorCommissionTerms(invoice, referredUser.plan);
-  if (!planPolicy) return { created:false, reason:"ineligible_plan" };
-
   const { data: referral, error: referralError } = await supabaseAdmin
     .from("referrals")
     .select("id, referrer_id, program")
@@ -101,6 +99,8 @@ export async function recordAmbassadorCommission(stripe, supabaseAdmin, invoice)
     .maybeSingle();
   if (accountError) throw accountError;
   if (!account || account.status !== "active") return { created: false, reason: "ambassador_inactive" };
+  const { plan:subscriptionPlan, policy:planPolicy, terms:accountTerms } = ambassadorCommissionTerms(invoice, referredUser.plan, account);
+  if (!planPolicy) return { created:false, reason:"ineligible_plan" };
 
   const earnedAt = invoicePaidAt(invoice);
   const agreementStart = new Date(account.agreement_started_at);
@@ -117,7 +117,7 @@ export async function recordAmbassadorCommission(stripe, supabaseAdmin, invoice)
   if (customerError) throw customerError;
 
   if (!customer) {
-    const customerEnd = addMonths(earnedAt, AMBASSADOR_POLICY.commissionMonths);
+    const customerEnd = addMonths(earnedAt, accountTerms.commissionMonths);
     const commissionEnd = agreementEnd && agreementEnd < customerEnd ? agreementEnd : customerEnd;
     const created = await supabaseAdmin
       .from("ambassador_customers")
