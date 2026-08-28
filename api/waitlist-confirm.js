@@ -1,5 +1,6 @@
 import { createClient } from "@supabase/supabase-js";
 import { createHmac } from "node:crypto";
+import { htmlEscape, sendAmbassadorAdminEmail, sendEmail } from "../server/email.js";
 
 const CHANNELS = new Set(["YouTube", "TikTok", "Instagram", "LinkedIn", "Newsletter", "Community", "Consulting", "Other"]);
 const AUDIENCE_SIZES = new Set(["under_1k", "1k_5k", "5k_25k", "25k_plus"]);
@@ -23,20 +24,6 @@ function validHttpUrl(value) {
   } catch {
     return false;
   }
-}
-
-function html(value) {
-  return String(value || "").replace(/[&<>"']/g, character => ({ "&":"&amp;", "<":"&lt;", ">":"&gt;", '"':"&quot;", "'":"&#039;" }[character]));
-}
-
-async function sendEmail(payload) {
-  if (!process.env.RESEND_API_KEY) return;
-  const response = await fetch("https://api.resend.com/emails", {
-    method:"POST",
-    headers:{ "Content-Type":"application/json", Authorization:`Bearer ${process.env.RESEND_API_KEY}` },
-    body:JSON.stringify(payload),
-  });
-  if (!response.ok) throw new Error(`Email provider rejected the request (${response.status})`);
 }
 
 function adminClient() {
@@ -116,16 +103,13 @@ async function handleAmbassadorApplication(req, res, supabaseAdmin) {
 
   await Promise.allSettled([
     sendEmail({
-      from:"Fatūra Pro <noreply@faturapro.app>",
       to:application.email,
       subject:"We received your Fatūra Pro ambassador application",
-      html:`<div style="font-family:Arial,sans-serif;max-width:560px;margin:0 auto;padding:32px;color:#222"><div style="color:#a68123;font-size:13px;font-weight:700;letter-spacing:1px;text-transform:uppercase">Founding Ambassador Circle</div><h1 style="font-size:26px;margin:12px 0">Thank you, ${html(application.name)}.</h1><p style="line-height:1.7">We received your application and will review it alongside the next founding-circle batch. If there is a strong fit, we will contact you by email with the program terms before you publish anything.</p><p style="line-height:1.7">In the meantime, you can explore Fatūra Pro and create your first invoice for free.</p><p style="margin:28px 0"><a href="https://faturapro.app" style="background:#c9a84c;color:#000;padding:12px 22px;border-radius:8px;text-decoration:none;font-weight:700">Explore Fatūra Pro →</a></p><p style="color:#888;font-size:12px">Fatūra Pro · Business without borders</p></div>`,
+      html:`<div style="font-family:Arial,sans-serif;max-width:560px;margin:0 auto;padding:32px;color:#222"><div style="color:#a68123;font-size:13px;font-weight:700;letter-spacing:1px;text-transform:uppercase">Founding Ambassador Circle</div><h1 style="font-size:26px;margin:12px 0">Thank you, ${htmlEscape(application.name)}.</h1><p style="line-height:1.7">We received your application and will review it alongside the next founding-circle batch. If there is a strong fit, we will contact you by email before you publish anything.</p><p style="line-height:1.7">The program uses fixed terms: 25% on Pro and 35% on Business subscription revenue for the first 12 paid months of each qualified customer.</p><p style="margin:28px 0"><a href="https://faturapro.app/ambassador" style="background:#c9a84c;color:#000;padding:12px 22px;border-radius:8px;text-decoration:none;font-weight:700">Check application status →</a></p><p style="color:#888;font-size:12px">Fatūra Pro · Business without borders</p></div>`,
     }),
-    sendEmail({
-      from:"Fatūra Pro <noreply@faturapro.app>",
-      to:"support@faturapro.app",
+    sendAmbassadorAdminEmail({
       subject:`New ambassador application — ${application.name}`,
-      html:`<div style="font-family:Arial,sans-serif;max-width:620px;padding:24px"><h2>New ambassador application</h2><p><b>Name:</b> ${html(application.name)}<br><b>Email:</b> ${html(application.email)}<br><b>Channel:</b> ${html(application.primary_channel)}<br><b>Audience:</b> ${html(application.audience_size)}<br><b>Languages:</b> ${html(application.languages)}<br><b>Market:</b> ${html(application.country)}<br><b>Profile:</b> <a href="${html(application.profile_url)}">${html(application.profile_url)}</a></p><p><b>Why it fits:</b><br>${html(application.motivation).replace(/\n/g,"<br>")}</p><p style="color:#777;font-size:12px">Source: ${html(application.source)} / ${html(application.medium)} / ${html(application.campaign)}</p></div>`,
+      html:`<div style="font-family:Arial,sans-serif;max-width:620px;padding:24px"><h2>New ambassador application</h2><p><b>Name:</b> ${htmlEscape(application.name)}<br><b>Email:</b> ${htmlEscape(application.email)}<br><b>Channel:</b> ${htmlEscape(application.primary_channel)}<br><b>Audience:</b> ${htmlEscape(application.audience_size)}<br><b>Languages:</b> ${htmlEscape(application.languages)}<br><b>Market:</b> ${htmlEscape(application.country)}<br><b>Profile:</b> <a href="${htmlEscape(application.profile_url)}">${htmlEscape(application.profile_url)}</a></p><p><b>Why it fits:</b><br>${htmlEscape(application.motivation).replace(/\n/g,"<br>")}</p><p style="margin:24px 0"><a href="https://faturapro.app/admin" style="background:#c9a84c;color:#000;padding:12px 22px;border-radius:8px;text-decoration:none;font-weight:700">Review application →</a></p><p style="color:#777;font-size:12px">Source: ${htmlEscape(application.source)} / ${htmlEscape(application.medium)} / ${htmlEscape(application.campaign)}</p></div>`,
     }),
   ]);
 
@@ -141,7 +125,6 @@ async function handleWaitlistConfirmation(req, res, supabaseAdmin) {
   if (!ipAllowed || !emailAllowed) return res.status(429).json({ error:"Please wait before requesting another email." });
 
   await sendEmail({
-    from:"Fatūra Pro <noreply@faturapro.app>",
     to:email,
     subject:"You're on the Fatūra Business Plan waitlist! 🎉",
     html:`<div style="font-family:sans-serif;max-width:500px;margin:0 auto;padding:32px"><h2 style="color:#c9a84c">You're on the list! ✦</h2><p>Hi there,</p><p>Thank you for joining the <strong>Fatūra Business Plan</strong> waitlist. You'll be among the first to know when we launch.</p><p>While you wait, you can enjoy <strong>Fatūra Pro</strong> — our full-featured invoicing plan for freelancers and entrepreneurs.</p><p style="margin:24px 0"><a href="https://faturapro.app" style="background:#c9a84c;color:#000;padding:12px 24px;border-radius:8px;text-decoration:none;font-weight:600">Try Pro Free for 7 Days →</a></p><p style="color:#999;font-size:12px">Fatūra Pro · Professional Invoicing · faturapro.app</p></div>`,
