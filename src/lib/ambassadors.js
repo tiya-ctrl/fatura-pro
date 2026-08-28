@@ -28,10 +28,28 @@ export function fetchAmbassadorAdmin() {
   return request("ambassador-admin");
 }
 
-export function approveAmbassador(applicationId, terms) {
+export function fetchAmbassadorAdminAccess() {
+  return request("ambassador-admin-access");
+}
+
+export function approveAmbassador(applicationId) {
   return request("ambassador-admin-approve", {
     method: "POST",
-    body: JSON.stringify({ applicationId, ...terms }),
+    body: JSON.stringify({ applicationId }),
+  });
+}
+
+export function declineAmbassador(applicationId) {
+  return request("ambassador-admin-decline", {
+    method: "POST",
+    body: JSON.stringify({ applicationId }),
+  });
+}
+
+export function resendAmbassadorAcceptance(applicationId) {
+  return request("ambassador-admin-resend-acceptance", {
+    method: "POST",
+    body: JSON.stringify({ applicationId }),
   });
 }
 
@@ -55,6 +73,4 @@ export async function connectAmbassadorPayout(action = "connect") {
   if (!response.ok) throw new Error(data.error || "Stripe payout setup could not be completed");
   return data;
 }
-
-
 
