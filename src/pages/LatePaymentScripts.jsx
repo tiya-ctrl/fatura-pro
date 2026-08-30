@@ -518,6 +518,11 @@ export default function LatePaymentScripts() {
         </div>
 
         <div style={{ marginTop: 26, marginBottom: 44 }}>
+          {lang === "fr" && (
+            <div style={{ background: "rgba(201,168,76,0.08)", border: "1px solid rgba(201,168,76,0.26)", borderRadius: 10, padding: "14px 16px", marginBottom: 20, color: MUTED, fontSize: 14, lineHeight: 1.7 }}>
+              Besoin d'explications en français&nbsp;? Consultez le guide complet avec cinq <a href="/fr/relance-facture-impayee-anglais" style={{ color: GOLD_L, fontWeight: 600 }}>modèles de relance pour facture impayée en anglais</a>.
+            </div>
+          )}
           {STAGES.map((s) => (
             <ScriptCard key={s.key} stage={s} script={set[s.key]} channel={channel} dir={dir} />
           ))}
