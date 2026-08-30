@@ -943,7 +943,7 @@ function Footer({ onOpenApp }) {
   const columns = [
     { title:"Product", links:[["#product","Multi-currency invoicing"],["#how","How it works"],["#pricing","Pricing"],["#referrals","Referral rewards"],["/invoice-generator","Free invoice generator"],["/api-docs","API documentation"]] },
     { title:"Solutions", links:[["/for-freelancers","For freelancers"],["/for-agencies","For agencies & teams"],["/ubl-factuur-maken","UBL invoice export"],["/nl","Nederlands factuurprogramma"]] },
-    { title:"Resources", links:[["/blog","Invoicing guides"],["/late-payment-scripts","Late-payment scripts"],["/blog/how-to-create-ubl-invoice-en16931","UBL invoice guide"],["/blog/how-to-create-professional-invoice","Professional invoice guide"]] },
+    { title:"Resources", links:[["/blog","Invoicing guides"],["/late-payment-scripts","Late-payment scripts"],["/fr/relance-facture-impayee-anglais","French payment reminder guide"],["/blog/how-to-create-ubl-invoice-en16931","UBL invoice guide"],["/blog/how-to-create-professional-invoice","Professional invoice guide"]] },
     { title:"Company", links:[["/ambassadors","Ambassador program"],["mailto:support@faturapro.app","Contact support"],["/privacy","Privacy policy"],["/terms","Terms of service"],["https://x.com/Faturapro","Follow on X"]] },
   ];
   return (
