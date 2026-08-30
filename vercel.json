@@ -4,6 +4,7 @@
     { "source": "/for-agencies", "destination": "/for-agencies.html" },
     { "source": "/nl", "destination": "/nl.html" },
     { "source": "/ubl-factuur-maken", "destination": "/ubl-factuur-maken.html" },
+    { "source": "/fr/relance-facture-impayee-anglais", "destination": "/relance-facture-impayee-anglais.html" },
     { "source": "/(.*)", "destination": "/index.html" }
   ],
   "crons": [{
