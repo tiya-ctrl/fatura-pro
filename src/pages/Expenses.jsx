@@ -2,10 +2,15 @@
 import { useState } from "react";
 import { loadExpenses, saveExpense, deleteExpense, vatReport } from "../lib/expenses";
 import { CURRENCIES, fmtCurrency, codesUsed } from "../lib/currencies";
+import { exportExpensesCSV } from "../lib/accountantExport";
+import { trackEvent } from "../lib/tracking";
+import { getLocale, tr } from "../lib/locale";
 
 const CATEGORIES = ["software", "hardware", "office", "travel", "marketing", "services", "other"];
 
 export default function Expenses({ expenses, setExpenses, invoices, userId }) {
+  const locale = getLocale();
+  const t = (key, fallback) => tr(key, fallback, locale);
   const now = new Date();
   const [editing, setEditing] = useState(null);
   const [year, setYear] = useState(now.getFullYear());
@@ -17,6 +22,20 @@ export default function Expenses({ expenses, setExpenses, invoices, userId }) {
   const activeCur = currencyCodes.indexOf(reportCur) > -1 ? reportCur : currencyCodes[0];
   const report = vatReport(invoices, expenses, year, quarter, activeCur);
   const fmt = (n) => fmtCurrency(n, activeCur);
+  const periodExpenses = (expenses || []).filter((expense) => {
+    const date = new Date(expense.date);
+    return expense.date
+      && !Number.isNaN(date.getTime())
+      && date.getFullYear() === year
+      && Math.floor(date.getMonth() / 3) + 1 === quarter
+      && (expense.currency || "EUR") === activeCur;
+  });
+
+  const exportPeriod = () => {
+    const filename = `fatura-pro-expenses-${year}-Q${quarter}-${activeCur}.csv`;
+    const count = exportExpensesCSV(periodExpenses, filename);
+    trackEvent("expenses_csv_exported", { year, quarter, currency:activeCur, expense_count:count });
+  };
 
   const handleDelete = async (e) => {
     if (!window.confirm("Delete expense \"" + e.description + "\"?")) return;
@@ -29,7 +48,7 @@ export default function Expenses({ expenses, setExpenses, invoices, userId }) {
       {/* VAT Report */}
       <div className="card" style={{ marginBottom: 20 }}>
         <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center", flexWrap:"wrap", gap:10, marginBottom:14 }}>
-          <div className="card-title">VAT / BTW Report{currencyCodes.length > 1 ? " (" + activeCur + ")" : ""}</div>
+          <div className="card-title">{t("vat_report", "VAT / BTW Report")}{currencyCodes.length > 1 ? " (" + activeCur + ")" : ""}</div>
           <div style={{ display:"flex", gap:8 }}>
             {currencyCodes.length > 1 && (
               <select value={activeCur} onChange={(e) => setReportCur(e.target.value)}>
@@ -46,11 +65,11 @@ export default function Expenses({ expenses, setExpenses, invoices, userId }) {
           </div>
         </div>
         <div style={{ display:"grid", gridTemplateColumns:"repeat(auto-fit, minmax(150px, 1fr))", gap:12 }}>
-          <div className="stat-card"><div className="stat-label">Revenue (excl. VAT)</div><div className="stat-value" style={{ fontSize:20 }}>{fmt(report.revenueExcl)}</div><div className="stat-change">{report.invoiceCount} invoices</div></div>
-          <div className="stat-card"><div className="stat-label">VAT collected</div><div className="stat-value" style={{ fontSize:20 }}>{fmt(report.vatCollected)}</div><div className="stat-change">on sales</div></div>
-          <div className="stat-card"><div className="stat-label">VAT paid</div><div className="stat-value" style={{ fontSize:20 }}>{fmt(report.vatPaid)}</div><div className="stat-change">{report.expenseCount} expenses</div></div>
+          <div className="stat-card"><div className="stat-label">{t("revenue_excl", "Revenue (excl. VAT)")}</div><div className="stat-value" style={{ fontSize:20 }}>{fmt(report.revenueExcl)}</div><div className="stat-change">{report.invoiceCount} {t("invoices", "invoices").toLowerCase()}</div></div>
+          <div className="stat-card"><div className="stat-label">{t("vat_collected", "VAT collected")}</div><div className="stat-value" style={{ fontSize:20 }}>{fmt(report.vatCollected)}</div><div className="stat-change">{t("on_sales", "on sales")}</div></div>
+          <div className="stat-card"><div className="stat-label">{t("vat_paid", "VAT paid")}</div><div className="stat-value" style={{ fontSize:20 }}>{fmt(report.vatPaid)}</div><div className="stat-change">{report.expenseCount} {t("expense_count", "expenses")}</div></div>
           <div className="stat-card" style={{ border:"1px solid " + (report.vatDue >= 0 ? "rgba(224,85,85,0.4)" : "rgba(45,140,101,0.4)") }}>
-            <div className="stat-label">VAT to {report.vatDue >= 0 ? "pay" : "reclaim"}</div>
+            <div className="stat-label">{report.vatDue >= 0 ? t("vat_pay", "VAT to pay") : t("vat_reclaim", "VAT to reclaim")}</div>
             <div className="stat-value" style={{ fontSize:20, color: report.vatDue >= 0 ? "var(--red)" : "#2d8c65" }}>{fmt(Math.abs(report.vatDue))}</div>
             <div className="stat-change">Q{quarter} {year}</div>
           </div>
@@ -58,14 +77,17 @@ export default function Expenses({ expenses, setExpenses, invoices, userId }) {
       </div>
 
       {/* Expenses list */}
-      <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center", marginBottom:14 }}>
-        <div className="card-title">Expenses</div>
-        <button className="btn btn-primary" onClick={() => setEditing("new")}>+ Add expense</button>
+      <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center", marginBottom:14, gap:10, flexWrap:"wrap" }}>
+        <div className="card-title">{t("expenses", "Expenses")}</div>
+        <div style={{ display:"flex", gap:8, flexWrap:"wrap" }}>
+          <button className="btn btn-ghost" disabled={periodExpenses.length === 0} onClick={exportPeriod}>⬇ {t("export_quarter", "Export")} Q{quarter} CSV</button>
+          <button className="btn btn-primary" onClick={() => setEditing("new")}>+ {t("add_expense", "Add expense")}</button>
+        </div>
       </div>
 
       {expenses.length === 0 && (
         <div className="card" style={{ textAlign:"center", padding:40, color:"#999" }}>
-          No expenses yet. Track your business costs here — VAT you paid is deducted automatically in the report above.
+          {t("no_expenses", "No expenses yet. Track your business costs here — VAT you paid is deducted automatically in the report above.")}
         </div>
       )}
 
@@ -77,7 +99,7 @@ export default function Expenses({ expenses, setExpenses, invoices, userId }) {
           </div>
           <div style={{ display:"flex", alignItems:"center", gap:10 }}>
             <span style={{ fontWeight:700 }}>{fmtCurrency(e.amount_incl, e.currency || "EUR")}</span>
-            <button className="btn btn-ghost btn-sm" onClick={() => setEditing(e)}>Edit</button>
+            <button className="btn btn-ghost btn-sm" onClick={() => setEditing(e)}>{t("edit", "Edit")}</button>
             <button className="btn btn-ghost btn-sm" style={{ color:"#e05555" }} onClick={() => handleDelete(e)}>✕</button>
           </div>
         </div>
@@ -88,14 +110,23 @@ export default function Expenses({ expenses, setExpenses, invoices, userId }) {
           expense={editing === "new" ? null : editing}
           onClose={() => setEditing(null)}
           defaultCurrency={activeCur}
-          onSave={async (e) => { await saveExpense(e, userId); setEditing(null); refresh(); }}
+          locale={locale}
+          onSave={async (e) => {
+            const creating = editing === "new";
+            const saved = await saveExpense(e, userId);
+            if (!saved) { window.alert("Could not save this expense. Please try again."); return; }
+            trackEvent(creating ? "expense_created" : "expense_updated", { currency:e.currency || "EUR", category:e.category || "other", vat_rate:Number(e.vat_rate) || 0 });
+            setEditing(null);
+            refresh();
+          }}
         />
       )}
     </div>
   );
 }
 
-function ExpenseModal({ expense, onClose, onSave, defaultCurrency }) {
+function ExpenseModal({ expense, onClose, onSave, defaultCurrency, locale }) {
+  const t = (key, fallback) => tr(key, fallback, locale);
   const isEdit = !!expense;
   const [form, setForm] = useState(expense || {
     date: new Date().toISOString().split("T")[0],
@@ -118,25 +149,25 @@ function ExpenseModal({ expense, onClose, onSave, defaultCurrency }) {
     <div className="modal-overlay" onClick={onClose}>
       <div className="modal" style={{ maxWidth:520 }} onClick={(e) => e.stopPropagation()}>
         <div style={{ display:"flex", justifyContent:"space-between", marginBottom:16 }}>
-          <div className="card-title">{isEdit ? "Edit expense" : "New expense"}</div>
+          <div className="card-title">{isEdit ? t("edit_expense", "Edit expense") : t("new_expense", "New expense")}</div>
           <button className="btn btn-ghost btn-sm" onClick={onClose}>✕</button>
         </div>
 
         <div style={{ display:"grid", gap:10 }}>
-          <input placeholder="Description * (e.g. Adobe subscription)" value={form.description} onChange={(e) => set("description", e.target.value)} />
+          <input placeholder={t("description", "Description") + " * (e.g. Adobe subscription)"} value={form.description} onChange={(e) => set("description", e.target.value)} />
           <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:10 }}>
-            <label style={{ fontSize:12 }}>Date<input type="date" value={form.date} onChange={(e) => set("date", e.target.value)} /></label>
-            <label style={{ fontSize:12 }}>Currency<select value={form.currency} onChange={(e) => set("currency", e.target.value)}>{CURRENCIES.map(g => (<optgroup key={g.group} label={g.group}>{g.items.map(c => <option key={c.value} value={c.value}>{c.label}</option>)}</optgroup>))}</select></label>
-            <label style={{ fontSize:12 }}>Category
+            <label style={{ fontSize:12 }}>{t("date", "Date")}<input type="date" value={form.date} onChange={(e) => set("date", e.target.value)} /></label>
+            <label style={{ fontSize:12 }}>{t("currency", "Currency")}<select value={form.currency} onChange={(e) => set("currency", e.target.value)}>{CURRENCIES.map(g => (<optgroup key={g.group} label={g.group}>{g.items.map(c => <option key={c.value} value={c.value}>{c.label}</option>)}</optgroup>))}</select></label>
+            <label style={{ fontSize:12 }}>{t("category", "Category")}
               <select value={form.category} onChange={(e) => set("category", e.target.value)}>
                 {CATEGORIES.map(c => <option key={c} value={c}>{c}</option>)}
               </select>
             </label>
           </div>
-          <input placeholder="Supplier (optional)" value={form.supplier || ""} onChange={(e) => set("supplier", e.target.value)} />
+          <input placeholder={t("supplier", "Supplier (optional)")} value={form.supplier || ""} onChange={(e) => set("supplier", e.target.value)} />
           <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:10 }}>
-            <label style={{ fontSize:12 }}>Amount excl. VAT *<input type="number" step="0.01" value={form.amount_excl} onChange={(e) => set("amount_excl", e.target.value)} /></label>
-            <label style={{ fontSize:12 }}>VAT rate %
+            <label style={{ fontSize:12 }}>{t("amount_excl", "Amount excl. VAT")} *<input type="number" step="0.01" value={form.amount_excl} onChange={(e) => set("amount_excl", e.target.value)} /></label>
+            <label style={{ fontSize:12 }}>{t("vat_rate", "VAT rate")} %
                <select value={[21, 9, 0].includes(Number(form.vat_rate)) ? String(form.vat_rate) : "custom"} onChange={(e) => { if (e.target.value === "custom") set("vat_rate", ""); else set("vat_rate", Number(e.target.value)); }}>
                 <option value="21">21% (NL standard)</option>
                 <option value="9">9% (NL reduced)</option>
@@ -151,12 +182,12 @@ function ExpenseModal({ expense, onClose, onSave, defaultCurrency }) {
         </div>
 
         <div style={{ textAlign:"right", margin:"14px 0", fontSize:14 }}>
-          VAT: <b>{vatAmount.toFixed(2)}</b> · Total incl.: <b>{incl.toFixed(2)} {form.currency}</b>
+          VAT: <b>{vatAmount.toFixed(2)}</b> · {t("total_incl", "Total incl.")}: <b>{incl.toFixed(2)} {form.currency}</b>
         </div>
 
         <div style={{ display:"flex", justifyContent:"flex-end", gap:10 }}>
-          <button className="btn btn-ghost" onClick={onClose}>Cancel</button>
-          <button className="btn btn-primary" onClick={save}>{isEdit ? "Save changes" : "Add expense"}</button>
+          <button className="btn btn-ghost" onClick={onClose}>{t("cancel", "Cancel")}</button>
+          <button className="btn btn-primary" onClick={save}>{isEdit ? t("save", "Save changes") : t("add", "Add expense")}</button>
         </div>
       </div>
     </div>

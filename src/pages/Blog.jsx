@@ -1,12 +1,14 @@
 import { useParams, Link } from "react-router-dom";
 import { useEffect } from "react";
+import { applyPageSeo } from "../lib/pageSeo";
+import { trackEvent } from "../lib/tracking";
 
 const POSTS = [
   {
     slug: "how-to-create-ubl-invoice-en16931",
     lang: "en",
-    title: "How to Create a UBL Invoice (EN 16931): The 2026 Guide",
-    description: "What a UBL invoice is, what EN 16931 requires, how UBL differs from Peppol, and how to create and validate a UBL e-invoice without accounting software.",
+    title: "How to Create a UBL Invoice (EN 16931): 2026 Guide",
+    description: "Learn how to create and export a UBL XML invoice that follows EN 16931, what information it needs, and how UBL differs from Peppol.",
     date: "2026-08-15",
     readTime: "10 min",
     keywords: "UBL invoice, EN 16931, e-invoicing, UBL factuur maken, electronic invoice XML, Peppol, e-facturatie 2026, UBL export",
@@ -138,8 +140,8 @@ const POSTS = [
   {
     slug: "zzp-invoice-app-english-netherlands",
     lang: "en",
-    title: "ZZP Invoicing in English: The Complete Guide for Freelancers in the Netherlands",
-    description: "A guide to invoicing as a ZZP'er in the Netherlands with an English interface: BTW rates, KvK numbers, VAT reports, and how to get paid faster.",
+    title: "English Invoice Software for ZZP'ers in the Netherlands (2026)",
+    description: "Looking for English invoicing software as a ZZP'er in the Netherlands? Create invoices, quotes and credit notes, track expenses and export UBL without Dutch-only software.",
     date: "2026-07-20",
     readTime: "7 min",
     keywords: "ZZP invoice, invoicing Netherlands English, BTW report freelancer, Dutch VAT invoice, ZZP freelancer invoicing",
@@ -206,12 +208,12 @@ function ShareButtons({ title }) {
   );
 }
 
-function CTABox({ ar }) {
+function CTABox({ ar, source, placement }) {
   return (
     <div style={{ background:"rgba(201,168,76,0.07)", border:"1px solid rgba(201,168,76,0.25)", borderRadius:14, padding:"28px 26px", margin:"36px 0", textAlign:"center" }}>
       <div style={{ fontFamily:"Playfair Display, Georgia, serif", fontSize:22, color:"#e8e4dc", marginBottom:8 }}>{ar ? "جاهز تنشئ فاتورتك الأولى؟" : "Ready to create your first invoice?"}</div>
       <div style={{ fontSize:14, color:"#9a9690", marginBottom:18, lineHeight:1.7 }}>{ar ? "أنشئ فاتورة احترافية في أقل من دقيقتين — مجاناً وبدون بطاقة ائتمانية" : "Create a professional invoice in under 2 minutes — free, no credit card required"}</div>
-      <a href="/login" style={{ display:"inline-block", padding:"12px 32px", borderRadius:10, background:"linear-gradient(135deg,#f0d878,#c9a84c)", color:"#0a0a0f", fontWeight:700, fontSize:15, textDecoration:"none" }}>{ar ? "ابدأ مجاناً ←" : "Start Free →"}</a>
+      <a href={"/login?signup=1&source=seo_" + encodeURIComponent(source || "blog")} onClick={() => trackEvent("seo_cta_clicked", { page:source || "blog", placement:placement || "article", destination:"signup" })} style={{ display:"inline-block", padding:"12px 32px", borderRadius:10, background:"linear-gradient(135deg,#f0d878,#c9a84c)", color:"#0a0a0f", fontWeight:700, fontSize:15, textDecoration:"none" }}>{ar ? "ابدأ مجاناً ←" : "Start Free →"}</a>
     </div>
   );
 }
@@ -241,20 +243,30 @@ export function BlogPost() {
   const post = POSTS.find(p => p.slug === decodeURIComponent(slug));
   useEffect(() => {
     if (post) {
-      document.title = post.title + " | Fatūra Pro Blog";
-      const meta = document.querySelector('meta[name="description"]');
-      if (meta) meta.setAttribute("content", post.description);
       const purl = "https://faturapro.app/blog/" + post.slug;
-      let canon = document.querySelector("link[rel=canonical]");
-      if (!canon) { canon = document.createElement("link"); canon.setAttribute("rel", "canonical"); document.head.appendChild(canon); }
-      canon.setAttribute("href", purl);
+      const language = post.lang === "ar" ? "ar" : "en";
+      const cleanupSeo = applyPageSeo({
+        title: post.title,
+        description: post.description,
+        canonical: purl,
+        language,
+        locale: post.lang === "ar" ? "ar_SA" : "en_US",
+        type: "article",
+        imageAlt: post.title,
+        alternates: { [language]: purl, "x-default": purl },
+      });
       const oldSchema = document.getElementById("post-schema");
       if (oldSchema) oldSchema.remove();
       const sc = document.createElement("script");
       sc.type = "application/ld+json";
       sc.id = "post-schema";
-      sc.textContent = JSON.stringify({ "@context": "https://schema.org", "@type": "BlogPosting", headline: post.title, description: post.description, datePublished: post.date, dateModified: post.date, inLanguage: post.lang === "ar" ? "ar" : "en", keywords: post.keywords, mainEntityOfPage: purl, author: { "@type": "Organization", name: "Fatura Pro", url: "https://faturapro.app" }, publisher: { "@type": "Organization", name: "Fatura Pro", url: "https://faturapro.app" } });
+      sc.textContent = JSON.stringify({ "@context": "https://schema.org", "@graph": [{ "@type": "BlogPosting", headline: post.title, description: post.description, datePublished: post.date, dateModified: "2026-09-01", inLanguage: language, keywords: post.keywords, mainEntityOfPage: purl, author: { "@type": "Organization", name: "Fatura Pro", url: "https://faturapro.app" }, publisher: { "@type": "Organization", name: "Fatura Pro", url: "https://faturapro.app" } }, { "@type":"BreadcrumbList", itemListElement:[{ "@type":"ListItem", position:1, name:"Home", item:"https://faturapro.app/" }, { "@type":"ListItem", position:2, name:"Blog", item:"https://faturapro.app/blog" }, { "@type":"ListItem", position:3, name:post.title, item:purl }] }] });
       document.head.appendChild(sc);
+      trackEvent("seo_page_viewed", { page:post.slug, language });
+      return () => {
+        sc.remove();
+        cleanupSeo();
+      };
     }
   }, [post]);
   if (!post) return <div style={{ minHeight:"100vh", background:"#08080e", color:"#e8e4dc", display:"flex", alignItems:"center", justifyContent:"center" }}>Post not found. <a href="/blog" style={{ color:"#c9a84c", marginLeft:8 }}>← Blog</a></div>;
@@ -271,10 +283,10 @@ export function BlogPost() {
           <div key={i}>
             <h2 style={{ fontFamily:"Playfair Display, Georgia, serif", fontSize:23, color:"#c9a84c", margin:"36px 0 14px" }}>{s.h}</h2>
             <p style={{ fontSize:15.5, lineHeight:1.9, color:"rgba(232,228,220,0.85)" }}>{s.p}</p>
-            {i === 3 && <CTABox ar={ar} />}
+            {i === 3 && <CTABox ar={ar} source={post.slug} placement="mid_article" />}
           </div>
         ))}
-        <CTABox ar={ar} />
+        <CTABox ar={ar} source={post.slug} placement="article_end" />
         <ShareButtons title={post.title} />
       </div>
     </div>

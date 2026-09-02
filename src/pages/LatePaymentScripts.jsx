@@ -1,4 +1,6 @@
 import { useEffect, useState } from "react";
+import { applyPageSeo } from "../lib/pageSeo";
+import { trackEvent } from "../lib/tracking";
 
 const GOLD = "#c9a84c";
 const GOLD_L = "#e8c97a";
@@ -426,23 +428,20 @@ export default function LatePaymentScripts() {
   const [channel, setChannel] = useState("email");
 
   useEffect(() => {
-    document.title = "Late Payment Scripts — Free Copy-Paste Templates to Chase Unpaid Invoices | Fatūra Pro";
-
-    const meta = document.querySelector('meta[name="description"]');
-    if (meta) {
-      meta.setAttribute(
-        "content",
-        "Free copy-paste scripts to chase late payments: five escalation stages from a friendly heads-up to a final notice, for email and WhatsApp, in English, Dutch, Arabic and French. No signup required."
-      );
-    }
-
-    let canon = document.querySelector("link[rel=canonical]");
-    if (!canon) {
-      canon = document.createElement("link");
-      canon.setAttribute("rel", "canonical");
-      document.head.appendChild(canon);
-    }
-    canon.setAttribute("href", "https://faturapro.app/late-payment-scripts");
+    const canonical = "https://faturapro.app/late-payment-scripts";
+    const cleanupSeo = applyPageSeo({
+      title: "Late Payment Reminder Templates: Email & WhatsApp Scripts | Fatūra Pro",
+      description: "Copy ready-to-send late payment reminder templates for overdue invoices. Friendly, firm and final email and WhatsApp messages for freelancers and small businesses.",
+      canonical,
+      type: "article",
+      imageAlt: "Fatūra Pro late payment reminder templates for overdue invoices",
+      alternates: {
+        en: canonical,
+        fr: "https://faturapro.app/fr/relance-facture-impayee-anglais",
+        "x-default": canonical,
+      },
+    });
+    trackEvent("seo_page_viewed", { page: "late_payment_scripts", language: "en" });
 
     const sc = document.createElement("script");
     sc.type = "application/ld+json";
@@ -461,6 +460,7 @@ export default function LatePaymentScripts() {
     return () => {
       const old = document.getElementById("late-payment-faq-schema");
       if (old) old.remove();
+      cleanupSeo();
     };
   }, []);
 
@@ -489,11 +489,11 @@ export default function LatePaymentScripts() {
         </div>
 
         <h1 style={{ fontFamily: "Playfair Display, serif", fontSize: 40, marginBottom: 14, lineHeight: 1.18 }}>
-          Late payment scripts that get you paid
+          Late Payment Reminder Templates
         </h1>
 
         <p style={{ color: MUTED, fontSize: 16.5, lineHeight: 1.8, marginBottom: 30 }}>
-          Chasing money is the worst part of working for yourself — mostly because writing the message is harder than sending it. Below are the exact messages, from a friendly heads-up before the due date to a final notice at thirty days. Copy one, replace the details in brackets, send. Available for email and WhatsApp, in four languages.
+          Waiting on an overdue invoice? Copy one of these ready-to-send payment reminder messages. Start friendly, follow up firmly, and escalate professionally when a client still hasn&apos;t paid. Choose email or WhatsApp and send it in English, Dutch, Arabic or French.
         </p>
 
         <div style={{ background: CARD, border: "1px solid " + BORDER, borderRadius: 12, padding: "18px 20px", marginBottom: 44 }}>
@@ -507,12 +507,12 @@ export default function LatePaymentScripts() {
         <div style={{ position: "sticky", top: 0, background: BG, paddingTop: 12, paddingBottom: 14, zIndex: 10, marginBottom: 6, borderBottom: "1px solid " + BORDER }}>
           <div style={{ display: "flex", gap: 8, flexWrap: "wrap", marginBottom: 10 }}>
             {LANGS.map((l) => (
-              <button key={l.code} onClick={() => setLang(l.code)} style={tab(lang === l.code)}>{l.label}</button>
+              <button key={l.code} onClick={() => { setLang(l.code); trackEvent("late_payment_language_selected", { language:l.code }); }} style={tab(lang === l.code)}>{l.label}</button>
             ))}
           </div>
           <div style={{ display: "flex", gap: 8 }}>
             {[["email", "Email"], ["whatsapp", "WhatsApp"]].map(([c, label]) => (
-              <button key={c} onClick={() => setChannel(c)} style={tab(channel === c)}>{label}</button>
+              <button key={c} onClick={() => { setChannel(c); trackEvent("late_payment_channel_selected", { channel:c }); }} style={tab(channel === c)}>{label}</button>
             ))}
           </div>
         </div>
@@ -530,12 +530,12 @@ export default function LatePaymentScripts() {
 
         {/* CTA */}
         <div style={{ background: "linear-gradient(135deg, rgba(201,168,76,0.14), rgba(201,168,76,0.04))", border: "1px solid rgba(201,168,76,0.3)", borderRadius: 14, padding: "26px 24px", marginBottom: 52 }}>
-          <div style={{ fontFamily: "Playfair Display, serif", fontSize: 22, color: TEXT, marginBottom: 10 }}>Or let Fatūra send them for you</div>
+          <div style={{ fontFamily: "Playfair Display, serif", fontSize: 22, color: TEXT, marginBottom: 10 }}>Tired of chasing invoices manually?</div>
           <div style={{ fontSize: 14.5, color: MUTED, lineHeight: 1.8, marginBottom: 18 }}>
-            Fatūra Pro tracks which invoices have passed their due date and has these reminders built in — polite, firm and final, by email or WhatsApp, in the language your client speaks. It also logs which reminders you already sent, so the final notice can say so with confidence. Free plan, no credit card.
+            Fatūra Pro tracks due dates and gives you polite, firm and final reminders for email or WhatsApp, in the language your client speaks. It also logs which reminders you already sent, so you always know the next step.
           </div>
-          <a href="/login" style={{ display: "inline-block", background: GOLD, color: "#14110a", borderRadius: 9, padding: "13px 26px", fontSize: 15, fontWeight: 600, textDecoration: "none" }}>
-            Start free — no card required →
+          <a href="/login?signup=1&amp;source=seo_late_payment_scripts" onClick={() => trackEvent("seo_cta_clicked", { page:"late_payment_scripts", placement:"mid_page", destination:"signup" })} style={{ display: "inline-block", background: GOLD, color: "#14110a", borderRadius: 9, padding: "13px 26px", fontSize: 15, fontWeight: 600, textDecoration: "none" }}>
+            Create your first invoice free →
           </a>
           <div style={{ fontSize: 12.5, color: MUTED, marginTop: 12 }}>
             Or <a href="/invoice-generator" style={{ color: GOLD_L }}>make an invoice right now</a> without an account.

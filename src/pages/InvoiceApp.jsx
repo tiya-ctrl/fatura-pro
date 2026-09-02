@@ -19,6 +19,7 @@ import { loadExpenses } from "../lib/expenses";
 import { trackEvent } from "../lib/tracking";
 import { activateReferral, claimStoredReferral } from "../lib/referrals";
 import { fetchAmbassadorAdminAccess } from "../lib/ambassadors";
+import { getLocale, setLocale, tr } from "../lib/locale";
 
 const FONTS = `@import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600;700&family=DM+Sans:wght@300;400;500;600&display=swap');`;
 const INVOICE_ATTRIBUTION_URL = "https://faturapro.app/?utm_source=invoice&utm_medium=footer&utm_campaign=made_with_fatura_pro";
@@ -452,6 +453,8 @@ function countryLabel(code, address) {
 }
 
 export default function InvoiceApp({ onGoHome }) {
+  const locale = getLocale();
+  const t = (key, fallback) => tr(key, fallback, locale);
   const [page, setPage] = useState("dashboard");
   const [invoices, setInvoices] = useState(INIT_INVOICES);
   const [clients, setClients] = useState(INIT_CLIENTS);
@@ -549,6 +552,10 @@ export default function InvoiceApp({ onGoHome }) {
   const [showUpgrade, setShowUpgrade] = useState(false);
   const [upgradeFeature, setUpgradeFeature] = useState("");
   const [upgradeIntent, setUpgradeIntent] = useState(null);
+  useEffect(() => {
+    if (!showUpgrade) return;
+    trackEvent("upgrade_clicked", { feature:upgradeFeature || "general", intended_plan:upgradeIntent || "undecided" });
+  }, [showUpgrade]);
   useEffect(() => {
     const intent = localStorage.getItem("fatura_intent_plan");
     if (!intent || !plan) return;
@@ -681,10 +688,12 @@ export default function InvoiceApp({ onGoHome }) {
     ]);
     if (shouldSaveProfile && !profileResult.error) {
       setBusinessProfileReady(true);
+      trackEvent("business_profile_created", { source:"first_invoice" });
       trackEvent("onboarding_step_completed", { step:"business_profile", source:"first_invoice" });
     }
     if (shouldSaveClient && !clientResult.error) {
       setClients(prev => [autoClient, ...prev]);
+      trackEvent("client_created", { source:"first_invoice", is_first_client:clients.length === 0 });
       trackEvent("onboarding_step_completed", { step:"first_client", source:"first_invoice" });
     }
 
@@ -801,6 +810,7 @@ export default function InvoiceApp({ onGoHome }) {
     const isFirstClient = clients.length === 0;
     const { error } = await supabase.from("clients").insert({ id: c.id, user_id: ownerId || user.id, name: c.name, email: c.email, phone: c.phone, country: c.country, invoices: 0, total: 0 });
     if (error) { window.alert("Could not save this client.\n\n" + error.message); return; }
+    trackEvent("client_created", { source:"clients_page", is_first_client:isFirstClient });
     if (isFirstClient) trackEvent("onboarding_step_completed", { step:"first_client" });
     setClients(prev => [c, ...prev]); setShowNewClient(false);
   };
@@ -854,13 +864,13 @@ export default function InvoiceApp({ onGoHome }) {
   }, []);
 
   const navItems = [
-    { id: "dashboard", icon: "\u229e", label: "Dashboard" },
-    { id: "invoices", icon: "\u229f", label: "Invoices", badge: invoicesWithStatus.filter(i => i.status === "pending" && i.docType !== "credit_note").length },
-    { id: "clients", icon: "\u2299", label: "Clients" },
-    { id: "quotes", icon: "\u2707", label: "Quotes", locked: !(hasBusinessAccess(plan) || isTeamMember) },
-    { id: "expenses", icon: "\u2296", label: "Expenses", locked: !(hasBusinessAccess(plan) || isTeamMember) },
-    { id: "analytics", icon: "\u2261", label: "Analytics", locked: !hasBusinessAccess(plan) },
-    { id: "settings", icon: "\u2699", label: "Settings" },
+    { id: "dashboard", icon: "\u229e", label: t("dashboard", "Dashboard") },
+    { id: "invoices", icon: "\u229f", label: t("invoices", "Invoices"), badge: invoicesWithStatus.filter(i => i.status === "pending" && i.docType !== "credit_note").length },
+    { id: "clients", icon: "\u2299", label: t("clients", "Clients") },
+    { id: "quotes", icon: "\u2707", label: t("quotes", "Quotes"), locked: !(hasBusinessAccess(plan) || isTeamMember) },
+    { id: "expenses", icon: "\u2296", label: t("expenses", "Expenses"), locked: !(hasBusinessAccess(plan) || isTeamMember) },
+    { id: "analytics", icon: "\u2261", label: t("analytics", "Analytics"), locked: !hasBusinessAccess(plan) },
+    { id: "settings", icon: "\u2699", label: t("settings", "Settings") },
     ...(ambassadorAdminAccess ? [{ id:"ambassador-admin", icon:"✦", label:"Ambassador requests", href:"/admin" }] : []),
   ];
   
@@ -889,9 +899,9 @@ export default function InvoiceApp({ onGoHome }) {
             <div className="logo-text">Fatūra</div>
           </div>
           <div className="nav-section">
-            <div className="nav-label">Main</div>
+            <div className="nav-label">{t("main", "Main")}</div>
             {navItems.map(n => (
-              <div key={n.id} className={"nav-item" + (page === n.id ? " active" : "")} onClick={() => { openNav(n); setSidebarOpen(false); }} style={n.locked ? { opacity:0.45 } : undefined} title={n.locked ? "Business plan feature" : undefined}>
+              <div key={n.id} className={"nav-item" + (page === n.id ? " active" : "")} onClick={() => { openNav(n); setSidebarOpen(false); }} style={n.locked ? { opacity:0.45 } : undefined} title={n.locked ? t("business_feature", "Business plan feature") : undefined}>
                 <span className="icon">{n.icon}</span>
                 {n.label}
                 {n.locked && <span style={{ marginLeft:"auto", fontSize:10, color:"var(--text2)", border:"1px solid var(--border)", borderRadius:20, padding:"1px 7px" }}>Business</span>}
@@ -905,30 +915,30 @@ export default function InvoiceApp({ onGoHome }) {
             </button>
             {userEmail && (
               <div style={{ marginBottom:12, padding:"8px 12px", background:"var(--bg3)", borderRadius:8, border:"1px solid var(--border)" }}>
-                <div style={{ fontSize:10, color:"var(--text2)", fontWeight:600, letterSpacing:0.5, textTransform:"uppercase", marginBottom:2 }}>Signed in as</div>
+                <div style={{ fontSize:10, color:"var(--text2)", fontWeight:600, letterSpacing:0.5, textTransform:"uppercase", marginBottom:2 }}>{t("signed_in_as", "Signed in as")}</div>
                 <div style={{ fontSize:12, color:"var(--text)", fontWeight:500, overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap" }}>{userEmail}</div>
                 <button onClick={async () => { const { signOut } = await import("../auth"); await signOut(); window.location.href = "/"; }}
                   style={{ marginTop:6, fontSize:11, color:"var(--red)", background:"none", border:"none", cursor:"pointer", padding:0, fontFamily:"'DM Sans', sans-serif" }}>
-                  Sign out
+                  {t("sign_out", "Sign out")}
                 </button>
               </div>
             )}
             {isPro ? (
               <div className="plan-badge">
-                <div className="plan-name">{plan === "business" ? "✦ BUSINESS PLAN" : isTeamMember ? "✦ TEAM MEMBER" : "✦ PRO PLAN"}</div>
+                <div className="plan-name">✦ {plan === "business" ? t("business_plan", "BUSINESS PLAN") : isTeamMember ? t("team_member", "TEAM MEMBER") : t("pro_plan", "PRO PLAN")}</div>
                 <div className="plan-info">{plan === "business" ? "Team, quotes, VAT & more" : isTeamMember ? "Shared team workspace" : "Unlimited everything"}</div>
               </div>
             ) : (
               <div>
                 <div style={{ background:"var(--bg3)", border:"1px solid var(--border)", borderRadius:8, padding:"10px 14px", marginBottom:10 }}>
-                  <div style={{ fontSize:11, color:"var(--text2)", fontWeight:600 }}>FREE PLAN</div>
+                  <div style={{ fontSize:11, color:"var(--text2)", fontWeight:600 }}>{t("free_plan", "FREE PLAN")}</div>
                   <div style={{ fontSize:11, color:"var(--text2)", marginTop:2 }}>{invoiceOnlyCount}/20 invoices · {clients.length}/5 clients</div>
                   <div style={{ marginTop:8, background:"var(--bg4)", borderRadius:4, height:4, overflow:"hidden" }}>
                     <div style={{ height:"100%", width:(Math.min(100,(invoices.length/20)*100)) + "%", background:invoices.length>=20?"var(--red)":"var(--gold)", borderRadius:4 }} />
                   </div>
                 </div>
                 <button className="btn btn-primary" style={{ width:"100%", justifyContent:"center", fontSize:13, padding:"10px 14px" }} onClick={() => setShowUpgrade(true)}>
-                  ⚡ Upgrade to Pro
+                  ⚡ {t("upgrade_pro", "Upgrade to Pro")}
                 </button>
               </div>
             )}
@@ -940,20 +950,20 @@ export default function InvoiceApp({ onGoHome }) {
             <div className="topbar-left">
               <button className="hamburger" onClick={() => setSidebarOpen(o => !o)}>☰</button>
               <div className="page-title">
-                {page === "dashboard" && "Dashboard"}
-                {page === "invoices" && "Invoices"}
-                {page === "quotes" && "Quotes"}
-                {page === "expenses" && "Expenses"}
-                {page === "analytics" && "Analytics"}
-                {page === "clients" && "Clients"}
-                {page === "settings" && "Settings"}
+                {page === "dashboard" && t("dashboard", "Dashboard")}
+                {page === "invoices" && t("invoices", "Invoices")}
+                {page === "quotes" && t("quotes", "Quotes")}
+                {page === "expenses" && t("expenses", "Expenses")}
+                {page === "analytics" && t("analytics", "Analytics")}
+                {page === "clients" && t("clients", "Clients")}
+                {page === "settings" && t("settings", "Settings")}
               </div>
             </div>
             <div className="topbar-actions">
               {(page === "dashboard" || page === "invoices") && (
   <>
   {page === "invoices" && hasBusinessAccess(plan) && (
-      <button className="btn btn-ghost" onClick={() => exportInvoicesCSV(invoicesWithStatus)}>⬇ Export CSV</button>
+      <button className="btn btn-ghost" onClick={() => exportInvoicesCSV(invoicesWithStatus)}>⬇ {t("export_csv", "Export CSV")}</button>
     )}
     {/* Desktop button */}
     {!isMobile && (
@@ -961,7 +971,7 @@ export default function InvoiceApp({ onGoHome }) {
         <span className="btn-label">
           {!isPro && invoiceOnlyCount >= 20
             ? "🔒 New Invoice"
-            : "New Invoice"}
+            : t("new_invoice", "New Invoice")}
         </span>
       </button>
     )}
@@ -972,7 +982,7 @@ export default function InvoiceApp({ onGoHome }) {
                 <button className="btn btn-primary" onClick={() => {
                   if (!isPro && clients.length >= 5) { setUpgradeFeature("unlimited_clients"); setShowUpgrade(true); }
                   else setShowNewClient(true);
-                }}>+ Client</button>
+                }}>+ {t("add_client", "Client")}</button>
               )}
             </div>
           </div>
@@ -1035,6 +1045,8 @@ function MultiMoney({ parts, empty }) {
 }
 
 function Dashboard({ invoices, clients, businessProfileReady, userEmail, totalRevenue, totalPending, totalOverdue, totalCredited, setPage, setPreviewInvoice, onEdit, onRemind, onCreditNote, onRecordPayment, onCreateInvoice, f }) {
+  const locale = getLocale();
+  const t = (key, fallback) => tr(key, fallback, locale);
   // Real figures only - no hard-coded percentages on this dashboard.
   // Credit notes live in the same list with status "paid" - they are not invoices.
   const realInvoices = invoices.filter(i => i.docType !== "credit_note");
@@ -1057,38 +1069,38 @@ function Dashboard({ invoices, clients, businessProfileReady, userEmail, totalRe
     <div className="activation-shell">
       <section className="activation-hero">
         <div>
-          <div className="dashboard-kicker">Your first payment starts here</div>
-          <h1>Create the invoice that gets you paid.</h1>
-          <p>Enter the essentials, preview the finished document, and send it to your client. Your business and client details can be saved during the same guided flow.</p>
+          <div className="dashboard-kicker">{t("first_payment", "Your first payment starts here")}</div>
+          <h1>{t("create_paid_invoice", "Create the invoice that gets you paid.")}</h1>
+          <p>{t("guided_invoice_intro", "Enter the essentials, preview the finished document, and send it to your client. Your business and client details can be saved during the same guided flow.")}</p>
         </div>
         <div className="activation-actions">
-          <button className="btn btn-primary" onClick={onCreateInvoice}>Create my first invoice →</button>
-          {!businessProfileReady && <button className="btn btn-ghost" onClick={() => openSetupStep("business_profile", "settings")}>Add business details</button>}
+          <button className="btn btn-primary" onClick={onCreateInvoice}>{t("create_first_invoice", "Create my first invoice →")}</button>
+          {!businessProfileReady && <button className="btn btn-ghost" onClick={() => openSetupStep("business_profile", "settings")}>{t("add_business_details", "Add business details")}</button>}
         </div>
       </section>
 
       <aside className="quickstart-card">
         <div className="quickstart-head">
           <div>
-            <div className="quickstart-title">Ready to invoice</div>
-            <div className="quickstart-sub">Three useful steps. Complete them in any order.</div>
+            <div className="quickstart-title">{t("ready_to_invoice", "Ready to invoice")}</div>
+            <div className="quickstart-sub">{t("any_order_steps", "Three useful steps. Complete them in any order.")}</div>
           </div>
           <div className="quickstart-progress">{completedSteps}/3</div>
         </div>
         <div className="quickstart-list">
           <button className={"quickstart-step" + (businessProfileReady ? " done" : "")} aria-disabled={businessProfileReady} onClick={businessProfileReady ? undefined : () => openSetupStep("business_profile", "settings")}>
             <span className="quickstart-number">{businessProfileReady ? "✓" : "1"}</span>
-            <span className="quickstart-copy"><strong>Business details</strong><span>{businessProfileReady ? "Saved and ready to reuse" : "Add your name, address, and VAT details"}</span></span>
+            <span className="quickstart-copy"><strong>{t("business_details", "Business details")}</strong><span>{businessProfileReady ? t("saved_reuse", "Saved and ready to reuse") : t("add_vat_details", "Add your name, address, and VAT details")}</span></span>
             {!businessProfileReady && <span className="quickstart-arrow">→</span>}
           </button>
           <button className={"quickstart-step" + ((clients || []).length > 0 ? " done" : "")} aria-disabled={(clients || []).length > 0} onClick={(clients || []).length > 0 ? undefined : () => openSetupStep("first_client", "clients")}>
             <span className="quickstart-number">{(clients || []).length > 0 ? "✓" : "2"}</span>
-            <span className="quickstart-copy"><strong>First client</strong><span>{(clients || []).length > 0 ? "Client saved for future invoices" : "Save once, reuse on every invoice"}</span></span>
+            <span className="quickstart-copy"><strong>{t("first_client", "First client")}</strong><span>{(clients || []).length > 0 ? t("client_saved", "Client saved for future invoices") : t("save_reuse_invoice", "Save once, reuse on every invoice")}</span></span>
             {(clients || []).length === 0 && <span className="quickstart-arrow">→</span>}
           </button>
           <button className="quickstart-step" onClick={onCreateInvoice}>
             <span className="quickstart-number">3</span>
-            <span className="quickstart-copy"><strong>Create and preview</strong><span>Review the total before you send or download</span></span>
+            <span className="quickstart-copy"><strong>{t("create_preview", "Create and preview")}</strong><span>{t("review_total", "Review the total before you send or download")}</span></span>
             <span className="quickstart-arrow">→</span>
           </button>
         </div>
@@ -1100,19 +1112,19 @@ function Dashboard({ invoices, clients, businessProfileReady, userEmail, totalRe
     ? `${overdue.length} overdue invoice${overdue.length === 1 ? " needs" : "s need"} your attention today.`
     : pendingCount > 0
       ? `${pendingCount} invoice${pendingCount === 1 ? " is" : "s are"} awaiting payment. Keep the next one moving.`
-      : "Everything is up to date. Create the next invoice while the work is fresh.";
+      : t("all_current", "Everything is up to date. Create the next invoice while the work is fresh.");
 
   return (
     <>
       <div className="dashboard-command">
         <div className="dashboard-command-main">
-          <div className="dashboard-kicker">Welcome back, {firstName}</div>
-          <h1>Keep invoices moving and payments visible.</h1>
+          <div className="dashboard-kicker">{t("welcome_user", "Welcome back")}, {firstName}</div>
+          <h1>{t("keep_moving", "Keep invoices moving and payments visible.")}</h1>
           <p>{commandCopy}</p>
         </div>
         <div className="dashboard-command-actions">
-          <button className="btn btn-primary" onClick={onCreateInvoice}>New invoice →</button>
-          <button className="btn btn-ghost" onClick={() => setPage("invoices")}>View invoices</button>
+          <button className="btn btn-primary" onClick={onCreateInvoice}>{t("new_invoice", "New invoice")} →</button>
+          <button className="btn btn-ghost" onClick={() => setPage("invoices")}>{t("view_invoices", "View invoices")}</button>
         </div>
       </div>
       {overdue.length > 0 && (
@@ -1128,20 +1140,20 @@ function Dashboard({ invoices, clients, businessProfileReady, userEmail, totalRe
         </div>
       )}
       <div className="stats-grid">
-        <div className="stat-card"><div className="stat-label">Collected</div><div className="stat-value"><MultiMoney parts={totalRevenue} empty={f(0)} /></div><div className="stat-change">{paidCount} paid invoice{paidCount === 1 ? "" : "s"}</div></div>
-        <div className="stat-card"><div className="stat-label">Awaiting payment</div><div className="stat-value"><MultiMoney parts={totalPending} empty={f(0)} /></div><div className="stat-change">{pendingCount} open invoice{pendingCount === 1 ? "" : "s"}</div></div>
-        <div className="stat-card"><div className="stat-label">Overdue</div><div className="stat-value" style={{ color:"var(--red)" }}><MultiMoney parts={totalOverdue} empty={f(0)} /></div><div className="stat-change down">Needs attention</div></div>
+        <div className="stat-card"><div className="stat-label">{t("collected", "Collected")}</div><div className="stat-value"><MultiMoney parts={totalRevenue} empty={f(0)} /></div><div className="stat-change">{paidCount} {t("paid_invoices", "paid invoices")}</div></div>
+        <div className="stat-card"><div className="stat-label">{t("awaiting_payment", "Awaiting payment")}</div><div className="stat-value"><MultiMoney parts={totalPending} empty={f(0)} /></div><div className="stat-change">{pendingCount} {t("open_invoices", "open invoices")}</div></div>
+        <div className="stat-card"><div className="stat-label">{t("overdue", "Overdue")}</div><div className="stat-value" style={{ color:"var(--red)" }}><MultiMoney parts={totalOverdue} empty={f(0)} /></div><div className="stat-change down">{t("needs_attention", "Needs attention")}</div></div>
         {totalCredited.length > 0 && (<div className="stat-card"><div className="stat-label">Credited</div><div className="stat-value"><MultiMoney parts={totalCredited} empty={f(0)} /></div><div className="stat-change">{invoices.filter(i => i.docType === "credit_note").length} credit note{invoices.filter(i => i.docType === "credit_note").length === 1 ? "" : "s"}</div></div>)}
-        <div className="stat-card"><div className="stat-label">Documents</div><div className="stat-value">{realInvoices.length}</div><div className="stat-change">{newThisMonth > 0 ? "+" + newThisMonth + " this month" : "None added this month"}</div></div>
+        <div className="stat-card"><div className="stat-label">{t("documents", "Documents")}</div><div className="stat-value">{realInvoices.length}</div><div className="stat-change">{newThisMonth > 0 ? "+" + newThisMonth + " " + t("this_month", "this month") : t("none_month", "None added this month")}</div></div>
       </div>
       <div className="card">
         <div className="card-header">
-          <div className="card-title">Recent Invoices</div>
-          <button className="btn btn-ghost btn-sm" onClick={() => setPage("invoices")}>View All →</button>
+          <div className="card-title">{t("recent_invoices", "Recent Invoices")}</div>
+          <button className="btn btn-ghost btn-sm" onClick={() => setPage("invoices")}>{t("view_all", "View All →")}</button>
         </div>
         <div className="table-wrap">
           <table>
-            <thead><tr><th>Invoice</th><th>Client</th><th>Amount</th><th>Due Date</th><th>Status</th><th>Actions</th></tr></thead>
+            <thead><tr><th>{t("invoice", "Invoice")}</th><th>{t("client", "Client")}</th><th>{t("amount", "Amount")}</th><th>{t("due_date", "Due Date")}</th><th>{t("status", "Status")}</th><th>{t("actions", "Actions")}</th></tr></thead>
             <tbody>
               {recent.map(inv => (
                 <tr key={inv.id}>
@@ -1152,10 +1164,10 @@ function Dashboard({ invoices, clients, businessProfileReady, userEmail, totalRe
                   <td>{statusBadge(inv.status)}{inv.status === "partial" && <div style={{ fontSize:10, color:"var(--text2)", marginTop:2 }}>{fmtCurrency(outstandingOf(inv), inv.currency || "EUR")} left</div>}</td>
                   <td>
                     <div className="action-btns">
-                      <button className="btn btn-ghost btn-sm" onClick={() => setPreviewInvoice(inv)}>Preview</button>
+                      <button className="btn btn-ghost btn-sm" onClick={() => setPreviewInvoice(inv)}>{t("preview", "Preview")}</button>
                       <button className="btn btn-ghost btn-sm" style={{ color:"var(--gold)" }} onClick={() => onEdit(inv)}>Edit</button>{onCreditNote && inv.docType !== "credit_note" && inv.status !== "draft" && <button className="btn btn-ghost btn-sm" title="Create a credit note for this invoice" onClick={() => onCreditNote(inv)}>Credit</button>}{onRecordPayment && inv.docType !== "credit_note" && inv.status !== "paid" && inv.status !== "draft" && <button className="btn btn-ghost btn-sm" title="Record a payment received" onClick={() => onRecordPayment(inv)}>Payment</button>}
                       {(inv.status === "overdue" || inv.status === "pending") && (
-                        <button className="btn btn-sm" style={{ background:"rgba(224,85,85,0.15)", color:"var(--red)", border:"1px solid rgba(224,85,85,0.3)" }} onClick={() => onRemind(inv)}>Remind</button>
+                        <button className="btn btn-sm" style={{ background:"rgba(224,85,85,0.15)", color:"var(--red)", border:"1px solid rgba(224,85,85,0.3)" }} onClick={() => onRemind(inv)}>{t("remind", "Remind")}</button>
                       )}
                     </div>
                   </td>
@@ -1170,6 +1182,8 @@ function Dashboard({ invoices, clients, businessProfileReady, userEmail, totalRe
 }
 
 function Invoices({ invoices, filterStatus, setFilterStatus, search, setSearch, onPreview, onDelete, onNew, onEdit, onRemind, remindersLog, viewerEmail, f, isPro, onUpgrade, hasDraft, onOpenDraft, onDiscardDraft, onMarkPaid, onCreditNote, onRecordPayment, onMakeRecurring }) {
+  const locale = getLocale();
+  const t = (key, fallback) => tr(key, fallback, locale);
   const statuses = ["all", "paid", "partial", "pending", "overdue", "cancelled", "draft", "credit notes"];
   return (
     <>
@@ -1191,19 +1205,19 @@ function Invoices({ invoices, filterStatus, setFilterStatus, search, setSearch, 
         <div className="tabs">
           {statuses.map(s => (
             <div key={s} className={"tab" + (filterStatus === s ? " active" : "")} onClick={() => setFilterStatus(s)}>
-              {s.charAt(0).toUpperCase() + s.slice(1)}
+              {t(s === "credit notes" ? "credit_notes" : s, s.charAt(0).toUpperCase() + s.slice(1))}
             </div>
           ))}
         </div>
-        <input className="search-bar" placeholder="Search invoices..." value={search} onChange={e => setSearch(e.target.value)} />
+        <input className="search-bar" placeholder={t("search_invoices", "Search invoices...")} value={search} onChange={e => setSearch(e.target.value)} />
       </div>
       <div className="card">
         <div className="table-wrap">
           <table>
-            <thead><tr><th>Invoice #</th><th>Client</th><th>Date</th><th>Due Date</th><th>Amount</th><th>Status</th><th>Actions</th></tr></thead>
+            <thead><tr><th>{t("invoice", "Invoice")} #</th><th>{t("client", "Client")}</th><th>{t("date", "Date")}</th><th>{t("due_date", "Due Date")}</th><th>{t("amount", "Amount")}</th><th>{t("status", "Status")}</th><th>{t("actions", "Actions")}</th></tr></thead>
             <tbody>
               {invoices.length === 0 ? (
-                <tr><td colSpan={7}><div className="empty"><div className="empty-text">Welcome to Fatūra! Create your first invoice to get started.</div></div></td></tr>
+                <tr><td colSpan={7}><div className="empty"><div className="empty-text">{t("no_invoices", "Welcome to Fatūra! Create your first invoice to get started.")}</div></div></td></tr>
               ) : invoices.map(inv => (
                 <React.Fragment key={inv.id}>
                   <tr>
@@ -1224,12 +1238,12 @@ function Invoices({ invoices, filterStatus, setFilterStatus, search, setSearch, 
                     <td>{statusBadge(inv.status)}{inv.status === "partial" && <div style={{ fontSize:10, color:"var(--text2)", marginTop:2 }}>{fmtCurrency(outstandingOf(inv), inv.currency || "EUR")} left</div>}</td>
                     <td>
                       <div className="action-btns">
-                        <button className="btn btn-ghost btn-sm" onClick={() => onPreview(inv)}>View</button>{onMakeRecurring && <button className="btn btn-ghost btn-sm" title="Make recurring" onClick={() => onMakeRecurring(inv)}>🔄</button>}
-                        <button className="btn btn-ghost btn-sm" style={{ color:"var(--gold)" }} onClick={() => onEdit(inv)}>Edit</button>{onCreditNote && inv.docType !== "credit_note" && inv.status !== "draft" && <button className="btn btn-ghost btn-sm" title="Create a credit note for this invoice" onClick={() => onCreditNote(inv)}>Credit</button>}{onRecordPayment && inv.docType !== "credit_note" && inv.status !== "paid" && inv.status !== "draft" && <button className="btn btn-ghost btn-sm" title="Record a payment received" onClick={() => onRecordPayment(inv)}>Payment</button>}
+                        <button className="btn btn-ghost btn-sm" onClick={() => onPreview(inv)}>{t("view", "View")}</button>{onMakeRecurring && <button className="btn btn-ghost btn-sm" title="Make recurring" onClick={() => onMakeRecurring(inv)}>🔄</button>}
+                        <button className="btn btn-ghost btn-sm" style={{ color:"var(--gold)" }} onClick={() => onEdit(inv)}>{t("edit", "Edit")}</button>{onCreditNote && inv.docType !== "credit_note" && inv.status !== "draft" && <button className="btn btn-ghost btn-sm" title="Create a credit note for this invoice" onClick={() => onCreditNote(inv)}>Credit</button>}{onRecordPayment && inv.docType !== "credit_note" && inv.status !== "paid" && inv.status !== "draft" && <button className="btn btn-ghost btn-sm" title="Record a payment received" onClick={() => onRecordPayment(inv)}>{t("payment", "Payment")}</button>}
                         {(inv.status === "overdue" || inv.status === "pending") && (
                           <button className="btn btn-ghost btn-sm" style={{ color:"var(--green)" }} onClick={() => onMarkPaid(inv.id)}>✓ Paid</button>
                         )}
-                          <button className="btn btn-sm" style={{ background:"rgba(224,85,85,0.15)", color:"var(--red)", border:"1px solid rgba(224,85,85,0.3)", whiteSpace:"nowrap" }} onClick={() => onRemind(inv)}>Remind</button>
+                          <button className="btn btn-sm" style={{ background:"rgba(224,85,85,0.15)", color:"var(--red)", border:"1px solid rgba(224,85,85,0.3)", whiteSpace:"nowrap" }} onClick={() => onRemind(inv)}>{t("remind", "Remind")}</button>
                         
                         <button className="btn btn-danger btn-sm" onClick={() => onDelete(inv.id)}>✕</button>
                       </div>
@@ -1325,12 +1339,15 @@ function Clients({ clients, invoices, f, onDeleteClient, onEditClient }) {
 }
 
 function Settings({ currency, setCurrency, userEmail, invoices, onProfileSaved }) {
+  const locale = getLocale();
+  const t = (key, fallback) => tr(key, fallback, locale);
   const cur = getCurrency(currency);
   const [profile, setProfile] = useState({ name:"", email:"", phone:"", country:"NL", vat_number:"", address:"", default_tax:20, notes:"", invoice_prefix:"INV-", payment_terms:30, bank_info:"" });
   const [saving, setSaving] = useState(false);
   const [saved, setSaved] = useState(false);
   const [savingDefaults, setSavingDefaults] = useState(false);
   const [savedDefaults, setSavedDefaults] = useState(false);
+  const [profilePreviouslyComplete, setProfilePreviouslyComplete] = useState(false);
 
   const saveDefaults = async () => {
     setSavingDefaults(true);
@@ -1349,7 +1366,10 @@ function Settings({ currency, setCurrency, userEmail, invoices, onProfileSaved }
       if (!user) return;
       const owner = (await myTeamOwner(user.id)) || user.id;
       const { data } = await supabase.from("business_profile").select("*").eq("user_id", owner).maybeSingle();
-      if (data) setProfile({ name: data.name || "", email: data.email || "", phone: data.phone || "", country: data.country || "NL", address: data.address || "", default_tax: data.default_tax ?? 20, notes: data.notes || "", invoice_prefix: data.invoice_prefix || "INV-", payment_terms: data.payment_terms ?? 30, bank_info: data.bank_info || "" });
+      if (data) {
+        setProfile({ name: data.name || "", email: data.email || "", phone: data.phone || "", country: data.country || "NL", address: data.address || "", default_tax: data.default_tax ?? 20, notes: data.notes || "", invoice_prefix: data.invoice_prefix || "INV-", payment_terms: data.payment_terms ?? 30, bank_info: data.bank_info || "" });
+        setProfilePreviouslyComplete(Boolean((data.name || "").trim()));
+      }
     };
     load();
   }, []);
@@ -1363,7 +1383,11 @@ function Settings({ currency, setCurrency, userEmail, invoices, onProfileSaved }
     if (error) { alert("Could not save your business details. Please try again."); return; }
     const profileComplete = Boolean((profile.name || "").trim());
     onProfileSaved && onProfileSaved(profileComplete);
-    if (profileComplete) trackEvent("onboarding_step_completed", { step:"business_profile", source:"settings" });
+    if (profileComplete) {
+      if (!profilePreviouslyComplete) trackEvent("business_profile_created", { source:"settings" });
+      trackEvent("onboarding_step_completed", { step:"business_profile", source:"settings" });
+      setProfilePreviouslyComplete(true);
+    }
     setSaved(true);
     setTimeout(() => setSaved(false), 2000);
   };
@@ -1371,21 +1395,28 @@ function Settings({ currency, setCurrency, userEmail, invoices, onProfileSaved }
   return (
     <div style={{ maxWidth:600 }}>
       <div className="card" style={{ padding:28, marginBottom:20 }}>
-        <div className="card-title" style={{ marginBottom:20 }}>Business Profile</div>
+        <div className="card-title" style={{ marginBottom:8 }}>{t("language", "App language")}</div>
+        <p style={{ fontSize:13, color:"var(--text2)", marginBottom:14 }}>{t("language_help", "Choose the language used for sign-in and primary navigation.")}</p>
+        <select value={locale} onChange={(event) => { setLocale(event.target.value); window.location.reload(); }}>
+          <option value="en">English</option><option value="es">Español</option><option value="fr">Français</option>
+        </select>
+      </div>
+      <div className="card" style={{ padding:28, marginBottom:20 }}>
+        <div className="card-title" style={{ marginBottom:20 }}>{t("business_profile", "Business Profile")}</div>
         <div className="form-grid">
-          <div className="form-group"><label>Business Name</label><input value={profile.name} onChange={e => setProfile(p => ({ ...p, name: e.target.value }))} placeholder="e.g. Vyynd Agency BV" /></div>
+          <div className="form-group"><label>{t("business_name", "Business Name")}</label><input value={profile.name} onChange={e => setProfile(p => ({ ...p, name: e.target.value }))} placeholder="e.g. Vyynd Agency BV" /></div>
           <div className="form-group"><label>Email</label><input value={profile.email} onChange={e => setProfile(p => ({ ...p, email: e.target.value }))} placeholder="me@company.com" /></div>
           <div className="form-group"><label>Phone</label><input value={profile.phone} onChange={e => setProfile(p => ({ ...p, phone: e.target.value }))} placeholder="+31 6 XX XX XX XX" /></div>
-          <div className="form-group"><label>Country</label>
+          <div className="form-group"><label>{t("country", "Country")}</label>
             <select value={profile.country} onChange={e => setProfile(p => ({ ...p, country: e.target.value }))}>
               {COUNTRY_OPTIONS.map(([v, l]) => <option key={v} value={v}>{l}</option>)}
             </select>
           </div>
           <div className="form-group"><label>VAT / BTW number</label><input value={profile.vat_number || ""} onChange={e => setProfile(p => ({ ...p, vat_number: e.target.value }))} placeholder="e.g. NL123456789B01" /></div>
-          <div className="form-group full"><label>Address</label><input value={profile.address} onChange={e => setProfile(p => ({ ...p, address: e.target.value }))} placeholder="Keizersgracht 123, Amsterdam" /></div>
+          <div className="form-group full"><label>{t("address", "Address")}</label><input value={profile.address} onChange={e => setProfile(p => ({ ...p, address: e.target.value }))} placeholder="Keizersgracht 123, Amsterdam" /></div>
         </div>
         <button className="btn btn-primary" onClick={saveProfile} disabled={saving}>
-          {saving ? "Saving..." : saved ? "✓ Saved!" : "Save Changes"}
+          {saving ? t("saving", "Saving...") : saved ? "✓ " + t("saved", "Saved!") : t("save_changes", "Save Changes")}
         </button>
       </div>
       {/* Every plan can take its own data out. Portability is a right, and
@@ -1437,6 +1468,8 @@ function Settings({ currency, setCurrency, userEmail, invoices, onProfileSaved }
 }
 
 function NewInvoiceModal({ bizProfiles = [], clients, onSave, onClose, invoiceCount, currency: globalCurrency, f: globalF, editData, draftData, onDiscardDraft, editDraft, onDiscardEditDraft }) {
+  const locale = getLocale();
+  const t = (key, fallback) => tr(key, fallback, locale);
   const isEdit = !!editData;
   const sourceData = isEdit ? (editDraft || editData) : (draftData || null);
   const applyBizProfile = (p) => { if (!p) return; setForm(f => ({ ...f, sellerName: p.seller_name || p.name || "", sellerEmail: p.seller_email || "", sellerPhone: p.seller_phone || "", sellerAddress: p.seller_address || "", bankInfo: p.bank_info || f.bankInfo })); if (p.currency) setInvoiceCurrency(p.currency); };
@@ -1555,7 +1588,7 @@ React.useEffect(() => {
   };
 
   const handleSave = () => {
-    if (!form.client || !form.due) return alert("Please fill in Client and Due Date (Step 2)");
+    if (!form.client || !form.due) return alert(t("client_due_required", "Please fill in Client and Due Date (Step 2)"));
     const id = isEdit ? editData.id : (form.invoiceNumber && form.invoiceNumber.trim() ? form.invoiceNumber.trim() : "INV-" + String(invoiceCount + 1).padStart(3, "0") + "-" + Date.now().toString().slice(-4));
     // Only draft / pending / paid are ever stored. "overdue", "partial" and
     // "cancelled" are worked out on screen from the due date, the payments and
@@ -1567,10 +1600,10 @@ React.useEffect(() => {
   };
 
   const steps = [
-    { label:"From", icon:"1" },
-    { label:"To", icon:"2" },
-    { label:"Items", icon:"3" },
-    { label:"Notes", icon:"4" },
+    { label:t("from", "From"), icon:"1" },
+    { label:t("to", "To"), icon:"2" },
+    { label:t("items", "Items"), icon:"3" },
+    { label:t("notes", "Notes"), icon:"4" },
   ];
   const isLast = step === steps.length - 1;
   // When editing an existing invoice you can save from any step and jump
@@ -1664,11 +1697,11 @@ React.useEffect(() => {
 
         <div style={{ display:"flex", justifyContent:"space-between", alignItems:"flex-start", marginBottom:20 }}>
           <div className="modal-title" style={{ marginBottom:0 }}>
-            {isEdit ? "Edit Invoice" : "New Invoice"}
+            {isEdit ? t("edit_invoice", "Edit Invoice") : t("new_invoice", "New Invoice")}
             {isEdit && <span style={{ fontSize:13, color:"var(--gold)", marginLeft:10, fontWeight:600 }}>{editData.id}</span>}
           </div>
           <div style={{ display:"flex", flexDirection:"column", alignItems:"flex-end", gap:4 }}>
-            <label style={{ fontSize:10, fontWeight:700, color:"var(--text2)", letterSpacing:1, textTransform:"uppercase" }}>Currency</label>
+            <label style={{ fontSize:10, fontWeight:700, color:"var(--text2)", letterSpacing:1, textTransform:"uppercase" }}>{t("currency", "Currency")}</label>
             <div style={{ position:"relative" }}>
               <select value={invoiceCurrency} onChange={e => setInvoiceCurrency(e.target.value)}
                 style={{ background:"var(--gold-dim)", border:"1.5px solid var(--gold)", color:"var(--gold)", fontWeight:700, fontSize:13, borderRadius:8, padding:"7px 32px 7px 12px", cursor:"pointer", appearance:"none", fontFamily:"'DM Sans', sans-serif" }}>
@@ -1707,45 +1740,45 @@ React.useEffect(() => {
           <div>
             <div className="form-grid" style={{ marginBottom:16 }}>
               <div className="form-group full">
-                <label>Invoice Number</label>
+                <label>{t("invoice_number", "Invoice Number")}</label>
                 <input value={form.invoiceNumber || ""} onChange={e => set("invoiceNumber", e.target.value)} placeholder="e.g. INV-001 (leave blank to auto-generate)" />
               </div>
             </div>
-            <LogoUploader logoKey="sellerLogo" sizeVal={sellerLogoSize} onSizeChange={setSellerLogoSize} inputId="sellerLogoInput" label="Company / Seller Logo" />
+            <LogoUploader logoKey="sellerLogo" sizeVal={sellerLogoSize} onSizeChange={setSellerLogoSize} inputId="sellerLogoInput" label={t("seller_logo", "Company / Seller Logo")} />
             <div className="form-grid">
               {bizProfiles.length > 0 && (
-                <div className="form-group full"><label>From business</label>
+                <div className="form-group full"><label>{t("from_business", "From business")}</label>
                   <select defaultValue="" onChange={(e) => applyBizProfile(bizProfiles.find(p => p.id === e.target.value))}>
-                    <option value="" disabled>Select a business profile…</option>
+                    <option value="" disabled>{t("select_profile", "Select a business profile…")}</option>
                     {bizProfiles.map((p) => <option key={p.id} value={p.id}>{p.name}</option>)}
                   </select>
                 </div>
               )}
-              <div className="form-group full"><label>Seller / Company Name</label><input value={form.sellerName} onChange={e => set("sellerName", e.target.value)} placeholder="e.g. Vyynd Agency BV" /></div>
+              <div className="form-group full"><label>{t("seller_name", "Seller / Company Name")}</label><input value={form.sellerName} onChange={e => set("sellerName", e.target.value)} placeholder="e.g. Vyynd Agency BV" /></div>
               <div className="form-group"><label>Email</label><input value={form.sellerEmail} onChange={e => set("sellerEmail", e.target.value)} placeholder="contact@yourcompany.com" /></div>
-              <div className="form-group"><label>Phone</label><input value={form.sellerPhone} onChange={e => set("sellerPhone", e.target.value)} placeholder="+31 6 XX XX XX XX" /></div>
-              <div className="form-group"><label>Country</label><select value={COUNTRY_OPTIONS.some(([c]) => c === (form.sellerCountry || countryCodeFrom(form.sellerAddress))) ? (form.sellerCountry || countryCodeFrom(form.sellerAddress)) : "OTHER"} onChange={e => set("sellerCountry", e.target.value)}>{COUNTRY_OPTIONS.map(([c, n]) => <option key={c} value={c}>{n}</option>)}<option value="OTHER">Other…</option></select>{!COUNTRY_OPTIONS.some(([c]) => c === (form.sellerCountry || countryCodeFrom(form.sellerAddress))) && <input placeholder="Country or 2-letter code (e.g. JP)" value={form.sellerCountry === "OTHER" ? "" : (form.sellerCountry || "")} onChange={e => set("sellerCountry", e.target.value === "" ? "OTHER" : e.target.value)} style={{ marginTop:6 }} />}</div><div className="form-group"><label>VAT / BTW number</label><input value={form.sellerVat || ""} onChange={e => set("sellerVat", e.target.value)} placeholder="e.g. NL123456789B01" /></div><div className="form-group full"><label>Address</label><textarea rows={2} value={form.sellerAddress} onChange={e => set("sellerAddress", e.target.value)} placeholder="e.g. Keizersgracht 123, Amsterdam" style={{ resize:"none" }} /></div>
+              <div className="form-group"><label>{t("phone", "Phone")}</label><input value={form.sellerPhone} onChange={e => set("sellerPhone", e.target.value)} placeholder="+31 6 XX XX XX XX" /></div>
+              <div className="form-group"><label>{t("country", "Country")}</label><select value={COUNTRY_OPTIONS.some(([c]) => c === (form.sellerCountry || countryCodeFrom(form.sellerAddress))) ? (form.sellerCountry || countryCodeFrom(form.sellerAddress)) : "OTHER"} onChange={e => set("sellerCountry", e.target.value)}>{COUNTRY_OPTIONS.map(([c, n]) => <option key={c} value={c}>{n}</option>)}<option value="OTHER">Other…</option></select>{!COUNTRY_OPTIONS.some(([c]) => c === (form.sellerCountry || countryCodeFrom(form.sellerAddress))) && <input placeholder="Country or 2-letter code (e.g. JP)" value={form.sellerCountry === "OTHER" ? "" : (form.sellerCountry || "")} onChange={e => set("sellerCountry", e.target.value === "" ? "OTHER" : e.target.value)} style={{ marginTop:6 }} />}</div><div className="form-group"><label>{t("vat_number", "VAT / BTW number")}</label><input value={form.sellerVat || ""} onChange={e => set("sellerVat", e.target.value)} placeholder="e.g. NL123456789B01" /></div><div className="form-group full"><label>{t("address", "Address")}</label><textarea rows={2} value={form.sellerAddress} onChange={e => set("sellerAddress", e.target.value)} placeholder="e.g. Keizersgracht 123, Amsterdam" style={{ resize:"none" }} /></div>
             </div>
           </div>
         )}
 
         {step === 1 && (
           <div>
-            <LogoUploader logoKey="buyerLogo" sizeVal={buyerLogoSize} onSizeChange={setBuyerLogoSize} inputId="buyerLogoInput" label="Client / Buyer Logo (optional)" />
+            <LogoUploader logoKey="buyerLogo" sizeVal={buyerLogoSize} onSizeChange={setBuyerLogoSize} inputId="buyerLogoInput" label={t("buyer_logo", "Client / Buyer Logo (optional)")} />
             <div className="form-grid">
               <div className="form-group full">
-                <label>Select Existing Client</label>
+                <label>{t("select_client", "Select Existing Client")}</label>
                 <select value={form.client} onChange={e => handleClientChange(e.target.value)}>
-                  <option value="">— Enter manually below —</option>
+                  <option value="">{t("enter_manually", "— Enter manually below —")}</option>
                   {clients.map(c => <option key={c.id}>{c.name}</option>)}
                 </select>
               </div>
-              <div className="form-group full"><label>Client / Company Name *</label><input value={form.client} onChange={e => set("client", e.target.value)} placeholder="e.g. TechFlow Solutions BV" /></div>
+              <div className="form-group full"><label>{t("client_name", "Client / Company Name *")}</label><input value={form.client} onChange={e => set("client", e.target.value)} placeholder="e.g. TechFlow Solutions BV" /></div>
               <div className="form-group"><label>Email</label><input value={form.email} onChange={e => set("email", e.target.value)} placeholder="client@company.com" /></div>
-              <div className="form-group"><label>Phone</label><input value={form.buyerPhone} onChange={e => set("buyerPhone", e.target.value)} placeholder="+971 50 XXX XXXX" /></div>
-              <div className="form-group full"><label>Address</label><textarea rows={2} value={form.buyerAddress} onChange={e => set("buyerAddress", e.target.value)} placeholder="e.g. Sheikh Zayed Rd, Dubai, UAE" style={{ resize:"none" }} /></div>
-              <div className="form-group"><label>Country</label><select value={COUNTRY_OPTIONS.some(([c]) => c === (form.buyerCountry || countryCodeFrom(form.buyerAddress))) ? (form.buyerCountry || countryCodeFrom(form.buyerAddress)) : "OTHER"} onChange={e => set("buyerCountry", e.target.value)}>{COUNTRY_OPTIONS.map(([c, n]) => <option key={c} value={c}>{n}</option>)}<option value="OTHER">Other…</option></select>{!COUNTRY_OPTIONS.some(([c]) => c === (form.buyerCountry || countryCodeFrom(form.buyerAddress))) && <input placeholder="Client country or code (e.g. JP)" value={form.buyerCountry === "OTHER" ? "" : (form.buyerCountry || "")} onChange={e => set("buyerCountry", e.target.value === "" ? "OTHER" : e.target.value)} style={{ marginTop:6 }} />}</div><div className="form-group"><label>Invoice Date *</label><input type="date" value={form.date} onChange={e => set("date", e.target.value)} /></div>
-              <div className="form-group"><label>Due Date *</label><input type="date" value={form.due} onChange={e => set("due", e.target.value)} /></div>
+              <div className="form-group"><label>{t("phone", "Phone")}</label><input value={form.buyerPhone} onChange={e => set("buyerPhone", e.target.value)} placeholder="+971 50 XXX XXXX" /></div>
+              <div className="form-group full"><label>{t("address", "Address")}</label><textarea rows={2} value={form.buyerAddress} onChange={e => set("buyerAddress", e.target.value)} placeholder="e.g. Sheikh Zayed Rd, Dubai, UAE" style={{ resize:"none" }} /></div>
+              <div className="form-group"><label>{t("country", "Country")}</label><select value={COUNTRY_OPTIONS.some(([c]) => c === (form.buyerCountry || countryCodeFrom(form.buyerAddress))) ? (form.buyerCountry || countryCodeFrom(form.buyerAddress)) : "OTHER"} onChange={e => set("buyerCountry", e.target.value)}>{COUNTRY_OPTIONS.map(([c, n]) => <option key={c} value={c}>{n}</option>)}<option value="OTHER">Other…</option></select>{!COUNTRY_OPTIONS.some(([c]) => c === (form.buyerCountry || countryCodeFrom(form.buyerAddress))) && <input placeholder="Client country or code (e.g. JP)" value={form.buyerCountry === "OTHER" ? "" : (form.buyerCountry || "")} onChange={e => set("buyerCountry", e.target.value === "" ? "OTHER" : e.target.value)} style={{ marginTop:6 }} />}</div><div className="form-group"><label>{t("invoice_date", "Invoice Date *")}</label><input type="date" value={form.date} onChange={e => set("date", e.target.value)} /></div>
+              <div className="form-group"><label>{t("due_date", "Due Date")} *</label><input type="date" value={form.due} onChange={e => set("due", e.target.value)} /></div>
             </div>
           </div>
         )}
@@ -1753,7 +1786,7 @@ React.useEffect(() => {
         {step === 2 && (
           <div>
             <div style={{ display:"grid", gridTemplateColumns:"minmax(140px, 2fr) 90px 120px 100px 28px", gap:8, padding:"6px 12px", background:"var(--bg3)", borderRadius:8, border:"1px solid var(--border)", marginBottom:6, className:"items-grid-header" }}>
-              {["Description", "Qty", "Price (" + curInfo.symbol + ")", "Total", ""].map((h, i) => (
+              {[t("description", "Description"), t("quantity", "Qty"), t("price", "Price") + " (" + curInfo.symbol + ")", t("total", "Total"), ""].map((h, i) => (
                 <div key={i} style={{ fontSize:10, fontWeight:700, color:"var(--text2)", letterSpacing:0.5, textTransform:"uppercase" }}>{h}</div>
               ))}
             </div>
@@ -1794,26 +1827,26 @@ React.useEffect(() => {
                     <input
                       value={it.note || ""}
                       onChange={e => updateItem(idx, "note", e.target.value)}
-                      placeholder="Add a note for this item (optional)..."
+                      placeholder={t("item_note", "Add a note for this item (optional)...")}
                       style={{ width:"100%", padding:"6px 10px", fontSize:11, color:"var(--text2)", background:"transparent", border:"none", outline:"none", fontStyle:it.note ? "normal" : "italic" }}
                     />
                   </div>
                 </div>
               ))}
             </div>
-            <button className="btn btn-ghost btn-sm" onClick={addItem} style={{ marginBottom:14 }}>+ Add Line Item</button>
+            <button className="btn btn-ghost btn-sm" onClick={addItem} style={{ marginBottom:14 }}>{t("add_line", "+ Add Line Item")}</button>
             <div className="form-grid" style={{ gridTemplateColumns:"1fr 1fr", marginBottom:0 }}>
-              <div className="form-group"><label>Discount (%)</label><input type="number" value={form.discount===0?"":form.discount} min={0} max={100} onChange={e => set("discount", e.target.value===""?0:+e.target.value)} placeholder="0" /></div>
-              <div className="form-group"><label>Deposit / upfront (%)</label><input type="number" value={form.depositPct===0?"":form.depositPct} min={0} max={100} placeholder="e.g. 50" onChange={e => set("depositPct", e.target.value==="" ? 0 : clampPercent(e.target.value))} /></div><div className="form-group"><label>Tax / VAT (%)</label><input type="number" value={form.tax===0?"":form.tax} min={0} onChange={e => set("tax", e.target.value===""?0:+e.target.value)} placeholder="20" /></div>
+              <div className="form-group"><label>{t("discount", "Discount (%)")}</label><input type="number" value={form.discount===0?"":form.discount} min={0} max={100} onChange={e => set("discount", e.target.value===""?0:+e.target.value)} placeholder="0" /></div>
+              <div className="form-group"><label>{t("deposit", "Deposit / upfront (%)")}</label><input type="number" value={form.depositPct===0?"":form.depositPct} min={0} max={100} placeholder="e.g. 50" onChange={e => set("depositPct", e.target.value==="" ? 0 : clampPercent(e.target.value))} /></div><div className="form-group"><label>{t("tax", "Tax / VAT (%)")}</label><input type="number" value={form.tax===0?"":form.tax} min={0} onChange={e => set("tax", e.target.value===""?0:+e.target.value)} placeholder="20" /></div>
             </div>
             <div className="totals-box" style={{ marginTop:12 }}>
-              <div className="totals-row"><span>Subtotal</span><span>{fLocal(subtotal)}</span></div>
+              <div className="totals-row"><span>{t("subtotal", "Subtotal")}</span><span>{fLocal(subtotal)}</span></div>
               {form.discount > 0 && <div className="totals-row" style={{ color:"var(--green)" }}><span>Discount ({form.discount}%)</span><span>-{fLocal(discountAmt)}</span></div>}
               <div className="totals-row"><span>Tax ({form.tax}%)</span><span>{fLocal(taxAmt)}</span></div>
-              <div className={"totals-row" + (depositPct > 0 ? "" : " grand")}><span>{depositPct > 0 ? "Invoice total" : "Total"}</span><span>{fLocal(total)}</span></div>
+              <div className={"totals-row" + (depositPct > 0 ? "" : " grand")}><span>{depositPct > 0 ? t("invoice_total", "Invoice total") : t("total", "Total")}</span><span>{fLocal(total)}</span></div>
               {depositPct > 0 && <>
-                <div className="totals-row grand" style={{ gap:20 }}><span>Deposit due now ({depositPct}%)</span><span style={{ whiteSpace:"nowrap", marginLeft:12 }}>{fLocal(depositAmt)}</span></div>
-                <div className="totals-row"><span>Remaining after deposit</span><span>{fLocal(remainingAfterDeposit)}</span></div>
+                <div className="totals-row grand" style={{ gap:20 }}><span>{t("deposit_due", "Deposit due now")} ({depositPct}%)</span><span style={{ whiteSpace:"nowrap", marginLeft:12 }}>{fLocal(depositAmt)}</span></div>
+                <div className="totals-row"><span>{t("remaining", "Remaining after deposit")}</span><span>{fLocal(remainingAfterDeposit)}</span></div>
               </>}
             </div>
           </div>
@@ -1822,12 +1855,12 @@ React.useEffect(() => {
         {step === 3 && (
           <div style={{ display:"flex", flexDirection:"column", gap:16 }}>
             <div className="form-group">
-              <label>Invoice Notes</label>
+              <label>{t("invoice_notes", "Invoice Notes")}</label>
               <textarea rows={4} value={form.notes} onChange={e => set("notes", e.target.value)} placeholder="e.g. Thank you for your business. Payment is due within 30 days." style={{ resize:"vertical" }} />
               <span style={{ fontSize:11, color:"var(--text2)" }}>Shown at the bottom of the invoice</span>
             </div>
             <div className="form-group">
-              <label>Bank / Payment Information</label>
+              <label>{t("payment_info", "Bank / Payment Information")}</label>
               <textarea rows={6} value={form.bankInfo} onChange={e => set("bankInfo", e.target.value)}
                 placeholder={"Bank: ING Bank Netherlands\nAccount Name: My Company BV\nIBAN: NL00 INGB 0000 0000 00\nBIC/Swift: INGBNL2A\n\nOr pay via:\nWise: yourname@wise.com"}
                 style={{ resize:"vertical", fontFamily:"monospace", fontSize:12, lineHeight:1.8 }} />
@@ -1835,15 +1868,15 @@ React.useEffect(() => {
             </div>
             <div style={{ background:"var(--bg3)", border:"1px solid var(--border)", borderRadius:10, padding:"14px 18px" }}>
               <div style={{ fontSize:11, fontWeight:700, color:"var(--text2)", letterSpacing:0.5, marginBottom:10, textTransform:"uppercase" }}>
-                {isEdit ? "Editing Invoice" : "Summary"}
+                {isEdit ? t("edit_invoice", "Editing Invoice") : t("summary", "Summary")}
               </div>
-              {[["Seller", form.sellerName||"—"],["Client", form.client||"—"],["Due Date", formatDate(form.due)||"—"],["Items", (items.filter(i => i.desc).length) + " line item(s)"]].map(([k, v]) => (
+              {[[t("seller", "Seller"), form.sellerName||"—"],[t("client", "Client"), form.client||"—"],[t("due_date", "Due Date"), formatDate(form.due)||"—"],[t("items", "Items"), (items.filter(i => i.desc).length) + " line item(s)"]].map(([k, v]) => (
                 <div key={k} style={{ display:"flex", justifyContent:"space-between", fontSize:13, marginBottom:4 }}>
                   <span style={{ color:"var(--text2)" }}>{k}</span><span style={{ fontWeight:600 }}>{v}</span>
                 </div>
               ))}
               <div style={{ display:"flex", justifyContent:"space-between", fontSize:13, marginBottom:4 }}>
-                <span style={{ color:"var(--text2)" }}>Currency</span>
+                <span style={{ color:"var(--text2)" }}>{t("currency", "Currency")}</span>
                 <span style={{ fontWeight:700, color:"var(--gold)" }}>{invoiceCurrency} ({curInfo.symbol})</span>
               </div>
               <div style={{ display:"flex", justifyContent:"space-between", fontSize:16, fontWeight:700, marginTop:8, paddingTop:8, borderTop:"1px solid var(--border)" }}>
@@ -1864,20 +1897,20 @@ React.useEffect(() => {
         <div style={{ display:"flex", gap:10, justifyContent:"space-between", marginTop:24, borderTop:"1px solid var(--border)", paddingTop:16 }}>
           <div style={{ display:"flex", gap:8 }}>
             <button className="btn btn-ghost" onClick={step===0 ? () => onClose(hasMeaningfulData()?buildDraft():null) : () => setStep(s => s-1)}>
-              {step===0 ? "Close" : "← Back"}
+              {step===0 ? t("close", "Close") : t("back", "← Back")}
             </button>
             {hasMeaningfulData() && (
               <button className="btn btn-secondary" onClick={() => onClose(buildDraft())}>
-                Save Draft
+                {t("save_draft", "Save Draft")}
               </button>
             )}
           </div>
           <div style={{ display:"flex", gap:10, alignItems:"center" }}>
-            {!isLast && <span style={{ fontSize:12, color:"var(--text2)" }}>Step {step+1} / {steps.length}</span>}
-            {isEdit && !isLast && <button className="btn btn-primary" onClick={handleSave}>Update Invoice</button>}
+            {!isLast && <span style={{ fontSize:12, color:"var(--text2)" }}>{t("step", "Step")} {step+1} / {steps.length}</span>}
+            {isEdit && !isLast && <button className="btn btn-primary" onClick={handleSave}>{t("update_invoice", "Update Invoice")}</button>}
             {isLast
-              ? <button className="btn btn-primary" onClick={handleSave}>{isEdit ? "Update Invoice" : "Save Invoice"}</button>
-              : <button className="btn btn-primary" onClick={() => setStep(s => s+1)}>Next →</button>
+              ? <button className="btn btn-primary" onClick={handleSave}>{isEdit ? t("update_invoice", "Update Invoice") : t("save_invoice", "Save Invoice")}</button>
+              : <button className="btn btn-primary" onClick={() => setStep(s => s+1)}>{t("next", "Next →")}</button>
             }
           </div>
         </div>
@@ -1887,30 +1920,32 @@ React.useEffect(() => {
 }
 
 function NewClientModal({ onSave, onClose }) {
+  const locale = getLocale();
+  const t = (key, fallback) => tr(key, fallback, locale);
   const [form, setForm] = useState({ name:"", email:"", phone:"", country:"" });
   const [customCountry, setCustomCountry] = useState("");
   const handleSave = () => {
     // Only the name is required. Plenty of clients are dealt with by phone or
     // WhatsApp and have no direct email address - that should not block saving them.
-    if (!form.name) return alert("Please enter a client or business name");
+    if (!form.name) return alert(t("client_name_required", "Please enter a client or business name"));
     const country = form.country === "Other" ? customCountry : form.country;
     onSave({ ...form, country, id:Date.now(), invoices:0, total:0 });
   };
   return (
     <div className="modal-overlay" onClick={e => e.target === e.currentTarget && onClose()}>
       <div className="modal">
-        <div className="modal-title">New Client</div>
+        <div className="modal-title">{t("new_client", "New Client")}</div>
         <div className="form-grid" style={{ gridTemplateColumns:"1fr" }}>
-          {[["name","Client / Business Name *"],["email","Email Address (optional)"],["phone","Phone Number (optional)"]].map(([k,l]) => (
+          {[["name",t("client_business_name", "Client / Business Name *")],["email",t("email_optional", "Email Address (optional)")],["phone",t("phone_optional", "Phone Number (optional)")]].map(([k,l]) => (
             <div className="form-group" key={k}>
               <label>{l}</label>
               <input value={form[k]} onChange={e => setForm(f => ({ ...f, [k]:e.target.value }))} />
             </div>
           ))}
           <div className="form-group">
-            <label>Country</label>
+            <label>{t("country", "Country")}</label>
             <select value={form.country} onChange={e => setForm(f => ({ ...f, country:e.target.value }))}>
-              <option value="">— Choose country —</option>
+              <option value="">{t("choose_country", "— Choose country —")}</option>
               {["Netherlands","Belgium","France","Germany","United Kingdom","United States","Spain","Italy","Switzerland","Sweden","Ireland","Austria","Luxembourg","Canada","Australia","UAE","Saudi Arabia","Qatar","Kuwait","Bahrain","Oman","Jordan","Lebanon","Turkey","Egypt","Morocco","Tunisia","Algeria","Libya","Iraq","Yemen","Other"].map(c => <option key={c}>{c}</option>)}
              </select>
             {!["Netherlands","Belgium","France","Germany","United Kingdom","United States","Spain","Italy","Switzerland","Sweden","Ireland","Austria","Luxembourg","Canada","Australia","UAE","Saudi Arabia","Qatar","Kuwait","Bahrain","Oman","Jordan","Lebanon","Turkey","Egypt","Morocco","Tunisia","Algeria","Libya","Iraq","Yemen"].includes(form.country) && form.country !== "" && (
@@ -1919,8 +1954,8 @@ function NewClientModal({ onSave, onClose }) {
           </div>
         </div>
         <div style={{ display:"flex", gap:10, justifyContent:"flex-end", marginTop:8 }}>
-          <button className="btn btn-ghost" onClick={onClose}>Cancel</button>
-          <button className="btn btn-primary" onClick={handleSave}>Save Client</button>
+          <button className="btn btn-ghost" onClick={onClose}>{t("cancel", "Cancel")}</button>
+          <button className="btn btn-primary" onClick={handleSave}>{t("add_client_action", "Save Client")}</button>
         </div>
       </div>
     </div>
@@ -2173,6 +2208,7 @@ function ReminderModal({ invoice: reminderTarget, onClose, onLog }) { const f = 
       window.open("https://wa.me/" + (invoice.buyerPhone || "").replace(/\D/g,"") + "?text=" + encodeURIComponent(editedText), "_blank");
     }
     onLog(invoice.id, { date:today, tone, channel });
+    trackEvent("payment_reminder_sent", { channel, tone, language:lang, invoice_status:invoice.status || "unknown" });
     setSent(true);
     setTimeout(() => onClose(), 1800);
   };
@@ -2274,6 +2310,7 @@ function UpgradeModal({ feature, onClose, onActivate, initialPlan, userEmail, us
   const handleStripe = () => {
     const link = PLANS_INFO[selectedPlan]?.stripe_link;
     if (link) {
+      trackEvent("checkout_started", { plan:selectedPlan, feature:feature || "general", amount_eur:selectedPlan === "business" ? 19 : 9 });
       const sep = link.indexOf("?") >= 0 ? "&" : "?";
       const qp = [];
       if (userEmail) qp.push("prefilled_email=" + encodeURIComponent(userEmail));

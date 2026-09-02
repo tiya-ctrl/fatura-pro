@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef } from "react";
 import { signIn, signUp, loginWithGoogle } from "../auth";
 import { trackEvent } from "../lib/tracking";
+import { getLocale, localeHome, setLocale, tr } from "../lib/locale";
 
 /* ─── CSS ─────────────────────────────────────────────── */
 const FONTS = `@import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700&family=DM+Sans:wght@300;400;500;600&display=swap');`;
@@ -116,19 +117,15 @@ body { font-family:'DM Sans',sans-serif; background:#08080e; color:#e8e4dc; }
 }
 `;
 
-/* ─── DEMO ACCOUNTS ───────────────────────────────────── */
-// Replace with Supabase auth in production
-const DEMO_USERS = [
-  { email: "demo@fatura.app", password: "demo1234", name: "Demo User",  plan: "pro"  },
-  { email: "free@fatura.app", password: "free1234", name: "Free User",  plan: "free" },
-];
-
 /* ─── COMPONENT ───────────────────────────────────────── */
 export default function LoginPage({ onLogin, onBack, returnTo = "/app" }) {
+  const locale = getLocale();
+  const t = (key, fallback) => tr(key, fallback, locale);
   const [mode,     setMode]     = useState("login"); // "login" | "signup"
   const signupStartTracked = useRef(false);
   const signupSource = new URLSearchParams(window.location.search).get("source") || "login_tab";
   useEffect(() => {
+    setLocale(locale);
     const sp = new URLSearchParams(window.location.search);
     if (sp.get("signup")) {
       setMode("signup");
@@ -157,10 +154,10 @@ export default function LoginPage({ onLogin, onBack, returnTo = "/app" }) {
 
   const validate = () => {
     const e = {};
-    if (mode === "signup" && !form.name.trim())           e.name     = "Name is required";
-    if (!form.email.includes("@"))                        e.email    = "Enter a valid email";
-    if (form.password.length < 6)                         e.password = "Min. 6 characters";
-    if (mode === "signup" && form.password !== form.confirm) e.confirm = "Passwords don't match";
+    if (mode === "signup" && !form.name.trim())           e.name     = t("name_required", "Name is required");
+    if (!form.email.includes("@"))                        e.email    = t("valid_email", "Enter a valid email");
+    if (form.password.length < 6)                         e.password = t("password_min", "Min. 6 characters");
+    if (mode === "signup" && form.password !== form.confirm) e.confirm = t("password_mismatch", "Passwords don't match");
     return e;
   };
 
@@ -210,10 +207,10 @@ export default function LoginPage({ onLogin, onBack, returnTo = "/app" }) {
       <div className="login-card" style={{ textAlign:"center" }}>
         <div style={{ fontSize:56, marginBottom:16 }}>✔</div>
         <div style={{ fontFamily:"'Playfair Display',serif", fontSize:26, color:"var(--gold)", marginBottom:8 }}>
-          {mode === "login" ? "Welcome back!" : "Account created!"}
+          {mode === "login" ? t("welcome_back", "Welcome back!") : t("account_created", "Account created!")}
         </div>
         <div style={{ color:"var(--text2)", fontSize:14, marginBottom:24 }}>
-          Taking you to your dashboard...
+          {t("opening_dashboard", "Taking you to your dashboard...")}
         </div>
         <div style={{ width:40, height:40, border:"3px solid var(--gold)", borderTopColor:"transparent",
           borderRadius:"50%", animation:"spin 0.8s linear infinite", margin:"0 auto" }} />
@@ -228,7 +225,7 @@ export default function LoginPage({ onLogin, onBack, returnTo = "/app" }) {
       <div className="login-bg-glow" />
       <div className="login-bg-grid" />
 
-      {onBack && <button className="login-back" onClick={onBack}>← Back to Home</button>}
+      {onBack && <button className="login-back" onClick={locale === "en" ? onBack : () => { window.location.href = localeHome(locale); }}>← {t("back_home", "Back to Home")}</button>}
 
       <div className="login-card">
 
@@ -238,24 +235,28 @@ export default function LoginPage({ onLogin, onBack, returnTo = "/app" }) {
           <div className="login-logo-text">Fatūra</div>
         </div>
 
+        <div style={{ display:"flex", justifyContent:"center", gap:12, marginTop:-20, marginBottom:18, fontSize:12 }}>
+          {["en","es","fr"].map(code => <button key={code} onClick={() => { setLocale(code); const params = new URLSearchParams(window.location.search); params.set("lang", code); window.location.search = params.toString(); }} style={{ border:0, background:"none", color:locale===code?"var(--gold)":"var(--text3)", fontWeight:locale===code?700:500, cursor:"pointer" }}>{code.toUpperCase()}</button>)}
+        </div>
+
         {/* Badge */}
         <div style={{ display:"flex", justifyContent:"center", marginBottom:20 }}>
           <div className="login-badge">
             <span style={{ width:6, height:6, borderRadius:"50%", background:"var(--gold)", display:"inline-block" }} />
-            {mode === "login" ? "Sign in to your account" : "Create your free account"}
+            {mode === "login" ? t("sign_in_account", "Sign in to your account") : t("create_free_account", "Create your free account")}
           </div>
         </div>
 
         {/* Tabs */}
         <div className="login-tabs">
-          <div className={`login-tab ${mode==="login" ? "active" : ""}`} onClick={() => switchMode("login")}>Sign In</div>
-          <div className={`login-tab ${mode==="signup" ? "active" : ""}`} onClick={() => switchMode("signup")}>Sign Up</div>
+          <div className={`login-tab ${mode==="login" ? "active" : ""}`} onClick={() => switchMode("login")}>{t("sign_in", "Sign In")}</div>
+          <div className={`login-tab ${mode==="signup" ? "active" : ""}`} onClick={() => switchMode("signup")}>{t("sign_up", "Sign Up")}</div>
         </div>
 
         {/* Name — signup only */}
         {mode === "signup" && (
           <div className="login-field">
-            <label>Full Name</label>
+            <label>{t("full_name", "Full Name")}</label>
             <input className={`login-input${errors.name ? " error" : ""}`}
               value={form.name} onChange={e => set("name", e.target.value)}
               onKeyDown={handleKey} placeholder="e.g. Sara Al-Rashidi" />
@@ -265,7 +266,7 @@ export default function LoginPage({ onLogin, onBack, returnTo = "/app" }) {
 
         {/* Email */}
         <div className="login-field">
-          <label>Email Address</label>
+          <label>{t("email_address", "Email Address")}</label>
           <input className={`login-input${errors.email ? " error" : ""}`}
             type="email" value={form.email}
             onChange={e => set("email", e.target.value)}
@@ -276,16 +277,16 @@ export default function LoginPage({ onLogin, onBack, returnTo = "/app" }) {
         {/* Password */}
         <div className="login-field">
           <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center" }}>
-            <label>Password</label>
+            <label>{t("password", "Password")}</label>
             {mode === "login" && (
-              <span style={{ fontSize:12, color:"var(--gold)", cursor:"pointer" }} onClick={async () => { const email = document.querySelector("input[type=email]")?.value; if(!email) return alert("Enter your email first"); const { supabase } = await import("../supabase"); await supabase.auth.resetPasswordForEmail(email, { redirectTo: "https://faturapro.app/reset-password" }); alert("Password reset email sent!"); }}>Forgot password?</span>
+              <span style={{ fontSize:12, color:"var(--gold)", cursor:"pointer" }} onClick={async () => { const email = document.querySelector("input[type=email]")?.value; if(!email) return alert(t("enter_email_first", "Enter your email first")); const { supabase } = await import("../supabase"); await supabase.auth.resetPasswordForEmail(email, { redirectTo: "https://faturapro.app/reset-password" }); alert(t("reset_sent", "Password reset email sent!")); }}>{t("forgot_password", "Forgot password?")}</span>
             )}
           </div>
           <div style={{ position:"relative" }}>
             <input className={`login-input${errors.password ? " error" : ""}`}
               type={showPass ? "text" : "password"} value={form.password}
               onChange={e => set("password", e.target.value)} onKeyDown={handleKey}
-              placeholder={mode === "signup" ? "Min. 6 characters" : "Your password"}
+              placeholder={mode === "signup" ? t("min_characters", "Min. 6 characters") : t("your_password", "Your password")}
               style={{ paddingRight:44 }} />
             <button onClick={() => setShowPass(s => !s)}
               style={{ position:"absolute", right:12, top:"50%", transform:"translateY(-50%)",
@@ -299,11 +300,11 @@ export default function LoginPage({ onLogin, onBack, returnTo = "/app" }) {
         {/* Confirm — signup only */}
         {mode === "signup" && (
           <div className="login-field">
-            <label>Confirm Password</label>
+            <label>{t("confirm_password", "Confirm Password")}</label>
             <input className={`login-input${errors.confirm ? " error" : ""}`}
               type={showPass ? "text" : "password"} value={form.confirm}
               onChange={e => set("confirm", e.target.value)} onKeyDown={handleKey}
-              placeholder="Repeat your password" />
+              placeholder={t("repeat_password", "Repeat your password")} />
             {errors.confirm && <div className="login-error">{errors.confirm}</div>}
           </div>
         )}
@@ -314,17 +315,17 @@ export default function LoginPage({ onLogin, onBack, returnTo = "/app" }) {
             <>
               <span style={{ width:16, height:16, border:"2px solid #000", borderTopColor:"transparent",
                 borderRadius:"50%", display:"inline-block", animation:"spin 0.7s linear infinite" }} />
-              Processing...
+              {t("processing", "Processing...")}
             </>
           ) : (
-            mode === "login" ? "Sign In →" : "Create Account →"
+            mode === "login" ? t("sign_in", "Sign In") + " →" : t("create_account", "Create Account") + " →"
           )}
         </button>
 
         {/* Divider */}
         <div className="login-divider">
           <div className="login-divider-line" />
-          <div className="login-divider-text">or continue with</div>
+          <div className="login-divider-text">{t("continue_with", "or continue with")}</div>
           <div className="login-divider-line" />
         </div>
 
@@ -355,8 +356,8 @@ export default function LoginPage({ onLogin, onBack, returnTo = "/app" }) {
         {/* Switch mode */}
         <div className="login-footer-text">
           {mode === "login"
-            ? <>Don't have an account? <a onClick={() => switchMode("signup")}>Sign up free</a></>
-            : <>Already have an account? <a onClick={() => switchMode("login")}>Sign in</a></>
+            ? <>{t("no_account", "Don't have an account?")} <a onClick={() => switchMode("signup")}>{t("sign_up_free", "Sign up free")}</a></>
+            : <>{t("have_account", "Already have an account?")} <a onClick={() => switchMode("login")}>{t("sign_in", "Sign in")}</a></>
           }
         </div>
       </div>
