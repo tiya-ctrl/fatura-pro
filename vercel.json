@@ -3,6 +3,8 @@
     { "source": "/for-freelancers", "destination": "/for-freelancers.html" },
     { "source": "/for-agencies", "destination": "/for-agencies.html" },
     { "source": "/nl", "destination": "/nl.html" },
+    { "source": "/es", "destination": "/es.html" },
+    { "source": "/fr", "destination": "/fr.html" },
     { "source": "/ubl-factuur-maken", "destination": "/ubl-factuur-maken.html" },
     { "source": "/fr/relance-facture-impayee-anglais", "destination": "/relance-facture-impayee-anglais.html" },
     { "source": "/(.*)", "destination": "/index.html" }
