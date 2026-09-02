@@ -19,6 +19,6 @@ jobs:
     timeout-minutes: 5
     steps:
       - name: Check out the site
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
       - name: Notify participating search engines
         run: node scripts/submit-indexnow.mjs
