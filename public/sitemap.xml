@@ -1,7 +1,12 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9" xmlns:xhtml="http://www.w3.org/1999/xhtml">
   <url>
     <loc>https://faturapro.app/</loc>
+    <xhtml:link rel="alternate" hreflang="en" href="https://faturapro.app/" />
+    <xhtml:link rel="alternate" hreflang="nl" href="https://faturapro.app/nl" />
+    <xhtml:link rel="alternate" hreflang="es" href="https://faturapro.app/es" />
+    <xhtml:link rel="alternate" hreflang="fr" href="https://faturapro.app/fr" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://faturapro.app/" />
     <changefreq>weekly</changefreq>
     <priority>1.0</priority>
   </url>
@@ -17,6 +22,7 @@
   </url>
   <url>
     <loc>https://faturapro.app/blog/zzp-invoice-app-english-netherlands</loc>
+    <lastmod>2026-09-01</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
   </url>
@@ -57,12 +63,19 @@
   </url>
   <url>
     <loc>https://faturapro.app/late-payment-scripts</loc>
+    <xhtml:link rel="alternate" hreflang="en" href="https://faturapro.app/late-payment-scripts" />
+    <xhtml:link rel="alternate" hreflang="fr" href="https://faturapro.app/fr/relance-facture-impayee-anglais" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://faturapro.app/late-payment-scripts" />
+    <lastmod>2026-09-01</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.9</priority>
   </url>
   <url>
     <loc>https://faturapro.app/fr/relance-facture-impayee-anglais</loc>
-    <lastmod>2026-08-30</lastmod>
+    <xhtml:link rel="alternate" hreflang="en" href="https://faturapro.app/late-payment-scripts" />
+    <xhtml:link rel="alternate" hreflang="fr" href="https://faturapro.app/fr/relance-facture-impayee-anglais" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://faturapro.app/late-payment-scripts" />
+    <lastmod>2026-09-01</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
   </url>
@@ -78,6 +91,7 @@
   </url>
   <url>
     <loc>https://faturapro.app/blog/how-to-create-ubl-invoice-en16931</loc>
+    <lastmod>2026-09-01</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.9</priority>
   </url>
@@ -88,6 +102,33 @@
   </url>
   <url>
     <loc>https://faturapro.app/nl</loc>
+    <xhtml:link rel="alternate" hreflang="en" href="https://faturapro.app/" />
+    <xhtml:link rel="alternate" hreflang="nl" href="https://faturapro.app/nl" />
+    <xhtml:link rel="alternate" hreflang="es" href="https://faturapro.app/es" />
+    <xhtml:link rel="alternate" hreflang="fr" href="https://faturapro.app/fr" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://faturapro.app/" />
+    <changefreq>monthly</changefreq>
+    <priority>0.9</priority>
+  </url>
+  <url>
+    <loc>https://faturapro.app/es</loc>
+    <xhtml:link rel="alternate" hreflang="en" href="https://faturapro.app/" />
+    <xhtml:link rel="alternate" hreflang="nl" href="https://faturapro.app/nl" />
+    <xhtml:link rel="alternate" hreflang="es" href="https://faturapro.app/es" />
+    <xhtml:link rel="alternate" hreflang="fr" href="https://faturapro.app/fr" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://faturapro.app/" />
+    <lastmod>2026-09-01</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.9</priority>
+  </url>
+  <url>
+    <loc>https://faturapro.app/fr</loc>
+    <xhtml:link rel="alternate" hreflang="en" href="https://faturapro.app/" />
+    <xhtml:link rel="alternate" hreflang="nl" href="https://faturapro.app/nl" />
+    <xhtml:link rel="alternate" hreflang="es" href="https://faturapro.app/es" />
+    <xhtml:link rel="alternate" hreflang="fr" href="https://faturapro.app/fr" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://faturapro.app/" />
+    <lastmod>2026-09-01</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.9</priority>
   </url>
