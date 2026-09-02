@@ -1,0 +1,24 @@
+name: Notify IndexNow
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - "public/**"
+      - "src/pages/**"
+      - "scripts/submit-indexnow.mjs"
+      - ".github/workflows/indexnow.yml"
+
+permissions:
+  contents: read
+
+jobs:
+  notify-indexnow:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Check out the site
+        uses: actions/checkout@v4
+      - name: Notify participating search engines
+        run: node scripts/submit-indexnow.mjs
