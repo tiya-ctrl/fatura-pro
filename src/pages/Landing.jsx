@@ -461,7 +461,7 @@ const FAQS = [
   { q:"Can I invoice in different currencies?", a:"Yes, in 17 currencies. Amounts are never converted between them: each currency keeps its own total, so you always see exactly what you were paid in the currency you were paid in. No exchange rates are applied anywhere." },
   { q:"Do I need a business registration to use Fatūra?", a:"No. Anyone can use Fatūra — freelancers, solopreneurs, and small businesses alike. You don't need a registered company or VAT number to get started." },
   { q:"Can I send invoices in Arabic?", a:"You can enter all your content in Arabic including client names, company names, and notes. Your invoices print correctly in Arabic." },
-  { q:"How does the payment reminder work?", a:"Fatūra automatically detects when an invoice passes its due date. You can then send a pre-written reminder via Email or WhatsApp in one click — choose from Polite, Firm, or Final Reminder tone." },
+  { q:"How does the payment reminder work?", a:"Fatūra detects when an invoice passes its due date. You choose a Polite, Firm, or Final tone, review the prepared message, then open it in Email or WhatsApp to send." },
   { q:"Can clients pay an invoice online?", a:"Business accounts can connect Stripe so clients can pay by card from the invoice payment page. Available payment methods depend on the connected Stripe account and region." },
   { q:"Is my data secure?", a:"All data is encrypted in transit (TLS) and at rest. We never sell or share your data with third parties. You can export or delete your data at any time." },
   { q:"Can I upgrade or cancel anytime?", a:"Yes, absolutely. No lock-in contracts. Upgrade, downgrade, or cancel at any time directly from your account settings." },
