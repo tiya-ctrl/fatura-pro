@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { applyPageSeo } from "../lib/pageSeo";
+import { applyPageSeo, suspendBaseSiteSchema } from "../lib/pageSeo";
 import { trackEvent } from "../lib/tracking";
 
 const GOLD = "#c9a84c";
@@ -345,7 +345,7 @@ const FAQ = [
   },
   {
     q: "Can I charge interest on a late invoice?",
-    a: "In the European Union, business-to-business contracts fall under the Late Payment Directive (2011/7/EU), which gives you a right to statutory interest and a fixed minimum compensation for recovery costs once payment is late — even when your contract says nothing about it. Rules and rates differ per country and the situation is different for consumer clients, so check what applies where you are registered. This page is practical guidance, not legal advice.",
+    a: "For qualifying business-to-business transactions in the European Union, late-payment rules may entitle a creditor who fulfilled the contract to statutory interest and recovery-cost compensation. Consumer invoices, insolvency, the governing law and contract terms can change the position, so check the current rules for your country and transaction. This page is practical guidance, not legal advice.",
   },
   {
     q: "What do I do if the client ignores every message?",
@@ -430,8 +430,8 @@ export default function LatePaymentScripts() {
   useEffect(() => {
     const canonical = "https://faturapro.app/late-payment-scripts";
     const cleanupSeo = applyPageSeo({
-      title: "Late Payment Reminder Templates: Email & WhatsApp Scripts | Fatūra Pro",
-      description: "Copy ready-to-send late payment reminder templates for overdue invoices. Friendly, firm and final email and WhatsApp messages for freelancers and small businesses.",
+      title: "40 Late Payment Reminder Templates (Free) | FaturaPro",
+      description: "Copy 40 free late payment reminder templates for email and WhatsApp. Friendly, firm and final invoice messages in English, Dutch, Arabic and French.",
       canonical,
       type: "article",
       imageAlt: "Fatūra Pro late payment reminder templates for overdue invoices",
@@ -441,6 +441,7 @@ export default function LatePaymentScripts() {
         "x-default": canonical,
       },
     });
+    const restoreSiteSchema = suspendBaseSiteSchema();
     trackEvent("seo_page_viewed", { page: "late_payment_scripts", language: "en" });
 
     const sc = document.createElement("script");
@@ -448,18 +449,42 @@ export default function LatePaymentScripts() {
     sc.id = "late-payment-faq-schema";
     sc.text = JSON.stringify({
       "@context": "https://schema.org",
-      "@type": "FAQPage",
-      mainEntity: FAQ.map((f) => ({
-        "@type": "Question",
-        name: f.q,
-        acceptedAnswer: { "@type": "Answer", text: f.a },
-      })),
+      "@graph": [
+        {
+          "@type":"Article",
+          "@id":canonical + "#article",
+          headline:"40 Free Late Payment Reminder Templates for Email and WhatsApp",
+          description:"Ready-to-send overdue invoice reminders in four languages, from a friendly heads-up to a final notice.",
+          inLanguage:"en",
+          datePublished:"2026-08-30",
+          dateModified:"2026-09-07",
+          mainEntityOfPage:canonical,
+          author:{ "@type":"Organization", name:"FaturaPro", url:"https://faturapro.app/" },
+          publisher:{ "@type":"Organization", name:"FaturaPro", url:"https://faturapro.app/", logo:{ "@type":"ImageObject", url:"https://faturapro.app/fatura-mark.svg" } },
+        },
+        {
+          "@type":"BreadcrumbList",
+          itemListElement:[
+            { "@type":"ListItem", position:1, name:"Home", item:"https://faturapro.app/" },
+            { "@type":"ListItem", position:2, name:"Late payment reminder templates", item:canonical },
+          ],
+        },
+        {
+          "@type": "FAQPage",
+          mainEntity: FAQ.map((f) => ({
+            "@type": "Question",
+            name: f.q,
+            acceptedAnswer: { "@type": "Answer", text: f.a },
+          })),
+        },
+      ],
     });
     document.head.appendChild(sc);
 
     return () => {
       const old = document.getElementById("late-payment-faq-schema");
       if (old) old.remove();
+      restoreSiteSchema();
       cleanupSeo();
     };
   }, []);
@@ -489,12 +514,16 @@ export default function LatePaymentScripts() {
         </div>
 
         <h1 style={{ fontFamily: "Playfair Display, serif", fontSize: 40, marginBottom: 14, lineHeight: 1.18 }}>
-          Late Payment Reminder Templates
+          40 Free Late Payment Reminder Templates
         </h1>
 
         <p style={{ color: MUTED, fontSize: 16.5, lineHeight: 1.8, marginBottom: 30 }}>
           Waiting on an overdue invoice? Copy one of these ready-to-send payment reminder messages. Start friendly, follow up firmly, and escalate professionally when a client still hasn&apos;t paid. Choose email or WhatsApp and send it in English, Dutch, Arabic or French.
         </p>
+
+        <div style={{ color:MUTED, fontSize:14, lineHeight:1.7, margin:"-12px 0 30px" }}>
+          Relancing an English-speaking client from a French-speaking business? Use the dedicated <a href="/fr/relance-facture-impayee-anglais" style={{ color:GOLD_L, fontWeight:600 }}>French guide to chasing an unpaid invoice in English</a> with seven explained templates.
+        </div>
 
         <div style={{ background: CARD, border: "1px solid " + BORDER, borderRadius: 12, padding: "18px 20px", marginBottom: 44 }}>
           <div style={{ fontSize: 14, fontWeight: 600, color: TEXT, marginBottom: 10 }}>The escalation ladder</div>
@@ -520,7 +549,7 @@ export default function LatePaymentScripts() {
         <div style={{ marginTop: 26, marginBottom: 44 }}>
           {lang === "fr" && (
             <div style={{ background: "rgba(201,168,76,0.08)", border: "1px solid rgba(201,168,76,0.26)", borderRadius: 10, padding: "14px 16px", marginBottom: 20, color: MUTED, fontSize: 14, lineHeight: 1.7 }}>
-              Besoin d'explications en français&nbsp;? Consultez le guide complet avec cinq <a href="/fr/relance-facture-impayee-anglais" style={{ color: GOLD_L, fontWeight: 600 }}>modèles de relance pour facture impayée en anglais</a>.
+              Besoin d'explications en français&nbsp;? Consultez le guide complet avec sept <a href="/fr/relance-facture-impayee-anglais" style={{ color: GOLD_L, fontWeight: 600 }}>modèles de relance pour facture impayée en anglais</a>.
             </div>
           )}
           {STAGES.map((s) => (
@@ -532,7 +561,7 @@ export default function LatePaymentScripts() {
         <div style={{ background: "linear-gradient(135deg, rgba(201,168,76,0.14), rgba(201,168,76,0.04))", border: "1px solid rgba(201,168,76,0.3)", borderRadius: 14, padding: "26px 24px", marginBottom: 52 }}>
           <div style={{ fontFamily: "Playfair Display, serif", fontSize: 22, color: TEXT, marginBottom: 10 }}>Tired of chasing invoices manually?</div>
           <div style={{ fontSize: 14.5, color: MUTED, lineHeight: 1.8, marginBottom: 18 }}>
-            Fatūra Pro tracks due dates and gives you polite, firm and final reminders for email or WhatsApp, in the language your client speaks. It also logs which reminders you already sent, so you always know the next step.
+            Fatūra Pro identifies overdue invoices and prepares editable polite, firm and final reminder text. You review it, then open it in your email app or WhatsApp to send it yourself.
           </div>
           <a href="/login?signup=1&amp;source=seo_late_payment_scripts" onClick={() => trackEvent("seo_cta_clicked", { page:"late_payment_scripts", placement:"mid_page", destination:"signup" })} style={{ display: "inline-block", background: GOLD, color: "#14110a", borderRadius: 9, padding: "13px 26px", fontSize: 15, fontWeight: 600, textDecoration: "none" }}>
             Create your first invoice free →
@@ -601,7 +630,7 @@ export default function LatePaymentScripts() {
             </div>
           ))}
           <div style={{ fontSize: 12.5, color: "#5a5750", lineHeight: 1.8, marginTop: 22, borderTop: "1px solid " + BORDER, paddingTop: 16 }}>
-            These scripts and notes are practical guidance from everyday invoicing, not legal advice. Rules on interest, recovery costs and formal demand letters differ per country — check what applies where your business is registered before relying on the final notice.
+            These scripts and notes are practical guidance from everyday invoicing, not legal advice. Rules on interest, recovery costs and formal demand letters differ per country and transaction. For EU business debts, check the current <a href="https://europa.eu/youreurope/business/finance-and-tax/making-receiving-payments/late-payment/index_en.htm" target="_blank" rel="noreferrer" style={{ color:GOLD_L }}>Your Europe late-payment guidance</a> before relying on the final notice.
           </div>
         </Section>
 
