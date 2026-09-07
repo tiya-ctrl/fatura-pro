@@ -1,31 +1,61 @@
 import { useParams, Link } from "react-router-dom";
 import { useEffect } from "react";
-import { applyPageSeo } from "../lib/pageSeo";
+import { applyPageSeo, suspendBaseSiteSchema } from "../lib/pageSeo";
 import { trackEvent } from "../lib/tracking";
 
 const POSTS = [
   {
     slug: "how-to-create-ubl-invoice-en16931",
     lang: "en",
-    title: "How to Create a UBL Invoice (EN 16931): 2026 Guide",
-    description: "Learn how to create and export a UBL XML invoice that follows EN 16931, what information it needs, and how UBL differs from Peppol.",
+    title: "How to Create a UBL Invoice (EN 16931): Step-by-Step Guide",
+    seoTitle: "How to Create a UBL Invoice (EN 16931) | FaturaPro",
+    description: "Create a UBL XML invoice step by step, check the required EN 16931 data, avoid validation errors, and learn when Peppol delivery is required.",
     date: "2026-08-15",
-    readTime: "10 min",
-    keywords: "UBL invoice, EN 16931, e-invoicing, UBL factuur maken, electronic invoice XML, Peppol, e-facturatie 2026, UBL export",
+    dateModified: "2026-09-07",
+    readTime: "11 min",
+    keywords: "UBL invoice, create UBL invoice, EN 16931, UBL XML, electronic invoice XML, Peppol, e-invoicing, UBL export",
+    alternates: {
+      en: "https://faturapro.app/blog/how-to-create-ubl-invoice-en16931",
+      nl: "https://faturapro.app/ubl-factuur-maken",
+      "x-default": "https://faturapro.app/blog/how-to-create-ubl-invoice-en16931",
+    },
+    quickAnswer: "A UBL invoice is a structured XML file that accounting software can read. To create one, complete the seller, buyer, invoice, line, VAT and payment data; export it in the UBL profile your customer accepts; validate the XML; then deliver it through the channel your customer requested. A PDF is useful for people, but it is not a substitute for the structured file.",
+    checklist: [
+      "Confirm which UBL or country profile the customer accepts",
+      "Add complete seller and buyer legal details",
+      "Use a unique invoice number, issue date and due date",
+      "Enter currency, line quantities, unit prices and VAT per rate",
+      "Export the XML and validate it before sending",
+      "Ask whether email, a portal or Peppol delivery is required",
+    ],
     sections: [
-      { h: "What a UBL Invoice Actually Is", p: "A UBL invoice is your invoice as structured data instead of a picture. UBL stands for Universal Business Language, and the file is XML: every element carries a label, so the receiving system reads seller, buyer, line items, VAT rate and total without a human retyping anything. A PDF looks like an invoice to a person; a UBL file is an invoice to a computer. That is the whole difference, and it is why large clients and public bodies increasingly ask for one." },
-      { h: "Why Everyone Suddenly Asks for E-Invoices", p: "Europe is moving from paper-shaped invoices to structured ones. Public bodies in the Netherlands already require electronic invoices from their suppliers, Belgium introduced a business-to-business requirement, and the EU's wider VAT in the Digital Age plans point toward structured e-invoicing for cross-border trade later this decade. Exact dates differ per country and keep moving, so treat any single date you read with caution and check your own tax authority. The direction, though, is not in doubt: sooner or later a client will ask you for a UBL file." },
-      { h: "UBL Is a Format. Peppol Is a Network.", p: "This is the confusion that trips up most freelancers. UBL is the file format, the language your invoice is written in. Peppol is a delivery network that carries such files from your system straight into your client's system, using registered participants and access points. You can absolutely create and send a UBL file without touching Peppol: you attach it to an email or upload it in your client's portal. You need Peppol only when a client insists on receiving it over that network, which in practice mostly means public bodies and large enterprises." },
-      { h: "EN 16931: The Standard Behind the File", p: "EN 16931 is the European standard that defines the semantic model of an electronic invoice: which fields must exist and what they mean. UBL is one of the syntaxes that can express that model. When someone asks for an EN 16931 compliant UBL invoice, they mean an XML file that carries the required data in the expected places. The point of the standard is that a supplier in Rotterdam and a buyer in Milan can exchange invoices without agreeing on a private format first." },
-      { h: "What Your UBL File Must Contain", p: "At minimum: your legal name and address, your VAT identifier, the buyer's name and address, a unique invoice number, the issue date, a due date or payment terms, a currency code, one or more invoice lines with quantity, unit price and description, the VAT breakdown per rate, the total excluding VAT, the VAT amount and the total payable. Country codes must be two-letter ISO codes, dates must be in YYYY-MM-DD, and amounts must use a dot as the decimal separator regardless of how your locale displays them. Small deviations here are the usual cause of rejected files." },
-      { h: "Credit Notes Are Not Just Negative Invoices", p: "If you correct an invoice, the electronic version is a separate document type with its own structure, not the same file with a minus sign. In UBL a credit note uses its own document element and its own quantity element, which is a detail that quietly breaks validation for many tools. If you issue corrections at all, check that your software produces a real credit note document rather than an invoice with negative totals." },
-      { h: "Three Ways to Produce a UBL File", p: "First, full accounting packages export UBL, but you are paying for a bookkeeping system you may not need. Second, invoicing tools with an export button give you the file directly from the invoice you already made. Third, writing the XML by hand: technically possible, practically a bad idea, because a single misplaced element makes the file unreadable to the receiver and you will not find out until they complain." },
-      { h: "How to Export a UBL Invoice in Fatura Pro", p: "Create the invoice as you normally would, with your client details, line items and VAT rate. Open the invoice and choose the UBL export option, and the file downloads as XML. Send it to your client the way they asked for it, usually as an email attachment or an upload in their portal, and keep sending the PDF alongside it so a human can read it too. UBL export sits in the Pro plan at nine euros a month, deliberately: e-invoicing is exactly what independent professionals in the Netherlands are being asked for, and pricing it into an expensive tier would defeat the purpose." },
-      { h: "Validate Before You Send", p: "Do not assume a file is correct because it downloaded. Free online validators check an XML file against EN 16931 rules and tell you which element is missing or malformed. Run your first invoice and your first credit note through one, fix anything it flags, and after that you can trust the export. It takes five minutes once and saves an awkward exchange with a client's finance department." },
-      { h: "Common Mistakes That Get Files Rejected", p: "A missing or wrongly formatted VAT identifier. A country written as free text instead of a two-letter code. Decimal commas instead of dots. A due date that is earlier than the issue date. VAT totals that do not add up to the line amounts, usually from rounding each line separately instead of per VAT rate. And credit notes built as invoices with negative quantities, which validators reject outright." },
-      { h: "Do You Also Need Peppol?", p: "Only if a client requires delivery over that network. Joining means going through an access point provider, which charges per document or per month, and it makes sense once you actually have clients demanding it, not before. For most freelancers and small agencies today, producing a valid UBL file and sending it directly is enough, and it is the part that is fully in your control." },
-      { h: "Frequently Asked Questions", p: "Is a PDF an e-invoice? No. A PDF, even one sent by email, is a digital image of an invoice, not structured data. Can I still send a PDF? Yes, and you should send both. Does UBL replace my invoice numbering? No, the same numbering rules apply. Is UBL only for the Netherlands? No, it is a European standard used across many countries, and the same file works for a Belgian or Italian client. Do I need special software? You need something that exports the format correctly; you do not need a full accounting package." },
-      { h: "Start Exporting UBL Invoices Today", p: "You can create your account free, no credit card required, make an invoice in about two minutes and see the whole flow for yourself. UBL export and payment reminders are part of the Pro plan at nine euros a month, and every paid plan starts with a seven-day free trial. Credit notes are free on every plan, including the free one, because correcting a mistake should never sit behind a paywall." },
+      { h: "What a UBL Invoice Is", p: "UBL stands for Universal Business Language. A UBL invoice is an XML document whose fields identify the supplier, customer, line items, tax treatment and totals in a predictable structure. That lets the customer's accounting system import the data instead of asking someone to retype a PDF. A PDF can still accompany the invoice for human review, but it is a digital document rather than structured invoice data." },
+      { h: "Step 1: Confirm the Required Profile and Delivery Method", p: "Before exporting anything, ask the customer which profile and delivery route they accept. EN 16931 defines the common semantic model, while national or industry profiles can add rules. The customer may accept an XML attachment, require an upload to a supplier portal, or require delivery through Peppol. Those are different requirements, and a valid XML file is not automatically a Peppol submission." },
+      { h: "Step 2: Complete the Seller and Buyer Details", p: "Enter the legal names and addresses of both parties, the supplier tax or VAT identifier where applicable, and the customer's identifier when the transaction requires it. Use the country codes and identifiers requested by the receiving system. Missing party information is one of the easiest ways for an otherwise correct invoice to be rejected." },
+      { h: "Step 3: Add the Invoice Header and Payment Terms", p: "Use a unique sequential invoice number, an issue date, the currency and a clear due date or payment terms. If the customer gave you a purchase-order or buyer reference, include it in the field they specified. The invoice number and dates should match the human-readable PDF you send with the XML." },
+      { h: "Step 4: Enter Lines, VAT and Totals Carefully", p: "Each line needs a useful description, quantity, unit price and tax category. Totals must reconcile: line net amounts, allowances or charges, VAT by rate, total excluding VAT, total VAT and amount due. Do not use a displayed currency symbol where the XML expects a three-letter currency code, and do not change the tax treatment simply to make a validator pass." },
+      { h: "Step 5: Export the UBL XML", p: "Use invoicing or accounting software that can export the requested UBL profile. In Fatūra Pro, create the invoice, open its preview and choose UBL/XML export. Fatūra Pro generates the downloadable structured file; it does not transmit that file through the Peppol network. Send or upload it using the route your customer requested." },
+      { h: "Step 6: Validate Before Delivery", p: "Validation checks whether the XML follows the required syntax and business rules. Use a validator that matches the customer's stated EN 16931, national or Peppol profile. Treat the first invoice for a new receiving system as a test: correct every error, keep the accepted file, and confirm that the customer's system imported it successfully." },
+      { h: "UBL and Peppol Are Not the Same Thing", p: "UBL is an XML syntax used to represent structured invoice data. Peppol is a network and set of interoperability specifications used to exchange documents between registered participants. A tool can export UBL without being connected to Peppol. If the customer requires Peppol, you also need an approved access point or another service that provides delivery." },
+      { h: "What About Credit Notes?", p: "A structured credit note is its own document type and should refer to the original invoice. It is not simply an invoice whose grand total was changed to a negative number. Check that your export uses the credit-note structure required by the receiving profile, and validate it separately from a normal invoice." },
+      { h: "Common UBL Validation Errors", p: "Typical problems include missing VAT identifiers, an unsupported country or tax code, dates in the wrong format, totals that do not reconcile, a missing buyer reference, or a profile mismatch. A file can be well-formed XML and still fail the business rules of the customer's receiving system, which is why profile-specific validation matters." },
+      { h: "Create the Invoice Once, Then Export It", p: "Fatūra Pro lets you create the readable invoice first and export its data as UBL/XML from the same record. You can also download the PDF for the person reviewing it. Start with a free account to build the invoice; UBL/XML export is available on the Pro plan. Always confirm and validate the format your customer expects." },
+    ],
+    faqs: [
+      { q: "Is a PDF invoice the same as a UBL invoice?", a: "No. A PDF is designed for a person to read. UBL is structured XML designed for software to import and process. A customer may ask you to provide both." },
+      { q: "Does Fatūra Pro send invoices through Peppol?", a: "No. Fatūra Pro exports a downloadable UBL/XML file. It does not provide Peppol network delivery, so use an access-point service if the customer specifically requires Peppol." },
+      { q: "How do I know which UBL profile to use?", a: "Ask the receiving customer or portal for its accepted profile and validation rules. EN 16931 is the common European semantic standard, but country and network profiles can add constraints." },
+      { q: "Should I validate every UBL invoice?", a: "Validate at least the first invoice and credit note for each receiving system, and validate again when customer requirements or your export software changes." },
+    ],
+    sources: [
+      { label: "European Commission: EN 16931 eInvoicing services", href: "https://ec.europa.eu/digital-building-blocks/sites/spaces/DIGITAL/pages/467108660/Services" },
+      { label: "European Commission: UBL 2.1 as a supported syntax", href: "https://ec.europa.eu/digital-building-blocks/sites/spaces/DIGITAL/pages/467108934/Required+syntaxes" },
+    ],
+    relatedLinks: [
+      { label: "UBL factuur maken (Nederlands)", href: "/ubl-factuur-maken" },
+      { label: "Create a free invoice", href: "/invoice-generator" },
+      { label: "Late-payment reminder templates", href: "/late-payment-scripts" },
+      { label: "Invoicing for freelancers", href: "/for-freelancers" },
     ],
   },
   {
@@ -82,13 +112,13 @@ const POSTS = [
     keywords: "invoicing software plans, free invoicing software, invoicing software for freelancers, how to use invoicing software, invoicing plan comparison, best invoicing software small business 2026, invoicing software for agencies",
     sections: [
       { h: "Do You Actually Need Paid Invoicing Software?", p: "Most people start invoicing with a Word template, move to a free tool when the templates get messy, and only pay once something specific starts costing them money — usually late payments, repeated data entry, or tax season. That is the honest way to think about invoicing plans: not as tiers to climb, but as problems to solve. This guide walks through three plan levels, who each one genuinely suits, and exactly how to use every feature step by step, so you can pick the smallest plan that solves your actual problem." },
-      { h: "The Three Plans at a Glance", p: "Fatūra Pro has three levels. Free covers up to 20 invoices and 5 clients, with no card required and no time limit. Pro at 9 euros a month removes those limits and adds automatic payment reminders by email and WhatsApp. Business at 19 euros a month adds everything a small team or agency needs: quotes, recurring invoices, expenses with VAT reports, team access for five people with no per-user fees, online card payments for clients, multiple business profiles, analytics, accountant export, API access, and removal of all Fatūra branding from your invoices. Both paid plans include a 7-day free trial." },
+      { h: "The Three Plans at a Glance", p: "Fatūra Pro has three levels. Free covers up to 20 invoices and 5 clients, with no card required and no time limit. Pro at 9 euros a month removes those limits and adds editable payment reminders for email and WhatsApp. Business at 19 euros a month adds everything a small team or agency needs: quotes, recurring invoices, expenses with VAT summaries, team access for five people with no per-user fees, online card payments for clients, multiple business profiles, analytics, accountant export, API access, and removal of Fatūra branding from invoices. Both paid plans include a 7-day free trial." },
       { h: "The Free Plan: Who It Is For", p: "The free plan fits three situations well. First, you are just starting out and invoice a handful of clients a month. Second, you run a side business alongside a job and your invoicing volume is genuinely low. Third, you are evaluating tools and want to send real invoices to real clients before paying anything. With 20 invoices and 5 clients, this is not a crippled demo: a freelancer with two or three regular clients can run for months on it without paying." },
       { h: "Step by Step: Sending Your First Invoice", p: "One, create your account at faturapro.app with your email or Google account. Two, open Settings and then Invoice Defaults, and fill in your business name, logo, bank or payment details and default payment terms. Everything you save here fills in automatically on every future invoice, so this five-minute setup pays for itself immediately. Three, click New Invoice, enter your client details, and add your services as line items with quantity and price. Four, pick the currency and adjust the tax rate if needed. Five, save, then open the preview and export a PDF or copy the link to send to your client. Your first invoice takes about two minutes; the next ones take seconds because your clients are saved." },
-      { h: "What You Get on Free (And What You Do Not)", p: "The free plan includes the full invoice editor, your logo and branding on the document, PDF export, all 17 currencies, client management, and the dashboard showing revenue, pending and overdue totals. What it does not include: automatic payment reminders, unlimited volume, and the Business features listed later. Free invoices also carry a small Fatūra Invoicing credit in the footer, which is removed on the Business plan. Nothing expires and no card is ever requested." },
+      { h: "What You Get on Free (And What You Do Not)", p: "The free plan includes the full invoice editor, your logo and branding on the document, PDF export, all 17 currencies, client management, and the dashboard showing revenue, pending and overdue totals. What it does not include: payment-reminder templates, unlimited volume, and the Business features listed later. Free invoices also carry a small Fatūra Invoicing credit in the footer, which is removed on the Business plan. Nothing expires and no card is ever requested." },
       { h: "Four Signs You Have Outgrown Free", p: "One, you are deleting old invoices to make room for new ones. Two, you are chasing late payments manually and it is costing you real hours and awkward conversations. Three, you are copying the same invoice every month for the same client. Four, someone else in your business needs to issue invoices while you are busy. The first two point to Pro; the last two point to Business. If none of these apply yet, stay free with a clear conscience." },
-      { h: "The Pro Plan: Who It Is For", p: "Pro at 9 euros a month suits the established solo professional: consultants, designers, developers, photographers, tradespeople and small service businesses that invoice regularly and want to get paid without chasing. The core value is not the higher limits, it is the reminders. If even one invoice a month gets paid two weeks earlier because of an automatic nudge, the plan has paid for itself several times over." },
-      { h: "Step by Step: Automatic Payment Reminders", p: "One, open your invoices list and find an unpaid or overdue invoice. Two, click the reminder icon next to it. Three, choose your channel: email or WhatsApp. Four, choose the language and the tone, from polite to firm to final notice, depending on how late the payment is. Five, review the message, which is written for you with the invoice number, amount and due date already filled in, then send. WhatsApp reminders matter more than people expect: emails often sit unread for days, while a polite WhatsApp message usually gets a same-day reply." },
+      { h: "The Pro Plan: Who It Is For", p: "Pro at 9 euros a month suits the established solo professional: consultants, designers, developers, photographers, tradespeople and small service businesses that invoice regularly. The core value is not only the higher limits; it is having the payment status and reminder text in the same workflow instead of rewriting every follow-up." },
+      { h: "Step by Step: Payment Reminders", p: "One, open your invoices list and find an unpaid or overdue invoice. Two, click the reminder icon next to it. Three, choose email or WhatsApp. Four, choose the language and the tone, from polite to firm to final notice. Five, review the message, which includes the invoice number, amount and due date, then open it in your chosen app and send it yourself." },
       { h: "Step by Step: Branding, Currencies and Defaults", p: "To put your identity on every invoice, open Settings and then Invoice Defaults and upload your logo, add your business name and address, your bank or payment information, your invoice number prefix, your default tax rate and your standard payment terms. To invoice an international client, simply choose their currency from the dropdown when creating the invoice; amounts and symbols adapt automatically while your dashboard keeps the overall picture. These details are what make an invoice look like a business rather than a favour." },
       { h: "The Business Plan: Who It Is For", p: "Business at 19 euros a month is built for small agencies, studios and teams, and for anyone running more than one venture. The test is simple: if more than one person touches your invoicing, if you send quotes before work starts, if you bill retainer clients on a schedule, or if you file VAT returns, you are the Business customer. It also matters for pricing reasons: most competitors charge roughly 10 to 15 dollars per additional user, so a five-person team elsewhere can cost 50 dollars or more per month for the same work. Here five seats are included in the flat price." },
       { h: "Step by Step: Quotes, Recurring Invoices and VAT Reports", p: "For quotes, open Quotes from the sidebar, click New Quote, add your client and line items, and save. When the client approves, open the quote and click Convert to Invoice: every item and amount carries across with no re-typing. For recurring billing, open any existing invoice, click the recurring icon, and choose weekly, every two weeks, monthly or yearly. The system then creates the invoice automatically on schedule, and you can pause or resume any schedule from Settings and then Recurring invoices. For tax, open Expenses and click Add expense, entering the amount, the VAT rate and a description. The report at the top of the page calculates your quarterly position automatically: VAT collected on your invoices minus VAT paid on expenses equals what you owe." },
@@ -101,23 +131,46 @@ const POSTS = [
   {
     slug: "best-invoicing-software-small-agencies",
     lang: "en",
-    title: "Best Invoicing Software for Small Agencies (2026): One Tool, Your Whole Team",
-    description: "Invoicing software for small agencies: team access, quotes that convert, recurring billing, VAT reports, and online payments without per-user fees.",
+    title: "Best Invoicing Software for Small Agencies: What to Compare",
+    seoTitle: "Best Invoicing Software for Small Agencies | FaturaPro",
+    description: "Compare invoicing software for small agencies by team access, quotes, recurring billing, payment follow-up, VAT reporting and total team cost.",
     date: "2026-07-24",
-    readTime: "8 min",
-    keywords: "invoicing software for agencies, agency invoicing tool, team invoicing software, invoicing no per-user fees, quotes to invoice software, recurring invoicing agency",
+    dateModified: "2026-09-07",
+    readTime: "9 min",
+    keywords: "best invoicing software for small agencies, agency invoicing software, team invoicing software, quotes to invoice, recurring invoices for agencies, invoice software team pricing",
+    quickAnswer: "The best invoicing software for a small agency should keep quotes, invoices, recurring retainers, expenses and payment status in one shared workflow. Compare the price for your full team—not just the advertised entry price—and verify what members can access before migrating client data.",
+    checklist: [
+      "Shared access with clear owner-only settings",
+      "Quotes that convert to invoices without retyping",
+      "Recurring invoices for retainers",
+      "Deposits, partial payments and outstanding balances",
+      "Payment reminders your team can review before sending",
+      "Expense and VAT reporting that matches your workflow",
+      "A predictable total cost at your actual team size",
+    ],
     sections: [
-      { h: "Why Agencies Outgrow Freelancer Invoicing Tools", p: "Running a small agency changes everything about invoicing. Suddenly it is not just you: a colleague needs to issue an invoice while you are in a meeting, a client asks for a formal quote before approving, retainer clients need billing every month without fail, and your accountant wants clean quarterly numbers. Most invoicing tools were built for solo freelancers — and it shows the moment you add a second person. This guide covers what actually matters when choosing invoicing software for a small agency in 2026, and where the popular tools quietly get expensive." },
-      { h: "The Per-User Fee Trap", p: "Here is the pricing trick most agencies discover too late: the advertised price is for ONE user. QuickBooks, FreshBooks and similar tools charge roughly 10 to 15 dollars per additional team member, every month. A five-person agency can end up paying 50 to 80 dollars monthly before using a single advanced feature. When comparing tools, always calculate the price at YOUR team size, not the headline price. Fatūra Pro takes the opposite approach: the Business plan includes up to 5 team members in one flat 19 euros per month — the price does not grow with your team." },
-      { h: "Team Access Done Right", p: "Shared invoicing is about more than logins. Your team should see the same clients, invoices, quotes and expenses — while sensitive areas like billing, integrations and company settings stay owner-only. Accountability matters too: every invoice should show who created it, so a five-person workspace never becomes a mystery. This is exactly how team access works in Fatūra Pro: members work on shared data, owners keep control, and every action is tracked by name." },
-      { h: "Quotes That Convert to Invoices", p: "Agencies live on proposals. The workflow you want: send a professional quote, get approval, and convert it to an invoice in one click — same line items, same amounts, no re-typing, no copy-paste errors. If a tool makes you rebuild the invoice manually after every approved quote, it is costing you an hour per deal and introducing mistakes at the worst possible moment: right before you ask for money." },
-      { h: "Recurring Invoices for Retainer Clients", p: "Retainers are the backbone of agency cash flow, and they should bill themselves. Set the schedule once — weekly, biweekly, monthly or yearly — and the invoice is created automatically on time, every time. Beyond the saved hours, there is a psychological shift: clients start treating your invoice like a utility bill that simply gets paid. Fatūra Pro generates recurring invoices automatically and lets you pause or resume any schedule in one click." },
-      { h: "Getting Paid: Online Payments Built In", p: "The fewer steps between invoice and payment, the faster the money arrives. Look for software where every invoice carries a secure payment link — the client clicks, pays by card, and the invoice marks itself as paid automatically. Fatūra Pro does this through Stripe, with the money going directly to your own account. Combine it with automatic payment reminders (email and WhatsApp — where clients actually respond) and chasing payments stops being part of your job description." },
-      { h: "VAT and Tax Reports Without Spreadsheets", p: "Every quarter, someone at the agency loses a day to tax preparation — unless the invoicing tool does it automatically. The right software tracks the VAT you collected on invoices, the VAT you paid on expenses, and calculates exactly what you owe, ready to file. Fatūra Pro includes expense tracking and quarterly VAT/BTW reports in the Business plan, which is especially valuable for agencies operating in Europe." },
-      { h: "Multi-Business and White-Label", p: "Many agency owners run more than one brand — the agency itself, a side product, a partner venture. Managing them from one account with separate business profiles keeps invoicing clean without juggling logins. And white-label matters more than people admit: your invoices should carry only YOUR name and logo, with no software branding attached. Both are included in Fatūra Pro Business." },
-      { h: "Automation and API for Growing Agencies", p: "If your agency runs an online store or internal systems, an API lets invoices create themselves — a new order in your store becomes an invoice in your books, automatically, through your developer or no-code tools like Make and Zapier. It is the kind of feature you may not need on day one, but you will be glad it exists the month your volume doubles." },
-      { h: "What It Should Cost in 2026", p: "Putting it together, a fair benchmark for a complete agency invoicing stack — team access for five, quotes, recurring billing, VAT reports, online payments, analytics, API — is around 19 to 25 euros per month, flat. If a tool quotes you a low price per user, multiply by your team and compare again. If it quotes you 50 or more for the same features, you are paying for a brand name, not functionality." },
-      { h: "Try the Complete Stack Free for 7 Days", p: "Fatūra Pro Business brings all of the above into one tool: 5 team seats with no per-user fees, quotes that convert to invoices, automatic recurring billing, expenses with VAT/BTW reports, online payments via Stripe, multi-business profiles, analytics, accountant export, API access, white-label invoices and priority support — for 19 euros a month, in English, Arabic and Dutch, with 17 currencies. Create your free account in under a minute and start a 7-day free trial of the Business plan — no commitment, cancel anytime." },
+      { h: "Why Small Agencies Outgrow Solo Invoicing Tools", p: "Agency billing has more hand-offs than freelance billing. One person prepares a quote, another delivers the work, an owner approves the invoice, and someone later follows up on payment. Retainers add recurring schedules, while the accountant needs consistent client, VAT and expense records. A tool that works for one person can become a bottleneck when every change has to pass through the account owner." },
+      { h: "Calculate the Price for the Whole Team", p: "Start with the number of people who actually need access, then calculate the monthly and annual cost at that team size. Some products include several members; others charge per seat or restrict collaboration to higher tiers. Also check whether a bookkeeper or temporary contractor consumes a paid seat. The useful comparison is the final cost for your workflow, not the smallest number on a pricing page." },
+      { h: "Check Roles and Shared Access", p: "Team access should let members work with the same clients, invoices, quotes and expenses without exposing subscription or company-level controls unnecessarily. Test who can edit, delete and view records, and whether the owner retains control of billing and integrations. In Fatūra Pro Business, invited members share operational records while owner-level areas remain restricted." },
+      { h: "Turn Approved Quotes into Invoices", p: "A quote-to-invoice workflow removes retyping at the exact point where accuracy matters most. The accepted client, scope, quantities and prices should carry into the invoice, while you still review tax, dates and payment terms before sending. Fatūra Pro Business includes quotes that can be converted into invoices from the same workspace." },
+      { h: "Handle Retainers with Recurring Invoices", p: "For a fixed weekly, biweekly, monthly or yearly retainer, recurring invoices reduce missed billing dates. Check whether the software creates a draft or a final invoice, how you pause a schedule, and what happens when a fee changes. Fatūra Pro can generate recurring invoices on a schedule and lets the owner pause or resume the recurrence." },
+      { h: "Track Deposits and Partial Payments", p: "Project work often starts with a deposit and ends with a remaining balance. The invoice should show what has been received and what is still due, so reminders do not ask for the original total after a partial payment. Fatūra Pro records deposits and partial payments and uses the outstanding balance in its reminder text." },
+      { h: "Make Payment Follow-Up Consistent", p: "Good follow-up is a repeatable process, not an aggressive email. Look for clear overdue status and editable reminder templates with the invoice number, amount and due date already filled in. Fatūra Pro prepares polite, firm and final messages and opens them in email or WhatsApp for your review and sending; it does not silently send a scheduled chase on your behalf." },
+      { h: "Review Expenses and VAT Without Overpromising", p: "Expense and VAT summaries can reduce spreadsheet work, but they do not replace an accountant or the tax authority's filing process. Check whether different currencies stay separate and whether the export contains the fields your accountant expects. Fatūra Pro Business tracks expenses, shows VAT summaries and provides a CSV accountant export." },
+      { h: "Confirm Payment, Export and Integration Needs", p: "If card payment matters, check which processor is supported and where the money settles. If a customer requests e-invoicing, distinguish UBL/XML export from Peppol delivery. Fatūra Pro can connect an agency's own Stripe account for invoice payment links and can export UBL/XML, but it does not deliver invoices through Peppol." },
+      { h: "Run a Real Workflow Test Before Migrating", p: "Create one client, turn one quote into an invoice, record a deposit, schedule a retainer, invite one teammate and export the records your accountant needs. This exposes permission or reporting gaps much faster than a feature checklist. Fatūra Pro offers a free starting plan, and the Business workflow can be evaluated during its trial before you move active billing." },
+    ],
+    faqs: [
+      { q: "What invoicing features does a small agency need first?", a: "Most small agencies should prioritise shared client and invoice access, quote-to-invoice conversion, recurring retainers, deposits, payment status and a predictable team price before advanced integrations." },
+      { q: "Should agency invoicing software charge per user?", a: "Either model can work. Compare the total at your real team size, including temporary or finance users, and check whether roles and features change at higher tiers." },
+      { q: "Can Fatūra Pro send automatic payment reminders?", a: "Fatūra Pro prepares editable reminder text and opens it in email or WhatsApp for a user to review and send. It does not schedule unattended payment-reminder delivery." },
+      { q: "Does Fatūra Pro provide Peppol delivery?", a: "No. Fatūra Pro exports UBL/XML files but does not send them through the Peppol network." },
+    ],
+    relatedLinks: [
+      { label: "Invoicing workflows for agencies", href: "/for-agencies" },
+      { label: "Compare Free, Pro and Business", href: "/blog/invoicing-plans-free-vs-pro-vs-business" },
+      { label: "Late-payment reminder templates", href: "/late-payment-scripts" },
+      { label: "UBL/XML invoice guide", href: "/blog/how-to-create-ubl-invoice-en16931" },
     ],
   },
 {
@@ -132,7 +185,7 @@ const POSTS = [
       { h: "Why Arabic Support in Invoicing Software Is So Hard to Find", p: "If you've searched for invoicing software that handles Arabic, you already know the frustration. Most international tools are built for the Western market. They either don't support Arabic at all, or they support it cosmetically: the text appears, but the layout breaks, numbers misalign, and the invoice looks unprofessional. For the 420+ million Arabic speakers running businesses worldwide, this is a real gap." },
       { h: "What Real Arabic Support Actually Means", p: "True Arabic support isn't just translated menu labels. It means full right-to-left layout, correct Arabic script rendering on the invoice itself, the ability to enter client names, company names, and notes in Arabic, and a document that prints cleanly without floating text or broken characters. When you evaluate a tool, create a test invoice in Arabic and export it. If it looks polished, that's real support." },
       { h: "Bilingual Is Even Better", p: "Many Arabic-speaking business owners work with international clients too. That's why bilingual Arabic-English invoicing matters: you send Arabic invoices to local clients and English ones to international clients, from the same account, without switching tools. This flexibility is rare, and it's exactly what freelancers serving mixed markets need." },
-      { h: "What Else to Look For", p: "Beyond language, the essentials for any modern invoicing app: multiple currencies for international clients, automatic payment reminders so you're not chasing manually, PDF export, a clean dashboard, and fair pricing. Bonus features that save real time include WhatsApp reminders, common in Arabic-speaking markets but rare in Western tools." },
+      { h: "What Else to Look For", p: "Beyond language, useful invoicing features include multiple currencies for international clients, clear overdue status, editable payment-reminder templates, PDF export, a clean dashboard and fair pricing. WhatsApp-ready reminder text can be especially useful in markets where client communication already happens there." },
       { h: "Where Fatura Pro Fits", p: "Fatura Pro was built from the ground up with Arabic in mind, not as an afterthought. You get full Arabic and English support, 17 currencies, WhatsApp and email payment reminders, PDF export, and your own branding, all in a fast, modern interface. It's designed for freelancers and businesses who were underserved by the big international tools." },
       { h: "Try It Free for 7 Days", p: "You can start using Fatura Pro free and create your first invoices right away, no card needed. If it fits your workflow, the Pro plan is just 9 euros a month with unlimited invoices, reminders, and full customization. And for agencies and teams, the Business plan is live too — quotes, recurring invoices, VAT reports, team access, and more, with 7 days free. Start free at faturapro.app" },
     ],
@@ -140,19 +193,48 @@ const POSTS = [
   {
     slug: "zzp-invoice-app-english-netherlands",
     lang: "en",
-    title: "English Invoice Software for ZZP'ers in the Netherlands (2026)",
-    description: "English invoicing software for ZZP'ers in the Netherlands. Create invoices, quotes and credit notes, track expenses, and export UBL in one place.",
+    title: "English Invoicing Software for ZZP'ers in the Netherlands",
+    seoTitle: "English Invoicing Software for ZZP'ers | FaturaPro",
+    description: "A practical English guide to Dutch ZZP invoicing: required invoice fields, BTW rates, international clients, UBL/XML and software features to compare.",
     date: "2026-07-20",
-    readTime: "7 min",
-    keywords: "ZZP invoice, invoicing Netherlands English, BTW report freelancer, Dutch VAT invoice, ZZP freelancer invoicing",
+    dateModified: "2026-09-07",
+    readTime: "9 min",
+    keywords: "English invoicing software ZZP, ZZP invoice Netherlands, Dutch invoice requirements English, BTW invoice freelancer, invoice app Netherlands English, UBL invoice ZZP",
+    quickAnswer: "A Dutch ZZP invoice normally needs both parties' legal names and addresses, your VAT ID and KVK number when applicable, a unique sequential number, issue and supply dates, a clear description and quantity, amounts excluding VAT, the VAT rate and the VAT amount. Extra rules can apply to cross-border work, exemptions and simplified invoices.",
+    checklist: [
+      "Your legal name, business address, VAT ID and KVK number when applicable",
+      "The customer's legal name and full address",
+      "A unique sequential invoice number and issue date",
+      "The supply date and a clear description and quantity",
+      "Unit price and totals excluding VAT, VAT rate and VAT amount",
+      "Payment terms and the details the customer needs to pay",
+    ],
     sections: [
-      { h: "Invoicing as a ZZP'er Doesn't Have to Be Confusing", p: "With over 1.78 million ZZP'ers registered in the Netherlands, freelancing is huge here, but Dutch invoicing rules can overwhelm newcomers, especially expats. Your invoices need specific fields, the right VAT (BTW) rate, and you must file quarterly VAT returns. The good news: with the right tool and this guide, it becomes simple." },
-      { h: "What a Dutch ZZP Invoice Must Include", p: "Every compliant ZZP invoice needs: your business name and address, your KvK number, your BTW identification number, the client's details, a sequential invoice number, the invoice and delivery dates, a clear description of services with quantities and rates, a VAT breakdown, and the total amount due. Missing any of these can cause problems with the Belastingdienst." },
-      { h: "Understanding BTW (Dutch VAT) Rates", p: "The Netherlands uses three VAT rates: 21% standard, 9% reduced for certain goods and services, and 0% exempt or reverse-charge for EU B2B. Applying the right rate matters, and at the end of each quarter you need to report how much VAT you collected versus paid. Doing this by spreadsheet is error-prone and slow." },
-      { h: "The Quarterly VAT/BTW Report", p: "Four times a year, you file a VAT return with the Belastingdienst showing the VAT you charged clients minus the VAT you paid on business expenses. The difference is what you owe or reclaim. Software that generates this report automatically, collected minus paid, ready to file, saves ZZP'ers hours of stress every quarter." },
-      { h: "Getting Paid Faster", p: "Dutch clients expect professional invoices, and late payments hurt cash flow. Automatic payment reminders, clear due dates, and online payment options all help you get paid sooner. Multi-currency support also matters if you invoice international clients in USD or GBP while keeping your books in EUR." },
-      { h: "How Fatura Pro Helps ZZP'ers", p: "Fatura Pro gives you a clean English interface, plus Arabic and Dutch, fields for your business details, VAT/BTW handling with all three Dutch rates, and automatic reminders, so you send compliant invoices and get paid faster. Quarterly VAT reports and expense tracking are part of the Business plan, built exactly for this." },
-      { h: "Start Free Today", p: "Try Fatura Pro free, no card required, and send your first ZZP-ready invoice in minutes. The Pro plan is 9 euros a month for unlimited invoices, reminders, and branding. And the Business plan — automatic VAT/BTW reports, recurring invoices, and team access — is live with a 7-day free trial. Start free at faturapro.app" },
+      { h: "What ZZP Means for Your Invoicing", p: "ZZP is commonly used for an independent professional working without employees, but it is not a separate legal form or a single tax status. Your invoice obligations depend on the transaction, your VAT position and whether the customer is in the Netherlands, elsewhere in the EU or outside the EU. English-language software can make the workflow easier for expats, but it does not decide the tax treatment for you." },
+      { h: "What a Standard Dutch Business Invoice Must Include", p: "For a standard invoice, include the supplier's and customer's full legal names and addresses, the supplier's VAT identification number, the KVK number when registered, a unique sequential invoice number, the invoice date, the supply or service date, a clear description and quantity, the price excluding VAT, the VAT rate and the VAT amount. Simplified invoices and specific sectors can follow adjusted rules." },
+      { h: "BTW Rates: 21%, 9% and 0% Are Different Treatments", p: "The Netherlands has a standard 21% VAT rate plus 9% and 0% rates for qualifying supplies. Exemption, the small-business scheme (KOR) and reverse charge are not interchangeable labels for 0% VAT. Choose the treatment that applies to the actual supply, and include required wording or customer VAT details when the rules call for it." },
+      { h: "Invoices for Clients in Other Countries", p: "Cross-border invoices can require additional information. For many services supplied to a VAT-registered business in another EU country, VAT is reverse-charged and both VAT IDs plus reverse-charge wording are required, but exceptions exist. Ask an accountant or check the Belastingdienst guidance for the specific customer, service and country instead of applying a generic international template." },
+      { h: "English Invoice, PDF or UBL/XML?", p: "An invoice can be written in English as long as it contains the required information and remains understandable for the parties and administration. A PDF is a digital invoice for human reading. UBL/XML is structured data that a customer's accounting system can import. Peppol is a delivery network, not another name for the XML file. Fatūra Pro exports UBL/XML but does not provide Peppol delivery." },
+      { h: "What to Look for in English ZZP Invoice Software", p: "Prioritise an English interface, reusable business and client details, sequential numbering, adjustable VAT, clear due dates, credit notes, multiple currencies and exports your customers actually accept. If you work internationally, check that currency totals stay separate. If you submit VAT returns, confirm what the expense and VAT report includes before relying on it." },
+      { h: "How Fatūra Pro Supports the Workflow", p: "Fatūra Pro provides an English interface, client records, invoice and credit-note creation, PDF output, 17 invoice currencies, deposits and partial payments. It marks overdue invoices and prepares editable reminder text that opens in email or WhatsApp for you to review and send. The Business plan adds expenses and VAT summaries; those summaries support bookkeeping but do not file a return with the Belastingdienst." },
+      { h: "Create a Test Invoice Before You Commit", p: "Start by entering your real business details and creating one invoice for a typical customer. Check the legal names, addresses, dates, invoice sequence, VAT treatment and payment details, then export the format the customer requested. Fatūra Pro has a free plan with no card required, so you can test the core invoice flow before deciding whether paid features fit your work." },
+    ],
+    faqs: [
+      { q: "Can a Dutch ZZP invoice be written in English?", a: "Yes, businesses commonly invoice international customers in English. The invoice still needs the information required for the transaction, and the records must remain clear to the parties and tax administration." },
+      { q: "Does every ZZP'er charge 21% BTW?", a: "No. The applicable rate or treatment depends on the goods or services, the customer, location and the entrepreneur's VAT position. The Netherlands also uses 9% and 0% rates, exemptions, KOR and reverse-charge rules in qualifying cases." },
+      { q: "Does Fatūra Pro file my Dutch VAT return?", a: "No. The Business plan provides expense and VAT summaries to support bookkeeping, but it does not submit a VAT return to the Belastingdienst." },
+      { q: "Does Fatūra Pro send UBL invoices through Peppol?", a: "No. It exports a UBL/XML file that you download and deliver through the method your customer requires. Peppol delivery needs a separate access-point service." },
+    ],
+    sources: [
+      { label: "Business.gov.nl: invoice requirements in the Netherlands", href: "https://business.gov.nl/regulations/invoice-requirements/" },
+      { label: "Belastingdienst: official invoice requirements", href: "https://www.belastingdienst.nl/wps/wcm/connect/bldcontenten/belastingdienst/business/vat/vat_in_the_netherlands/vat_administration/invoice_requirements" },
+      { label: "Business.gov.nl: VAT rates and schemes", href: "https://business.gov.nl/regulations/vat/" },
+    ],
+    relatedLinks: [
+      { label: "Create a free invoice", href: "/invoice-generator" },
+      { label: "UBL factuur maken (Nederlands)", href: "/ubl-factuur-maken" },
+      { label: "UBL/XML guide in English", href: "/blog/how-to-create-ubl-invoice-en16931" },
+      { label: "Payment reminder templates", href: "/late-payment-scripts" },
     ],
   },
   {
@@ -170,7 +252,7 @@ const POSTS = [
       { h: "Step 2: Add Your Client Details", p: "Include the client's full name or company name, email, and address. Keeping a client database means you never re-type this information. Professional invoicing tools store your clients securely so creating repeat invoices takes seconds." },
       { h: "Step 3: Itemize Your Services", p: "Break down your work into clear line items. Instead of 'Design work — €500', write 'Logo design (3 concepts + revisions) — €300' and 'Brand color palette — €200'. Clients pay faster when they understand exactly what they're paying for." },
       { h: "Step 4: Set Clear Payment Terms", p: "Specify the due date clearly. 'Net 14' or 'Net 30' are standard, but shorter terms often work for freelancers. Include your bank details or payment link. Adding a small late-fee clause can motivate on-time payments." },
-      { h: "Step 5: Send and Track", p: "Send your invoice as a PDF via email. Then track its status: paid, pending, or overdue. Modern invoicing apps show you at a glance which invoices need follow-up, and can send automatic payment reminders so you never chase clients manually." },
+      { h: "Step 5: Send and Track", p: "Send your invoice as a PDF via email. Then track its status: paid, pending or overdue. A useful invoicing app shows which invoices need follow-up and prepares accurate reminder text without pretending that a message was sent before you review it." },
       { h: "Common Invoicing Mistakes to Avoid", p: "Missing invoice numbers (required for taxes in most countries), unclear descriptions, no due date, wrong currency for international clients, and forgetting to follow up on overdue payments. An invoicing app prevents all of these automatically." },
     ],
   },
@@ -218,8 +300,61 @@ function CTABox({ ar, source, placement }) {
   );
 }
 
+function RelatedLinks({ links }) {
+  if (!links?.length) return null;
+  return (
+    <nav aria-label="Related invoicing guides" style={{ margin:"42px 0", padding:"24px", background:"#111118", border:"1px solid rgba(201,168,76,0.18)", borderRadius:14 }}>
+      <h2 style={{ fontFamily:"Playfair Display, Georgia, serif", fontSize:22, color:"#e8e4dc", margin:"0 0 14px" }}>Useful next steps</h2>
+      <div style={{ display:"grid", gridTemplateColumns:"repeat(auto-fit,minmax(210px,1fr))", gap:10 }}>
+        {links.map((link) => (
+          <a key={link.href} href={link.href} style={{ color:"#e8c97a", fontSize:14, lineHeight:1.5, textDecoration:"none", borderBottom:"1px solid rgba(201,168,76,0.25)", padding:"7px 0" }}>{link.label} →</a>
+        ))}
+      </div>
+    </nav>
+  );
+}
+
+function Sources({ sources }) {
+  if (!sources?.length) return null;
+  return (
+    <section style={{ margin:"42px 0" }} aria-labelledby="official-sources-heading">
+      <h2 id="official-sources-heading" style={{ fontFamily:"Playfair Display, Georgia, serif", fontSize:22, color:"#c9a84c", margin:"0 0 12px" }}>Official sources</h2>
+      <p style={{ fontSize:13.5, color:"#9a9690", lineHeight:1.7, margin:"0 0 10px" }}>Use the official guidance for the rules or technical profile that applies to your transaction.</p>
+      <ul style={{ margin:0, paddingLeft:20, color:"#9a9690" }}>
+        {sources.map((source) => <li key={source.href} style={{ margin:"7px 0" }}><a href={source.href} target="_blank" rel="noreferrer" style={{ color:"#e8c97a" }}>{source.label}</a></li>)}
+      </ul>
+    </section>
+  );
+}
+
 export function BlogIndex() {
-  useEffect(() => { document.title = "Blog — Invoicing Tips & Guides | Fatūra Pro"; }, []);
+  useEffect(() => {
+    const canonical = "https://faturapro.app/blog";
+    const cleanupSeo = applyPageSeo({
+      title: "Invoicing Guides for Freelancers & Small Teams | FaturaPro",
+      description: "Practical guides to professional invoices, payment follow-up, UBL/XML, Dutch ZZP invoicing and billing workflows for freelancers and small teams.",
+      canonical,
+      language: "en",
+      locale: "en_US",
+      alternates: { en:canonical, "x-default":canonical },
+    });
+    const restoreSiteSchema = suspendBaseSiteSchema();
+    const schema = document.createElement("script");
+    schema.id = "blog-index-schema";
+    schema.type = "application/ld+json";
+    schema.textContent = JSON.stringify({
+      "@context":"https://schema.org",
+      "@type":"CollectionPage",
+      "@id":canonical + "#collection",
+      url:canonical,
+      name:"FaturaPro invoicing guides",
+      description:"Guides to invoicing, payment follow-up, UBL/XML and small-business billing workflows.",
+      isPartOf:{ "@id":"https://faturapro.app/#website" },
+      mainEntity:{ "@type":"ItemList", itemListElement:POSTS.map((post, index) => ({ "@type":"ListItem", position:index + 1, url:"https://faturapro.app/blog/" + post.slug, name:post.title })) },
+    });
+    document.head.appendChild(schema);
+    return () => { schema.remove(); restoreSiteSchema(); cleanupSeo(); };
+  }, []);
   return (
     <div style={{ minHeight:"100vh", background:"#08080e", color:"#e8e4dc", fontFamily:"DM Sans, sans-serif" }}>
       <div style={{ maxWidth:760, margin:"0 auto", padding:"60px 24px" }}>
@@ -246,25 +381,32 @@ export function BlogPost() {
       const purl = "https://faturapro.app/blog/" + post.slug;
       const language = post.lang === "ar" ? "ar" : "en";
       const cleanupSeo = applyPageSeo({
-        title: post.title,
+        title: post.seoTitle || post.title,
         description: post.description,
         canonical: purl,
         language,
         locale: post.lang === "ar" ? "ar_SA" : "en_US",
         type: "article",
         imageAlt: post.title,
-        alternates: { [language]: purl, "x-default": purl },
+        alternates: post.alternates || { [language]: purl, "x-default": purl },
       });
+      const restoreSiteSchema = suspendBaseSiteSchema();
       const oldSchema = document.getElementById("post-schema");
       if (oldSchema) oldSchema.remove();
       const sc = document.createElement("script");
       sc.type = "application/ld+json";
       sc.id = "post-schema";
-      sc.textContent = JSON.stringify({ "@context": "https://schema.org", "@graph": [{ "@type": "BlogPosting", headline: post.title, description: post.description, datePublished: post.date, dateModified: "2026-09-01", inLanguage: language, keywords: post.keywords, mainEntityOfPage: purl, author: { "@type": "Organization", name: "Fatura Pro", url: "https://faturapro.app" }, publisher: { "@type": "Organization", name: "Fatura Pro", url: "https://faturapro.app" } }, { "@type":"BreadcrumbList", itemListElement:[{ "@type":"ListItem", position:1, name:"Home", item:"https://faturapro.app/" }, { "@type":"ListItem", position:2, name:"Blog", item:"https://faturapro.app/blog" }, { "@type":"ListItem", position:3, name:post.title, item:purl }] }] });
+      const graph = [
+        { "@type": "BlogPosting", "@id":purl + "#article", headline: post.title, description: post.description, datePublished: post.date, dateModified: post.dateModified || post.date, inLanguage: language, keywords: post.keywords, mainEntityOfPage:{ "@id":purl }, image:"https://faturapro.app/hero-dashboard.png", isPartOf:{ "@id":"https://faturapro.app/#website" }, author: { "@type": "Organization", name: "FaturaPro", url: "https://faturapro.app/" }, publisher: { "@type": "Organization", name: "FaturaPro", url: "https://faturapro.app/", logo:{ "@type":"ImageObject", url:"https://faturapro.app/fatura-mark.svg" } } },
+        { "@type":"BreadcrumbList", itemListElement:[{ "@type":"ListItem", position:1, name:"Home", item:"https://faturapro.app/" }, { "@type":"ListItem", position:2, name:"Blog", item:"https://faturapro.app/blog" }, { "@type":"ListItem", position:3, name:post.title, item:purl }] },
+      ];
+      if (post.faqs?.length) graph.push({ "@type":"FAQPage", mainEntity:post.faqs.map((faq) => ({ "@type":"Question", name:faq.q, acceptedAnswer:{ "@type":"Answer", text:faq.a } })) });
+      sc.textContent = JSON.stringify({ "@context": "https://schema.org", "@graph":graph });
       document.head.appendChild(sc);
       trackEvent("seo_page_viewed", { page:post.slug, language });
       return () => {
         sc.remove();
+        restoreSiteSchema();
         cleanupSeo();
       };
     }
@@ -275,10 +417,24 @@ export function BlogPost() {
     <div style={{ minHeight:"100vh", background:"#08080e", color:"#e8e4dc", fontFamily:"DM Sans, sans-serif" }}>
       <div style={{ maxWidth:760, margin:"0 auto", padding:"60px 24px", direction: ar ? "rtl" : "ltr" }}>
         <a href="/blog" style={{ color:"#c9a84c", fontSize:13, textDecoration:"none", display:"inline-block", marginBottom:32 }}>{ar ? "→ المدونة" : "← Blog"}</a>
-        <div style={{ fontSize:12, color:"#c9a84c", marginBottom:12, letterSpacing:1 }}>{post.date} · {post.readTime}</div>
+        <div style={{ fontSize:12, color:"#c9a84c", marginBottom:12, letterSpacing:1 }}>Published {post.date}{post.dateModified ? ` · Updated ${post.dateModified}` : ""} · {post.readTime}</div>
         <h1 style={{ fontFamily:"Playfair Display, Georgia, serif", fontSize:34, lineHeight:1.35, marginBottom:16 }}>{post.title}</h1>
         <p style={{ fontSize:16, color:"#9a9690", lineHeight:1.8, marginBottom:12 }}>{post.description}</p>
         <ShareButtons title={post.title} />
+        {post.quickAnswer && (
+          <aside style={{ background:"linear-gradient(135deg,rgba(201,168,76,0.13),rgba(201,168,76,0.03))", border:"1px solid rgba(201,168,76,0.3)", borderRadius:14, padding:"22px 24px", margin:"28px 0 34px" }}>
+            <div style={{ fontSize:13, color:"#e8c97a", fontWeight:700, letterSpacing:.4, textTransform:"uppercase", marginBottom:8 }}>Quick answer</div>
+            <p style={{ margin:0, fontSize:15, lineHeight:1.85, color:"rgba(232,228,220,0.9)" }}>{post.quickAnswer}</p>
+          </aside>
+        )}
+        {post.checklist?.length > 0 && (
+          <section style={{ background:"#111118", border:"1px solid rgba(255,255,255,0.08)", borderRadius:14, padding:"22px 24px", margin:"0 0 38px" }}>
+            <h2 style={{ fontFamily:"Playfair Display, Georgia, serif", fontSize:22, color:"#e8e4dc", margin:"0 0 12px" }}>At a glance</h2>
+            <ul style={{ margin:0, paddingLeft:20, color:"rgba(232,228,220,0.82)", fontSize:14.5, lineHeight:1.8 }}>
+              {post.checklist.map((item) => <li key={item} style={{ margin:"5px 0" }}>{item}</li>)}
+            </ul>
+          </section>
+        )}
         {post.sections.map((s, i) => (
           <div key={i}>
             <h2 style={{ fontFamily:"Playfair Display, Georgia, serif", fontSize:23, color:"#c9a84c", margin:"36px 0 14px" }}>{s.h}</h2>
@@ -286,6 +442,19 @@ export function BlogPost() {
             {i === 3 && <CTABox ar={ar} source={post.slug} placement="mid_article" />}
           </div>
         ))}
+        {post.faqs?.length > 0 && (
+          <section style={{ margin:"50px 0" }}>
+            <h2 style={{ fontFamily:"Playfair Display, Georgia, serif", fontSize:26, color:"#c9a84c", margin:"0 0 18px" }}>Frequently asked questions</h2>
+            {post.faqs.map((faq) => (
+              <div key={faq.q} style={{ padding:"18px 0", borderBottom:"1px solid rgba(255,255,255,0.08)" }}>
+                <h3 style={{ margin:"0 0 7px", fontSize:16, color:"#e8e4dc" }}>{faq.q}</h3>
+                <p style={{ margin:0, fontSize:14.5, lineHeight:1.8, color:"#9a9690" }}>{faq.a}</p>
+              </div>
+            ))}
+          </section>
+        )}
+        <Sources sources={post.sources} />
+        <RelatedLinks links={post.relatedLinks} />
         <CTABox ar={ar} source={post.slug} placement="article_end" />
         <ShareButtons title={post.title} />
       </div>

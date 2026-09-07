@@ -105,3 +105,17 @@ export function applyPageSeo({
 
   return () => cleanups.reverse().forEach((cleanup) => cleanup());
 }
+
+export function suspendBaseSiteSchema() {
+  const siteSchema = document.getElementById("site-schema");
+  if (!siteSchema) return () => {};
+
+  const parent = siteSchema.parentNode;
+  const nextSibling = siteSchema.nextSibling;
+  siteSchema.remove();
+
+  return () => {
+    if (!parent || document.getElementById("site-schema")) return;
+    parent.insertBefore(siteSchema, nextSibling);
+  };
+}

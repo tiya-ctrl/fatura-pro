@@ -146,7 +146,7 @@ export default function InvoiceGenerator() {
             {/* CTA */}
             <div className="gen-noprint" style={{ background:"rgba(201,168,76,0.07)", border:"1px solid rgba(201,168,76,0.25)", borderRadius:14, padding:"22px 24px", marginTop:20, textAlign:"center" }}>
               <div style={{ fontSize:15, fontWeight:700, color:"#e8e4dc", marginBottom:6 }}>Invoicing more than once?</div>
-              <div style={{ fontSize:13, color:"#9a9690", marginBottom:14 }}>Create a free account to add your logo, save clients for repeat billing, track who has paid, and send payment reminders automatically.</div>
+              <div style={{ fontSize:13, color:"#9a9690", marginBottom:14 }}>Create a free account to add your logo, save clients for repeat billing, track who has paid, and prepare payment reminders.</div>
               <a href="/login" style={{ display:"inline-block", padding:"12px 30px", borderRadius:10, background:"linear-gradient(135deg,#f0d878,#c9a84c)", color:"#0a0a0f", fontWeight:700, fontSize:15, textDecoration:"none" }}>Continue Free →</a>
               <div style={{ fontSize:11, color:"#5a5750", marginTop:10 }}>No credit card · 7-day Pro trial included</div>
             </div>
@@ -156,7 +156,7 @@ export default function InvoiceGenerator() {
         {/* SEO text */}
         <div style={{ maxWidth:760, margin:"60px auto 0" }}>
           <h2 style={{ fontFamily:"Playfair Display, Georgia, serif", fontSize:24, color:"#c9a84c", marginBottom:12 }}>How to use this free invoice generator</h2>
-          <p style={{ fontSize:14.5, lineHeight:1.9, color:"rgba(232,228,220,0.75)", marginBottom:20 }}>Enter your business name, your client's details, and your services with quantities and prices. The invoice preview updates instantly. Choose from EUR, USD, GBP, AED, MAD, SAR and more. Add tax or VAT if needed — the totals calculate automatically. When it looks right, press Download PDF and save it straight to your device: no signup, no account, no email address. To add your logo, save clients for repeat billing, track paid and overdue invoices and send payment reminders automatically, create a free Fatūra Pro account. No credit card required.</p>
+          <p style={{ fontSize:14.5, lineHeight:1.9, color:"rgba(232,228,220,0.75)", marginBottom:20 }}>Enter your business name, your client's details, and your services with quantities and prices. The invoice preview updates instantly. Choose from EUR, USD, GBP, AED, MAD, SAR and more. Add tax or VAT if needed — the totals calculate automatically. When it looks right, press Download PDF and save it straight to your device: no signup, no account, no email address. To add your logo, save clients for repeat billing, track paid and overdue invoices and prepare payment reminders, create a free Fatūra Pro account. No credit card required.</p>
           <h2 style={{ fontFamily:"Playfair Display, Georgia, serif", fontSize:24, color:"#c9a84c", marginBottom:12 }}>Why professionals choose Fatūra Pro</h2>
           <p style={{ fontSize:14.5, lineHeight:1.9, color:"rgba(232,228,220,0.75)" }}>Fatūra Pro is an online invoicing app for freelancers, consultants and small businesses worldwide. Create unlimited professional invoices, track payment status (paid, pending, overdue), and send payment reminders via Email and WhatsApp in English, Arabic, French and Dutch. Your business profile and clients are saved once and auto-filled on every invoice.</p>
         </div>
