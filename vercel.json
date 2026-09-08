@@ -1,4 +1,14 @@
 {
+  "redirects": [
+    { "source": "/index.html", "destination": "/", "permanent": true },
+    { "source": "/for-freelancers.html", "destination": "/for-freelancers", "permanent": true },
+    { "source": "/for-agencies.html", "destination": "/for-agencies", "permanent": true },
+    { "source": "/nl.html", "destination": "/nl", "permanent": true },
+    { "source": "/es.html", "destination": "/es", "permanent": true },
+    { "source": "/fr.html", "destination": "/fr", "permanent": true },
+    { "source": "/ubl-factuur-maken.html", "destination": "/ubl-factuur-maken", "permanent": true },
+    { "source": "/relance-facture-impayee-anglais.html", "destination": "/fr/relance-facture-impayee-anglais", "permanent": true }
+  ],
   "rewrites": [
     { "source": "/for-freelancers", "destination": "/for-freelancers.html" },
     { "source": "/for-agencies", "destination": "/for-agencies.html" },
@@ -7,7 +17,30 @@
     { "source": "/fr", "destination": "/fr.html" },
     { "source": "/ubl-factuur-maken", "destination": "/ubl-factuur-maken.html" },
     { "source": "/fr/relance-facture-impayee-anglais", "destination": "/relance-facture-impayee-anglais.html" },
-    { "source": "/(.*)", "destination": "/index.html" }
+    { "source": "/login", "destination": "/index.html" },
+    { "source": "/register", "destination": "/index.html" },
+    { "source": "/reset-password", "destination": "/index.html" },
+    { "source": "/privacy", "destination": "/index.html" },
+    { "source": "/terms", "destination": "/index.html" },
+    { "source": "/ambassador-terms", "destination": "/index.html" },
+    { "source": "/blog", "destination": "/index.html" },
+    { "source": "/api-docs", "destination": "/index.html" },
+    { "source": "/late-payment-scripts", "destination": "/index.html" },
+    { "source": "/ambassadors", "destination": "/index.html" },
+    { "source": "/ambassador", "destination": "/index.html" },
+    { "source": "/invoice-generator", "destination": "/index.html" },
+    { "source": "/admin", "destination": "/index.html" },
+    { "source": "/app", "destination": "/index.html" },
+    { "source": "/blog/how-to-create-ubl-invoice-en16931", "destination": "/index.html" },
+    { "source": "/blog/fatura-pro-plan-guide-how-to-use", "destination": "/index.html" },
+    { "source": "/blog/fatura-business-plan-guide-how-to-use", "destination": "/index.html" },
+    { "source": "/blog/invoicing-plans-free-vs-pro-vs-business", "destination": "/index.html" },
+    { "source": "/blog/best-invoicing-software-small-agencies", "destination": "/index.html" },
+    { "source": "/blog/best-invoicing-app-arabic-support", "destination": "/index.html" },
+    { "source": "/blog/zzp-invoice-app-english-netherlands", "destination": "/index.html" },
+    { "source": "/blog/how-to-create-professional-invoice", "destination": "/index.html" },
+    { "source": "/blog/how-to-create-professional-invoice-arabic", "destination": "/index.html" },
+    { "source": "/pay/:invoiceId", "destination": "/index.html" }
   ],
   "headers": [
     { "source": "/app", "headers": [{ "key": "X-Robots-Tag", "value": "noindex, nofollow" }] },
