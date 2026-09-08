@@ -1742,7 +1742,7 @@ function UpgradeModal({ feature, onClose, onActivate }) {
         </button>
 
         <div style={{ textAlign: "center", fontSize: 11, color: "var(--text3)" }}>
-          No commitment · Cancel anytime · 14-day money back guarantee
+          No commitment · Cancel anytime · Secure checkout by Stripe
         </div>
 
         <button onClick={onClose} style={{ display: "block", margin: "14px auto 0", background: "none", border: "none", color: "var(--text2)", cursor: "pointer", fontSize: 13 }}>

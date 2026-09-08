@@ -16,7 +16,7 @@ export default function RecurringList({ recurring, setRecurring, userId, f }) {
       <div className="card-title" style={{ marginBottom: 12 }}>Recurring invoices</div>
       {recurring.length === 0 && (
         <div style={{ color:"#999", fontSize:13 }}>
-          No recurring invoices. Open any invoice in the Invoices page and click 🔄 to repeat it automatically.
+          No recurring invoices. Open an invoice and click 🔄 to schedule new pending invoices for review and sending.
         </div>
       )}
       {recurring.map((r) => (

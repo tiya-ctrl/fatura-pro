@@ -1,4 +1,5 @@
 import { useEffect } from "react";
+import { applyPageSeo, suspendBaseSiteSchema } from "../lib/pageSeo";
 
 const GOLD = "#c9a84c";
 const BG = "#08080e";
@@ -40,12 +41,26 @@ function Row({ name, type, req, desc }) {
 
 export default function ApiDocs() {
   useEffect(() => {
-    document.title = "Invoicing API Documentation — Create Invoices Programmatically | Fatūra Pro";
-    const meta = document.querySelector('meta[name="description"]');
-    if (meta) meta.setAttribute("content", "REST API documentation for Fatūra Pro: authenticate with an API key, list invoices and create invoices programmatically from your store, CRM or internal system. Examples in curl and JavaScript.");
-    let canon = document.querySelector("link[rel=canonical]");
-    if (!canon) { canon = document.createElement("link"); canon.setAttribute("rel", "canonical"); document.head.appendChild(canon); }
-    canon.setAttribute("href", "https://faturapro.app/api-docs");
+    const canonical = "https://faturapro.app/api-docs";
+    const title = "Invoicing API Documentation | FaturaPro";
+    const description = "Use the FaturaPro REST API to list invoices or create a pending invoice from a server, store, CRM or internal tool. Business plan required.";
+    const cleanupSeo = applyPageSeo({ title, description, canonical, language:"en", locale:"en_US", imageAlt:"FaturaPro invoicing API documentation", alternates:{ en:canonical, "x-default":canonical } });
+    const restoreSiteSchema = suspendBaseSiteSchema();
+    const schema = document.createElement("script");
+    schema.id = "api-docs-schema";
+    schema.type = "application/ld+json";
+    schema.textContent = JSON.stringify({
+      "@context":"https://schema.org",
+      "@type":"TechArticle",
+      headline:"FaturaPro invoicing API documentation",
+      description,
+      inLanguage:"en",
+      mainEntityOfPage:canonical,
+      author:{ "@type":"Organization", name:"FaturaPro", url:"https://faturapro.app/" },
+      publisher:{ "@type":"Organization", name:"FaturaPro", url:"https://faturapro.app/" },
+    });
+    document.head.appendChild(schema);
+    return () => { schema.remove(); restoreSiteSchema(); cleanupSeo(); };
   }, []);
 
   return (
@@ -61,7 +76,7 @@ export default function ApiDocs() {
         <div style={{ background: CARD, border: "1px solid " + GOLD + "33", borderLeft: "3px solid " + GOLD, borderRadius: 10, padding: "16px 18px", marginBottom: 40 }}>
           <div style={{ fontSize: 14, color: TEXT, marginBottom: 6, fontWeight: 600 }}>Available on the Business plan</div>
           <div style={{ fontSize: 13.5, color: MUTED, lineHeight: 1.7 }}>
-            API access is included in Fatūra Pro Business (€19/month, 7-day free trial). Generate your key in the app under Settings → API access.
+            API access requires Fatūra Pro Business (€19/month). Generate your key in the app under Settings → API access.
           </div>
         </div>
 
@@ -216,7 +231,7 @@ console.log(data.invoice.id);`}</Code>
         <div style={{ background: CARD, border: "1px solid " + GOLD + "33", borderRadius: 12, padding: "26px 24px", textAlign: "center", marginTop: 50 }}>
           <div style={{ fontFamily: "Playfair Display, serif", fontSize: 22, marginBottom: 8 }}>Get your API key</div>
           <div style={{ color: MUTED, fontSize: 14, lineHeight: 1.7, marginBottom: 18 }}>
-            API access is part of the Business plan — along with quotes, recurring invoices, VAT reports and team access. Start with a 7-day free trial.
+            API access is part of the Business plan, along with quotes, scheduled recurring invoice creation, VAT summaries and team access.
           </div>
           <a href="/app" style={{ display: "inline-block", background: GOLD, color: "#000", padding: "12px 26px", borderRadius: 8, textDecoration: "none", fontWeight: 600, fontSize: 14 }}>Start free →</a>
         </div>

@@ -2,6 +2,7 @@ import { useState, useRef, useEffect } from "react";
 import { BUSINESS_ENABLED } from "../lib/businessPlan";
 import { trackEvent } from "../lib/tracking";
 import { storeReferralCode } from "../lib/referrals";
+import { applyPageSeo } from "../lib/pageSeo";
 
 /* ─── FONTS & GLOBAL ─────────────────────────────────────────── */
 const FONTS = ``;
@@ -388,10 +389,10 @@ footer {
 const FEATURES = [
   { icon:"globe", title:"Multi-currency invoicing that stays honest", desc:"Invoice international clients in 17 currencies. EUR, USD, GBP, AED and every other balance stays separate—no misleading conversion hiding what you were actually paid.", pro:false },
   { icon:"users", title:"Enter client details once", desc:"Save clients and business details, then reuse them on every invoice and quote. Less retyping, fewer mistakes, faster billing.", pro:false },
-  { icon:"send", title:"Quotes become invoices", desc:"Turn an accepted quote into an invoice, automate recurring billing, and keep retainers moving without rebuilding the same document.", pro:true },
-  { icon:"bell", title:"Know what is paid—and what is late", desc:"Track pending, partial, paid and overdue invoices. Record deposits and send clear reminders by email or WhatsApp when money is still outstanding.", pro:true },
+  { icon:"send", title:"Quotes become invoices", desc:"Turn an accepted quote into an invoice and schedule new pending invoices for recurring work, without rebuilding the same document.", pro:true },
+  { icon:"bell", title:"Know what is paid—and what is late", desc:"Track pending, partial, paid and overdue invoices. Record deposits, prepare a clear reminder, review it, then open it in email or WhatsApp to send.", pro:true },
   { icon:"chart", title:"Expenses and revenue in one workspace", desc:"See revenue by currency, log expenses, review VAT/BTW summaries and export clean data for your accountant.", pro:true },
-  { icon:"invoice", title:"PDF when people read it. UBL XML when systems do.", desc:"Send branded PDF invoices, export EN 16931 UBL XML when a client requests structured e-invoicing, and issue correctly referenced credit notes. UBL export is not Peppol delivery.", pro:true },
+  { icon:"invoice", title:"PDF when people read it. UBL XML when systems do.", desc:"Create branded PDF invoices, export UBL XML for EN 16931 workflows, and issue credit notes that reference the original invoice. Validate the profile your customer requires; UBL export is not Peppol delivery.", pro:true },
 ];
 
 const PLANS = [
@@ -406,7 +407,7 @@ const PLANS = [
       { text:"Custom logo & branding", ok:true },
       { text:"Credit notes (creditnota)", ok:true },
       { text:"Payment reminders (Email + WhatsApp)", ok:false },
-      { text:"UBL e-invoicing (EN 16931)", ok:false },
+      { text:"UBL/XML export for EN 16931 workflows", ok:false },
       { text:"Deposits & partial payments", ok:false },
       { text:"Unlimited invoices & clients", ok:false },
       { text:"Client card payments (Stripe)", ok:false },
@@ -421,7 +422,7 @@ const PLANS = [
       { text:"Unlimited clients", ok:true },
       { text:"All currencies", ok:true },
       { text:"Dashboard & analytics", ok:true },
-      { text:"UBL e-invoicing (EN 16931)", ok:true },
+      { text:"UBL/XML export for EN 16931 workflows", ok:true },
       { text:"Deposits & partial payments", ok:true },
       { text:"Credit notes (creditnota)", ok:true },
       { text:"Payment reminders (Email + WhatsApp)", ok:true },
@@ -437,7 +438,7 @@ const PLANS = [
       { text:"Everything in Pro", ok:true },
       { text:"Quotes that convert to invoices", ok:true },
       { text:"Expenses & VAT/BTW report per quarter", ok:true },
-      { text:"Recurring invoices (automatic)", ok:true },
+      { text:"Scheduled recurring invoice creation", ok:true },
       { text:"Remove Fatūra branding", ok:true },
       { text:"Team members (up to 5)", ok:true },
       { text:"Multi-business profiles", ok:true },
@@ -454,34 +455,36 @@ const PLANS = [
 
 const FAQS = [
   { q:"Does Fatūra Pro have a referral program?", a:"Yes. Open Settings and choose Earn Pro to copy your personal referral link. A friend who joins through it receives 7 extra Pro days after creating their first valid invoice. Every three activated friends earn you 30 Pro days; paid subscribers can bank those days for later." },
-  { q:"Can I create a UBL invoice with Fatura Pro?", a:"Yes. Every invoice can be exported as a UBL XML file that follows the European EN 16931 standard, the same format used for e-facturatie in the Netherlands and across the EU. Your client imports the file into their accounting software instead of typing your invoice over by hand. Credit notes are exported too, as document type 381 with a reference to the original invoice." },
-  { q:"Does Fatura Pro send invoices through Peppol?", a:"No. Fatura Pro exports a UBL XML file that follows EN 16931, but it is not connected to the Peppol delivery network. You download the UBL file and send it to your client yourself." },
+  { q:"Can I create a UBL invoice with Fatura Pro?", a:"Yes. Invoices and credit notes can be exported as downloadable UBL/XML files intended for EN 16931 workflows. Receiving systems can apply extra country, network or customer rules, so confirm the required profile and validate the file before delivery." },
+  { q:"Does Fatura Pro send invoices through Peppol?", a:"No. Fatura Pro exports a downloadable UBL/XML file, but it is not connected to the Peppol delivery network. You deliver the file using the method your customer requests." },
   { q:"How do I make a credit note (creditnota)?", a:"Open the invoice and press Credit. Fatura Pro creates a separate document with its own number, a negative amount and a reference to the original invoice, so your records keep a clear correction trail. Credit notes are included on every plan, including Free." },
   { q:"Can I ask for a deposit and invoice the rest later?", a:"Yes. Record what you received - 50% up front, for example - and the invoice shows as partially paid with the balance still owed. Your dashboard counts the received part as revenue and the rest as outstanding, and reminders chase the balance rather than the full amount." },
   { q:"Can I invoice in different currencies?", a:"Yes, in 17 currencies. Amounts are never converted between them: each currency keeps its own total, so you always see exactly what you were paid in the currency you were paid in. No exchange rates are applied anywhere." },
   { q:"Do I need a business registration to use Fatūra?", a:"No. Anyone can use Fatūra — freelancers, solopreneurs, and small businesses alike. You don't need a registered company or VAT number to get started." },
-  { q:"Can I send invoices in Arabic?", a:"You can enter all your content in Arabic including client names, company names, and notes. Your invoices print correctly in Arabic." },
+  { q:"Can I use Arabic on an invoice?", a:"Yes. Invoice fields can contain Arabic client names, company names, line items and notes, and the printable document supports right-to-left text. App navigation is currently available in English, Spanish and French." },
   { q:"How does the payment reminder work?", a:"Fatūra detects when an invoice passes its due date. You choose a Polite, Firm, or Final tone, review the prepared message, then open it in Email or WhatsApp to send." },
   { q:"Can clients pay an invoice online?", a:"Business accounts can connect Stripe so clients can pay by card from the invoice payment page. Available payment methods depend on the connected Stripe account and region." },
-  { q:"Is my data secure?", a:"All data is encrypted in transit (TLS) and at rest. We never sell or share your data with third parties. You can export or delete your data at any time." },
+  { q:"How is my data handled?", a:"Connections are encrypted in transit, and account and invoice data handled by Supabase is stored in its EU region in Ireland. We do not sell personal data. Our Privacy Policy explains the providers we use and how to request access, export or deletion." },
   { q:"Can I upgrade or cancel anytime?", a:"Yes, absolutely. No lock-in contracts. Upgrade, downgrade, or cancel at any time directly from your account settings." },
 ];
 
 const SYSTEM_PROMPT = `You are the Fatura Pro support assistant at faturapro.app.
 
 WHAT THE PRODUCT DOES
-- Create, send and track invoices, in 17 currencies. Amounts are NEVER converted between currencies: each currency keeps its own total, so a dashboard shows e.g. EUR 5.410 and USD 1.440 side by side. There are no exchange rates anywhere in the app.
+- Create, export and track invoices in 17 currencies. Users can save or print the PDF and deliver it through their preferred channel. Amounts are NEVER converted between currencies: each currency keeps its own total, so a dashboard shows e.g. EUR 5.410 and USD 1.440 side by side. There are no exchange rates anywhere in the app.
 - Credit notes (creditnota): cancel or correct an invoice that has already been issued. The credit note gets its own number, a negative amount and a reference to the original invoice, and it flows into the VAT report automatically. An issued invoice is never edited or deleted. Included on EVERY plan, including Free.
 - Deposits and partial payments: ask for e.g. 50% up front, record each payment received, and the invoice shows as "Partially paid" with the balance still owed. Reminders then chase the balance, not the full amount.
-- UBL e-invoicing: any invoice or credit note can be exported as a UBL XML file meeting the European EN 16931 standard - the format behind e-facturatie in the Netherlands and its equivalents across the EU. The client imports the file into their bookkeeping instead of retyping a PDF. Invoices export as document type 380, credit notes as 381 with a reference to the original. Fatura Pro is NOT connected to the Peppol network - you export the file and send it yourself.
-- Payment reminders by email or WhatsApp, in a polite, firm or final tone, in English, Dutch, French or Arabic.
-- Quotes that convert to an invoice in one click; recurring invoices; expenses with a quarterly VAT/BTW report calculated inside one currency at a time; analytics; team members; multiple business profiles; API access; accountant CSV export.
+- UBL/XML export: invoices and credit notes can be downloaded as structured XML intended for EN 16931 workflows. Invoices use document type 380 and credit notes use 381 with a reference to the original. Receiving systems can require extra profile rules, so users should validate the file. Fatura Pro is NOT connected to Peppol; the user delivers the file themselves.
+- Payment reminders: the app prepares editable text in English, Dutch, French or Arabic. The user reviews it, opens it in email or WhatsApp and sends it themselves. There is no unattended reminder delivery.
+- Quotes convert to an invoice; recurring schedules create new pending invoices for review and sending; expenses provide quarterly VAT/BTW summaries per currency but do not file tax returns; analytics, team members, multiple business profiles, API access and accountant CSV export are also available on Business.
 
 PLANS
 - Free: 20 invoices, 5 clients, all 17 currencies, PDF export and print, your own logo, and credit notes. Free forever, no credit card.
 - Pro, 9 EUR/month: everything in Free plus unlimited invoices and clients, payment reminders (email and WhatsApp), deposits and partial payments, and UBL e-invoice export.
 - Business, 19 EUR/month: everything in Pro plus quotes, recurring invoices, expenses and the VAT/BTW report, advanced analytics, up to 5 team members with no per-user fee, multiple business profiles, online card payments for your clients via Stripe, API access, accountant CSV export, removal of Fatura branding, and priority support.
 - Every new account starts with a 7-day free trial of Pro. No business registration is needed to use the app.
+- Do not describe cancellation as including a cash-back promise or a fixed grace period. For cancellation timing, billing questions or a charge the user believes is incorrect, direct them to support@faturapro.app.
+- App navigation is available in English, Spanish and French. Invoice fields can contain Arabic text. Reminder templates are available in English, Dutch, French and Arabic. Do not claim a full Arabic or Dutch app interface.
 
 HOW TO ANSWER
 - Reply in the same language the user writes in.
@@ -556,7 +559,7 @@ function Hero({ onOpenApp }) {
         <br /><em>Run your business in one place.</em>
       </h1>
       <p className="hero-sub fade-up delay-2">
-        Multi-currency invoicing software for freelancers and small service businesses. Create invoices and quotes, track expenses and payments, automate recurring billing, and manage clients—without complicated accounting software.
+        Multi-currency invoicing software for freelancers and small service businesses. Create invoices and quotes, track expenses and payments, schedule recurring invoice creation, and manage clients—without complicated accounting software.
       </p>
       <div className="hero-actions fade-up delay-3">
         <button className="btn btn-gold btn-xl" onClick={() => openSignup("hero_primary")}>Create your first invoice — free →</button>
@@ -707,7 +710,7 @@ function InstallApp() {
             </ol>
           </div>
         </div>
-        <p style={{ color:"var(--text2)", fontSize:13 }}>Opens full-screen · No ads · Works offline · Free forever</p>
+        <p style={{ color:"var(--text2)", fontSize:13 }}>Opens full-screen · No ads · Internet connection required · Free plan available</p>
       </div>
     </section>
   );
@@ -716,9 +719,9 @@ function InstallApp() {
 function HowItWorks({ onOpenApp }) {
   const steps = [
     { n:"1", icon:"building", title:"Set up your profile", desc:"Add your company name, logo, address, and banking details once. It'll appear on every invoice." },
-    { n:"2", icon:"user", title:"Add your client", desc:"Enter client details or pick from your saved contacts. Phone, email, address — all stored securely." },
+    { n:"2", icon:"user", title:"Add your client", desc:"Enter client details or pick from clients saved in your account. Phone, email, and address stay ready for reuse." },
     { n:"3", icon:"list", title:"Add line items", desc:"List your services or products with quantity and price. Fatūra calculates tax and discounts automatically." },
-    { n:"4", icon:"send", title:"Send & get paid", desc:"Preview the invoice, send it by email, or share the PDF. Then track whether it's been paid." },
+    { n:"4", icon:"send", title:"Export & track", desc:"Preview the invoice, save or print the PDF, then deliver it through your preferred channel and track its payment status." },
   ];
   return (
     <section id="how">
@@ -805,7 +808,7 @@ function Pricing({ onOpenApp }) {
                 </div>
               ))}
               <button className={`btn ${p.ctaStyle} price-cta`} onClick={p.cta === "Join Waitlist" ? () => setShowWaitlist(true) : () => { if (p.cta !== "Start Free") localStorage.setItem("fatura_intent_plan", p.cta === "Get Business" ? "business" : "pro"); trackEvent("pricing_cta_clicked", { plan:p.name.toLowerCase() }); onOpenApp({ signup:true, source:`pricing_${p.name.toLowerCase()}` }); }}>{p.cta}</button>
-              {p.cta === "Get Business" && <div style={{ textAlign:"center", marginTop:10, fontSize:12, color:"var(--gold)" }}>7 days free · Cancel anytime</div>}
+              {p.cta === "Get Business" && <div style={{ textAlign:"center", marginTop:10, fontSize:12, color:"var(--gold)" }}>Secure Stripe checkout · Cancel anytime</div>}
             </div>
           ))}
         </div>
@@ -959,7 +962,7 @@ function Footer({ onOpenApp }) {
           <p>Multi-currency invoicing software for freelancers, consultants and small service businesses working across borders.</p>
           <div style={{ marginTop:16, display:"flex", flexDirection:"column", gap:4 }}>
             <button className="btn btn-gold" style={{ alignSelf:"flex-start", marginTop:8 }} onClick={() => onOpenApp({ signup:true, source:"footer" })}>Start free →</button>
-            <span style={{ fontSize:11, color:"var(--gold)", marginTop:10 }}>GDPR compliant · Data hosted in the EU (Ireland)</span>
+            <span style={{ fontSize:11, color:"var(--gold)", marginTop:10 }}>GDPR rights explained · Account data hosted in the EU (Ireland)</span>
             <span style={{ fontSize:11, color:"var(--text3)", marginTop:8 }}>UBL XML export · Not a Peppol access point</span>
           </div>
         </div>
@@ -1080,16 +1083,33 @@ function Chatbot() {
 
 export default function LandingPage({ onOpenApp, onSignIn }) {
   useEffect(() => {
+    const canonical = "https://faturapro.app/";
+    const cleanupSeo = applyPageSeo({
+      title:"Multi-Currency Invoicing Software for Freelancers | FaturaPro",
+      description:"Multi-currency invoicing software for freelancers and small businesses. Create invoices and quotes, track payments and expenses, and export UBL/XML. Start free.",
+      canonical,
+      language:"en",
+      locale:"en_US",
+      alternates:{
+        en:canonical,
+        nl:"https://faturapro.app/nl",
+        es:"https://faturapro.app/es",
+        fr:"https://faturapro.app/fr",
+        "x-default":canonical,
+      },
+    });
     const params = new URLSearchParams(window.location.search);
     const referralCode = params.get("ref");
     if (storeReferralCode(referralCode)) {
       trackEvent("referral_link_landing_viewed", { campaign:"member_referral" });
     }
-    if (params.get("utm_source") !== "invoice") return;
-    trackEvent("invoice_referral_landing_viewed", {
-      medium:(params.get("utm_medium") || "footer").slice(0, 40),
-      campaign:(params.get("utm_campaign") || "made_with_fatura_pro").slice(0, 64),
-    });
+    if (params.get("utm_source") === "invoice") {
+      trackEvent("invoice_referral_landing_viewed", {
+        medium:(params.get("utm_medium") || "footer").slice(0, 40),
+        campaign:(params.get("utm_campaign") || "made_with_fatura_pro").slice(0, 64),
+      });
+    }
+    return cleanupSeo;
   }, []);
 
   return (

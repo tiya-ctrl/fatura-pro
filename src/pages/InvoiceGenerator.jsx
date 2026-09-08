@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import { trackEvent } from "../lib/tracking";
+import { applyPageSeo, suspendBaseSiteSchema } from "../lib/pageSeo";
 
 const INVOICE_ATTRIBUTION_URL = "https://faturapro.app/?utm_source=invoice&utm_medium=footer&utm_campaign=free_invoice_generator";
 
@@ -10,9 +11,24 @@ const CURRENCIES = [
 
 export default function InvoiceGenerator() {
   useEffect(() => {
-    document.title = "Free Invoice Generator — Create a Professional Invoice Online | Fatūra Pro";
-    const meta = document.querySelector('meta[name="description"]');
-    if (meta) meta.setAttribute("content", "Free online invoice generator. Create a professional invoice in seconds and download it as a PDF — no signup, no account needed. Supports EUR, USD, GBP, AED and more.");
+    const canonical = "https://faturapro.app/invoice-generator";
+    const title = "Free Invoice Generator — No Signup | FaturaPro";
+    const description = "Create a professional invoice online and save it as PDF from your browser. No signup or email required. Supports EUR, USD, GBP, AED, MAD and SAR.";
+    const cleanupSeo = applyPageSeo({ title, description, canonical, language:"en", locale:"en_US", imageAlt:"FaturaPro free invoice generator", alternates:{ en:canonical, "x-default":canonical } });
+    const restoreSiteSchema = suspendBaseSiteSchema();
+    const schema = document.createElement("script");
+    schema.id = "invoice-generator-schema";
+    schema.type = "application/ld+json";
+    schema.textContent = JSON.stringify({
+      "@context":"https://schema.org",
+      "@graph":[
+        { "@type":"SoftwareApplication", name:"FaturaPro Free Invoice Generator", url:canonical, applicationCategory:"BusinessApplication", operatingSystem:"Web browser", description, offers:{ "@type":"Offer", price:"0", priceCurrency:"EUR" } },
+        { "@type":"BreadcrumbList", itemListElement:[{ "@type":"ListItem", position:1, name:"Home", item:"https://faturapro.app/" }, { "@type":"ListItem", position:2, name:"Free invoice generator", item:canonical }] },
+      ],
+    });
+    document.head.appendChild(schema);
+    trackEvent("seo_page_viewed", { page:"invoice_generator", language:"en" });
+    return () => { schema.remove(); restoreSiteSchema(); cleanupSeo(); };
   }, []);
 
   const [form, setForm] = useState({
@@ -37,7 +53,7 @@ export default function InvoiceGenerator() {
       <div style={{ maxWidth:1100, margin:"0 auto", padding:"40px 20px" }}>
         <a href="/" style={{ color:"#c9a84c", fontSize:13, textDecoration:"none", display:"inline-block", marginBottom:24 }}>← Fatūra Pro</a>
         <h1 style={{ fontFamily:"Playfair Display, Georgia, serif", fontSize:34, marginBottom:8 }}>Free Invoice Generator</h1>
-        <p style={{ color:"#9a9690", marginBottom:36, fontSize:15, lineHeight:1.7 }}>Create a professional invoice in seconds and download it as a PDF — free, no signup, no account needed. Fill in the details and watch your invoice come to life.</p>
+        <p style={{ color:"#9a9690", marginBottom:36, fontSize:15, lineHeight:1.7 }}>Create a professional invoice and download it as a PDF — free, no signup, no account needed. Fill in the details and review the invoice as you build it.</p>
 
         <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:28, alignItems:"start" }} className="gen-grid">
           <style>{`
@@ -156,9 +172,9 @@ export default function InvoiceGenerator() {
         {/* SEO text */}
         <div style={{ maxWidth:760, margin:"60px auto 0" }}>
           <h2 style={{ fontFamily:"Playfair Display, Georgia, serif", fontSize:24, color:"#c9a84c", marginBottom:12 }}>How to use this free invoice generator</h2>
-          <p style={{ fontSize:14.5, lineHeight:1.9, color:"rgba(232,228,220,0.75)", marginBottom:20 }}>Enter your business name, your client's details, and your services with quantities and prices. The invoice preview updates instantly. Choose from EUR, USD, GBP, AED, MAD, SAR and more. Add tax or VAT if needed — the totals calculate automatically. When it looks right, press Download PDF and save it straight to your device: no signup, no account, no email address. To add your logo, save clients for repeat billing, track paid and overdue invoices and prepare payment reminders, create a free Fatūra Pro account. No credit card required.</p>
+          <p style={{ fontSize:14.5, lineHeight:1.9, color:"rgba(232,228,220,0.75)", marginBottom:20 }}>Enter your business name, your client's details, and your services with quantities and prices. The invoice preview updates instantly. Choose EUR, USD, GBP, AED, MAD or SAR. Add tax or VAT if needed—the totals calculate automatically. When it looks right, press Download PDF and choose “Save as PDF” in the browser's print window: no signup, account or email address required. To add your logo, save clients, track payment status and prepare payment reminders, create a free Fatūra Pro account.</p>
           <h2 style={{ fontFamily:"Playfair Display, Georgia, serif", fontSize:24, color:"#c9a84c", marginBottom:12 }}>Why professionals choose Fatūra Pro</h2>
-          <p style={{ fontSize:14.5, lineHeight:1.9, color:"rgba(232,228,220,0.75)" }}>Fatūra Pro is an online invoicing app for freelancers, consultants and small businesses worldwide. Create unlimited professional invoices, track payment status (paid, pending, overdue), and send payment reminders via Email and WhatsApp in English, Arabic, French and Dutch. Your business profile and clients are saved once and auto-filled on every invoice.</p>
+          <p style={{ fontSize:14.5, lineHeight:1.9, color:"rgba(232,228,220,0.75)" }}>Fatūra Pro is an online invoicing app for freelancers, consultants and small businesses. Create and manage professional invoices, track payment status and prepare editable reminders in English, Arabic, French or Dutch. You review each reminder before opening it in Email or WhatsApp to send. Your business profile and clients can be saved and reused on later invoices.</p>
         </div>
       </div>
     </div>
