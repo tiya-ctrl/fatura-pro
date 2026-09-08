@@ -82,7 +82,7 @@ Best regards,
 
 This is a final notice regarding invoice [Invoice number] for [Amount], now [Days] days overdue and unpaid despite my reminders of [Dates of previous reminders].
 
-Please pay the full amount within 7 days, by [Final deadline]. If payment has not been received by that date, I will hand the invoice over for collection and claim the statutory late-payment interest and recovery costs I am entitled to.
+Please pay the full amount within 7 days, by [Final deadline]. If payment has not been received by that date, I may consider formal recovery steps and any interest or costs allowed by the rules that apply to this invoice.
 
 I would much rather settle this directly with you. Payment link: [Payment link]
 
@@ -95,7 +95,7 @@ Regards,
       "due-today": { body: `Hi [Client name], invoice [Invoice number] ([Amount]) is due today. You can pay here: [Payment link]. If it is already on its way, please ignore this — thank you!` },
       polite: { body: `Hi [Client name], friendly reminder that invoice [Invoice number] ([Amount]) was due on [Due date] and is still open on my side. Could you let me know when it will be paid? Link: [Payment link]. Thank you!` },
       firm: { body: `Hi [Client name], invoice [Invoice number] ([Amount]) is now [Days] days overdue. Could you arrange payment within 5 business days? If something is wrong with the invoice, tell me today and I will fix it. Link: [Payment link]` },
-      final: { body: `Dear [Client name], final notice: invoice [Invoice number] ([Amount]) is [Days] days overdue. Please pay in full within 7 days. After that I will pass it to collection with statutory interest and recovery costs. Payment link: [Payment link]` },
+      final: { body: `Dear [Client name], final notice: invoice [Invoice number] ([Amount]) is [Days] days overdue. Please pay in full within 7 days. After that I may consider formal recovery steps and any interest or costs allowed by the rules that apply. Payment link: [Payment link]` },
     },
   },
 
@@ -457,7 +457,7 @@ export default function LatePaymentScripts() {
           description:"Ready-to-send overdue invoice reminders in four languages, from a friendly heads-up to a final notice.",
           inLanguage:"en",
           datePublished:"2026-08-30",
-          dateModified:"2026-09-07",
+          dateModified:"2026-09-08",
           mainEntityOfPage:canonical,
           author:{ "@type":"Organization", name:"FaturaPro", url:"https://faturapro.app/" },
           publisher:{ "@type":"Organization", name:"FaturaPro", url:"https://faturapro.app/", logo:{ "@type":"ImageObject", url:"https://faturapro.app/fatura-mark.svg" } },
@@ -603,7 +603,7 @@ export default function LatePaymentScripts() {
           </div>
         </Section>
 
-        <Section title="Six things that get you paid faster than any script">
+        <Section title="Six habits that make payment follow-up clearer">
           {[
             ["Put the payment terms on the invoice itself", "Not in the contract, not in an email from three weeks ago. A due date, an amount, and how to pay — visible without scrolling."],
             ["Send the invoice the day the work is delivered", "An invoice that arrives a week late signals that the deadline on it is decorative."],

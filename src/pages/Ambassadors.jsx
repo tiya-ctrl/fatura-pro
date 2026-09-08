@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import { trackEvent } from "../lib/tracking";
+import { applyPageSeo, suspendBaseSiteSchema } from "../lib/pageSeo";
 
 const CSS = `
   .amb-page { min-height:100vh; overflow:hidden; background:#08080e; color:#e8e4dc; font-family:'DM Sans',sans-serif; }
@@ -76,13 +77,13 @@ export default function Ambassadors() {
   const trackedStart = useRef(false);
 
   useEffect(() => {
-    document.title = "Founding Ambassador Program | Fatūra Pro";
-    const meta = document.querySelector('meta[name="description"]');
-    if (meta) meta.setAttribute("content", "Apply to the Fatūra Pro Founding Ambassador Circle. Earn transparent cash commission on qualified paid subscriptions with a personal tracked link and live partner dashboard.");
-    let canonical = document.querySelector('link[rel="canonical"]');
-    if (!canonical) { canonical = document.createElement("link"); canonical.rel = "canonical"; document.head.appendChild(canonical); }
-    canonical.href = "https://faturapro.app/ambassadors";
+    const canonical = "https://faturapro.app/ambassadors";
+    const title = "FaturaPro Ambassador Program | Apply";
+    const description = "Apply to the FaturaPro ambassador program. Approved partners receive a tracked link, private dashboard and commission terms for eligible paid subscriptions.";
+    const cleanupSeo = applyPageSeo({ title, description, canonical, language:"en", locale:"en_US", imageAlt:"FaturaPro ambassador program", alternates:{ en:canonical, "x-default":canonical } });
+    const restoreSiteSchema = suspendBaseSiteSchema();
     trackEvent("ambassador_page_viewed", { source:new URLSearchParams(window.location.search).get("utm_source") || "direct" });
+    return () => { restoreSiteSchema(); cleanupSeo(); };
   }, []);
 
   const update = (key, value) => {

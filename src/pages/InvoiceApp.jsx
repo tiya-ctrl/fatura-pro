@@ -621,7 +621,7 @@ export default function InvoiceApp({ onGoHome }) {
 
   const today = new Date().toISOString().split("T")[0];
   // An invoice that has a credit note against it is cancelled - unless money
-  // was actually received on it, in which case the credit note is a refund.
+  // was actually received on it, in which case the credit note reverses received value.
   const creditedIds = {};
   invoices.forEach((i) => { if (i.docType === "credit_note" && i.creditOf) creditedIds[i.creditOf] = true; });
   const paidOriginalIds = { has: (id) => { const o = invoices.find((x) => x.id === id); return !!o && (o.status === "paid" || (Number(o.paidAmount) || 0) > 0); } };
@@ -926,7 +926,7 @@ export default function InvoiceApp({ onGoHome }) {
             {isPro ? (
               <div className="plan-badge">
                 <div className="plan-name">✦ {plan === "business" ? t("business_plan", "BUSINESS PLAN") : isTeamMember ? t("team_member", "TEAM MEMBER") : t("pro_plan", "PRO PLAN")}</div>
-                <div className="plan-info">{plan === "business" ? "Team, quotes, VAT & more" : isTeamMember ? "Shared team workspace" : "Unlimited everything"}</div>
+                <div className="plan-info">{plan === "business" ? "Team, quotes, VAT & more" : isTeamMember ? "Shared team workspace" : "Unlimited invoices & clients"}</div>
               </div>
             ) : (
               <div>
@@ -1992,7 +1992,7 @@ function InvoicePreview({ invoice, onExportUBL, onClose, currency, plan, isFirst
     <div className="modal-overlay"> {/* إزالة خاصية الإغلاق بالنقر هنا */}
       <div className="invoice-preview-wrapper" style={{ width:"100%", maxWidth:760, maxHeight:"95vh", overflow:"auto", borderRadius:16, margin:"0 auto" }}>
         <div className="print-hide" style={{ display:"flex", justifyContent:"space-between", padding:"12px 0 16px" }}>
-          <div style={{ display:"flex", gap:8 }}><button className="btn btn-ghost btn-sm" onClick={() => { trackDownload("pdf"); window.print(); }}>Print / PDF</button><button className="btn btn-ghost btn-sm" title="Download as a European e-invoice (EN 16931)" onClick={() => { const canExport = plan === "pro" || plan === "business"; trackDownload("ubl", canExport); onExportUBL && onExportUBL(invoice); }}>UBL (XML)</button></div>
+          <div style={{ display:"flex", gap:8 }}><button className="btn btn-ghost btn-sm" onClick={() => { trackDownload("pdf"); window.print(); }}>Print / PDF</button><button className="btn btn-ghost btn-sm" title="Download UBL/XML for an EN 16931 workflow; validate the receiver's required profile" onClick={() => { const canExport = plan === "pro" || plan === "business"; trackDownload("ubl", canExport); onExportUBL && onExportUBL(invoice); }}>UBL (XML)</button></div>
           <button className="btn btn-ghost btn-sm" onClick={onClose}>Close</button>
         </div>
         <div className="invoice-preview">
@@ -2294,15 +2294,15 @@ function UpgradeModal({ feature, onClose, onActivate, initialPlan, userEmail, us
   };
 
   const featureLabels = {
-    reminders: { icon:"!", label:"Payment Reminders", desc:"Send overdue reminders via Email & WhatsApp" },
-    unlimited_invoices: { icon:"!", label:"Unlimited Invoices", desc:"You've hit the 5 invoice limit on the Free plan" },
+    reminders: { icon:"!", label:"Payment Reminders", desc:"Prepare and review overdue reminders, then open them in Email or WhatsApp" },
+    unlimited_invoices: { icon:"!", label:"Unlimited Invoices", desc:"You've hit the 20 invoice limit on the Free plan" },
     deposits: { icon:"!", label:"Deposits & Partial Payments", desc:"Ask for a deposit up front and track what is still owed" },
-    ubl: { icon:"!", label:"UBL E-Invoicing (EN 16931)", desc:"Send your invoice as a European e-invoice your client can import straight into their bookkeeping" },
-    recurring: { icon:"!", label:"Recurring Invoices", desc:"Set an invoice to repeat weekly, monthly or yearly and let it send itself" },
+    ubl: { icon:"!", label:"UBL/XML Export", desc:"Download structured XML for EN 16931 workflows, then validate and deliver it as your client requests" },
+    recurring: { icon:"!", label:"Recurring Invoices", desc:"Create new pending invoices weekly, biweekly, monthly or yearly for you to review and send" },
     quotes: { icon:"!", label:"Quotes", desc:"Send quotes and turn an accepted one into an invoice in a click" },
-    expenses: { icon:"!", label:"Expenses & VAT/BTW Report", desc:"Track expenses and get your VAT return figures per quarter" },
+    expenses: { icon:"!", label:"Expenses & VAT/BTW Summary", desc:"Track expenses and review a quarterly summary per currency for your bookkeeping" },
     analytics: { icon:"!", label:"Advanced Analytics", desc:"Revenue per month, top clients, collection rate and payment terms" },
-    unlimited_clients: { icon:"!", label:"Unlimited Clients", desc:"You've hit the 3 client limit on the Free plan" },
+    unlimited_clients: { icon:"!", label:"Unlimited Clients", desc:"You've hit the 5 client limit on the Free plan" },
   };
 
   const feat = featureLabels[feature] || { icon:"✦", label:"Pro Feature", desc:"Unlock all Pro features" };
@@ -2407,7 +2407,7 @@ function UpgradeModal({ feature, onClose, onActivate, initialPlan, userEmail, us
           </button>
         )}
 
-        <div style={{ textAlign:"center", fontSize:11, color:"var(--text3)" }}>No commitment · Cancel anytime · 14-day money back guarantee</div>
+        <div style={{ textAlign:"center", fontSize:11, color:"var(--text3)" }}>No commitment · Cancel anytime · Secure checkout by Stripe</div>
         <button onClick={onClose} style={{ display:"block", margin:"14px auto 0", background:"none", border:"none", color:"var(--text2)", cursor:"pointer", fontSize:13 }}>Maybe later</button>
       </div>
     </div>
