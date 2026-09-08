@@ -3,6 +3,7 @@
 <head>
   <title>UBL factuur maken: complete uitleg over e-facturatie (2026) | Fat&#363;ra Pro</title>
   <meta name="description" content="Leer wat een UBL factuur is, wat EN 16931 vereist en hoe je een geldige e-factuur maakt. Met uitleg over Peppol, creditnota&#039;s en validatie." />
+  <meta name="robots" content="index,follow,max-image-preview:large,max-snippet:-1,max-video-preview:-1" />
   <link rel="canonical" href="https://faturapro.app/ubl-factuur-maken" />
   <link rel="alternate" hreflang="nl" href="https://faturapro.app/ubl-factuur-maken" />
   <link rel="alternate" hreflang="en" href="https://faturapro.app/blog/how-to-create-ubl-invoice-en16931" />
@@ -12,6 +13,13 @@
   <meta property="og:type" content="article" />
   <meta property="og:url" content="https://faturapro.app/ubl-factuur-maken" />
   <meta property="og:image" content="https://faturapro.app/hero-dashboard.png" />
+  <meta property="og:image:alt" content="Fatūra Pro facturatieoverzicht" />
+  <meta property="og:site_name" content="Fatūra Pro" />
+  <meta property="og:locale" content="nl_NL" />
+  <meta name="twitter:card" content="summary_large_image" />
+  <meta name="twitter:title" content="UBL factuur maken: uitleg over EN 16931 en validatie" />
+  <meta name="twitter:description" content="Leer hoe UBL/XML werkt, wat je moet controleren en waarom Peppol iets anders is dan een UBL bestand." />
+  <meta name="twitter:image" content="https://faturapro.app/hero-dashboard.png" />
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <meta name="theme-color" content="#c9a84c" />
@@ -60,7 +68,7 @@
     "description": "Wat is een UBL factuur, wat eist EN 16931, en hoe maak je er zelf een?",
     "inLanguage": "nl",
     "datePublished": "2026-08-16",
-    "dateModified": "2026-08-16",
+    "dateModified": "2026-09-08",
     "mainEntityOfPage": "https://faturapro.app/ubl-factuur-maken",
     "author": { "@type": "Organization", "name": "Fatura Pro", "url": "https://faturapro.app" },
     "publisher": { "@type": "Organization", "name": "Fatura Pro", "url": "https://faturapro.app" }
@@ -80,7 +88,7 @@
       { "@type": "Question", "name": "Kan ik een creditnota als UBL versturen?",
         "acceptedAnswer": { "@type": "Answer", "text": "Ja, maar een creditnota is een apart documenttype met code 381 en een eigen structuur, geen factuur met een minteken. Software die dat verschil negeert produceert bestanden die bij de ontvanger worden afgekeurd." } },
       { "@type": "Question", "name": "Hoe maak ik een UBL factuur zonder boekhoudpakket?",
-        "acceptedAnswer": { "@type": "Answer", "text": "Met een factuurprogramma dat UBL kan exporteren. In Fatura Pro maak je de factuur zoals gewoonlijk en download je hem als UBL XML volgens EN 16931; dat zit in het Pro plan van 9 euro per maand." } }
+        "acceptedAnswer": { "@type": "Answer", "text": "Met software die UBL/XML kan exporteren. In Fatura Pro maak je de factuur en download je XML bedoeld voor EN 16931-workflows. Controleer en valideer daarna het profiel dat de ontvanger vereist. De export zit in Pro; Peppol-verzending is niet inbegrepen." } }
     ]
   }
   </script>
@@ -119,7 +127,7 @@
 
   <h2 id="pdf">UBL versus PDF: wat verandert er echt</h2>
   <p>Voor jou verandert er weinig aan hoe je factureert. Je maakt dezelfde factuur, met dezelfde regels en dezelfde BTW. Het verschil zit in wat je meestuurt: naast de PDF die je klant kan lezen, lever je een XML bestand dat zijn systeem kan verwerken.</p>
-  <p>Voor de ontvanger verandert er veel. Handmatig overtypen valt weg, en daarmee ook de typefouten en de vertraging die daarbij hoort. Facturen die automatisch verwerkt worden, worden in de praktijk sneller goedgekeurd en dus sneller betaald.</p>
+  <p>Voor de ontvanger kan handmatig overtypen wegvallen, omdat compatibele boekhoudsoftware de gestructureerde velden kan inlezen. Of dat lukt hangt af van het profiel en de validatieregels van het ontvangende systeem.</p>
   <div class="note">Praktisch advies: stuur altijd allebei. Het XML bestand voor het systeem, de PDF voor de persoon die ernaar kijkt.</div>
 
   <h2 id="peppol">UBL is een formaat, Peppol is een netwerk</h2>
@@ -127,9 +135,8 @@
   <p>Je kunt prima een UBL bestand maken en versturen zonder ooit iets met Peppol te doen: je hangt het aan een e-mail of uploadt het in het portaal van je klant. Peppol heb je pas nodig als een klant er expliciet om vraagt, en in de praktijk zijn dat vooral overheidsinstanties en grote ondernemingen.</p>
 
   <h2 id="verplicht">Is e-factureren verplicht?</h2>
-  <p>Richting <strong>overheidsinstanties</strong> is elektronisch factureren al verplicht: lever je aan een ministerie, provincie of gemeente, dan wordt een e-factuur verwacht en niet een PDF per mail.</p>
-  <p>Voor gewone <strong>B2B facturen</strong> bestaat er in Nederland op dit moment nog geen algemene verplichting. Wel gaat de ontwikkeling duidelijk die kant op: sommige Europese landen zijn eerder overgestapt en op Europees niveau wordt toegewerkt naar gestructureerde e-facturatie voor grensoverschrijdende handel later dit decennium. Data verschuiven regelmatig, dus hang je planning niet op aan een jaartal dat je ergens leest.</p>
-  <p>Dit artikel is algemene uitleg en <strong>geen fiscaal advies</strong>. Controleer bij de Belastingdienst of bij je boekhouder wat er voor jouw situatie geldt.</p>
+  <p>Dat hangt af van het land, de soort klant en de transactie. Een opdrachtgever of leveranciersportaal kan bovendien een specifiek profiel en een specifieke aanleverroute eisen, ook wanneer een algemene verplichting niet op jouw situatie van toepassing is.</p>
+  <p>Vraag de ontvanger daarom welke syntaxis, welk profiel en welke route worden geaccepteerd. Dit artikel is algemene uitleg en <strong>geen fiscaal of juridisch advies</strong>; controleer de actuele regels bij de bevoegde instantie of je boekhouder.</p>
 
   <h2 id="velden">Wat er in je UBL bestand moet staan</h2>
   <p>EN 16931 is de Europese norm die beschrijft welke gegevens een elektronische factuur moet bevatten. UBL is een van de manieren om die norm op te schrijven. Vraagt iemand om een <em>EN 16931 conforme UBL factuur</em>, dan bedoelt hij een XML bestand waarin deze gegevens op de verwachte plek staan:</p>
@@ -163,11 +170,11 @@
     <li>Open de factuur en kies <strong>UBL (XML)</strong>. Het bestand wordt gedownload.</li>
     <li>Stuur het bestand zoals je klant het vraagt, meestal als bijlage bij de e-mail of via zijn portaal, met de PDF erbij.</li>
   </ol>
-  <p>Creditnota&#039;s exporteren op dezelfde manier en krijgen automatisch het juiste documenttype. UBL export zit bewust in het Pro plan van negen euro per maand: e-facturatie is precies waar zelfstandigen mee te maken krijgen, en dan hoort het niet in het duurste pakket te zitten.</p>
+  <p>Creditnota&#039;s exporteren op dezelfde manier als documenttype 381, met een verwijzing naar de oorspronkelijke factuur. Fatura Pro maakt het bestand voor je aan, maar valideert niet automatisch ieder land-, netwerk- of klantprofiel. UBL/XML-export zit in het Pro plan van negen euro per maand; Peppol-verzending is niet inbegrepen.</p>
 
   <h2 id="valideren">Valideren voordat je verstuurt</h2>
   <p>Ga er niet van uit dat een bestand klopt omdat het gedownload is. Er zijn gratis online validators die een XML bestand toetsen aan EN 16931 en precies aangeven welk element ontbreekt of verkeerd is opgemaakt.</p>
-  <p>Haal je eerste factuur en je eerste creditnota er &eacute;&eacute;n keer doorheen. Vijf minuten werk, en daarna weet je dat je export goed staat in plaats van dat je het hoopt.</p>
+  <p>Valideer in ieder geval de eerste factuur en creditnota voor elk ontvangend systeem, en opnieuw wanneer het gevraagde profiel of de exportsoftware verandert.</p>
 
   <h2 id="fouten">Fouten die tot afkeuring leiden</h2>
   <ul>
