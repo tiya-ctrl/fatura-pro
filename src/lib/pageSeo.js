@@ -73,6 +73,7 @@ export function applyPageSeo({
   image = DEFAULT_IMAGE,
   imageAlt = "Fatūra Pro invoicing dashboard",
   alternates,
+  robots = "index,follow,max-image-preview:large,max-snippet:-1,max-video-preview:-1",
 }) {
   const cleanups = [];
   const previousTitle = document.title;
@@ -87,7 +88,7 @@ export function applyPageSeo({
   });
 
   setMeta('meta[name="description"]', { name: "description", content: description }, cleanups);
-  setMeta('meta[name="robots"]', { name: "robots", content: "index,follow,max-image-preview:large,max-snippet:-1,max-video-preview:-1" }, cleanups);
+  setMeta('meta[name="robots"]', { name: "robots", content: robots }, cleanups);
   setMeta('meta[property="og:title"]', { property: "og:title", content: title }, cleanups);
   setMeta('meta[property="og:description"]', { property: "og:description", content: description }, cleanups);
   setMeta('meta[property="og:type"]', { property: "og:type", content: type }, cleanups);
