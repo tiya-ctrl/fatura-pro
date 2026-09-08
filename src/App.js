@@ -17,6 +17,7 @@ import ApiDocs from "./pages/ApiDocs";
 import LatePaymentScripts from "./pages/LatePaymentScripts";
 import Ambassadors from "./pages/Ambassadors";
 import AmbassadorDashboard from "./pages/AmbassadorDashboard";
+import NotFound from "./pages/NotFound";
 import InstallPrompt from "./InstallPrompt";
 import CookieConsent from "./CookieConsent";
 import TopBar from "./TopBar";
@@ -127,7 +128,7 @@ function AppRoutes() {
       <Route path="/admin" element={<AccountPageWrapper component={Admin} />} />
       <Route path="/pay/:invoiceId" element={<PayInvoice />} />
       <Route path="/app" element={<InvoiceWrapper />} />
-      <Route path="*" element={<LandingWrapper />} />
+      <Route path="*" element={<NotFound />} />
     </Routes>
   );
 }
