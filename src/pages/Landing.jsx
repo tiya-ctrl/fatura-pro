@@ -476,7 +476,8 @@ WHAT THE PRODUCT DOES
 - Deposits and partial payments: ask for e.g. 50% up front, record each payment received, and the invoice shows as "Partially paid" with the balance still owed. Reminders then chase the balance, not the full amount.
 - UBL/XML export: invoices and credit notes can be downloaded as structured XML intended for EN 16931 workflows. Invoices use document type 380 and credit notes use 381 with a reference to the original. Receiving systems can require extra profile rules, so users should validate the file. Fatura Pro is NOT connected to Peppol; the user delivers the file themselves.
 - Payment reminders: the app prepares editable text in English, Dutch, French or Arabic. The user reviews it, opens it in email or WhatsApp and sends it themselves. There is no unattended reminder delivery.
-- Quotes convert to an invoice; recurring schedules create new pending invoices for review and sending; expenses provide quarterly VAT/BTW summaries per currency but do not file tax returns; analytics, team members, multiple business profiles, API access and accountant CSV export are also available on Business.
+- Business quotes can be saved, previewed, printed or saved as PDF, and converted to an invoice. Opening an email for a quote uses the user's own mail app and does not attach or send the PDF automatically. Recurring schedules create new pending invoices for review and sending; expenses provide quarterly VAT/BTW summaries per currency but do not file tax returns; analytics, team members, multiple business profiles, API access and accountant CSV export are also available on Business.
+- A new account with no invoices is guided directly into creating its first invoice. Business and client details entered in that invoice flow can be saved for reuse.
 
 PLANS
 - Free: 20 invoices, 5 clients, all 17 currencies, PDF export and print, your own logo, and credit notes. Free forever, no credit card.

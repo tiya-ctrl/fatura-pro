@@ -4,6 +4,7 @@ import { loadExpenses, saveExpense, deleteExpense, vatReport } from "../lib/expe
 import { CURRENCIES, fmtCurrency, codesUsed } from "../lib/currencies";
 import { exportExpensesCSV } from "../lib/accountantExport";
 import { trackEvent } from "../lib/tracking";
+import { recordActivationEvent } from "../lib/activationEvents";
 import { getLocale, tr } from "../lib/locale";
 
 const CATEGORIES = ["software", "hardware", "office", "travel", "marketing", "services", "other"];
@@ -87,7 +88,8 @@ export default function Expenses({ expenses, setExpenses, invoices, userId }) {
 
       {expenses.length === 0 && (
         <div className="card" style={{ textAlign:"center", padding:40, color:"#999" }}>
-          {t("no_expenses", "No expenses yet. Track your business costs here — VAT you paid is deducted automatically in the report above.")}
+          <div>{t("no_expenses", "No expenses yet. Track your business costs here — VAT you paid is deducted automatically in the report above.")}</div>
+          <button className="btn btn-primary" style={{ marginTop:16 }} onClick={() => setEditing("new")}>{t("add_expense", "Add an expense")}</button>
         </div>
       )}
 
@@ -116,6 +118,9 @@ export default function Expenses({ expenses, setExpenses, invoices, userId }) {
             const saved = await saveExpense(e, userId);
             if (!saved) { window.alert("Could not save this expense. Please try again."); return; }
             trackEvent(creating ? "expense_created" : "expense_updated", { currency:e.currency || "EUR", category:e.category || "other", vat_rate:Number(e.vat_rate) || 0 });
+            if (creating) recordActivationEvent("expense_created", {
+              metadata:{ currency:e.currency || "EUR", is_first_expense:expenses.length === 0 },
+            }).catch(() => {});
             setEditing(null);
             refresh();
           }}

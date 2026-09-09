@@ -13,6 +13,8 @@ Key facts:
 - Payment reminders: prepare editable text in 3 tones (Polite, Firm, Final), then the user opens it in Email or WhatsApp and sends it
 - UBL/XML export is intended for EN 16931 workflows; users must validate the profile their customer requires. Fatura Pro does not provide Peppol delivery
 - Recurring schedules create new pending invoices for review; they do not send invoices automatically
+- Business quotes can be saved, previewed, printed or saved as PDF, and converted to an invoice. The email button opens the user's mail app; it does not attach or send the PDF automatically
+- A new user with no invoices is guided directly to create the first invoice; business and client details entered there can be saved for reuse
 - Built for freelancers — no business registration needed
 - Subscription and connected client card payments use Stripe
 - Every new account receives a 7-day Pro trial; Business features require the Business plan
