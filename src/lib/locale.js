@@ -1,4 +1,4 @@
-const SUPPORTED = ["en", "es", "fr"];
+const SUPPORTED = ["en", "es", "fr", "nl"];
 
 export function getLocale() {
   if (typeof window === "undefined") return "en";
@@ -83,6 +83,35 @@ const COPY = {
     all:"Toutes", paid:"Payées", partial:"Partielles", pending:"En attente", cancelled:"Annulées", draft:"Brouillons", credit_notes:"Avoirs", search_invoices:"Rechercher des factures…", no_invoices:"Bienvenue sur Fatūra ! Créez votre première facture pour commencer.", view:"Voir",
     first_invoice_ready:"Votre première facture est prête 🎉", first_invoice_ready_body:"Prévisualisez le document final, enregistrez-le en PDF ou continuez depuis votre tableau de bord.", preview_download:"Prévisualiser / enregistrer le PDF", create_another_invoice:"Créer une autre facture", back_dashboard:"Ouvrir le tableau de bord",
   },
+  nl: {
+    sign_in_account:"Log in op je account", create_free_account:"Maak je gratis account aan",
+    sign_in:"Inloggen", sign_up:"Registreren", full_name:"Volledige naam", email_address:"E-mailadres",
+    password:"Wachtwoord", confirm_password:"Wachtwoord bevestigen", forgot_password:"Wachtwoord vergeten?",
+    min_characters:"Minimaal 6 tekens", your_password:"Je wachtwoord", repeat_password:"Herhaal je wachtwoord",
+    processing:"Bezig…", create_account:"Account aanmaken", continue_with:"of ga verder met",
+    no_account:"Nog geen account?", sign_up_free:"Gratis registreren", have_account:"Heb je al een account?",
+    welcome_back:"Welkom terug!", account_created:"Account aangemaakt!", opening_dashboard:"Je dashboard wordt geopend…",
+    back_home:"Terug naar home", name_required:"Naam is verplicht", valid_email:"Vul een geldig e-mailadres in",
+    password_min:"Minimaal 6 tekens", password_mismatch:"De wachtwoorden komen niet overeen",
+    enter_email_first:"Vul eerst je e-mailadres in", reset_sent:"De e-mail om je wachtwoord opnieuw in te stellen is verzonden.",
+    main:"Hoofdmenu", dashboard:"Dashboard", invoices:"Facturen", quotes:"Offertes", expenses:"Uitgaven", analytics:"Analyses", clients:"Klanten", settings:"Instellingen",
+    signed_in_as:"Ingelogd als", sign_out:"Uitloggen", business_plan:"BUSINESS-ABONNEMENT", pro_plan:"PRO-ABONNEMENT", team_member:"TEAMLID",
+    free_plan:"GRATIS ABONNEMENT", upgrade_pro:"Upgraden naar Pro", export_csv:"CSV exporteren", new_invoice:"Nieuwe factuur", add_client:"Klant toevoegen",
+    business_feature:"Business-functie", language:"Taal van de app", language_help:"Kies de taal voor inloggen en de hoofdnavigatie.",
+    business_profile:"Bedrijfsprofiel", business_name:"Bedrijfsnaam", country:"Land", address:"Adres", save_changes:"Wijzigingen opslaan", saving:"Opslaan…", saved:"Opgeslagen",
+    vat_report:"Btw-overzicht", revenue_excl:"Omzet excl. btw", vat_collected:"Ontvangen btw", vat_paid:"Betaalde btw", vat_pay:"Te betalen btw", vat_reclaim:"Terug te vragen btw",
+    on_sales:"over verkopen", expense_count:"uitgaven", add_expense:"Uitgave toevoegen", export_quarter:"CSV exporteren", no_expenses:"Nog geen uitgaven. Leg hier je zakelijke kosten vast; betaalde btw wordt automatisch meegenomen in het overzicht.",
+    edit:"Bewerken", delete:"Verwijderen", new_expense:"Nieuwe uitgave", edit_expense:"Uitgave bewerken", description:"Omschrijving", category:"Categorie", supplier:"Leverancier (optioneel)",
+    date:"Datum", currency:"Valuta", amount_excl:"Bedrag excl. btw", vat_rate:"Btw-tarief", total_incl:"Totaal incl. btw", cancel:"Annuleren", add:"Uitgave toevoegen", save:"Wijzigingen opslaan",
+    first_payment:"Welkom bij FaturaPro 👋", create_paid_invoice:"Laten we je eerste factuur maken.", guided_invoice_intro:"Dit duurt maar een paar minuten. Voeg de belangrijkste gegevens toe, controleer het einddocument en sla je bedrijfs- en klantgegevens tijdens dezelfde stappen op.",
+    create_first_invoice:"Mijn eerste factuur maken →", add_business_details:"Bedrijfsgegevens toevoegen", ready_to_invoice:"Klaar om te factureren", any_order_steps:"Drie handige stappen. Rond ze af in de volgorde die jij wilt.",
+    business_details:"Bedrijfsgegevens", saved_reuse:"Opgeslagen en klaar voor hergebruik", add_vat_details:"Voeg je naam, adres en btw-gegevens toe", first_client:"Eerste klant", client_saved:"Klant opgeslagen voor toekomstige facturen", save_reuse_invoice:"Sla de klant één keer op en gebruik die bij elke factuur", create_preview:"Maken en bekijken", review_total:"Controleer het totaal vóór verzenden of downloaden",
+    welcome_user:"Welkom terug", keep_moving:"Houd je facturen actief en je betalingen inzichtelijk.", all_current:"Alles is bijgewerkt. Maak je volgende factuur zolang het werk nog vers is.", view_invoices:"Facturen bekijken", collected:"Ontvangen", awaiting_payment:"Te ontvangen", overdue:"Achterstallig", needs_attention:"Aandacht nodig", documents:"Documenten", recent_invoices:"Recente facturen", view_all:"Alles bekijken →",
+    invoice:"Factuur", client:"Klant", amount:"Bedrag", due_date:"Vervaldatum", status:"Status", actions:"Acties", preview:"Voorbeeld", payment:"Betaling", remind:"Herinneren", none_month:"Deze maand niets toegevoegd", this_month:"deze maand", paid_invoices:"betaalde facturen", open_invoices:"openstaande facturen",
+    from:"Van", to:"Aan", items:"Regels", notes:"Notities", edit_invoice:"Factuur bewerken", invoice_number:"Factuurnummer", seller_logo:"Logo van bedrijf / afzender", from_business:"Bedrijf van afzender", select_profile:"Kies een bedrijfsprofiel…", seller_name:"Naam afzender / bedrijf", phone:"Telefoon", vat_number:"Btw-nummer", select_client:"Bestaande klant kiezen", enter_manually:"— Handmatig invoeren —", client_name:"Naam klant / bedrijf *", invoice_date:"Factuurdatum *",
+    quantity:"Aantal", price:"Prijs", total:"Totaal", item_note:"Voeg een notitie toe aan deze regel (optioneel)…", add_line:"+ Regel toevoegen", discount:"Korting (%)", deposit:"Aanbetaling (%)", tax:"Belasting / btw (%)", subtotal:"Subtotaal", invoice_total:"Factuurtotaal", deposit_due:"Nu te betalen aanbetaling", remaining:"Resterend na aanbetaling", invoice_notes:"Factuurnotities", payment_info:"Bank- / betaalgegevens", summary:"Overzicht", seller:"Afzender", close:"Sluiten", back:"← Terug", save_draft:"Concept opslaan", step:"Stap", update_invoice:"Factuur bijwerken", save_invoice:"Factuur opslaan", next:"Volgende →", new_client:"Nieuwe klant", client_business_name:"Naam klant / bedrijf *", email_optional:"E-mailadres (optioneel)", phone_optional:"Telefoon (optioneel)", choose_country:"— Kies een land —", add_client_action:"Klant opslaan", buyer_logo:"Logo van klant (optioneel)", seller_name_required:"Vul de naam van je bedrijf of de afzender in (stap 1)", client_due_required:"Vul de klant en vervaldatum in (stap 2)", line_item_required:"Voeg ten minste één omschrijving toe (stap 3)", client_name_required:"Vul de naam van de klant of het bedrijf in",
+    all:"Alle", paid:"Betaald", partial:"Gedeeltelijk", pending:"Openstaand", cancelled:"Geannuleerd", draft:"Concepten", credit_notes:"Creditnota’s", search_invoices:"Facturen zoeken…", no_invoices:"Welkom bij Fatūra! Maak je eerste factuur om te beginnen.", view:"Bekijken",
+    first_invoice_ready:"Je eerste factuur is klaar 🎉", first_invoice_ready_body:"Bekijk het einddocument, sla het op als PDF of ga verder in je dashboard.", preview_download:"Bekijken / opslaan als PDF", create_another_invoice:"Nog een factuur maken", back_dashboard:"Naar het dashboard",  },
 };
 
 export function tr(key, fallback, locale = getLocale()) {
