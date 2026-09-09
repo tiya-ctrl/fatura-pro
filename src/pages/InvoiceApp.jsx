@@ -1475,7 +1475,7 @@ function Settings({ currency, setCurrency, userEmail, invoices, onProfileSaved }
         <div className="card-title" style={{ marginBottom:8 }}>{t("language", "App language")}</div>
         <p style={{ fontSize:13, color:"var(--text2)", marginBottom:14 }}>{t("language_help", "Choose the language used for sign-in and primary navigation.")}</p>
         <select value={locale} onChange={(event) => { setLocale(event.target.value); window.location.reload(); }}>
-          <option value="en">English</option><option value="es">Español</option><option value="fr">Français</option>
+          <option value="en">English</option><option value="es">Español</option><option value="fr">Français</option><option value="nl">Nederlands</option>
         </select>
       </div>
       <div className="card" style={{ padding:28, marginBottom:20 }}>
