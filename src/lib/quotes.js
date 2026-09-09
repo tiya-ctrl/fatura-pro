@@ -7,12 +7,13 @@ import { supabase } from "../supabase";
 function fromRow(r) {
   return {
     id: r.id, client: r.client, email: r.email,
-    sellerName: r.seller_name, sellerEmail: r.seller_email, sellerPhone: r.seller_phone, sellerAddress: r.seller_address,
-    buyerPhone: r.buyer_phone, buyerAddress: r.buyer_address,
+    sellerName: r.seller_name, sellerEmail: r.seller_email, sellerPhone: r.seller_phone,
+    sellerVat: r.seller_vat, sellerAddress: r.seller_address, sellerCountry: r.seller_country,
+    buyerPhone: r.buyer_phone, buyerAddress: r.buyer_address, buyerCountry: r.buyer_country,
     date: r.date, validUntil: r.valid_until, status: r.status,
     amount: r.amount, subtotal: r.subtotal, discountAmt: r.discount_amt, taxAmt: r.tax_amt, total: r.total,
     tax: r.tax, discount: r.discount, notes: r.notes, bankInfo: r.bank_info,
-    currency: r.currency, items: r.items || [],
+    currency: r.currency, documentLanguage: r.document_language || "en", items: r.items || [],
     convertedInvoiceId: r.converted_invoice_id,
   };
 }
@@ -21,12 +22,13 @@ function fromRow(r) {
 function toRow(q, userId) {
   return {
     id: q.id, user_id: userId, client: q.client, email: q.email,
-    seller_name: q.sellerName, seller_email: q.sellerEmail, seller_phone: q.sellerPhone, seller_address: q.sellerAddress,
-    buyer_phone: q.buyerPhone, buyer_address: q.buyerAddress,
+    seller_name: q.sellerName, seller_email: q.sellerEmail, seller_phone: q.sellerPhone,
+    seller_vat: q.sellerVat || null, seller_address: q.sellerAddress, seller_country: q.sellerCountry || null,
+    buyer_phone: q.buyerPhone, buyer_address: q.buyerAddress, buyer_country: q.buyerCountry || null,
     date: q.date, valid_until: q.validUntil, status: q.status,
     amount: q.amount, subtotal: q.subtotal, discount_amt: q.discountAmt, tax_amt: q.taxAmt, total: q.total,
     tax: q.tax, discount: q.discount, notes: q.notes, bank_info: q.bankInfo,
-    currency: q.currency, items: q.items,
+    currency: q.currency, document_language: q.documentLanguage || "en", items: q.items,
     converted_invoice_id: q.convertedInvoiceId || null,
   };
 }
@@ -58,14 +60,17 @@ export async function deleteQuote(quoteId, userId) {
 
 // تحويل عرض -> كائن فاتورة جاهز للحفظ بنظام الفواتير الحالي
 // لا يحفظ بنفسه؛ يرجع الفاتورة والتطبيق يمررها لدالة الحفظ الموجودة أصلاً
-export function quoteToInvoice(quote, invoiceId) {
+export function quoteToInvoice(quote, invoiceId, { paymentTerms = 30 } = {}) {
+  const dueDate = new Date();
+  dueDate.setUTCDate(dueDate.getUTCDate() + Math.max(0, Number(paymentTerms) || 0));
   return {
     id: invoiceId,
     client: quote.client, email: quote.email,
-    sellerName: quote.sellerName, sellerEmail: quote.sellerEmail, sellerPhone: quote.sellerPhone, sellerAddress: quote.sellerAddress,
-    buyerPhone: quote.buyerPhone, buyerAddress: quote.buyerAddress,
+    sellerName: quote.sellerName, sellerEmail: quote.sellerEmail, sellerPhone: quote.sellerPhone,
+    sellerVat: quote.sellerVat, sellerAddress: quote.sellerAddress, sellerCountry: quote.sellerCountry,
+    buyerPhone: quote.buyerPhone, buyerAddress: quote.buyerAddress, buyerCountry: quote.buyerCountry,
     date: new Date().toISOString().split("T")[0],
-    due: "", status: "pending",
+    due: dueDate.toISOString().split("T")[0], status: "pending",
     amount: quote.total, subtotal: quote.subtotal, discountAmt: quote.discountAmt, taxAmt: quote.taxAmt, total: quote.total,
     tax: quote.tax, discount: quote.discount, notes: quote.notes, bankInfo: quote.bankInfo,
     currency: quote.currency, items: quote.items,

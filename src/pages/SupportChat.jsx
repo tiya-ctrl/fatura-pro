@@ -69,8 +69,9 @@ Reminders: an invoice turns Overdue by itself once the due date passes. One clic
 reminder in a polite, firm or final tone, in English, Dutch, French or Arabic, by email or
 WhatsApp. The user reads it before it goes.
 
-Also: quotes that convert to an invoice in one click; recurring schedules that create new pending
-invoices weekly, biweekly, monthly or yearly for review and sending (managed in Settings, Recurring
+Also: Business quotes can be saved, previewed, printed or saved as PDF, and converted to an invoice.
+The quote email button opens the user's own mail app; the user must attach the saved PDF before sending.
+Recurring schedules create new pending invoices weekly, biweekly, monthly or yearly for review and sending (managed in Settings, Recurring
 invoices); expenses with a quarterly VAT/BTW summary and CSV export for an accountant, which does
 not file a tax return; analytics; up to 5 team members; multiple business profiles; connected client
 card payments via Stripe; API access.
