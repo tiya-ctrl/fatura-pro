@@ -1,8 +1,11 @@
 // Fatura Pro - Advanced Analytics page (Business plan)
 import { useState } from "react";
 import { monthlyRevenue, topClients, avgPaymentDays, collectionStats, revenueByCurrency } from "../lib/analytics";
+import { getLocale } from "../lib/locale";
 
 export default function Analytics({ invoices, f, fc, defaultCurrency }) {
+  const ar = getLocale() === "ar";
+  const ui = (english, arabic) => ar ? arabic : english;
   // Every figure below belongs to ONE currency. Nothing is ever converted.
   const list = invoices || [];
   const codes = [];
@@ -30,25 +33,25 @@ export default function Analytics({ invoices, f, fc, defaultCurrency }) {
       {/* Currency scope - totals are never converted */}
       {codes.length > 1 && (
         <div style={{ display:"flex", alignItems:"center", gap:8, flexWrap:"wrap", marginBottom:14 }}>
-          <span style={{ fontSize:12, color:"#999" }}>Currency</span>
+          <span style={{ fontSize:12, color:"#999" }}>{ui("Currency", "العملة")}</span>
           {codes.map((c) => (
             <button key={c} onClick={() => setCurSel(c)} style={{ cursor:"pointer", padding:"4px 12px", borderRadius:20, fontSize:12, fontWeight: c === active ? 700 : 500, background: c === active ? "var(--gold)" : "transparent", color: c === active ? "#111" : "var(--text2)", border: "1px solid " + (c === active ? "var(--gold)" : "var(--border)") }}>{c}</button>
           ))}
-          <span style={{ fontSize:11, color:"#777" }}>each currency is reported on its own - no conversion</span>
+          <span style={{ fontSize:11, color:"#777" }}>{ui("each currency is reported on its own - no conversion", "يُعرض تقرير كل عملة منفصلًا — دون تحويل")}</span>
         </div>
       )}
       {/* KPI cards */}
       <div style={{ display:"grid", gridTemplateColumns:"repeat(auto-fit, minmax(160px, 1fr))", gap:12, marginBottom:20 }}>
-        <div className="stat-card"><div className="stat-label">Credited</div><div className="stat-value" style={{ fontSize:22, color: credited > 0 ? "var(--red)" : undefined }}>{credited > 0 ? "-" + fmt(credited) : fmt(0)}</div><div className="stat-change">{creditCount} credit note{creditCount === 1 ? "" : "s"}</div></div>
-        <div className="stat-card"><div className="stat-label">Avg. payment terms</div><div className="stat-value" style={{ fontSize:22 }}>{avgDays === null ? "—" : avgDays + " days"}</div><div className="stat-change">invoice to due date</div></div>
-        <div className="stat-card"><div className="stat-label">Collection rate</div><div className="stat-value" style={{ fontSize:22 }}>{totalCollectable ? Math.round((stats.paid.total / totalCollectable) * 100) + "%" : "—"}</div><div className="stat-change">{stats.paid.count} paid invoices</div></div>
-        <div className="stat-card"><div className="stat-label">Outstanding</div><div className="stat-value" style={{ fontSize:22 }}>{fmt(stats.pending.total)}</div><div className="stat-change">{stats.pending.count} pending</div></div>
-        <div className="stat-card" style={{ border: stats.overdue.count ? "1px solid rgba(224,85,85,0.4)" : undefined }}><div className="stat-label">Overdue</div><div className="stat-value" style={{ fontSize:22, color: stats.overdue.count ? "var(--red)" : undefined }}>{fmt(stats.overdue.total)}</div><div className="stat-change">{stats.overdue.count} invoices</div></div>
+        <div className="stat-card"><div className="stat-label">{ui("Credited", "إشعارات دائنة")}</div><div className="stat-value" style={{ fontSize:22, color: credited > 0 ? "var(--red)" : undefined }}>{credited > 0 ? "-" + fmt(credited) : fmt(0)}</div><div className="stat-change">{creditCount} {ui("credit notes", "إشعارات دائنة")}</div></div>
+        <div className="stat-card"><div className="stat-label">{ui("Avg. payment terms", "متوسط مهلة الدفع")}</div><div className="stat-value" style={{ fontSize:22 }}>{avgDays === null ? "—" : avgDays + " " + ui("days", "يومًا")}</div><div className="stat-change">{ui("invoice to due date", "من الفاتورة إلى الاستحقاق")}</div></div>
+        <div className="stat-card"><div className="stat-label">{ui("Collection rate", "نسبة التحصيل")}</div><div className="stat-value" style={{ fontSize:22 }}>{totalCollectable ? Math.round((stats.paid.total / totalCollectable) * 100) + "%" : "—"}</div><div className="stat-change">{stats.paid.count} {ui("paid invoices", "فواتير مدفوعة")}</div></div>
+        <div className="stat-card"><div className="stat-label">{ui("Outstanding", "مبالغ مستحقة")}</div><div className="stat-value" style={{ fontSize:22 }}>{fmt(stats.pending.total)}</div><div className="stat-change">{stats.pending.count} {ui("pending", "قيد الانتظار")}</div></div>
+        <div className="stat-card" style={{ border: stats.overdue.count ? "1px solid rgba(224,85,85,0.4)" : undefined }}><div className="stat-label">{ui("Overdue", "متأخرة")}</div><div className="stat-value" style={{ fontSize:22, color: stats.overdue.count ? "var(--red)" : undefined }}>{fmt(stats.overdue.total)}</div><div className="stat-change">{stats.overdue.count} {ui("invoices", "فواتير")}</div></div>
       </div>
 
       {/* Monthly revenue chart */}
       <div className="card" style={{ marginBottom:20 }}>
-        <div className="card-title" style={{ marginBottom:16 }}>Revenue — last 12 months (paid){" \u00b7 "}{active}</div>
+        <div className="card-title" style={{ marginBottom:16 }}>{ui("Revenue — last 12 months (paid)", "الإيرادات — آخر 12 شهرًا (المدفوعة)")}{" \u00b7 "}{active}</div>
         <div style={{ display:"flex", alignItems:"flex-end", gap:6, height:160 }}>
           {months.map((m) => (
             <div key={m.key} style={{ flex:1, display:"flex", flexDirection:"column", alignItems:"center", gap:4 }} title={m.label + ": " + fmt(m.total)}>
@@ -62,8 +65,8 @@ export default function Analytics({ invoices, f, fc, defaultCurrency }) {
       <div style={{ display:"grid", gridTemplateColumns:"repeat(auto-fit, minmax(280px, 1fr))", gap:20 }}>
         {/* Top clients */}
         <div className="card">
-          <div className="card-title" style={{ marginBottom:12 }}>Top clients (paid revenue)</div>
-          {clients.length === 0 && <div style={{ color:"#999", fontSize:13 }}>No paid invoices yet.</div>}
+          <div className="card-title" style={{ marginBottom:12 }}>{ui("Top clients (paid revenue)", "أهم العملاء (الإيرادات المدفوعة)")}</div>
+          {clients.length === 0 && <div style={{ color:"#999", fontSize:13 }}>{ui("No paid invoices yet.", "لا توجد فواتير مدفوعة بعد.")}</div>}
           {clients.map((c, i) => (
             <div key={c.client} style={{ display:"flex", justifyContent:"space-between", padding:"8px 0", borderBottom:"1px solid var(--border)" }}>
               <span>{i + 1}. {c.client}</span><b>{fmt(c.total)}</b>
@@ -73,8 +76,8 @@ export default function Analytics({ invoices, f, fc, defaultCurrency }) {
 
         {/* Revenue by currency */}
         <div className="card">
-          <div className="card-title" style={{ marginBottom:12 }}>Revenue by currency</div>
-          {byCurrency.length === 0 && <div style={{ color:"#999", fontSize:13 }}>No paid invoices yet.</div>}
+          <div className="card-title" style={{ marginBottom:12 }}>{ui("Revenue by currency", "الإيرادات حسب العملة")}</div>
+          {byCurrency.length === 0 && <div style={{ color:"#999", fontSize:13 }}>{ui("No paid invoices yet.", "لا توجد فواتير مدفوعة بعد.")}</div>}
           {byCurrency.map((c) => (
             <div key={c.currency} style={{ display:"flex", justifyContent:"space-between", padding:"8px 0", borderBottom:"1px solid var(--border)" }}>
               <span>{c.currency}</span><b>{fc ? fc(c.total, c.currency) : c.total.toFixed(2)}</b>

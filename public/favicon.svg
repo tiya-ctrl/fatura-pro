@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" role="img" aria-labelledby="title">
+  <title id="title">FaturaPro</title>
+  <rect width="64" height="64" rx="14" fill="#0A0A0F"/>
+  <path d="M19 9h22l9 9v33a4 4 0 0 1-4 4H19a4 4 0 0 1-4-4V13a4 4 0 0 1 4-4Z" fill="none" stroke="#EEEAE2" stroke-width="3.5" stroke-linejoin="round"/>
+  <path d="M41 9v10h9M23 28h18M23 36h14" fill="none" stroke="#7C6CF2" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/>
+  <path d="M7 43c8 10 28 12 45 1 5-3 7-7 6-11" fill="none" stroke="#6366F1" stroke-width="4" stroke-linecap="round"/>
+  <path d="m53 28 5 5-1-8" fill="#6366F1"/>
+</svg>

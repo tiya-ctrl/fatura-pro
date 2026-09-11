@@ -1,7 +1,7 @@
 import { useEffect } from "react";
 import { applyPageSeo, suspendBaseSiteSchema } from "../lib/pageSeo";
 
-const GOLD = "#c9a84c";
+const GOLD = "#6366F1";
 const BG = "#08080e";
 const TEXT = "#e8e4dc";
 const MUTED = "#9a9690";

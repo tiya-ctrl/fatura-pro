@@ -22,6 +22,8 @@ import InstallPrompt from "./InstallPrompt";
 import CookieConsent from "./CookieConsent";
 import TopBar from "./TopBar";
 import { supabase } from "./supabase";
+import { captureAttribution, copyCampaignParams } from "./lib/attribution";
+import { getLocale, syncDocumentLocale } from "./lib/locale";
 
 /* ───────── Landing ───────── */
 function LandingWrapper() {
@@ -36,7 +38,7 @@ function LandingWrapper() {
       navigate("/app");
       return;
     }
-    const params = new URLSearchParams();
+    const params = copyCampaignParams(new URLSearchParams());
     if (options.signup) params.set("signup", "1");
     const source = memberReferral ? "referral_link" : invoiceReferral ? "invoice_footer" : options.source;
     if (source) params.set("source", source);
@@ -135,6 +137,10 @@ function AppRoutes() {
 
 /* ───────── Main App ───────── */
 export default function App() {
+  useEffect(() => {
+    captureAttribution();
+    syncDocumentLocale(getLocale());
+  }, []);
   return (
     <BrowserRouter>
       <AppRoutes />

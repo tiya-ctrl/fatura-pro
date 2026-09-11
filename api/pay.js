@@ -19,7 +19,7 @@ export default async function handler(req, res) {
     if (!id) return res.status(400).json({ error: "Missing id" });
     const { data: inv, error } = await supabaseAdmin
       .from("invoices")
-      .select("id, user_id, seller_name, client, total, currency, status, date, due")
+      .select("id, user_id, seller_name, client, total, currency, status, date, due, document_language")
       .eq("id", id).maybeSingle();
     if (error || !inv) return res.status(404).json({ error: "Invoice not found" });
     const { data: acct } = await supabaseAdmin

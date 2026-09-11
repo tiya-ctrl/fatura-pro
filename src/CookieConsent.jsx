@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { getLocale } from "./lib/locale";
 
 const KEY = "fatura_cookie_consent";
 const ANALYTICS_ID = "xjcvo64scy";
@@ -13,6 +14,7 @@ function startAnalytics() {
 }
 
 export default function CookieConsent() {
+  const ar = getLocale() === "ar";
   const [show, setShow] = useState(false);
 
   useEffect(() => {
@@ -31,15 +33,15 @@ export default function CookieConsent() {
   if (!show) return null;
 
   return (
-    <div style={{ position:"fixed", left:12, right:12, bottom:12, zIndex:500, maxWidth:520, margin:"0 auto", background:"#111118", border:"1px solid rgba(201,168,76,0.35)", borderRadius:14, padding:"16px 18px", boxShadow:"0 12px 40px rgba(0,0,0,0.55)", fontFamily:"DM Sans, sans-serif" }}>
-      <div style={{ color:"#e8e4dc", fontSize:14, fontWeight:600, marginBottom:6 }}>Cookies</div>
+    <div style={{ position:"fixed", left:12, right:12, bottom:12, zIndex:500, maxWidth:520, margin:"0 auto", background:"#111118", border:"1px solid rgba(99,102,241,0.35)", borderRadius:14, padding:"16px 18px", boxShadow:"0 12px 40px rgba(0,0,0,0.55)", fontFamily:"DM Sans, sans-serif" }}>
+      <div style={{ color:"#e8e4dc", fontSize:14, fontWeight:600, marginBottom:6 }}>{ar ? "ملفات تعريف الارتباط" : "Cookies"}</div>
       <div style={{ color:"#9a9690", fontSize:13, lineHeight:1.7, marginBottom:14 }}>
-        We use essential cookies to keep you signed in. With your permission we also measure how the site is used, so we can improve it. You can change your mind anytime.{" "}
-        <a href="/privacy" style={{ color:"#c9a84c" }}>Privacy Policy</a>
+        {ar ? "نستخدم ملفات ضرورية للحفاظ على تسجيل دخولك. وبموافقتك نقيس أيضًا كيفية استخدام الموقع لتحسينه. يمكنك تغيير قرارك في أي وقت. " : "We use essential cookies to keep you signed in. With your permission we also measure how the site is used, so we can improve it. You can change your mind anytime. "}
+        <a href="/privacy" style={{ color:"var(--brand-primary)" }}>{ar ? "سياسة الخصوصية" : "Privacy Policy"}</a>
       </div>
       <div style={{ display:"flex", gap:10 }}>
-        <button onClick={() => decide(true)} style={{ flex:1, padding:"10px", borderRadius:9, background:"#c9a84c", color:"#000", border:"none", fontWeight:700, fontSize:14, cursor:"pointer", fontFamily:"DM Sans, sans-serif" }}>Accept</button>
-        <button onClick={() => decide(false)} style={{ flex:1, padding:"10px", borderRadius:9, background:"transparent", color:"#9a9690", border:"1px solid rgba(255,255,255,0.18)", fontWeight:600, fontSize:14, cursor:"pointer", fontFamily:"DM Sans, sans-serif" }}>Essential only</button>
+        <button onClick={() => decide(true)} style={{ flex:1, padding:"10px", borderRadius:9, background:"var(--brand-primary)", color:"#fff", border:"none", fontWeight:700, fontSize:14, cursor:"pointer", fontFamily:"inherit" }}>{ar ? "موافقة" : "Accept"}</button>
+        <button onClick={() => decide(false)} style={{ flex:1, padding:"10px", borderRadius:9, background:"transparent", color:"#9a9690", border:"1px solid rgba(255,255,255,0.18)", fontWeight:600, fontSize:14, cursor:"pointer", fontFamily:"inherit" }}>{ar ? "الضرورية فقط" : "Essential only"}</button>
       </div>
     </div>
   );

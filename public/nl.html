@@ -9,6 +9,7 @@
   <link rel="alternate" hreflang="en" href="https://faturapro.app/" />
   <link rel="alternate" hreflang="es" href="https://faturapro.app/es" />
   <link rel="alternate" hreflang="fr" href="https://faturapro.app/fr" />
+  <link rel="alternate" hreflang="ar" href="https://faturapro.app/ar" />
   <link rel="alternate" hreflang="x-default" href="https://faturapro.app/" />
   <meta property="og:title" content="Factuurprogramma met UBL e-facturatie - Fat&#363;ra Pro" />
   <meta property="og:description" content="Facturen, bewerkbare herinneringen, aanbetalingen, creditnota&#039;s en UBL/XML-export. Gratis starten." />
@@ -24,11 +25,11 @@
   <meta name="twitter:image" content="https://faturapro.app/hero-dashboard.png" />
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <meta name="theme-color" content="#c9a84c" />
-  <link rel="icon" href="/fatura-mark.svg" type="image/svg+xml" />
+  <meta name="theme-color" content="#6366F1" />
+  <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
   <link rel="apple-touch-icon" href="/logo192.png" />
   <style>
-    :root { --bg:#08080e; --bg2:#111118; --bg3:#16161d; --gold:#c9a84c; --gold2:#e8c97a; --text:#e8e4dc; --text2:#9a9690; --border:#26262e; }
+    :root { --bg:#08080e; --bg2:#111118; --bg3:#16161d; --gold:#6366F1; --gold2:#7C6CF2; --text:#e8e4dc; --text2:#9a9690; --border:#26262e; }
     * { box-sizing:border-box; margin:0; padding:0; }
     body { background:var(--bg); color:var(--text); font-family:'DM Sans',-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif; line-height:1.7; -webkit-font-smoothing:antialiased; }
     .container { max-width:1120px; margin:0 auto; padding:0 24px; }
@@ -70,6 +71,7 @@
     .plan-name { font-size:12px; letter-spacing:1.6px; text-transform:uppercase; color:var(--gold); margin-bottom:10px; }
     .plan-price { font-family:Georgia,serif; font-size:40px; margin-bottom:4px; }
     .plan-price span { font-size:14px; color:var(--text2); font-family:inherit; }
+    .plan-tax-note { color:var(--text2); font-size:12px; font-weight:600; margin-bottom:10px; }
     .plan ul { list-style:none; margin:18px 0 22px; }
     .plan li { font-size:14px; color:var(--text2); padding:6px 0; display:flex; gap:9px; }
     .plan li b { color:var(--gold); font-weight:700; }
@@ -196,6 +198,7 @@
     <div class="plan featured">
       <div class="plan-name">Pro</div>
       <div class="plan-price">&euro;9<span> / maand</span></div>
+      <div class="plan-tax-note">excl. btw</div>
       <ul>
         <li><b>+</b> Onbeperkt facturen en klanten</li>
         <li><b>+</b> Alle valuta</li>
@@ -212,6 +215,7 @@
     <div class="plan">
       <div class="plan-name">Business</div>
       <div class="plan-price">&euro;19<span> / maand</span></div>
+      <div class="plan-tax-note">excl. btw</div>
       <ul>
         <li><b>+</b> Alles uit Pro</li>
         <li><b>+</b> Offertes die factuur worden</li>

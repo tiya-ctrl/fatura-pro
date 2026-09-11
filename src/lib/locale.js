@@ -1,21 +1,37 @@
-const SUPPORTED = ["en", "es", "fr", "nl"];
+export const SUPPORTED_LOCALES = ["en", "nl", "fr", "ar"];
+const LEGACY_LOCALES = ["es"];
+const SUPPORTED = [...SUPPORTED_LOCALES, ...LEGACY_LOCALES];
+
+export function syncDocumentLocale(locale) {
+  if (typeof document === "undefined") return;
+  const next = SUPPORTED.includes(locale) ? locale : "en";
+  document.documentElement.setAttribute("lang", next);
+  document.documentElement.setAttribute("dir", next === "ar" ? "rtl" : "ltr");
+}
 
 export function getLocale() {
   if (typeof window === "undefined") return "en";
   const requested = new URLSearchParams(window.location.search).get("lang");
   if (SUPPORTED.includes(requested)) {
     localStorage.setItem("fatura_locale", requested);
+    syncDocumentLocale(requested);
     return requested;
   }
   const saved = localStorage.getItem("fatura_locale");
-  return SUPPORTED.includes(saved) ? saved : "en";
+  const next = SUPPORTED.includes(saved) ? saved : "en";
+  syncDocumentLocale(next);
+  return next;
 }
 
 export function setLocale(locale) {
   const next = SUPPORTED.includes(locale) ? locale : "en";
   localStorage.setItem("fatura_locale", next);
-  document.documentElement.setAttribute("lang", next);
+  syncDocumentLocale(next);
   return next;
+}
+
+export function isRTL(locale = getLocale()) {
+  return locale === "ar";
 }
 
 export function localeHome(locale = getLocale()) {
@@ -23,6 +39,44 @@ export function localeHome(locale = getLocale()) {
 }
 
 const COPY = {
+  ar: {
+    sign_in_account:"سجّل الدخول إلى حسابك", create_free_account:"أنشئ حسابك المجاني",
+    sign_in:"تسجيل الدخول", sign_up:"إنشاء حساب", full_name:"الاسم الكامل", email_address:"البريد الإلكتروني",
+    password:"كلمة المرور", confirm_password:"تأكيد كلمة المرور", forgot_password:"نسيت كلمة المرور؟",
+    min_characters:"6 أحرف على الأقل", your_password:"كلمة المرور", repeat_password:"أعد كتابة كلمة المرور",
+    processing:"جارٍ التنفيذ…", create_account:"إنشاء الحساب", continue_with:"أو المتابعة باستخدام",
+    no_account:"ليس لديك حساب؟", sign_up_free:"أنشئ حسابًا مجانًا", have_account:"لديك حساب بالفعل؟",
+    welcome_back:"مرحبًا بعودتك!", account_created:"تم إنشاء الحساب!", opening_dashboard:"جارٍ فتح لوحة التحكم…",
+    back_home:"العودة إلى الرئيسية", name_required:"الاسم مطلوب", valid_email:"أدخل بريدًا إلكترونيًا صحيحًا",
+    password_min:"يجب ألا تقل كلمة المرور عن 6 أحرف", password_mismatch:"كلمتا المرور غير متطابقتين",
+    enter_email_first:"أدخل بريدك الإلكتروني أولًا", reset_sent:"أرسلنا رسالة إعادة تعيين كلمة المرور.",
+    main:"الرئيسية", dashboard:"لوحة التحكم", invoices:"الفواتير", quotes:"عروض الأسعار", expenses:"المصروفات", analytics:"التحليلات", clients:"العملاء", settings:"الإعدادات",
+    signed_in_as:"مسجّل الدخول باسم", sign_out:"تسجيل الخروج", business_plan:"خطة BUSINESS", pro_plan:"خطة PRO", team_member:"عضو فريق",
+    free_plan:"الخطة المجانية", upgrade_pro:"الترقية إلى Pro", export_csv:"تصدير CSV", new_invoice:"فاتورة جديدة", add_client:"إضافة عميل",
+    business_feature:"ميزة ضمن خطة Business", language:"لغة التطبيق", language_help:"اختر لغة تسجيل الدخول والتنقل داخل التطبيق.",
+    business_profile:"ملف النشاط التجاري", business_name:"اسم النشاط التجاري", country:"البلد", address:"العنوان", save_changes:"حفظ التغييرات", saving:"جارٍ الحفظ…", saved:"تم الحفظ",
+    vat_report:"تقرير ضريبة القيمة المضافة", revenue_excl:"الإيرادات دون الضريبة", vat_collected:"الضريبة المحصّلة", vat_paid:"الضريبة المدفوعة", vat_pay:"الضريبة المستحقة", vat_reclaim:"الضريبة القابلة للاسترداد",
+    on_sales:"على المبيعات", expense_count:"مصروفات", add_expense:"إضافة مصروف", export_quarter:"تصدير CSV", no_expenses:"لا توجد مصروفات بعد. سجّل تكاليف نشاطك هنا لتظهر الضريبة المدفوعة تلقائيًا في التقرير.",
+    edit:"تعديل", delete:"حذف", new_expense:"مصروف جديد", edit_expense:"تعديل المصروف", description:"الوصف", category:"الفئة", supplier:"المورّد (اختياري)",
+    date:"التاريخ", currency:"العملة", amount_excl:"المبلغ دون الضريبة", vat_rate:"نسبة الضريبة", total_incl:"الإجمالي شامل الضريبة", cancel:"إلغاء", add:"إضافة المصروف", save:"حفظ التغييرات",
+    first_payment:"أهلًا بك في FaturaPro 👋", create_paid_invoice:"لننشئ فاتورتك الأولى.", guided_invoice_intro:"لن يستغرق الأمر سوى دقائق. أضف البيانات الأساسية، راجع المستند النهائي، واحفظ بيانات نشاطك والعميل ضمن الخطوات نفسها.",
+    create_first_invoice:"إنشاء فاتورتي الأولى ←", add_business_details:"إضافة بيانات النشاط", ready_to_invoice:"أنت جاهز للفوترة", any_order_steps:"ثلاث خطوات بسيطة يمكنك إكمالها بأي ترتيب.",
+    business_details:"بيانات النشاط التجاري", saved_reuse:"محفوظة وجاهزة لإعادة الاستخدام", add_vat_details:"أضف الاسم والعنوان وبيانات الضريبة", first_client:"العميل الأول", client_saved:"محفوظ لاستخدامه في الفواتير القادمة", save_reuse_invoice:"احفظ بياناته مرة واستخدمها في كل فاتورة", create_preview:"إنشاء ومعاينة", review_total:"راجع الإجمالي قبل الإرسال أو التنزيل",
+    welcome_user:"مرحبًا بعودتك", keep_moving:"تابع فواتيرك ومدفوعاتك بوضوح.", all_current:"كل شيء محدّث. أنشئ فاتورتك التالية بينما تفاصيل العمل ما زالت حاضرة.", view_invoices:"عرض الفواتير", collected:"تم تحصيله", awaiting_payment:"بانتظار الدفع", overdue:"متأخر", needs_attention:"يحتاج متابعة", documents:"المستندات", recent_invoices:"أحدث الفواتير", view_all:"عرض الكل ←",
+    invoice:"فاتورة", client:"العميل", amount:"المبلغ", due_date:"تاريخ الاستحقاق", status:"الحالة", actions:"الإجراءات", preview:"معاينة", payment:"الدفع", remind:"تذكير", none_month:"لم تتم إضافة شيء هذا الشهر", this_month:"هذا الشهر", paid_invoices:"فواتير مدفوعة", open_invoices:"فواتير مفتوحة",
+    from:"من", to:"إلى", items:"البنود", notes:"ملاحظات", edit_invoice:"تعديل الفاتورة", invoice_number:"رقم الفاتورة", seller_logo:"شعار النشاط / البائع", from_business:"النشاط المُصدر", select_profile:"اختر ملف نشاط…", seller_name:"اسم النشاط / البائع", phone:"الهاتف", vat_number:"رقم الضريبة", select_client:"اختر عميلًا محفوظًا", enter_manually:"— إدخال يدوي —", client_name:"اسم العميل / الشركة *", invoice_date:"تاريخ الفاتورة *",
+    quantity:"الكمية", price:"السعر", total:"الإجمالي", item_note:"أضف ملاحظة لهذا البند (اختياري)…", add_line:"+ إضافة بند", discount:"الخصم (%)", deposit:"الدفعة المقدّمة (%)", tax:"الضريبة / VAT (%)", subtotal:"المجموع الفرعي", invoice_total:"إجمالي الفاتورة", deposit_due:"الدفعة المطلوبة الآن", remaining:"المتبقي بعد الدفعة المقدّمة", invoice_notes:"ملاحظات الفاتورة", payment_info:"بيانات البنك / الدفع", summary:"الملخص", seller:"البائع", close:"إغلاق", back:"رجوع →", save_draft:"حفظ كمسودة", step:"الخطوة", update_invoice:"تحديث الفاتورة", save_invoice:"حفظ الفاتورة", next:"التالي ←", new_client:"عميل جديد", client_business_name:"اسم العميل / الشركة *", email_optional:"البريد الإلكتروني (اختياري)", phone_optional:"الهاتف (اختياري)", choose_country:"— اختر البلد —", add_client_action:"حفظ العميل", buyer_logo:"شعار العميل (اختياري)", seller_name_required:"أدخل اسم نشاطك أو البائع (الخطوة 1)", client_due_required:"أكمل بيانات العميل وتاريخ الاستحقاق (الخطوة 2)", line_item_required:"أضف وصفًا لبند واحد على الأقل (الخطوة 3)", client_name_required:"أدخل اسم العميل أو الشركة",
+    all:"الكل", paid:"مدفوعة", partial:"مدفوعة جزئيًا", pending:"قيد الانتظار", cancelled:"ملغاة", draft:"مسودات", credit_notes:"إشعارات دائنة", search_invoices:"البحث في الفواتير…", no_invoices:"مرحبًا بك في FaturaPro! أنشئ فاتورتك الأولى للبدء.", view:"عرض",
+    first_invoice_ready:"فاتورتك الأولى جاهزة 🎉", first_invoice_ready_body:"راجع المستند النهائي واحفظه بصيغة PDF أو واصل من لوحة التحكم.", preview_download:"معاينة / حفظ PDF", create_another_invoice:"إنشاء فاتورة أخرى", back_dashboard:"الانتقال إلى لوحة التحكم",
+    invoice_language:"لغة الفاتورة", default_invoice_language:"لغة الفاتورة الافتراضية", invoice_language_help:"تحدد لغة مستند PDF فقط، ويمكن تغييرها داخل كل فاتورة.", invoice_defaults:"إعدادات الفاتورة الافتراضية", default_currency:"العملة الافتراضية", default_tax:"الضريبة الافتراضية (%)", payment_terms:"مهلة الدفع (بالأيام)", invoice_prefix:"بادئة رقم الفاتورة", bank_payment_info:"بيانات البنك / الدفع", save_defaults:"حفظ الإعدادات", your_data:"بياناتك", download_invoices:"تنزيل فواتيري (CSV)",
+    online_payments:"الدفع عبر الإنترنت", connect_stripe_help:"اربط حساب Stripe ليتمكن العملاء من دفع الفواتير عبر الإنترنت. تصل الأموال مباشرة إلى حسابك البنكي.", connect_stripe:"ربط Stripe ←", subscription:"الاشتراك", subscription_help:"بدّل بين Pro وBusiness، وحدّث البطاقة، واعرض الفواتير أو ألغِ الاشتراك في أي وقت.", manage_subscription:"إدارة الاشتراك ←", plan:"الخطة", free_plan_help:"أنت على الخطة المجانية. قم بالترقية للحصول على فواتير غير محدودة وتذكيرات ومزايا إضافية.", upgrade:"ترقية ←", stripe_connected:"تم ربط Stripe! يمكن لعملائك الآن دفع فواتيرك عبر الإنترنت.", stripe_incomplete:"لم يكتمل إعداد Stripe بعد — اضغط على ربط Stripe في الإعدادات للمتابعة.", stripe_start_error:"تعذّر بدء إعداد Stripe", save_business_error:"تعذّر حفظ بيانات نشاطك. حاول مرة أخرى.",
+    data_export_help:"نزّل جميع الفواتير والإشعارات الدائنة في حسابك كملف CSV يمكنك فتحه في Excel أو تسليمه إلى محاسبك. متاح في كل الخطط، وحتى بعد إلغاء الاشتراك.", documents_included:"مستند سيتم تضمينه.", preview_label:"معاينة", invoice_notes_label:"ملاحظات الفاتورة", invoice_notes_placeholder:"شكرًا لتعاملك معنا. يستحق الدفع خلال 30 يومًا.", bank_info_placeholder:"البنك: اسم البنك\nاسم الحساب: اسم نشاطي\nIBAN: NL00 BANK 0000 0000 00\nBIC/Swift: BANKNL2A\n\nأو الدفع عبر:\nWise: yourname@wise.com", type_country:"اكتب اسم البلد",
+    overdue_attention:"فاتورة متأخرة تحتاج إلى متابعتك اليوم.", awaiting_attention:"فاتورة بانتظار الدفع. تابع الفاتورة التالية.", overdue_invoices:"فواتير متأخرة", overdue_total:"الإجمالي", view_overdue:"عرض المتأخرات ←", credited:"مبالغ دائنة", credit_note_count:"إشعار دائن", credit_note:"إشعار دائن", amount_left:"متبقٍ", create_credit:"إنشاء إشعار دائن لهذه الفاتورة", record_payment:"تسجيل دفعة مستلمة", make_recurring:"تحويل إلى فاتورة متكررة", marked_paid:"مدفوعة", unsaved_draft:"تنبيه: مسودة غير محفوظة", draft_auto_saved:"حُفظت فاتورتك تلقائيًا عند إغلاقها.", discard:"تجاهل", continue_draft:"متابعة المسودة", restored_draft:"تمت استعادة المسودة", restored_draft_help:"هل تريد المتابعة من حيث توقفت؟", restored_edits:"تمت استعادة تعديلات غير محفوظة", restored_edits_help:"لديك تعديلات غير محفوظة على هذه الفاتورة. هل تريد المتابعة من حيث توقفت؟", continue_action:"متابعة", by:"بواسطة", reminders_sent:"تذكيرات مُرسلة", due_label:"الاستحقاق", no_clients:"لا يوجد عملاء بعد — أضف عميلك الأول للبدء.", add_first_client:"إضافة أول عميل", invoice_count:"فواتير", total_billed:"إجمالي المفوتر", delete_client_confirm:"هل تريد حذف هذا العميل؟",
+    logo:"الشعار", change_logo:"تغيير الشعار", upload_logo:"رفع الشعار", remove:"إزالة", logo_size:"حجم الشعار", small:"صغير", large:"كبير", logo_hint:"PNG أو JPG — يُفضّل استخدام خلفية شفافة", other:"أخرى…", country_code_placeholder:"البلد أو رمز من حرفين (مثل JP)", client_country_placeholder:"بلد العميل أو الرمز (مثل JP)", line_items_count:"بنود", shown_invoice_bottom:"تظهر في أسفل الفاتورة", bank_details_hint:"بيانات البنك أو Wise أو PayPal أو أي تعليمات دفع", total_due:"المبلغ المستحق", payment_reminder:"تذكير بالدفع", send_via:"الإرسال عبر", reminder_language:"اللغة", tone:"النبرة", polite:"ودّية", polite_help:"تذكير أول لطيف", firm:"حازمة", firm_help:"متابعة مهنية", final:"أخيرة", final_help:"إشعار أخير قبل اتخاذ إجراء", subject:"الموضوع", edit_before_send:"يمكنك تعديل الرسالة قبل الإرسال", done:"تم!", copy:"نسخ", open_mail:"فتح البريد", open_whatsapp:"فتح WhatsApp", missing_client_email:"لا يوجد بريد إلكتروني محفوظ لهذا العميل. أضفه إلى الفاتورة أو أرسل التذكير عبر WhatsApp.", days_overdue:"يومًا متأخرة",
+    success:"تم بنجاح", welcome_pro:"مرحبًا بك في Pro!", upgraded_help:"تمت ترقية حسابك وأصبحت جميع مزايا Pro متاحة.", start_using_pro:"ابدأ استخدام Pro ←", unlock:"فتح", secure_stripe:"دفع آمن عبر Stripe", tls_encrypted:"اتصال مشفّر عبر TLS", cancel_anytime:"إلغاء في أي وقت", receipt_email:"إيصال إلى البريد الإلكتروني", more_features:"مزايا إضافية", connecting_stripe:"جارٍ الاتصال بـStripe...", upgrade_to:"الترقية إلى", no_commitment:"دون التزام · إلغاء في أي وقت · دفع آمن عبر Stripe", maybe_later:"ربما لاحقًا", per_month:"/شهر",
+    invoice_save_error:"تعذّر حفظ هذه الفاتورة.", credit_confirm:"إنشاء إشعار دائن للفاتورة", credit_confirm_help:"سيكون مستندًا مستقلًا بمبلغ سالب يلغي أثر الفاتورة، بينما تبقى الفاتورة نفسها دون تغيير.", credit_exists:"ملاحظة: يوجد لهذه الفاتورة إشعار دائن بالفعل", credit_create_error:"تعذّر إنشاء الإشعار الدائن.", fully_paid:"هذه الفاتورة مدفوعة بالكامل بالفعل.", record_for:"تسجيل دفعة للفاتورة", invoice_total_prompt:"إجمالي الفاتورة", received_so_far:"المستلم حتى الآن", balance:"الرصيد", amount_received_now:"المبلغ المستلم الآن", positive_amount:"أدخل مبلغًا أكبر من صفر.", payment_save_error:"تعذّر حفظ الدفعة.", client_save_error:"تعذّر حفظ هذا العميل.", ubl_missing:"هذا المستند تنقصه البيانات التالية:", ubl_warning:"سيتم تنزيل الملف، لكن قد يرفضه نظام صارم لدى المستلم.", download_anyway:"هل تريد التنزيل على أي حال؟", recurring_prompt:"تكرار هذه الفاتورة:\n\n1 = أسبوعيًا\n2 = كل أسبوعين\n3 = شهريًا\n4 = سنويًا\n\nاكتب رقمًا:", recurring_active:"تم تفعيل التكرار", next_invoice:"الفاتورة التالية", recurring_manage:"يمكنك إدارتها من الإعدادات ← الفواتير المتكررة.", ambassador_requests:"طلبات السفراء", team_quotes_info:"فريق وعروض أسعار وضريبة ومزايا أخرى", team_shared_info:"مساحة عمل مشتركة للفريق", unlimited_info:"فواتير وعملاء غير محدودين",
+    how_found:"كيف عرفت FaturaPro؟", how_found_help:"اختياري — يساعدنا على فهم القنوات المفيدة لأصحاب المشاريع.", choose_source:"اختر إجابة…", source_instagram:"Instagram", source_tiktok:"TikTok", source_facebook:"Facebook", source_google:"Google", source_accountant:"محاسب / شريك", source_friend:"صديق أو معرفة", source_qr:"رمز QR / منشور", source_other:"أخرى", thanks_feedback:"شكرًا لمشاركتنا.",
+  },
   es: {
     sign_in_account:"Inicia sesión en tu cuenta", create_free_account:"Crea tu cuenta gratis",
     sign_in:"Iniciar sesión", sign_up:"Registrarse", full_name:"Nombre completo", email_address:"Correo electrónico",

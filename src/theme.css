@@ -1,0 +1,37 @@
+:root {
+  --brand-primary: #6366f1;
+  --brand-highlight: #7c6cf2;
+  --brand-primary-rgb: 99, 102, 241;
+  --brand-highlight-rgb: 124, 108, 242;
+  /* Backwards-compatible aliases used by the existing component styles. */
+  --gold: var(--brand-primary);
+  --gold-light: var(--brand-highlight);
+  --gold-l: var(--brand-highlight);
+  --gold-dim: rgba(var(--brand-primary-rgb), 0.15);
+}
+
+html[dir="rtl"] body {
+  direction: rtl;
+  font-family: "Noto Sans Arabic", "Segoe UI", Tahoma, Arial, sans-serif;
+}
+
+html[dir="rtl"] input[type="email"],
+html[dir="rtl"] input[type="url"],
+html[dir="rtl"] input[type="tel"],
+html[dir="rtl"] [data-direction="ltr"] {
+  direction: ltr;
+  text-align: left;
+  unicode-bidi: isolate;
+}
+
+html[dir="rtl"] input[type="number"],
+html[dir="rtl"] input[type="date"],
+html[dir="rtl"] .money,
+html[dir="rtl"] .document-number {
+  direction: ltr;
+  unicode-bidi: isolate;
+}
+
+html[dir="rtl"] .directional-icon {
+  transform: scaleX(-1);
+}

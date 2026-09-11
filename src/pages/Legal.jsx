@@ -100,12 +100,12 @@ export default function Legal({ page }) {
   return (
     <main style={{ minHeight:"100vh", background:"#08080e", color:"#e8e4dc", fontFamily:"DM Sans, sans-serif" }}>
       <article style={{ maxWidth:760, margin:"0 auto", padding:"60px 24px 90px" }}>
-        <a href="/" style={{ color:"#c9a84c", fontSize:13, textDecoration:"none", display:"inline-block", marginBottom:32 }}>← Back to FaturaPro</a>
+        <a href="/" style={{ color:"#6366F1", fontSize:13, textDecoration:"none", display:"inline-block", marginBottom:32 }}>← Back to FaturaPro</a>
         <h1 style={{ fontFamily:"Playfair Display, Georgia, serif", fontSize:36, margin:"0 0 8px" }}>{content.heading}</h1>
         <p style={{ color:"#9a9690", margin:"0 0 40px" }}>Last updated: September 2026</p>
         {content.sections.map(([title, text]) => (
           <section key={title} style={{ marginBottom:32 }}>
-            <h2 style={{ fontSize:18, color:"#c9a84c", margin:"0 0 10px" }}>{title}</h2>
+            <h2 style={{ fontSize:18, color:"#6366F1", margin:"0 0 10px" }}>{title}</h2>
             <p style={{ lineHeight:1.8, color:"#9a9690", margin:0 }}>{text}</p>
           </section>
         ))}

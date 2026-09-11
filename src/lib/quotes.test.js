@@ -26,6 +26,7 @@ describe("quoteToInvoice", () => {
       notes:"Valid for this project scope.",
       bankInfo:"IBAN NL00 TEST",
       currency:"EUR",
+      documentLanguage:"ar",
       items:[{ desc:"Design", note:"Phase one", qty:2, price:500 }],
     };
 
@@ -51,6 +52,7 @@ describe("quoteToInvoice", () => {
       notes:quote.notes,
       bankInfo:quote.bankInfo,
       currency:"EUR",
+      documentLanguage:"ar",
       items:quote.items,
     });
     expect(invoice.items).toBe(quote.items);

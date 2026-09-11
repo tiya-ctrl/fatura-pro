@@ -16,8 +16,8 @@ body.fatura-topbar-on { padding-top: var(--fatura-topbar-h, 40px); }
 body.fatura-topbar-on nav.topnav { top: var(--fatura-topbar-h, 40px); }
 .fatura-topbar {
   position: fixed; top: 0; left: 0; right: 0; z-index: 300;
-  background: linear-gradient(90deg, #c9a84c 0%, #e8c97a 50%, #c9a84c 100%);
-  color: #14110a;
+  background: linear-gradient(90deg, #6366F1 0%, #7C6CF2 50%, #6366F1 100%);
+  color: #fff;
   font-family: 'DM Sans', sans-serif;
   display: flex; align-items: center; justify-content: center; gap: 10px;
   padding: 10px 44px 10px 16px;
@@ -26,16 +26,16 @@ body.fatura-topbar-on nav.topnav { top: var(--fatura-topbar-h, 40px); }
   box-shadow: 0 2px 14px rgba(0,0,0,0.35);
 }
 .fatura-topbar a.fatura-topbar-link {
-  color: #14110a; text-decoration: none; display: inline-flex; align-items: center; gap: 8px;
+  color: #fff; text-decoration: none; display: inline-flex; align-items: center; gap: 8px;
 }
 .fatura-topbar a.fatura-topbar-link u { text-underline-offset: 3px; }
 .fatura-topbar-tag {
-  background: #14110a; color: #e8c97a; border-radius: 5px;
+  background: #111118; color: #c7d2fe; border-radius: 5px;
   padding: 2px 7px; font-size: 11px; font-weight: 700; letter-spacing: 0.6px; text-transform: uppercase;
 }
 .fatura-topbar-x {
   position: absolute; right: 10px; top: 50%; transform: translateY(-50%);
-  background: transparent; border: none; color: #14110a; opacity: 0.55;
+  background: transparent; border: none; color: #fff; opacity: 0.72;
   font-size: 17px; line-height: 1; cursor: pointer; padding: 6px;
 }
 .fatura-topbar-x:hover { opacity: 1; }

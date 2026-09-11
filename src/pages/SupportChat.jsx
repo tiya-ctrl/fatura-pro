@@ -3,6 +3,7 @@
 // knowledge and a warmer, more human tone: these are paying customers who
 // want to get something done, not visitors deciding whether to buy.
 import React, { useState, useRef, useEffect } from "react";
+import { getLocale } from "../lib/locale";
 
 // --- change these two lines to rename or re-model the assistant -------------
 const NAME = "Edy";
@@ -120,10 +121,13 @@ const richText = (text) =>
   );
 
 export default function SupportChat({ userEmail, plan }) {
+  const ar = getLocale() === "ar";
   const firstName = (userEmail || "").split("@")[0].split(/[._-]/)[0];
-  const hello = firstName
-    ? `Hi ${firstName.charAt(0).toUpperCase() + firstName.slice(1)} - I'm ${NAME}. What can I help you with?`
-    : `Hi, I'm ${NAME}. What can I help you with?`;
+  const hello = ar
+    ? `مرحبًا${firstName ? ` ${firstName}` : ""}، أنا ${NAME}. كيف يمكنني مساعدتك؟`
+    : firstName
+      ? `Hi ${firstName.charAt(0).toUpperCase() + firstName.slice(1)} - I'm ${NAME}. What can I help you with?`
+      : `Hi, I'm ${NAME}. What can I help you with?`;
 
   const [open, setOpen] = useState(false);
   const [msgs, setMsgs] = useState([{ role: "bot", text: hello, time: timeStr() }]);
@@ -157,30 +161,32 @@ export default function SupportChat({ userEmail, plan }) {
       });
       const data = await res.json();
       const reply = data.content?.[0]?.text
-        || "I couldn't reach the server just then. Try once more, or email support@faturapro.app.";
+        || (ar ? "تعذّر الاتصال بالخادم الآن. حاول مرة أخرى أو راسل support@faturapro.app." : "I couldn't reach the server just then. Try once more, or email support@faturapro.app.");
       setMsgs((m) => [...m, { role: "bot", text: reply, time: timeStr() }]);
     } catch {
-      setMsgs((m) => [...m, { role: "bot", text: "I couldn't reach the server just then. Try once more, or email support@faturapro.app.", time: timeStr() }]);
+      setMsgs((m) => [...m, { role: "bot", text: ar ? "تعذّر الاتصال بالخادم الآن. حاول مرة أخرى أو راسل support@faturapro.app." : "I couldn't reach the server just then. Try once more, or email support@faturapro.app.", time: timeStr() }]);
     } finally {
       setLoading(false);
     }
   };
 
-  const QUICK = ["How do I make a credit note?", "How do I export a UBL file?", "How do I record a deposit?"];
+  const QUICK = ar
+    ? ["كيف أنشئ إشعارًا دائنًا؟", "كيف أصدّر ملف UBL؟", "كيف أسجّل دفعة مقدّمة؟"]
+    : ["How do I make a credit note?", "How do I export a UBL file?", "How do I record a deposit?"];
 
   return (
     <>
       <button
         onClick={() => setOpen((o) => !o)}
-        title={"Ask " + NAME}
-        style={{ position:"fixed", bottom:20, right:20, zIndex:9998, width:56, height:56, borderRadius:"50%",
+        title={ar ? `اسأل ${NAME}` : "Ask " + NAME}
+        style={{ position:"fixed", bottom:20, right:ar ? "auto" : 20, left:ar ? 20 : "auto", zIndex:9998, width:56, height:56, borderRadius:"50%",
           background:"var(--gold)", color:"#000", border:"none", cursor:"pointer", fontSize:22, fontWeight:700,
           boxShadow:"0 6px 22px rgba(0,0,0,0.45)" }}>
         {open ? "\u00d7" : "\u2709"}
       </button>
 
       {open && (
-        <div style={{ position:"fixed", bottom:86, right:20, zIndex:9998, width:"min(370px, calc(100vw - 40px))",
+        <div dir={ar ? "rtl" : "ltr"} lang={ar ? "ar" : undefined} style={{ position:"fixed", bottom:86, right:ar ? "auto" : 20, left:ar ? 20 : "auto", zIndex:9998, width:"min(370px, calc(100vw - 40px))",
           height:"min(520px, calc(100vh - 130px))", background:"var(--bg2)", border:"1px solid var(--border)",
           borderRadius:16, display:"flex", flexDirection:"column", overflow:"hidden",
           boxShadow:"0 18px 50px rgba(0,0,0,0.55)" }}>
@@ -190,7 +196,7 @@ export default function SupportChat({ userEmail, plan }) {
               display:"flex", alignItems:"center", justifyContent:"center", fontWeight:800 }}>{NAME.charAt(0)}</div>
             <div>
               <div style={{ fontWeight:700, fontSize:14 }}>{NAME}</div>
-              <div style={{ fontSize:11, color:"var(--text2)" }}>Fat&#363;ra Pro support</div>
+              <div style={{ fontSize:11, color:"var(--text2)" }}>{ar ? "دعم Fatūra Pro" : "Fatūra Pro support"}</div>
             </div>
           </div>
 
@@ -211,7 +217,7 @@ export default function SupportChat({ userEmail, plan }) {
                   textAlign: m.role === "user" ? "right" : "left" }}>{m.time}</div>
               </div>
             ))}
-            {loading && <div style={{ fontSize:13, color:"var(--text2)" }}>{NAME} is typing&hellip;</div>}
+            {loading && <div style={{ fontSize:13, color:"var(--text2)" }}>{ar ? `${NAME} يكتب…` : <>{NAME} is typing&hellip;</>}</div>}
             {msgs.length === 1 && !loading && (
               <div style={{ display:"flex", flexWrap:"wrap", gap:6, marginTop:4 }}>
                 {QUICK.map((q) => (
@@ -227,13 +233,13 @@ export default function SupportChat({ userEmail, plan }) {
           <div style={{ borderTop:"1px solid var(--border)", padding:10, display:"flex", gap:8 }}>
             <input ref={inputRef} value={input} onChange={(e) => setInput(e.target.value)}
               onKeyDown={(e) => { if (e.key === "Enter") send(input); }}
-              placeholder="Ask anything about Fat&#363;ra Pro"
+              placeholder={ar ? "اسأل عن أي شيء يخص Fatūra Pro" : "Ask anything about Fatūra Pro"}
               style={{ flex:1, background:"var(--bg)", border:"1px solid var(--border)", borderRadius:10,
                 padding:"9px 12px", color:"var(--text)", fontSize:14, outline:"none" }} />
             <button onClick={() => send(input)} disabled={loading || !input.trim()}
               style={{ background:"var(--gold)", color:"#000", border:"none", borderRadius:10, padding:"0 15px",
                 fontWeight:700, cursor: loading || !input.trim() ? "default" : "pointer", opacity: loading || !input.trim() ? 0.5 : 1 }}>
-              &rarr;
+              {ar ? "←" : "→"}
             </button>
           </div>
         </div>

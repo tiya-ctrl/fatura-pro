@@ -46,7 +46,7 @@ export default async function handler(req, res) {
         to: user.email,
         subject: "Your Fatūra Pro trial ends tomorrow",
         html: `<div style="font-family:sans-serif;max-width:500px;margin:0 auto;padding:32px">
-          <h2 style="color:#c9a84c">Your Pro trial ends tomorrow ⚡</h2>
+          <h2 style="color:#6366F1">Your Pro trial ends tomorrow ⚡</h2>
           <p>Hi there,</p>
           <p>Your 7-day free Pro trial on <strong>Fatūra Pro</strong> expires tomorrow.</p>
           <p>Don't lose access to:</p>
@@ -57,7 +57,7 @@ export default async function handler(req, res) {
             <li>Multi-currency support</li>
           </ul>
           <p style="margin:24px 0">
-            <a href="https://buy.stripe.com/fZu4gzepGdT05Gx48j5ZC00" style="background:#c9a84c;color:#000;padding:12px 24px;border-radius:8px;text-decoration:none;font-weight:600">
+            <a href="https://buy.stripe.com/fZu4gzepGdT05Gx48j5ZC00" style="background:#6366F1;color:#000;padding:12px 24px;border-radius:8px;text-decoration:none;font-weight:600">
               Continue with Pro — €9/month →
             </a>
           </p>

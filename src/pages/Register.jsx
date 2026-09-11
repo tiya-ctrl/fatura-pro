@@ -1,4 +1,5 @@
 import { useEffect } from "react";
+import { getLocale } from "../lib/locale";
 
 // /register is kept only as an entry point used by the static marketing pages.
 // It sends visitors straight to the real sign-up screen.
@@ -13,7 +14,7 @@ export default function Register() {
     <div style={{ minHeight: "100vh", background: "#08080e", color: "#9a9690",
       display: "flex", alignItems: "center", justifyContent: "center",
       fontFamily: "DM Sans, sans-serif", fontSize: 14 }}>
-      One moment...
+      {getLocale() === "ar" ? "لحظة من فضلك…" : "One moment..."}
     </div>
   );
 }

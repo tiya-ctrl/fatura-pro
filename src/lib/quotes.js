@@ -73,7 +73,7 @@ export function quoteToInvoice(quote, invoiceId, { paymentTerms = 30 } = {}) {
     due: dueDate.toISOString().split("T")[0], status: "pending",
     amount: quote.total, subtotal: quote.subtotal, discountAmt: quote.discountAmt, taxAmt: quote.taxAmt, total: quote.total,
     tax: quote.tax, discount: quote.discount, notes: quote.notes, bankInfo: quote.bankInfo,
-    currency: quote.currency, items: quote.items,
+    currency: quote.currency, documentLanguage: quote.documentLanguage || "en", items: quote.items,
   };
 }
 

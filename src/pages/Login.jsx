@@ -2,6 +2,7 @@ import { useState, useEffect, useRef } from "react";
 import { signIn, signUp, loginWithGoogle } from "../auth";
 import { trackEvent } from "../lib/tracking";
 import { getLocale, localeHome, setLocale, tr } from "../lib/locale";
+import { attributionEventProperties } from "../lib/attribution";
 
 /* ─── CSS ─────────────────────────────────────────────── */
 const FONTS = `@import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700&family=DM+Sans:wght@300;400;500;600&display=swap');`;
@@ -14,9 +15,9 @@ const CSS = `
 * { box-sizing:border-box; margin:0; padding:0; }
 body { font-family:'DM Sans',sans-serif; background:#08080e; color:#e8e4dc; }
 :root {
-  --gold:#c9a84c; --gold-l:#e8c97a; --gold-dim:rgba(201,168,76,0.13);
+  --gold:var(--brand-primary, #6366F1); --gold-l:var(--brand-highlight, #7C6CF2); --gold-dim:rgba(var(--brand-primary-rgb, 99,102,241),0.13);
   --bg:#08080e; --bg2:#0f0f17; --bg3:#16161f; --bg4:#1c1c27;
-  --border:rgba(201,168,76,0.16); --border2:rgba(255,255,255,0.07);
+  --border:rgba(99,102,241,0.16); --border2:rgba(255,255,255,0.07);
   --text:#e8e4dc; --text2:#9a9690; --text3:#5a5750;
   --green:#4caf89; --red:#e05555;
 }
@@ -28,7 +29,7 @@ body { font-family:'DM Sans',sans-serif; background:#08080e; color:#e8e4dc; }
 .login-bg-glow {
   position:absolute; top:50%; left:50%; transform:translate(-50%,-50%);
   width:600px; height:600px; border-radius:50%;
-  background:radial-gradient(ellipse, rgba(201,168,76,0.07) 0%, transparent 70%);
+  background:radial-gradient(ellipse, rgba(99,102,241,0.07) 0%, transparent 70%);
   pointer-events:none;
 }
 
@@ -91,7 +92,7 @@ body { font-family:'DM Sans',sans-serif; background:#08080e; color:#e8e4dc; }
   font-family:'DM Sans',sans-serif; margin-top:6px; transition:all 0.2s;
   display:flex; align-items:center; justify-content:center; gap:8px;
 }
-.login-btn:hover { background:var(--gold-l); transform:translateY(-1px); box-shadow:0 6px 20px rgba(201,168,76,0.35); }
+.login-btn:hover { background:var(--gold-l); transform:translateY(-1px); box-shadow:0 6px 20px rgba(99,102,241,0.35); }
 .login-btn:disabled { opacity:0.6; cursor:not-allowed; transform:none; }
 .login-divider { display:flex; align-items:center; gap:12px; margin:18px 0; }
 .login-divider-line { flex:1; height:1px; background:var(--border2); }
@@ -131,7 +132,7 @@ export default function LoginPage({ onLogin, onBack, returnTo = "/app" }) {
       setMode("signup");
       if (!signupStartTracked.current) {
         signupStartTracked.current = true;
-        trackEvent("signup_started", { method:"email", source:signupSource });
+        trackEvent("signup_started", { method:"email", source:signupSource, ...attributionEventProperties() });
       }
     }
     const inv = sp.get("invited");
@@ -177,7 +178,7 @@ export default function LoginPage({ onLogin, onBack, returnTo = "/app" }) {
       setTimeout(() => onLogin(res.user), 1200);
     } else {
       const res = await signUp(form.email, form.password);
-      trackEvent("signup_completed", { method:"email", source:signupSource });
+      trackEvent("signup_completed", { method:"email", source:signupSource, ...attributionEventProperties() });
       setSuccess(true);
       setTimeout(() => onLogin(res.user), 1200);
     }
@@ -193,7 +194,7 @@ export default function LoginPage({ onLogin, onBack, returnTo = "/app" }) {
     setMode(m);
     if (m === "signup" && !signupStartTracked.current) {
       signupStartTracked.current = true;
-      trackEvent("signup_started", { method:"email", source:signupSource });
+      trackEvent("signup_started", { method:"email", source:signupSource, ...attributionEventProperties() });
     }
     setErrors({});
     setForm({ name:"", email:"", password:"", confirm:"" });
@@ -236,7 +237,7 @@ export default function LoginPage({ onLogin, onBack, returnTo = "/app" }) {
         </div>
 
         <div style={{ display:"flex", justifyContent:"center", gap:12, marginTop:-20, marginBottom:18, fontSize:12 }}>
-          {["en","es","fr"].map(code => <button key={code} onClick={() => { setLocale(code); const params = new URLSearchParams(window.location.search); params.set("lang", code); window.location.search = params.toString(); }} style={{ border:0, background:"none", color:locale===code?"var(--gold)":"var(--text3)", fontWeight:locale===code?700:500, cursor:"pointer" }}>{code.toUpperCase()}</button>)}
+          {["en","nl","fr","ar"].map(code => <button key={code} onClick={() => { setLocale(code); const params = new URLSearchParams(window.location.search); params.set("lang", code); window.location.search = params.toString(); }} style={{ border:0, background:"none", color:locale===code?"var(--gold)":"var(--text3)", fontWeight:locale===code?700:500, cursor:"pointer" }}>{code.toUpperCase()}</button>)}
         </div>
 
         {/* Badge */}
@@ -337,7 +338,7 @@ export default function LoginPage({ onLogin, onBack, returnTo = "/app" }) {
       try {
         setLoading(true);
         const res = await loginWithGoogle(returnTo);
-        if (mode === "signup") trackEvent("signup_completed", { method:"google", source:signupSource });
+        if (mode === "signup") trackEvent("signup_completed", { method:"google", source:signupSource, ...attributionEventProperties() });
         setSuccess(true);
         setTimeout(() => onLogin(res.user), 1200);
       } catch (err) {
@@ -351,7 +352,7 @@ export default function LoginPage({ onLogin, onBack, returnTo = "/app" }) {
 </div>
 
 
-  
+
 
         {/* Switch mode */}
         <div className="login-footer-text">

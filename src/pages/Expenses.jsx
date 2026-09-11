@@ -39,7 +39,7 @@ export default function Expenses({ expenses, setExpenses, invoices, userId }) {
   };
 
   const handleDelete = async (e) => {
-    if (!window.confirm("Delete expense \"" + e.description + "\"?")) return;
+    if (!window.confirm(locale === "ar" ? "حذف المصروف «" + e.description + "»؟" : "Delete expense \"" + e.description + "\"?")) return;
     await deleteExpense(e.id, userId);
     refresh();
   };
@@ -116,7 +116,7 @@ export default function Expenses({ expenses, setExpenses, invoices, userId }) {
           onSave={async (e) => {
             const creating = editing === "new";
             const saved = await saveExpense(e, userId);
-            if (!saved) { window.alert("Could not save this expense. Please try again."); return; }
+            if (!saved) { window.alert(locale === "ar" ? "تعذر حفظ المصروف. حاول مرة أخرى." : "Could not save this expense. Please try again."); return; }
             trackEvent(creating ? "expense_created" : "expense_updated", { currency:e.currency || "EUR", category:e.category || "other", vat_rate:Number(e.vat_rate) || 0 });
             if (creating) recordActivationEvent("expense_created", {
               metadata:{ currency:e.currency || "EUR", is_first_expense:expenses.length === 0 },
@@ -145,8 +145,8 @@ function ExpenseModal({ expense, onClose, onSave, defaultCurrency, locale }) {
   const incl = excl + vatAmount;
 
   const save = () => {
-    if (!form.description.trim()) { alert("Description is required"); return; }
-    if (!excl) { alert("Amount is required"); return; }
+    if (!form.description.trim()) { alert(locale === "ar" ? "الوصف مطلوب" : "Description is required"); return; }
+    if (!excl) { alert(locale === "ar" ? "المبلغ مطلوب" : "Amount is required"); return; }
     onSave({ ...form, amount_excl: excl, vat_amount: vatAmount, amount_incl: incl });
   };
 
@@ -165,7 +165,7 @@ function ExpenseModal({ expense, onClose, onSave, defaultCurrency, locale }) {
             <label style={{ fontSize:12 }}>{t("currency", "Currency")}<select value={form.currency} onChange={(e) => set("currency", e.target.value)}>{CURRENCIES.map(g => (<optgroup key={g.group} label={g.group}>{g.items.map(c => <option key={c.value} value={c.value}>{c.label}</option>)}</optgroup>))}</select></label>
             <label style={{ fontSize:12 }}>{t("category", "Category")}
               <select value={form.category} onChange={(e) => set("category", e.target.value)}>
-                {CATEGORIES.map(c => <option key={c} value={c}>{c}</option>)}
+                {CATEGORIES.map(c => <option key={c} value={c}>{locale === "ar" ? ({ software:"برمجيات", hardware:"أجهزة", office:"مكتب", travel:"سفر", marketing:"تسويق", services:"خدمات", other:"أخرى" }[c] || c) : c}</option>)}
               </select>
             </label>
           </div>
@@ -174,20 +174,20 @@ function ExpenseModal({ expense, onClose, onSave, defaultCurrency, locale }) {
             <label style={{ fontSize:12 }}>{t("amount_excl", "Amount excl. VAT")} *<input type="number" step="0.01" value={form.amount_excl} onChange={(e) => set("amount_excl", e.target.value)} /></label>
             <label style={{ fontSize:12 }}>{t("vat_rate", "VAT rate")} %
                <select value={[21, 9, 0].includes(Number(form.vat_rate)) ? String(form.vat_rate) : "custom"} onChange={(e) => { if (e.target.value === "custom") set("vat_rate", ""); else set("vat_rate", Number(e.target.value)); }}>
-                <option value="21">21% (NL standard)</option>
-                <option value="9">9% (NL reduced)</option>
-                <option value="0">0% (exempt)</option>
-                <option value="custom">Custom rate…</option>
+                <option value="21">{locale === "ar" ? "21% (المعدل القياسي في هولندا)" : "21% (NL standard)"}</option>
+                <option value="9">{locale === "ar" ? "9% (المعدل المخفّض في هولندا)" : "9% (NL reduced)"}</option>
+                <option value="0">{locale === "ar" ? "0% (معفى)" : "0% (exempt)"}</option>
+                <option value="custom">{locale === "ar" ? "نسبة مخصّصة…" : "Custom rate…"}</option>
               </select>
               {(form.vat_rate === "" || ![21, 9, 0].includes(Number(form.vat_rate))) && (
-                <input type="number" step="0.1" min="0" max="100" placeholder="Enter VAT %" autoFocus value={form.vat_rate} onChange={(e) => set("vat_rate", e.target.value === "" ? "" : Number(e.target.value))} style={{ marginTop: 6 }} />
+                <input type="number" step="0.1" min="0" max="100" placeholder={locale === "ar" ? "أدخل نسبة الضريبة" : "Enter VAT %"} autoFocus value={form.vat_rate} onChange={(e) => set("vat_rate", e.target.value === "" ? "" : Number(e.target.value))} style={{ marginTop: 6 }} />
               )}
             </label>
           </div>
         </div>
 
         <div style={{ textAlign:"right", margin:"14px 0", fontSize:14 }}>
-          VAT: <b>{vatAmount.toFixed(2)}</b> · {t("total_incl", "Total incl.")}: <b>{incl.toFixed(2)} {form.currency}</b>
+          {locale === "ar" ? "الضريبة" : "VAT"}: <b>{vatAmount.toFixed(2)}</b> · {t("total_incl", "Total incl.")}: <b>{incl.toFixed(2)} {form.currency}</b>
         </div>
 
         <div style={{ display:"flex", justifyContent:"flex-end", gap:10 }}>

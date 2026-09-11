@@ -21,6 +21,7 @@ import { recordActivationEvent } from "../lib/activationEvents";
 import { activateReferral, claimStoredReferral } from "../lib/referrals";
 import { fetchAmbassadorAdminAccess } from "../lib/ambassadors";
 import { getLocale, setLocale, tr } from "../lib/locale";
+import { DOCUMENT_LANGUAGES, documentDirection, invoiceCopy, normalizeDocumentLanguage } from "../lib/documentLanguage";
 
 const FONTS = `@import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600;700&family=DM+Sans:wght@300;400;500;600&display=swap');`;
 const INVOICE_ATTRIBUTION_URL = "https://faturapro.app/?utm_source=invoice&utm_medium=footer&utm_campaign=made_with_fatura_pro";
@@ -29,9 +30,9 @@ const STYLES = `
   * { box-sizing: border-box; margin: 0; padding: 0; }
   body { font-family: 'DM Sans', sans-serif; background: #0a0a0f; color: #e8e4dc; -webkit-text-size-adjust: 100%; }
   :root {
-    --gold: #c9a84c; --gold-light: #e8c97a; --gold-dim: rgba(201,168,76,0.15);
+    --gold: var(--brand-primary, #6366F1); --gold-light: var(--brand-highlight, #7C6CF2); --gold-dim: rgba(var(--brand-primary-rgb, 99,102,241),0.15);
     --bg: #0a0a0f; --bg2: #111118; --bg3: #18181f; --bg4: #1f1f28;
-    --border: rgba(201,168,76,0.18); --text: #e8e4dc; --text2: #9e9a94;
+    --border: rgba(99,102,241,0.18); --text: #e8e4dc; --text2: #9e9a94;
     --green: #4caf89; --red: #e05555; --orange: #e09a45;
   }
   .app { display: flex; min-height: 100vh; }
@@ -62,7 +63,7 @@ const STYLES = `
   .nav-item .icon { font-size: 17px; width: 22px; text-align: center; }
   .nav-badge { margin-left: auto; background: var(--gold); color: #000; font-size: 10px; font-weight: 700; border-radius: 10px; padding: 2px 7px; }
   .sidebar-footer { margin-top: auto; padding: 16px 24px; border-top: 1px solid var(--border); }
-  .referral-nav-card { width:100%; display:flex; align-items:center; justify-content:space-between; gap:9px; margin-bottom:11px; padding:10px 12px; border-radius:9px; border:1px solid rgba(201,168,76,.25); background:linear-gradient(120deg,rgba(201,168,76,.14),var(--bg3)); color:var(--text); cursor:pointer; font-family:'DM Sans',sans-serif; font-size:11px; font-weight:700; text-align:left; }
+  .referral-nav-card { width:100%; display:flex; align-items:center; justify-content:space-between; gap:9px; margin-bottom:11px; padding:10px 12px; border-radius:9px; border:1px solid rgba(99,102,241,.25); background:linear-gradient(120deg,rgba(99,102,241,.14),var(--bg3)); color:var(--text); cursor:pointer; font-family:'DM Sans',sans-serif; font-size:11px; font-weight:700; text-align:left; }
   .referral-nav-card:hover { border-color:var(--gold); color:var(--gold); }
   .plan-badge { background: var(--gold-dim); border: 1px solid var(--border); border-radius: 8px; padding: 10px 14px; }
   .plan-name { font-size: 11px; color: var(--gold); font-weight: 600; letter-spacing: 0.5px; }
@@ -82,21 +83,21 @@ const STYLES = `
   .mobile-fab { display: none; position: fixed; bottom: 80px; right: 20px; z-index: 25;
     width: 52px; height: 52px; border-radius: 50%; background: var(--gold); color: #000;
     font-size: 26px; font-weight: 700; border: none; cursor: pointer;
-    box-shadow: 0 4px 20px rgba(201,168,76,0.45); align-items: center; justify-content: center; }
+    box-shadow: 0 4px 20px rgba(99,102,241,0.45); align-items: center; justify-content: center; }
   .btn { padding: 9px 18px; border-radius: 8px; font-size: 13px; font-weight: 600;
     cursor: pointer; border: none; transition: all 0.18s; font-family: 'DM Sans', sans-serif; white-space: nowrap; }
   .btn-primary { background: var(--gold); color: #000; }
-  .btn-primary:hover { background: var(--gold-light); transform: translateY(-1px); box-shadow: 0 4px 16px rgba(201,168,76,0.3); }
+  .btn-primary:hover { background: var(--gold-light); transform: translateY(-1px); box-shadow: 0 4px 16px rgba(99,102,241,0.3); }
   .btn-ghost { background: var(--bg3); color: var(--text); border: 1px solid var(--border); }
   .btn-ghost:hover { background: var(--bg4); border-color: var(--gold); color: var(--gold); }
   .btn-sm { padding: 6px 11px; font-size: 11px; }
   .btn-danger { background: rgba(224,85,85,0.15); color: var(--red); border: 1px solid rgba(224,85,85,0.3); }
   .btn-danger:hover { background: rgba(224,85,85,0.25); }
   .dashboard-command { position: relative; overflow: hidden; display: grid; grid-template-columns: minmax(0, 1fr) auto;
-    align-items: end; gap: 24px; padding: 26px 28px; margin-bottom: 18px; border: 1px solid rgba(201,168,76,0.24);
-    border-radius: 16px; background: linear-gradient(120deg, rgba(201,168,76,0.13), rgba(17,17,24,0.96) 44%, rgba(31,31,40,0.9)); }
+    align-items: end; gap: 24px; padding: 26px 28px; margin-bottom: 18px; border: 1px solid rgba(99,102,241,0.24);
+    border-radius: 16px; background: linear-gradient(120deg, rgba(99,102,241,0.13), rgba(17,17,24,0.96) 44%, rgba(31,31,40,0.9)); }
   .dashboard-command:after { content: ""; position: absolute; width: 210px; height: 210px; border-radius: 50%;
-    right: -70px; top: -120px; border: 1px solid rgba(201,168,76,0.24); box-shadow: 0 0 0 28px rgba(201,168,76,0.035), 0 0 0 58px rgba(201,168,76,0.025); }
+    right: -70px; top: -120px; border: 1px solid rgba(99,102,241,0.24); box-shadow: 0 0 0 28px rgba(99,102,241,0.035), 0 0 0 58px rgba(99,102,241,0.025); }
   .dashboard-command-main, .dashboard-command-actions { position: relative; z-index: 1; }
   .dashboard-kicker { display: flex; align-items: center; gap: 8px; color: var(--gold); font-size: 10px; font-weight: 800;
     letter-spacing: 1.8px; text-transform: uppercase; margin-bottom: 9px; }
@@ -106,9 +107,9 @@ const STYLES = `
   .dashboard-command-actions { display: flex; gap: 8px; flex-wrap: wrap; justify-content: flex-end; }
   .activation-shell { display: grid; grid-template-columns: minmax(0, 1.15fr) minmax(280px, 0.85fr); gap: 16px; max-width: 1040px; margin: 24px auto; }
   .activation-hero { min-height: 390px; padding: clamp(26px, 5vw, 48px); display: flex; flex-direction: column; justify-content: space-between;
-    border: 1px solid rgba(201,168,76,0.28); border-radius: 16px; background: linear-gradient(145deg, rgba(201,168,76,0.15), rgba(17,17,24,0.96) 53%); position: relative; overflow: hidden; }
+    border: 1px solid rgba(99,102,241,0.28); border-radius: 16px; background: linear-gradient(145deg, rgba(99,102,241,0.15), rgba(17,17,24,0.96) 53%); position: relative; overflow: hidden; }
   .activation-hero:after { content: "01"; position: absolute; right: 24px; bottom: -32px; font-family: 'Playfair Display', serif;
-    font-size: 150px; line-height: 1; font-weight: 700; color: rgba(201,168,76,0.055); pointer-events: none; }
+    font-size: 150px; line-height: 1; font-weight: 700; color: rgba(99,102,241,0.055); pointer-events: none; }
   .activation-hero h1 { font-family: 'Playfair Display', serif; font-size: clamp(32px, 5vw, 54px); line-height: 1.02; max-width: 610px; margin: 8px 0 16px; }
   .activation-hero p { color: var(--text2); line-height: 1.75; font-size: 14px; max-width: 570px; }
   .activation-actions { display: flex; flex-wrap: wrap; gap: 9px; margin-top: 28px; position: relative; z-index: 1; }
@@ -126,7 +127,7 @@ const STYLES = `
   .quickstart-step.done { cursor: default; opacity: .76; }
   .quickstart-step.done:hover { border-color: var(--border); background: var(--bg3); transform: none; }
   .quickstart-number { width: 32px; height: 32px; display: flex; align-items: center; justify-content: center; border-radius: 9px;
-    background: rgba(201,168,76,.12); color: var(--gold); border: 1px solid rgba(201,168,76,.24); font-size: 12px; font-weight: 800; }
+    background: rgba(99,102,241,.12); color: var(--gold); border: 1px solid rgba(99,102,241,.24); font-size: 12px; font-weight: 800; }
   .quickstart-step.done .quickstart-number { background: rgba(76,175,137,.12); color: var(--green); border-color: rgba(76,175,137,.28); }
   .quickstart-copy strong { display: block; font-size: 13px; margin-bottom: 2px; }
   .quickstart-copy span { display: block; color: var(--text2); font-size: 11px; line-height: 1.35; }
@@ -146,7 +147,7 @@ const STYLES = `
     text-transform: uppercase; padding: 11px 18px; text-align: left; border-bottom: 1px solid var(--border); white-space: nowrap; }
   td { padding: 13px 18px; font-size: 13px; border-bottom: 1px solid rgba(255,255,255,0.04); }
   tr:last-child td { border-bottom: none; }
-  tr:hover td { background: rgba(201,168,76,0.05); }
+  tr:hover td { background: rgba(99,102,241,0.05); }
   .inv-cards { display: none; flex-direction: column; gap: 10px; }
   .inv-card { background: var(--bg3); border: 1px solid var(--border); border-radius: 12px; padding: 16px; }
   .inv-card-top { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 10px; }
@@ -221,7 +222,7 @@ const STYLES = `
   ::-webkit-scrollbar-track { background: var(--bg); }
   ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
   @keyframes spin { to { transform: rotate(360deg); } }
-  
+
   @media print {
   html, body { background: #fff !important; color: #000 !important; margin: 0; padding: 0; }
   .sidebar, .topbar, .content > *:not(.invoice-preview), .mobile-nav, .mobile-fab { display: none !important; }
@@ -243,9 +244,9 @@ const STYLES = `
   .print-hide { display: none !important; }
   * { box-shadow: none !important; -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; }
 }
-  
+
   @page { size: A4 portrait; margin: 10mm;}
-  
+
   .desktop-only {
      display: inline-flex;
    }
@@ -309,7 +310,6 @@ const STYLES = `
     .preview-table { font-size: 11px; }
     .preview-table th, .preview-table td { padding: 6px 4px; word-break: break-word; }
     .topbar-actions .btn-label { display: none; }
-  }
   .items-header { display: none !important; }
   .item-row-grid {
   grid-template-columns: 1.8fr 50px 70px 70px 50px !important;
@@ -349,7 +349,21 @@ img, video, canvas, svg {
   max-width: 100vw;
   overflow-x: hidden;
 }
-}  
+
+html[dir="rtl"] .sidebar { right:0; left:auto; border-right:0; border-left:1px solid var(--border); }
+html[dir="rtl"] .main { margin-left:0; margin-right:240px; }
+html[dir="rtl"] .nav-badge { margin-left:0; margin-right:auto; }
+html[dir="rtl"] .nav-item,
+html[dir="rtl"] .quickstart-step,
+html[dir="rtl"] .referral-nav-card { text-align:right; }
+html[dir="rtl"] th { text-align:right; }
+html[dir="rtl"] .mobile-fab { right:auto; left:20px; }
+html[dir="rtl"] .quickstart-step:hover { transform:translateX(-2px); }
+@media (max-width:640px) {
+  html[dir="rtl"] .sidebar { transform:translateX(100%); }
+  html[dir="rtl"] .sidebar.open { transform:translateX(0); }
+  html[dir="rtl"] .main { margin-right:0; }
+}
 `;
 
 const INIT_INVOICES = [];
@@ -433,11 +447,12 @@ const outstandingOf = (inv) => {
 };
 
 const statusBadge = (s) => {
+  const locale = getLocale();
   const map = {
-    paid: ["badge-paid", "Paid"],
-    pending: ["badge-pending", "Pending"], partial: ["badge-pending", "Partially paid"],
-    overdue: ["badge-overdue", "Overdue"],
-    draft: ["badge-draft", "Draft"], cancelled: ["badge-draft", "Cancelled"]
+    paid: ["badge-paid", tr("paid", "Paid", locale)],
+    pending: ["badge-pending", tr("pending", "Pending", locale)], partial: ["badge-pending", tr("partial", "Partially paid", locale)],
+    overdue: ["badge-overdue", tr("overdue", "Overdue", locale)],
+    draft: ["badge-draft", tr("draft", "Draft", locale)], cancelled: ["badge-draft", tr("cancelled", "Cancelled", locale)]
   };
   const entry = map[s] || ["badge-draft", s];
   return React.createElement("span", { className: "badge " + entry[0] }, entry[1]);
@@ -494,7 +509,7 @@ export default function InvoiceApp({ onGoHome }) {
     (async () => {
       setDashboardDataLoaded(false);
       const { data: invData } = await supabase.from("invoices").select("*").eq("user_id", ownerId).order("created_at", { ascending: false });
-      if (invData) setInvoices(invData.map(r => ({ id: r.id, createdBy: r.created_by, client: r.client, email: r.email, sellerName: r.seller_name, sellerEmail: r.seller_email, sellerPhone: r.seller_phone, sellerVat: r.seller_vat, sellerAddress: r.seller_address, sellerCountry: r.seller_country, buyerPhone: r.buyer_phone, buyerAddress: r.buyer_address, buyerCountry: r.buyer_country, date: r.date, due: r.due, status: r.status, amount: r.amount, subtotal: r.subtotal, discountAmt: r.discount_amt, taxAmt: r.tax_amt, total: r.total, tax: r.tax, discount: r.discount, depositPct: r.deposit_pct, notes: r.notes, bankInfo: r.bank_info, currency: r.currency, docType: r.doc_type, creditOf: r.credit_of, paidAmount: Number(r.paid_amount) || 0, items: r.items || [] })));
+      if (invData) setInvoices(invData.map(r => ({ id: r.id, createdBy: r.created_by, client: r.client, email: r.email, sellerName: r.seller_name, sellerEmail: r.seller_email, sellerPhone: r.seller_phone, sellerVat: r.seller_vat, sellerAddress: r.seller_address, sellerCountry: r.seller_country, buyerPhone: r.buyer_phone, buyerAddress: r.buyer_address, buyerCountry: r.buyer_country, date: r.date, due: r.due, status: r.status, amount: r.amount, subtotal: r.subtotal, discountAmt: r.discount_amt, taxAmt: r.tax_amt, total: r.total, tax: r.tax, discount: r.discount, depositPct: r.deposit_pct, notes: r.notes, bankInfo: r.bank_info, currency: r.currency, documentLanguage: normalizeDocumentLanguage(r.document_language), docType: r.doc_type, creditOf: r.credit_of, paidAmount: Number(r.paid_amount) || 0, items: r.items || [] })));
       if (invData?.some(row => row.doc_type !== "credit_note" && Number(row.total ?? row.amount ?? 0) > 0)) activateReferral().catch(() => {});
       const { data: cliData } = await supabase.from("clients").select("*").eq("user_id", ownerId);
       if (cliData) setClients(cliData.map(c => ({ id: c.id, name: c.name, email: c.email, phone: c.phone, country: c.country })));
@@ -520,7 +535,7 @@ export default function InvoiceApp({ onGoHome }) {
         const { data: { session } } = await supabase.auth.getSession();
         const vr = await fetch("/api/connect-stripe?action=verify", { method: "POST", headers: { Authorization: "Bearer " + (session?.access_token || "") } });
         const vd = await vr.json();
-        alert(vd.onboarded ? "✓ Stripe connected! Clients can now pay your invoices online." : "Stripe setup isn't finished yet — click Connect Stripe in Settings to continue.");
+        alert(vd.onboarded ? "✓ " + t("stripe_connected", "Stripe connected! Clients can now pay your invoices online.") : t("stripe_incomplete", "Stripe setup isn't finished yet — click Connect Stripe in Settings to continue."));
         window.history.replaceState({}, "", "/app");
       }
       await claimInvites();
@@ -681,9 +696,9 @@ export default function InvoiceApp({ onGoHome }) {
   const addInvoice = async (inv, { source = "invoice_wizard", showSuccess = true } = {}) => {
     const { data: { user } } = await supabase.auth.getUser();
     if (!user) return;
-    const row = { id: inv.id, user_id: ownerId || user.id, created_by: user.email, client: inv.client, email: inv.email, seller_name: inv.sellerName, seller_email: inv.sellerEmail, seller_phone: inv.sellerPhone, seller_vat: inv.sellerVat || null, seller_address: inv.sellerAddress, seller_country: inv.sellerCountry || null, buyer_phone: inv.buyerPhone, buyer_address: inv.buyerAddress, buyer_country: inv.buyerCountry || null, date: inv.date, due: inv.due, status: inv.status, amount: inv.amount, subtotal: inv.subtotal, discount_amt: inv.discountAmt, tax_amt: inv.taxAmt, total: inv.total, tax: inv.tax, discount: inv.discount, deposit_pct: Number(inv.depositPct) || null, notes: inv.notes, bank_info: inv.bankInfo, currency: inv.currency, items: inv.items };
+    const row = { id: inv.id, user_id: ownerId || user.id, created_by: user.email, client: inv.client, email: inv.email, seller_name: inv.sellerName, seller_email: inv.sellerEmail, seller_phone: inv.sellerPhone, seller_vat: inv.sellerVat || null, seller_address: inv.sellerAddress, seller_country: inv.sellerCountry || null, buyer_phone: inv.buyerPhone, buyer_address: inv.buyerAddress, buyer_country: inv.buyerCountry || null, date: inv.date, due: inv.due, status: inv.status, amount: inv.amount, subtotal: inv.subtotal, discount_amt: inv.discountAmt, tax_amt: inv.taxAmt, total: inv.total, tax: inv.tax, discount: inv.discount, deposit_pct: Number(inv.depositPct) || null, notes: inv.notes, bank_info: inv.bankInfo, currency: inv.currency, document_language: normalizeDocumentLanguage(inv.documentLanguage), items: inv.items };
     const { error } = await supabase.from("invoices").insert(row);
-    if (error) { window.alert("Could not save this invoice.\n\n" + error.message); return null; }
+    if (error) { window.alert(t("invoice_save_error", "Could not save this invoice.") + "\n\n" + error.message); return null; }
 
     // The first invoice should finish setup, not create more setup work. Reuse
     // the seller and client details entered in the wizard on future invoices.
@@ -744,7 +759,7 @@ export default function InvoiceApp({ onGoHome }) {
     return inv;
   };
   const updateInvoice = async (inv) => {
-    const row = { client: inv.client, email: inv.email, seller_name: inv.sellerName, seller_email: inv.sellerEmail, seller_phone: inv.sellerPhone, seller_vat: inv.sellerVat || null, seller_address: inv.sellerAddress, seller_country: inv.sellerCountry || null, buyer_phone: inv.buyerPhone, buyer_address: inv.buyerAddress, buyer_country: inv.buyerCountry || null, date: inv.date, due: inv.due, status: inv.status, amount: inv.amount, subtotal: inv.subtotal, discount_amt: inv.discountAmt, tax_amt: inv.taxAmt, total: inv.total, tax: inv.tax, discount: inv.discount, deposit_pct: Number(inv.depositPct) || null, notes: inv.notes, bank_info: inv.bankInfo, currency: inv.currency, items: inv.items };
+    const row = { client: inv.client, email: inv.email, seller_name: inv.sellerName, seller_email: inv.sellerEmail, seller_phone: inv.sellerPhone, seller_vat: inv.sellerVat || null, seller_address: inv.sellerAddress, seller_country: inv.sellerCountry || null, buyer_phone: inv.buyerPhone, buyer_address: inv.buyerAddress, buyer_country: inv.buyerCountry || null, date: inv.date, due: inv.due, status: inv.status, amount: inv.amount, subtotal: inv.subtotal, discount_amt: inv.discountAmt, tax_amt: inv.taxAmt, total: inv.total, tax: inv.tax, discount: inv.discount, deposit_pct: Number(inv.depositPct) || null, notes: inv.notes, bank_info: inv.bankInfo, currency: inv.currency, document_language: normalizeDocumentLanguage(inv.documentLanguage), items: inv.items };
     await supabase.from("invoices").update(row).eq("id", inv.id);
     setInvoices(prev => prev.map(i => i.id === inv.id ? inv : i)); setEditDraft(null); setEditingInvoice(null);
   };
@@ -771,8 +786,8 @@ export default function InvoiceApp({ onGoHome }) {
   const createCreditNote = async (inv) => {
     if (!inv || inv.docType === "credit_note") return;
     const already = (invoices || []).filter((i) => i.creditOf === inv.id);
-    const warn = already.length ? "\n\nNote: this invoice already has a credit note (" + already.map((i) => i.id).join(", ") + ")." : "";
-    if (!window.confirm("Create a credit note for " + inv.id + "?\n\nIt becomes a separate document with a negative amount that cancels this invoice. The invoice itself stays unchanged." + warn)) return;
+    const warn = already.length ? "\n\n" + t("credit_exists", "Note: this invoice already has a credit note") + " (" + already.map((i) => i.id).join(", ") + ")." : "";
+    if (!window.confirm(t("credit_confirm", "Create a credit note for") + " " + inv.id + "?\n\n" + t("credit_confirm_help", "It becomes a separate document with a negative amount that cancels this invoice. The invoice itself stays unchanged.") + warn)) return;
     const neg = (v) => -Math.abs(Number(v) || 0);
     const today = new Date().toISOString().split("T")[0];
     const cn = {
@@ -792,9 +807,9 @@ export default function InvoiceApp({ onGoHome }) {
     };
     const { data: { user } } = await supabase.auth.getUser();
     if (!user) return;
-    const row = { id: cn.id, user_id: ownerId || user.id, created_by: user.email, client: cn.client, email: cn.email, seller_name: cn.sellerName, seller_email: cn.sellerEmail, seller_phone: cn.sellerPhone, seller_vat: cn.sellerVat || null, seller_address: cn.sellerAddress, seller_country: cn.sellerCountry || null, buyer_phone: cn.buyerPhone, buyer_address: cn.buyerAddress, buyer_country: cn.buyerCountry || null, date: cn.date, due: cn.due, status: cn.status, amount: cn.amount, subtotal: cn.subtotal, discount_amt: cn.discountAmt, tax_amt: cn.taxAmt, total: cn.total, tax: cn.tax, discount: cn.discount, notes: cn.notes, bank_info: cn.bankInfo, currency: cn.currency, doc_type: "credit_note", credit_of: cn.creditOf, items: cn.items };
+    const row = { id: cn.id, user_id: ownerId || user.id, created_by: user.email, client: cn.client, email: cn.email, seller_name: cn.sellerName, seller_email: cn.sellerEmail, seller_phone: cn.sellerPhone, seller_vat: cn.sellerVat || null, seller_address: cn.sellerAddress, seller_country: cn.sellerCountry || null, buyer_phone: cn.buyerPhone, buyer_address: cn.buyerAddress, buyer_country: cn.buyerCountry || null, date: cn.date, due: cn.due, status: cn.status, amount: cn.amount, subtotal: cn.subtotal, discount_amt: cn.discountAmt, tax_amt: cn.taxAmt, total: cn.total, tax: cn.tax, discount: cn.discount, notes: cn.notes, bank_info: cn.bankInfo, currency: cn.currency, document_language: normalizeDocumentLanguage(cn.documentLanguage), doc_type: "credit_note", credit_of: cn.creditOf, items: cn.items };
     const { error } = await supabase.from("invoices").insert(row);
-    if (error) { window.alert("Could not create the credit note.\n\n" + error.message); return; }
+    if (error) { window.alert(t("credit_create_error", "Could not create the credit note.") + "\n\n" + error.message); return; }
     setInvoices((prev) => [cn, ...prev]);
     setPreviewInvoice(cn);
   };
@@ -807,19 +822,19 @@ export default function InvoiceApp({ onGoHome }) {
     const invTotal = Math.abs(Number(inv.total != null ? inv.total : inv.amount) || 0);
     const already = Number(inv.paidAmount) || 0;
     const balance = Math.max(0, invTotal - already);
-    if (balance <= 0) { window.alert("This invoice is already fully paid."); return; }
+    if (balance <= 0) { window.alert(t("fully_paid", "This invoice is already fully paid.")); return; }
     const suggested = already > 0 ? balance : invTotal / 2;
     const answer = window.prompt(
-      "Record a payment for " + inv.id + "\n\nInvoice total: " + invTotal.toFixed(2) +
-      "\nReceived so far: " + already.toFixed(2) + "\nBalance: " + balance.toFixed(2) +
-      "\n\nAmount received now:", suggested.toFixed(2));
+      t("record_for", "Record a payment for") + " " + inv.id + "\n\n" + t("invoice_total_prompt", "Invoice total") + ": " + invTotal.toFixed(2) +
+      "\n" + t("received_so_far", "Received so far") + ": " + already.toFixed(2) + "\n" + t("balance", "Balance") + ": " + balance.toFixed(2) +
+      "\n\n" + t("amount_received_now", "Amount received now") + ":", suggested.toFixed(2));
     if (answer === null) return;
     const add = Number(String(answer).replace(",", ".").trim());
-    if (!add || isNaN(add) || add <= 0) { window.alert("Please enter an amount greater than 0."); return; }
+    if (!add || isNaN(add) || add <= 0) { window.alert(t("positive_amount", "Please enter an amount greater than 0.")); return; }
     const newPaid = Math.min(invTotal, already + add);
     const newStatus = newPaid >= invTotal - 0.005 ? "paid" : "pending";
     const { error } = await supabase.from("invoices").update({ paid_amount: newPaid, status: newStatus }).eq("id", inv.id);
-    if (error) { window.alert("Could not save the payment.\n\n" + error.message); return; }
+    if (error) { window.alert(t("payment_save_error", "Could not save the payment.") + "\n\n" + error.message); return; }
     setInvoices((prev) => prev.map((i) => (i.id === inv.id ? { ...i, paidAmount: newPaid, status: newStatus } : i)));
   };
 
@@ -829,8 +844,8 @@ export default function InvoiceApp({ onGoHome }) {
     const missing = ublWarnings(inv);
     if (missing.length) {
       const go = window.confirm(
-        "This document is missing:\n\n  " + missing.join("\n  ") +
-        "\n\nThe file will still download, but a strict receiver may reject it.\nDownload anyway?");
+        t("ubl_missing", "This document is missing:") + "\n\n  " + missing.join("\n  ") +
+        "\n\n" + t("ubl_warning", "The file will still download, but a strict receiver may reject it.") + "\n" + t("download_anyway", "Download anyway?"));
       if (!go) return;
     }
     downloadUBL(inv);
@@ -845,7 +860,7 @@ export default function InvoiceApp({ onGoHome }) {
     if (!user) return;
     const isFirstClient = clients.length === 0;
     const { error } = await supabase.from("clients").insert({ id: c.id, user_id: ownerId || user.id, name: c.name, email: c.email, phone: c.phone, country: c.country, invoices: 0, total: 0 });
-    if (error) { window.alert("Could not save this client.\n\n" + error.message); return; }
+    if (error) { window.alert(t("client_save_error", "Could not save this client.") + "\n\n" + error.message); return; }
     trackEvent("client_created", { source:"clients_page", is_first_client:isFirstClient });
     recordActivationEvent("client_created", {
       metadata:{ source:"clients_page", is_first_client:isFirstClient },
@@ -871,7 +886,7 @@ export default function InvoiceApp({ onGoHome }) {
       const owner = (await myTeamOwner(user.id)) || user.id;
       const { data: invData } = await supabase.from("invoices").select("*").eq("user_id", owner).order("created_at", { ascending: false });
       const { data: cliData } = await supabase.from("clients").select("*").eq("user_id", owner);
-      if (invData) setInvoices(invData.map(r => ({ id: r.id, createdBy: r.created_by, client: r.client, email: r.email, sellerName: r.seller_name, sellerEmail: r.seller_email, sellerPhone: r.seller_phone, sellerVat: r.seller_vat, sellerAddress: r.seller_address, sellerCountry: r.seller_country, buyerPhone: r.buyer_phone, buyerAddress: r.buyer_address, buyerCountry: r.buyer_country, date: r.date, due: r.due, status: r.status, amount: r.amount, subtotal: r.subtotal, discountAmt: r.discount_amt, taxAmt: r.tax_amt, total: r.total, tax: r.tax, discount: r.discount, depositPct: r.deposit_pct, notes: r.notes, bankInfo: r.bank_info, currency: r.currency, docType: r.doc_type, creditOf: r.credit_of, paidAmount: Number(r.paid_amount) || 0, items: r.items || [] })));
+      if (invData) setInvoices(invData.map(r => ({ id: r.id, createdBy: r.created_by, client: r.client, email: r.email, sellerName: r.seller_name, sellerEmail: r.seller_email, sellerPhone: r.seller_phone, sellerVat: r.seller_vat, sellerAddress: r.seller_address, sellerCountry: r.seller_country, buyerPhone: r.buyer_phone, buyerAddress: r.buyer_address, buyerCountry: r.buyer_country, date: r.date, due: r.due, status: r.status, amount: r.amount, subtotal: r.subtotal, discountAmt: r.discount_amt, taxAmt: r.tax_amt, total: r.total, tax: r.tax, discount: r.discount, depositPct: r.deposit_pct, notes: r.notes, bankInfo: r.bank_info, currency: r.currency, documentLanguage: normalizeDocumentLanguage(r.document_language), docType: r.doc_type, creditOf: r.credit_of, paidAmount: Number(r.paid_amount) || 0, items: r.items || [] })));
       if (cliData) setClients(cliData);
     };
     loadData();
@@ -891,7 +906,7 @@ export default function InvoiceApp({ onGoHome }) {
           const owner = (await myTeamOwner(session.user.id)) || session.user.id;
           const { data: invData } = await supabase.from("invoices").select("*").eq("user_id", owner).order("created_at", { ascending: false });
           const { data: cliData } = await supabase.from("clients").select("*").eq("user_id", owner);
-          if (invData) setInvoices(invData.map(r => ({ id: r.id, createdBy: r.created_by, client: r.client, email: r.email, sellerName: r.seller_name, sellerEmail: r.seller_email, sellerPhone: r.seller_phone, sellerVat: r.seller_vat, sellerAddress: r.seller_address, sellerCountry: r.seller_country, buyerPhone: r.buyer_phone, buyerAddress: r.buyer_address, buyerCountry: r.buyer_country, date: r.date, due: r.due, status: r.status, amount: r.amount, subtotal: r.subtotal, discountAmt: r.discount_amt, taxAmt: r.tax_amt, total: r.total, tax: r.tax, discount: r.discount, depositPct: r.deposit_pct, notes: r.notes, bankInfo: r.bank_info, currency: r.currency, docType: r.doc_type, creditOf: r.credit_of, paidAmount: Number(r.paid_amount) || 0, items: r.items || [] })));
+          if (invData) setInvoices(invData.map(r => ({ id: r.id, createdBy: r.created_by, client: r.client, email: r.email, sellerName: r.seller_name, sellerEmail: r.seller_email, sellerPhone: r.seller_phone, sellerVat: r.seller_vat, sellerAddress: r.seller_address, sellerCountry: r.seller_country, buyerPhone: r.buyer_phone, buyerAddress: r.buyer_address, buyerCountry: r.buyer_country, date: r.date, due: r.due, status: r.status, amount: r.amount, subtotal: r.subtotal, discountAmt: r.discount_amt, taxAmt: r.tax_amt, total: r.total, tax: r.tax, discount: r.discount, depositPct: r.deposit_pct, notes: r.notes, bankInfo: r.bank_info, currency: r.currency, documentLanguage: normalizeDocumentLanguage(r.document_language), docType: r.doc_type, creditOf: r.credit_of, paidAmount: Number(r.paid_amount) || 0, items: r.items || [] })));
           if (cliData) setClients(cliData);
         };
         reload();
@@ -911,9 +926,9 @@ export default function InvoiceApp({ onGoHome }) {
     { id: "expenses", icon: "\u2296", label: t("expenses", "Expenses"), locked: !(hasBusinessAccess(plan) || isTeamMember) },
     { id: "analytics", icon: "\u2261", label: t("analytics", "Analytics"), locked: !hasBusinessAccess(plan) },
     { id: "settings", icon: "\u2699", label: t("settings", "Settings") },
-    ...(ambassadorAdminAccess ? [{ id:"ambassador-admin", icon:"✦", label:"Ambassador requests", href:"/admin" }] : []),
+    ...(ambassadorAdminAccess ? [{ id:"ambassador-admin", icon:"✦", label:t("ambassador_requests", "Ambassador requests"), href:"/admin" }] : []),
   ];
-  
+
   const [isMobile, setIsMobile] = React.useState(false);
 
   React.useEffect(() => {
@@ -944,14 +959,14 @@ export default function InvoiceApp({ onGoHome }) {
               <div key={n.id} className={"nav-item" + (page === n.id ? " active" : "")} onClick={() => { openNav(n); setSidebarOpen(false); }} style={n.locked ? { opacity:0.45 } : undefined} title={n.locked ? t("business_feature", "Business plan feature") : undefined}>
                 <span className="icon">{n.icon}</span>
                 {n.label}
-                {n.locked && <span style={{ marginLeft:"auto", fontSize:10, color:"var(--text2)", border:"1px solid var(--border)", borderRadius:20, padding:"1px 7px" }}>Business</span>}
+                {n.locked && <span style={{ marginInlineStart:"auto", fontSize:10, color:"var(--text2)", border:"1px solid var(--border)", borderRadius:20, padding:"1px 7px" }}>Business</span>}
                 {n.badge > 0 && <span className="nav-badge">{n.badge}</span>}
               </div>
             ))}
           </div>
           <div className="sidebar-footer">
             <button className="referral-nav-card" onClick={() => { trackEvent("referral_program_opened", { placement:"sidebar" }); setPage("settings"); }}>
-              <span>✦ Earn 30 Pro days</span><span style={{ color:"var(--gold)" }}>→</span>
+              <span>✦ {locale === "ar" ? "اكسب 30 يومًا من Pro" : "Earn 30 Pro days"}</span><span className="directional-icon" style={{ color:"var(--gold)" }}>→</span>
             </button>
             {userEmail && (
               <div style={{ marginBottom:12, padding:"8px 12px", background:"var(--bg3)", borderRadius:8, border:"1px solid var(--border)" }}>
@@ -966,7 +981,7 @@ export default function InvoiceApp({ onGoHome }) {
             {isPro ? (
               <div className="plan-badge">
                 <div className="plan-name">✦ {plan === "business" ? t("business_plan", "BUSINESS PLAN") : isTeamMember ? t("team_member", "TEAM MEMBER") : t("pro_plan", "PRO PLAN")}</div>
-                <div className="plan-info">{plan === "business" ? "Team, quotes, VAT & more" : isTeamMember ? "Shared team workspace" : "Unlimited invoices & clients"}</div>
+                <div className="plan-info">{plan === "business" ? t("team_quotes_info", "Team, quotes, VAT & more") : isTeamMember ? t("team_shared_info", "Shared team workspace") : t("unlimited_info", "Unlimited invoices & clients")}</div>
               </div>
             ) : (
               <div>
@@ -1029,7 +1044,7 @@ export default function InvoiceApp({ onGoHome }) {
 
           <div className="content">
             {page === "dashboard" && <Dashboard clients={clients} businessProfileReady={businessProfileReady} userEmail={userEmail} onCreateInvoice={() => openNewInvoice("onboarding_dashboard")} onCreditNote={createCreditNote} onRecordPayment={recordPaymentGated} invoices={invoicesWithStatus} totalRevenue={totalRevenue} totalPending={totalPending} totalOverdue={totalOverdue} totalCredited={totalCredited} setPage={setPage} setPreviewInvoice={(inv) => openInvoicePreview(inv, "dashboard")} onEdit={setEditingInvoice} onRemind={(inv) => requirePro("reminders", () => setReminderInvoice(inv))} f={f} />}
-            {page === "invoices" && <Invoices invoices={filteredInvoices} filterStatus={filterStatus} setFilterStatus={setFilterStatus} search={search} setSearch={setSearch} onPreview={(inv) => openInvoicePreview(inv, "invoice_list")} onDelete={deleteInvoice} onNew={() => openNewInvoice("invoice_list_empty")} onEdit={setEditingInvoice} onRemind={(inv) => requirePro("reminders", () => setReminderInvoice(inv))} remindersLog={remindersLog} f={f} isPro={isPro} onUpgrade={(feat) => { setUpgradeFeature(feat); setShowUpgrade(true); }} hasDraft={!!invoiceDraft} onOpenDraft={() => openNewInvoice("invoice_draft")} onDiscardDraft={discardDraft} onMarkPaid={markAsPaid} onCreditNote={createCreditNote} onRecordPayment={recordPaymentGated} onMakeRecurring={hasBusinessAccess(plan) ? async (inv) => { const choice = window.prompt("Repeat this invoice:\n\n1 = Weekly\n2 = Every 2 weeks\n3 = Monthly\n4 = Yearly\n\nType a number:", "3"); const freqMap = { "1": "weekly", "2": "biweekly", "3": "monthly", "4": "yearly" }; const freq = freqMap[(choice || "").trim()]; if (!freq) return; const ok = await createRecurring(inv, freq, userId); if (ok) { loadRecurring(userId).then(setRecurring); const { nextDate } = require("../lib/recurring"); alert("✓ Recurring activated (" + freq + ")\nNext invoice: " + nextDate(new Date(), freq).toISOString().split("T")[0] + "\nManage it in Settings → Recurring invoices."); } } : () => { setUpgradeIntent("business"); setUpgradeFeature("recurring"); setShowUpgrade(true); }} />}
+            {page === "invoices" && <Invoices invoices={filteredInvoices} filterStatus={filterStatus} setFilterStatus={setFilterStatus} search={search} setSearch={setSearch} onPreview={(inv) => openInvoicePreview(inv, "invoice_list")} onDelete={deleteInvoice} onNew={() => openNewInvoice("invoice_list_empty")} onEdit={setEditingInvoice} onRemind={(inv) => requirePro("reminders", () => setReminderInvoice(inv))} remindersLog={remindersLog} f={f} isPro={isPro} onUpgrade={(feat) => { setUpgradeFeature(feat); setShowUpgrade(true); }} hasDraft={!!invoiceDraft} onOpenDraft={() => openNewInvoice("invoice_draft")} onDiscardDraft={discardDraft} onMarkPaid={markAsPaid} onCreditNote={createCreditNote} onRecordPayment={recordPaymentGated} onMakeRecurring={hasBusinessAccess(plan) ? async (inv) => { const choice = window.prompt(t("recurring_prompt", "Repeat this invoice:\n\n1 = Weekly\n2 = Every 2 weeks\n3 = Monthly\n4 = Yearly\n\nType a number:"), "3"); const freqMap = { "1": "weekly", "2": "biweekly", "3": "monthly", "4": "yearly" }; const freq = freqMap[(choice || "").trim()]; if (!freq) return; const ok = await createRecurring(inv, freq, userId); if (ok) { loadRecurring(userId).then(setRecurring); const { nextDate } = require("../lib/recurring"); alert("✓ " + t("recurring_active", "Recurring activated") + " (" + freq + ")\n" + t("next_invoice", "Next invoice") + ": " + nextDate(new Date(), freq).toISOString().split("T")[0] + "\n" + t("recurring_manage", "Manage it in Settings → Recurring invoices.")); } } : () => { setUpgradeIntent("business"); setUpgradeFeature("recurring"); setShowUpgrade(true); }} />}
               {page === "quotes" && (hasBusinessAccess(plan) || isTeamMember) && <Quotes
                 quotes={quotes}
                 setQuotes={setQuotes}
@@ -1042,8 +1057,9 @@ export default function InvoiceApp({ onGoHome }) {
                   sellerVat:businessProfile?.vat_number || "",
                   sellerAddress:businessProfile?.address || "",
                   sellerCountry:businessProfile?.country || "",
-                  bankInfo:businessProfile?.bank_info || "",
-                  defaultTax:businessProfile?.default_tax ?? 21,
+                   bankInfo:businessProfile?.bank_info || "",
+                   defaultTax:businessProfile?.default_tax ?? 21,
+                   defaultInvoiceLanguage:normalizeDocumentLanguage(businessProfile?.default_invoice_language),
                 }}
                 onConvert={async (q) => {
                   const { quoteToInvoice } = require("../lib/quotes");
@@ -1058,7 +1074,7 @@ export default function InvoiceApp({ onGoHome }) {
             {page === "expenses" && (hasBusinessAccess(plan) || isTeamMember) && <Expenses expenses={expenses} setExpenses={setExpenses} invoices={invoicesWithStatus} userId={ownerId || userId} f={f} />}
             {page === "analytics" && hasBusinessAccess(plan) && <Analytics invoices={invoicesWithStatus} f={f} fc={fmtCurrency} defaultCurrency={currency} />}
             {page === "clients" && <Clients clients={clients} invoices={invoicesWithStatus} f={f} onAdd={() => setShowNewClient(true)} onDeleteClient={deleteClient} onEditClient={(c) => setEditingClient(c)} />}
-            {page === "settings" && <><ReferralProgram userId={userId} plan={plan} /><Settings currency={currency} setCurrency={setCurrency} userEmail={userEmail} invoices={invoicesWithStatus} onProfileSaved={(ready, profile) => { setBusinessProfileReady(ready); setBusinessProfile(profile); }} />{hasBusinessAccess(plan) && <BusinessProfiles profiles={bizProfiles} setProfiles={setBizProfiles} userId={userId} />}{hasBusinessAccess(plan) && <RecurringList recurring={recurring} setRecurring={setRecurring} userId={userId} f={f} />}{hasBusinessAccess(plan) && <div className="card" style={{ marginTop: 20 }}><div className="card-title" style={{ marginBottom: 10 }}>Online payments</div><div style={{ fontSize: 13, color: "#999", marginBottom: 12 }}>Connect your Stripe account so clients can pay invoices online. Money goes directly to your bank.</div><button className="btn btn-primary btn-sm" onClick={async () => { const { data: { session } } = await supabase.auth.getSession(); const r = await fetch("/api/connect-stripe", { method: "POST", headers: { Authorization: "Bearer " + (session?.access_token || "") } }); const d = await r.json(); if (d.url) window.location.href = d.url; else alert(d.error || "Could not start Stripe onboarding"); }}>Connect Stripe →</button></div>}{hasBusinessAccess(plan) && <TeamMembers team={team} setTeam={setTeam} userId={userId} />}{hasBusinessAccess(plan) && <ApiKeys keys={apiKeys} setKeys={setApiKeys} userId={userId} />}{(plan === "pro" || plan === "business") && <div className="card" style={{ marginTop: 20 }}><div className="card-title" style={{ marginBottom: 10 }}>Subscription</div><div style={{ fontSize: 13, color: "#999", marginBottom: 12 }}>Switch between Pro and Business, update your card, view invoices, or cancel anytime.</div><a className="btn btn-primary btn-sm" href="https://billing.stripe.com/p/login/fZu4gzepGdT05Gx48j5ZC00" target="_blank" rel="noreferrer">Manage subscription →</a></div>}{plan === "free" && <div className="card" style={{ marginTop: 20 }}><div className="card-title" style={{ marginBottom: 10 }}>Plan</div><div style={{ fontSize: 13, color:"#999", marginBottom:12 }}>You are on the Free plan. Upgrade for unlimited invoices, reminders, and more.</div><button className="btn btn-primary btn-sm" onClick={() => { setUpgradeIntent(null); setShowUpgrade(true); }}>Upgrade →</button></div>}</>}
+            {page === "settings" && <><ReferralProgram userId={userId} plan={plan} /><Settings currency={currency} setCurrency={setCurrency} userEmail={userEmail} invoices={invoicesWithStatus} onProfileSaved={(ready, profile) => { setBusinessProfileReady(ready); setBusinessProfile(profile); }} />{hasBusinessAccess(plan) && <BusinessProfiles profiles={bizProfiles} setProfiles={setBizProfiles} userId={userId} />}{hasBusinessAccess(plan) && <RecurringList recurring={recurring} setRecurring={setRecurring} userId={userId} f={f} />}{hasBusinessAccess(plan) && <div className="card" style={{ marginTop: 20 }}><div className="card-title" style={{ marginBottom: 10 }}>{t("online_payments", "Online payments")}</div><div style={{ fontSize: 13, color: "#999", marginBottom: 12 }}>{t("connect_stripe_help", "Connect your Stripe account so clients can pay invoices online. Money goes directly to your bank.")}</div><button className="btn btn-primary btn-sm" onClick={async () => { const { data: { session } } = await supabase.auth.getSession(); const r = await fetch("/api/connect-stripe", { method: "POST", headers: { Authorization: "Bearer " + (session?.access_token || "") } }); const d = await r.json(); if (d.url) window.location.href = d.url; else alert(d.error || t("stripe_start_error", "Could not start Stripe onboarding")); }}>{t("connect_stripe", "Connect Stripe →")}</button></div>}{hasBusinessAccess(plan) && <TeamMembers team={team} setTeam={setTeam} userId={userId} />}{hasBusinessAccess(plan) && <ApiKeys keys={apiKeys} setKeys={setApiKeys} userId={userId} />}{(plan === "pro" || plan === "business") && <div className="card" style={{ marginTop: 20 }}><div className="card-title" style={{ marginBottom: 10 }}>{t("subscription", "Subscription")}</div><div style={{ fontSize: 13, color: "#999", marginBottom: 12 }}>{t("subscription_help", "Switch between Pro and Business, update your card, view invoices, or cancel anytime.")}</div><a className="btn btn-primary btn-sm" href="https://billing.stripe.com/p/login/fZu4gzepGdT05Gx48j5ZC00" target="_blank" rel="noreferrer">{t("manage_subscription", "Manage subscription →")}</a></div>}{plan === "free" && <div className="card" style={{ marginTop: 20 }}><div className="card-title" style={{ marginBottom: 10 }}>{t("plan", "Plan")}</div><div style={{ fontSize: 13, color:"#999", marginBottom:12 }}>{t("free_plan_help", "You are on the Free plan. Upgrade for unlimited invoices, reminders, and more.")}</div><button className="btn btn-primary btn-sm" onClick={() => { setUpgradeIntent(null); setShowUpgrade(true); }}>{t("upgrade", "Upgrade →")}</button></div>}</>}
           </div>
         </div>
 
@@ -1080,10 +1096,10 @@ export default function InvoiceApp({ onGoHome }) {
           </div>
         </nav>
 
-        {(page === "dashboard" || page === "invoices") && <button className="mobile-fab" aria-label="Create invoice" onClick={() => openNewInvoice(page === "dashboard" ? "dashboard_fab" : "invoice_list_fab")}>+</button>}
+        {(page === "dashboard" || page === "invoices") && <button className="mobile-fab" aria-label={t("new_invoice", "Create invoice")} onClick={() => openNewInvoice(page === "dashboard" ? "dashboard_fab" : "invoice_list_fab")}>+</button>}
 
-        {showNewInvoice && <NewInvoiceModal bizProfiles={hasBusinessAccess(plan) ? bizProfiles : []} clients={clients} onSave={addInvoice} onClose={handleNewInvoiceClose} invoiceCount={invoices.length} currency={currency} f={f} draftData={invoiceDraft} onDiscardDraft={discardDraft} />}
-        {editingInvoice && <NewInvoiceModal bizProfiles={hasBusinessAccess(plan) ? bizProfiles : []} clients={clients} onSave={updateInvoice} onClose={(draftData) => { if (draftData) setEditDraft(draftData); setEditingInvoice(null); }} invoiceCount={invoices.length} currency={currency} f={f} editData={editingInvoice} editDraft={editDraft} onDiscardEditDraft={() => setEditDraft(null)} />}
+        {showNewInvoice && <NewInvoiceModal bizProfiles={hasBusinessAccess(plan) ? bizProfiles : []} clients={clients} onSave={addInvoice} onClose={handleNewInvoiceClose} invoiceCount={invoices.length} currency={currency} f={f} defaultInvoiceLanguage={normalizeDocumentLanguage(businessProfile?.default_invoice_language)} draftData={invoiceDraft} onDiscardDraft={discardDraft} />}
+        {editingInvoice && <NewInvoiceModal bizProfiles={hasBusinessAccess(plan) ? bizProfiles : []} clients={clients} onSave={updateInvoice} onClose={(draftData) => { if (draftData) setEditDraft(draftData); setEditingInvoice(null); }} invoiceCount={invoices.length} currency={currency} f={f} defaultInvoiceLanguage={normalizeDocumentLanguage(businessProfile?.default_invoice_language)} editData={editingInvoice} editDraft={editDraft} onDiscardEditDraft={() => setEditDraft(null)} />}
         {showNewClient && <NewClientModal onSave={addClient} onClose={() => setShowNewClient(false)} />}
         {editingClient && <NewClientModal onSave={async (updated) => { await supabase.from("clients").update({ name:updated.name, email:updated.email, phone:updated.phone, country:updated.country }).eq("id", editingClient.id); setClients(prev => prev.map(c => c.id === editingClient.id ? { ...c, ...updated } : c)); setEditingClient(null); }} onClose={() => setEditingClient(null)} editData={editingClient} />}
         {firstInvoiceSuccess && <FirstInvoiceSuccess
@@ -1117,6 +1133,18 @@ function MultiMoney({ parts, empty }) {
 function Dashboard({ invoices, clients, businessProfileReady, userEmail, totalRevenue, totalPending, totalOverdue, totalCredited, setPage, setPreviewInvoice, onEdit, onRemind, onCreditNote, onRecordPayment, onCreateInvoice, f }) {
   const locale = getLocale();
   const t = (key, fallback) => tr(key, fallback, locale);
+  const [foundSource, setFoundSource] = useState(() => localStorage.getItem("fatura_how_found") || "");
+  const acquisitionSources = [
+    ["instagram", "source_instagram", "Instagram"], ["tiktok", "source_tiktok", "TikTok"],
+    ["facebook", "source_facebook", "Facebook"], ["google", "source_google", "Google"],
+    ["accountant", "source_accountant", "Accountant / partner"], ["friend", "source_friend", "Friend / acquaintance"],
+    ["qr", "source_qr", "QR / flyer"], ["other", "source_other", "Other"],
+  ];
+  const rememberAcquisitionSource = (value) => {
+    setFoundSource(value);
+    localStorage.setItem("fatura_how_found", value);
+    trackEvent("acquisition_source_selected", { source:value });
+  };
   // Real figures only - no hard-coded percentages on this dashboard.
   // Credit notes live in the same list with status "paid" - they are not invoices.
   const realInvoices = invoices.filter(i => i.docType !== "credit_note");
@@ -1157,7 +1185,7 @@ function Dashboard({ invoices, clients, businessProfileReady, userEmail, totalRe
           </div>
           <div className="quickstart-progress">{completedSteps}/3</div>
         </div>
-        <div className="quickstart-list">
+         <div className="quickstart-list">
           <button className={"quickstart-step" + (businessProfileReady ? " done" : "")} aria-disabled={businessProfileReady} onClick={businessProfileReady ? undefined : () => openSetupStep("business_profile", "settings")}>
             <span className="quickstart-number">{businessProfileReady ? "✓" : "1"}</span>
             <span className="quickstart-copy"><strong>{t("business_details", "Business details")}</strong><span>{businessProfileReady ? t("saved_reuse", "Saved and ready to reuse") : t("add_vat_details", "Add your name, address, and VAT details")}</span></span>
@@ -1173,15 +1201,24 @@ function Dashboard({ invoices, clients, businessProfileReady, userEmail, totalRe
             <span className="quickstart-copy"><strong>{t("create_preview", "Create and preview")}</strong><span>{t("review_total", "Review the total before you send or download")}</span></span>
             <span className="quickstart-arrow">→</span>
           </button>
-        </div>
-      </aside>
+         </div>
+         <div style={{ marginTop:18, paddingTop:16, borderTop:"1px solid var(--border)" }}>
+           <label htmlFor="how-found" style={{ display:"block", color:"var(--text)", marginBottom:5 }}>{t("how_found", "How did you find FaturaPro?")}</label>
+           <div style={{ fontSize:11, color:"var(--text2)", marginBottom:8 }}>{t("how_found_help", "Optional — this helps us understand which channels are useful.")}</div>
+           <select id="how-found" value={foundSource} onChange={event => rememberAcquisitionSource(event.target.value)}>
+             <option value="">{t("choose_source", "Choose an answer…")}</option>
+             {acquisitionSources.map(([value, key, fallback]) => <option key={value} value={value}>{t(key, fallback)}</option>)}
+           </select>
+           {foundSource && <div style={{ fontSize:11, color:"var(--green)", marginTop:7 }}>{t("thanks_feedback", "Thanks for sharing.")}</div>}
+         </div>
+       </aside>
     </div>
   );
 
   const commandCopy = overdue.length > 0
-    ? `${overdue.length} overdue invoice${overdue.length === 1 ? " needs" : "s need"} your attention today.`
+    ? (locale === "ar" ? `${overdue.length} ${t("overdue_attention", "overdue invoices need your attention today.")}` : `${overdue.length} overdue invoice${overdue.length === 1 ? " needs" : "s need"} your attention today.`)
     : pendingCount > 0
-      ? `${pendingCount} invoice${pendingCount === 1 ? " is" : "s are"} awaiting payment. Keep the next one moving.`
+      ? (locale === "ar" ? `${pendingCount} ${t("awaiting_attention", "invoices are awaiting payment.")}` : `${pendingCount} invoice${pendingCount === 1 ? " is" : "s are"} awaiting payment. Keep the next one moving.`)
       : t("all_current", "Everything is up to date. Create the next invoice while the work is fresh.");
 
   return (
@@ -1202,18 +1239,18 @@ function Dashboard({ invoices, clients, businessProfileReady, userEmail, totalRe
           <div style={{ display:"flex", alignItems:"center", gap:12 }}>
             <span style={{ fontSize:20, fontWeight: 700, color:"var(--red)" }}>!</span>
             <div>
-              <div style={{ fontWeight:700, color:"var(--red)", fontSize:14 }}>{overdue.length} Overdue Invoice{overdue.length > 1 ? "s" : ""}</div>
-              <div style={{ fontSize:12, color:"var(--text2)", marginTop:2 }}>{overdue.map(i => i.client).join(", ")} — Total: <strong style={{ color:"var(--red)" }}>{fmtMulti(sumByCurrency(overdue))}</strong></div>
+              <div style={{ fontWeight:700, color:"var(--red)", fontSize:14 }}>{overdue.length} {t("overdue_invoices", `Overdue Invoice${overdue.length > 1 ? "s" : ""}`)}</div>
+              <div style={{ fontSize:12, color:"var(--text2)", marginTop:2 }}>{overdue.map(i => i.client).join(", ")} — {t("overdue_total", "Total")}: <strong dir="ltr" style={{ color:"var(--red)" }}>{fmtMulti(sumByCurrency(overdue))}</strong></div>
             </div>
           </div>
-          <button className="btn btn-sm" style={{ background:"rgba(224,85,85,0.2)", color:"var(--red)", border:"1px solid rgba(224,85,85,0.4)", whiteSpace:"nowrap" }} onClick={() => setPage("invoices")}>View Overdue →</button>
+          <button className="btn btn-sm" style={{ background:"rgba(224,85,85,0.2)", color:"var(--red)", border:"1px solid rgba(224,85,85,0.4)", whiteSpace:"nowrap" }} onClick={() => setPage("invoices")}>{t("view_overdue", "View Overdue →")}</button>
         </div>
       )}
       <div className="stats-grid">
         <div className="stat-card"><div className="stat-label">{t("collected", "Collected")}</div><div className="stat-value"><MultiMoney parts={totalRevenue} empty={f(0)} /></div><div className="stat-change">{paidCount} {t("paid_invoices", "paid invoices")}</div></div>
         <div className="stat-card"><div className="stat-label">{t("awaiting_payment", "Awaiting payment")}</div><div className="stat-value"><MultiMoney parts={totalPending} empty={f(0)} /></div><div className="stat-change">{pendingCount} {t("open_invoices", "open invoices")}</div></div>
         <div className="stat-card"><div className="stat-label">{t("overdue", "Overdue")}</div><div className="stat-value" style={{ color:"var(--red)" }}><MultiMoney parts={totalOverdue} empty={f(0)} /></div><div className="stat-change down">{t("needs_attention", "Needs attention")}</div></div>
-        {totalCredited.length > 0 && (<div className="stat-card"><div className="stat-label">Credited</div><div className="stat-value"><MultiMoney parts={totalCredited} empty={f(0)} /></div><div className="stat-change">{invoices.filter(i => i.docType === "credit_note").length} credit note{invoices.filter(i => i.docType === "credit_note").length === 1 ? "" : "s"}</div></div>)}
+        {totalCredited.length > 0 && (<div className="stat-card"><div className="stat-label">{t("credited", "Credited")}</div><div className="stat-value"><MultiMoney parts={totalCredited} empty={f(0)} /></div><div className="stat-change">{invoices.filter(i => i.docType === "credit_note").length} {t("credit_note_count", `credit note${invoices.filter(i => i.docType === "credit_note").length === 1 ? "" : "s"}`)}</div></div>)}
         <div className="stat-card"><div className="stat-label">{t("documents", "Documents")}</div><div className="stat-value">{realInvoices.length}</div><div className="stat-change">{newThisMonth > 0 ? "+" + newThisMonth + " " + t("this_month", "this month") : t("none_month", "None added this month")}</div></div>
       </div>
       <div className="card">
@@ -1227,15 +1264,15 @@ function Dashboard({ invoices, clients, businessProfileReady, userEmail, totalRe
             <tbody>
               {recent.map(inv => (
                 <tr key={inv.id}>
-                  <td style={{ fontWeight:600, color:"var(--gold)" }}>{inv.id}{inv.docType === "credit_note" && <span style={{ marginLeft:6, fontSize:9, fontWeight:800, letterSpacing:0.5, padding:"2px 6px", borderRadius:20, background:"rgba(224,85,85,0.15)", color:"var(--red)", verticalAlign:"middle" }}>CREDIT NOTE</span>}</td>
+                  <td style={{ fontWeight:600, color:"var(--gold)" }}><bdi dir="ltr">{inv.id}</bdi>{inv.docType === "credit_note" && <span style={{ marginInlineStart:6, fontSize:9, fontWeight:800, letterSpacing:0.5, padding:"2px 6px", borderRadius:20, background:"rgba(224,85,85,0.15)", color:"var(--red)", verticalAlign:"middle" }}>{t("credit_note", "CREDIT NOTE")}</span>}</td>
                   <td>{inv.client}</td>
                   <td style={{ fontWeight:600 }}>{fmtCurrency(inv.amount, inv.currency || "EUR")}</td>
                   <td style={{ color:"var(--text2)" }}>{formatDate(inv.due)}</td>
-                  <td>{statusBadge(inv.status)}{inv.status === "partial" && <div style={{ fontSize:10, color:"var(--text2)", marginTop:2 }}>{fmtCurrency(outstandingOf(inv), inv.currency || "EUR")} left</div>}</td>
+                  <td>{statusBadge(inv.status)}{inv.status === "partial" && <div style={{ fontSize:10, color:"var(--text2)", marginTop:2 }}><bdi dir="ltr">{fmtCurrency(outstandingOf(inv), inv.currency || "EUR")}</bdi> {t("amount_left", "left")}</div>}</td>
                   <td>
                     <div className="action-btns">
                       <button className="btn btn-ghost btn-sm" onClick={() => setPreviewInvoice(inv)}>{t("preview", "Preview")}</button>
-                      <button className="btn btn-ghost btn-sm" style={{ color:"var(--gold)" }} onClick={() => onEdit(inv)}>Edit</button>{onCreditNote && inv.docType !== "credit_note" && inv.status !== "draft" && <button className="btn btn-ghost btn-sm" title="Create a credit note for this invoice" onClick={() => onCreditNote(inv)}>Credit</button>}{onRecordPayment && inv.docType !== "credit_note" && inv.status !== "paid" && inv.status !== "draft" && <button className="btn btn-ghost btn-sm" title="Record a payment received" onClick={() => onRecordPayment(inv)}>Payment</button>}
+                      <button className="btn btn-ghost btn-sm" style={{ color:"var(--gold)" }} onClick={() => onEdit(inv)}>{t("edit", "Edit")}</button>{onCreditNote && inv.docType !== "credit_note" && inv.status !== "draft" && <button className="btn btn-ghost btn-sm" title={t("create_credit", "Create a credit note for this invoice")} onClick={() => onCreditNote(inv)}>{t("credit_note", "Credit")}</button>}{onRecordPayment && inv.docType !== "credit_note" && inv.status !== "paid" && inv.status !== "draft" && <button className="btn btn-ghost btn-sm" title={t("record_payment", "Record a payment received")} onClick={() => onRecordPayment(inv)}>{t("payment", "Payment")}</button>}
                       {(inv.status === "overdue" || inv.status === "pending") && (
                         <button className="btn btn-sm" style={{ background:"rgba(224,85,85,0.15)", color:"var(--red)", border:"1px solid rgba(224,85,85,0.3)" }} onClick={() => onRemind(inv)}>{t("remind", "Remind")}</button>
                       )}
@@ -1258,16 +1295,16 @@ function Invoices({ invoices, filterStatus, setFilterStatus, search, setSearch, 
   return (
     <>
       {hasDraft && (
-        <div style={{ background:"rgba(201,168,76,0.1)", border:"1px solid var(--gold)", borderRadius:10, padding:"12px 18px", marginBottom:18, display:"flex", alignItems:"center", justifyContent:"space-between", gap:12, flexWrap:"wrap" }}>
+        <div style={{ background:"rgba(99,102,241,0.1)", border:"1px solid var(--gold)", borderRadius:10, padding:"12px 18px", marginBottom:18, display:"flex", alignItems:"center", justifyContent:"space-between", gap:12, flexWrap:"wrap" }}>
           <div style={{ display:"flex", alignItems:"center", gap:10 }}>
             <div>
-              <div style={{ fontWeight:700, color:"var(--gold)", fontSize:13 }}>Notice: Unsaved Draft</div>
-              <div style={{ fontSize:12, color:"var(--text2)" }}>Your invoice was saved automatically when you closed it.</div>
+              <div style={{ fontWeight:700, color:"var(--gold)", fontSize:13 }}>{t("unsaved_draft", "Notice: Unsaved Draft")}</div>
+              <div style={{ fontSize:12, color:"var(--text2)" }}>{t("draft_auto_saved", "Your invoice was saved automatically when you closed it.")}</div>
             </div>
           </div>
           <div style={{ display:"flex", gap:8 }}>
-            <button className="btn btn-ghost btn-sm" onClick={onDiscardDraft} style={{ color:"var(--red)", borderColor:"rgba(224,85,85,0.3)" }}>Discard</button>
-            <button className="btn btn-primary btn-sm" onClick={onOpenDraft}>Continue Draft</button>
+            <button className="btn btn-ghost btn-sm" onClick={onDiscardDraft} style={{ color:"var(--red)", borderColor:"rgba(224,85,85,0.3)" }}>{t("discard", "Discard")}</button>
+            <button className="btn btn-primary btn-sm" onClick={onOpenDraft}>{t("continue_draft", "Continue Draft")}</button>
           </div>
         </div>
       )}
@@ -1291,30 +1328,30 @@ function Invoices({ invoices, filterStatus, setFilterStatus, search, setSearch, 
               ) : invoices.map(inv => (
                 <React.Fragment key={inv.id}>
                   <tr>
-                    <td style={{ fontWeight:700, color:"var(--gold)" }}>{inv.id}{inv.docType === "credit_note" && <span style={{ marginLeft:6, fontSize:9, fontWeight:800, letterSpacing:0.5, padding:"2px 6px", borderRadius:20, background:"rgba(224,85,85,0.15)", color:"var(--red)", verticalAlign:"middle" }}>CREDIT NOTE</span>}</td>
+                    <td style={{ fontWeight:700, color:"var(--gold)" }}><bdi dir="ltr">{inv.id}</bdi>{inv.docType === "credit_note" && <span style={{ marginInlineStart:6, fontSize:9, fontWeight:800, letterSpacing:0.5, padding:"2px 6px", borderRadius:20, background:"rgba(224,85,85,0.15)", color:"var(--red)", verticalAlign:"middle" }}>{t("credit_note", "CREDIT NOTE")}</span>}</td>
                     <td>
                       <div style={{ fontWeight:500 }}>{inv.client}</div>
                       <div style={{ fontSize:11, color:"var(--text2)" }}>{inv.email}</div>{inv.createdBy && inv.createdBy !== viewerEmail && <div style={{ fontSize:10, color:"var(--gold)", marginTop:2 }}>by {inv.createdBy}</div>}
                       {remindersLog[inv.id] && remindersLog[inv.id].length > 0 && (
-                        <div style={{ fontSize:10, color:"var(--orange)", marginTop:2 }}>{remindersLog[inv.id].length} reminder{remindersLog[inv.id].length > 1 ? "s" : ""} sent</div>
+                        <div style={{ fontSize:10, color:"var(--orange)", marginTop:2 }}>{remindersLog[inv.id].length} {t("reminders_sent", `reminder${remindersLog[inv.id].length > 1 ? "s" : ""} sent`)}</div>
                       )}
                     </td>
                     <td style={{ color:"var(--text2)", fontSize:12 }}>{formatDate(inv.date)}</td>
                     <td style={{ color:inv.status==="overdue"?"var(--red)":"var(--text2)", fontSize:12, fontWeight:inv.status==="overdue"?700:400 }}>
                       {formatDate(inv.due)}
-                      {inv.status === "overdue" && <div style={{ fontSize:10, color:"var(--red)" }}>Overdue</div>}
+                      {inv.status === "overdue" && <div style={{ fontSize:10, color:"var(--red)" }}>{t("overdue", "Overdue")}</div>}
                     </td>
                     <td style={{ fontWeight:700 }}>{fmtCurrency(inv.amount, inv.currency || "EUR")}</td>
-                    <td>{statusBadge(inv.status)}{inv.status === "partial" && <div style={{ fontSize:10, color:"var(--text2)", marginTop:2 }}>{fmtCurrency(outstandingOf(inv), inv.currency || "EUR")} left</div>}</td>
+                      <td>{statusBadge(inv.status)}{inv.status === "partial" && <div style={{ fontSize:10, color:"var(--text2)", marginTop:2 }}><bdi dir="ltr">{fmtCurrency(outstandingOf(inv), inv.currency || "EUR")}</bdi> {t("amount_left", "left")}</div>}</td>
                     <td>
                       <div className="action-btns">
-                        <button className="btn btn-ghost btn-sm" onClick={() => onPreview(inv)}>{t("view", "View")}</button>{onMakeRecurring && <button className="btn btn-ghost btn-sm" title="Make recurring" onClick={() => onMakeRecurring(inv)}>🔄</button>}
-                        <button className="btn btn-ghost btn-sm" style={{ color:"var(--gold)" }} onClick={() => onEdit(inv)}>{t("edit", "Edit")}</button>{onCreditNote && inv.docType !== "credit_note" && inv.status !== "draft" && <button className="btn btn-ghost btn-sm" title="Create a credit note for this invoice" onClick={() => onCreditNote(inv)}>Credit</button>}{onRecordPayment && inv.docType !== "credit_note" && inv.status !== "paid" && inv.status !== "draft" && <button className="btn btn-ghost btn-sm" title="Record a payment received" onClick={() => onRecordPayment(inv)}>{t("payment", "Payment")}</button>}
+                        <button className="btn btn-ghost btn-sm" onClick={() => onPreview(inv)}>{t("view", "View")}</button>{onMakeRecurring && <button className="btn btn-ghost btn-sm" title={t("make_recurring", "Make recurring")} onClick={() => onMakeRecurring(inv)}>🔄</button>}
+                        <button className="btn btn-ghost btn-sm" style={{ color:"var(--gold)" }} onClick={() => onEdit(inv)}>{t("edit", "Edit")}</button>{onCreditNote && inv.docType !== "credit_note" && inv.status !== "draft" && <button className="btn btn-ghost btn-sm" title={t("create_credit", "Create a credit note for this invoice")} onClick={() => onCreditNote(inv)}>{t("credit_note", "Credit")}</button>}{onRecordPayment && inv.docType !== "credit_note" && inv.status !== "paid" && inv.status !== "draft" && <button className="btn btn-ghost btn-sm" title={t("record_payment", "Record a payment received")} onClick={() => onRecordPayment(inv)}>{t("payment", "Payment")}</button>}
                         {(inv.status === "overdue" || inv.status === "pending") && (
-                          <button className="btn btn-ghost btn-sm" style={{ color:"var(--green)" }} onClick={() => onMarkPaid(inv.id)}>✓ Paid</button>
+                          <button className="btn btn-ghost btn-sm" style={{ color:"var(--green)" }} onClick={() => onMarkPaid(inv.id)}>✓ {t("marked_paid", "Paid")}</button>
                         )}
                           <button className="btn btn-sm" style={{ background:"rgba(224,85,85,0.15)", color:"var(--red)", border:"1px solid rgba(224,85,85,0.3)", whiteSpace:"nowrap" }} onClick={() => onRemind(inv)}>{t("remind", "Remind")}</button>
-                        
+
                         <button className="btn btn-danger btn-sm" onClick={() => onDelete(inv.id)}>✕</button>
                       </div>
                     </td>
@@ -1344,24 +1381,24 @@ function Invoices({ invoices, filterStatus, setFilterStatus, search, setSearch, 
             <div className="inv-card" key={inv.id}>
               <div className="inv-card-top">
                 <div>
-                  <div className="inv-card-id">{inv.id}{inv.docType === "credit_note" && <span style={{ marginLeft:6, fontSize:9, fontWeight:800, letterSpacing:0.5, padding:"2px 6px", borderRadius:20, background:"rgba(224,85,85,0.15)", color:"var(--red)", verticalAlign:"middle" }}>CREDIT NOTE</span>}</div>
+                  <div className="inv-card-id"><bdi dir="ltr">{inv.id}</bdi>{inv.docType === "credit_note" && <span style={{ marginInlineStart:6, fontSize:9, fontWeight:800, letterSpacing:0.5, padding:"2px 6px", borderRadius:20, background:"rgba(224,85,85,0.15)", color:"var(--red)", verticalAlign:"middle" }}>{t("credit_note", "CREDIT NOTE")}</span>}</div>
                   <div className="inv-card-client">{inv.client}</div>
                   <div className="inv-card-email">{inv.email}</div>
                 </div>
-                {statusBadge(inv.status)}{inv.status === "partial" && <div style={{ fontSize:10, color:"var(--text2)", marginTop:2 }}>{fmtCurrency(outstandingOf(inv), inv.currency || "EUR")} left</div>}
+                {statusBadge(inv.status)}{inv.status === "partial" && <div style={{ fontSize:10, color:"var(--text2)", marginTop:2 }}><bdi dir="ltr">{fmtCurrency(outstandingOf(inv), inv.currency || "EUR")}</bdi> {t("amount_left", "left")}</div>}
               </div>
               <div className="inv-card-row">
                 <div className="inv-card-amount">{fmtCurrency(inv.amount, inv.currency || "EUR")}</div>
-                <div className="inv-card-due" style={{ color:inv.status==="overdue"?"var(--red)":"var(--text2)", fontWeight:inv.status==="overdue"?700:400 }}>Due: {formatDate(inv.due)}</div>
+                <div className="inv-card-due" style={{ color:inv.status==="overdue"?"var(--red)":"var(--text2)", fontWeight:inv.status==="overdue"?700:400 }}>{t("due_label", "Due")}: {formatDate(inv.due)}</div>
               </div>
               <div className="inv-card-actions">
-                <button className="btn btn-ghost btn-sm" onClick={() => onPreview(inv)}>View</button>{onMakeRecurring && <button className="btn btn-ghost btn-sm" title="Make recurring" onClick={() => onMakeRecurring(inv)}>🔄</button>}
-                <button className="btn btn-ghost btn-sm" style={{ color:"var(--gold)" }} onClick={() => onEdit(inv)}>Edit</button>{onCreditNote && inv.docType !== "credit_note" && inv.status !== "draft" && <button className="btn btn-ghost btn-sm" title="Create a credit note for this invoice" onClick={() => onCreditNote(inv)}>Credit</button>}{onRecordPayment && inv.docType !== "credit_note" && inv.status !== "paid" && inv.status !== "draft" && <button className="btn btn-ghost btn-sm" title="Record a payment received" onClick={() => onRecordPayment(inv)}>Payment</button>}
+                <button className="btn btn-ghost btn-sm" onClick={() => onPreview(inv)}>{t("view", "View")}</button>{onMakeRecurring && <button className="btn btn-ghost btn-sm" title={t("make_recurring", "Make recurring")} onClick={() => onMakeRecurring(inv)}>🔄</button>}
+                <button className="btn btn-ghost btn-sm" style={{ color:"var(--gold)" }} onClick={() => onEdit(inv)}>{t("edit", "Edit")}</button>{onCreditNote && inv.docType !== "credit_note" && inv.status !== "draft" && <button className="btn btn-ghost btn-sm" title={t("create_credit", "Create a credit note for this invoice")} onClick={() => onCreditNote(inv)}>{t("credit_note", "Credit")}</button>}{onRecordPayment && inv.docType !== "credit_note" && inv.status !== "paid" && inv.status !== "draft" && <button className="btn btn-ghost btn-sm" title={t("record_payment", "Record a payment received")} onClick={() => onRecordPayment(inv)}>{t("payment", "Payment")}</button>}
                 {(inv.status === "overdue" || inv.status === "pending") && (
-                  <button className="btn btn-ghost btn-sm" style={{ color:"var(--green)" }} onClick={() => onMarkPaid(inv.id)}>✓ Paid</button>
+                  <button className="btn btn-ghost btn-sm" style={{ color:"var(--green)" }} onClick={() => onMarkPaid(inv.id)}>✓ {t("marked_paid", "Paid")}</button>
                 )}
-                  <button className="btn btn-sm" style={{ background:"rgba(224,85,85,0.15)", color:"var(--red)", border:"1px solid rgba(224,85,85,0.3)" }} onClick={() => onRemind(inv)}>Remind</button>
-                
+                  <button className="btn btn-sm" style={{ background:"rgba(224,85,85,0.15)", color:"var(--red)", border:"1px solid rgba(224,85,85,0.3)" }} onClick={() => onRemind(inv)}>{t("remind", "Remind")}</button>
+
                 <button className="btn btn-danger btn-sm" onClick={() => onDelete(inv.id)}>✕</button>
               </div>
             </div>
@@ -1373,13 +1410,15 @@ function Invoices({ invoices, filterStatus, setFilterStatus, search, setSearch, 
 }
 
 function Clients({ clients, invoices, f, onAdd, onDeleteClient, onEditClient }) {
+  const locale = getLocale();
+  const t = (key, fallback) => tr(key, fallback, locale);
   return (
     <div className="clients-grid">
   {clients.length === 0 && (
     <div className="empty" style={{ gridColumn: "1 / -1" }}>
       <div className="empty-icon">🤝</div>
-      <div className="empty-text">No clients yet — add your first client to get started.</div>
-      <button className="btn btn-primary" style={{ marginTop:16 }} onClick={onAdd}>Add your first client</button>
+      <div className="empty-text">{t("no_clients", "No clients yet — add your first client to get started.")}</div>
+      <button className="btn btn-primary" style={{ marginTop:16 }} onClick={onAdd}>{t("add_first_client", "Add your first client")}</button>
     </div>
   )}
   {clients.map(c => {
@@ -1394,13 +1433,13 @@ function Clients({ clients, invoices, f, onAdd, onDeleteClient, onEditClient }) 
           <div className="client-email">{c.email}</div>
           <div className="client-email">{c.phone} · {c.country}</div>
           <div className="client-stats" style={{ marginTop:14 }}>
-            <div className="client-stat"><span>{invoiceCount}</span>Invoices</div>
-            <div className="client-stat"><span style={{ color:"var(--gold)" }}>{f(totalBilled)}</span>Total Billed</div>
-            {overdueAmt > 0 && <div className="client-stat"><span style={{ color:"var(--red)" }}>{f(overdueAmt)}</span>Overdue</div>}
+            <div className="client-stat"><span>{invoiceCount}</span>{t("invoice_count", "Invoices")}</div>
+            <div className="client-stat"><span dir="ltr" style={{ color:"var(--gold)" }}>{f(totalBilled)}</span>{t("total_billed", "Total Billed")}</div>
+            {overdueAmt > 0 && <div className="client-stat"><span dir="ltr" style={{ color:"var(--red)" }}>{f(overdueAmt)}</span>{t("overdue", "Overdue")}</div>}
           </div>
           <div style={{ display:"flex", gap:8, marginTop:12 }}>
-            <button className="btn btn-ghost btn-sm" onClick={() => onEditClient(c)}>Edit</button>
-            <button className="btn btn-danger btn-sm" onClick={() => { if(window.confirm("Delete this client?")) onDeleteClient(c.id); }}>Delete</button>
+            <button className="btn btn-ghost btn-sm" onClick={() => onEditClient(c)}>{t("edit", "Edit")}</button>
+            <button className="btn btn-danger btn-sm" onClick={() => { if(window.confirm(t("delete_client_confirm", "Delete this client?"))) onDeleteClient(c.id); }}>{t("delete", "Delete")}</button>
           </div>
         </div>
     );
@@ -1413,7 +1452,7 @@ function Settings({ currency, setCurrency, userEmail, invoices, onProfileSaved }
   const locale = getLocale();
   const t = (key, fallback) => tr(key, fallback, locale);
   const cur = getCurrency(currency);
-  const [profile, setProfile] = useState({ name:"", email:"", phone:"", country:"NL", vat_number:"", address:"", default_tax:20, notes:"", invoice_prefix:"INV-", payment_terms:30, bank_info:"" });
+  const [profile, setProfile] = useState({ name:"", email:"", phone:"", country:"NL", vat_number:"", address:"", default_tax:20, notes:"", invoice_prefix:"INV-", payment_terms:30, bank_info:"", default_invoice_language:"en" });
   const [saving, setSaving] = useState(false);
   const [saved, setSaved] = useState(false);
   const [savingDefaults, setSavingDefaults] = useState(false);
@@ -1424,12 +1463,12 @@ function Settings({ currency, setCurrency, userEmail, invoices, onProfileSaved }
     setSavingDefaults(true);
     const { data: { user } } = await supabase.auth.getUser();
     if (!user) return;
-    await supabase.from("business_profile").upsert({ user_id: user.id, notes: profile.notes || "", default_tax: profile.default_tax ?? 20, invoice_prefix: profile.invoice_prefix || "INV-", payment_terms: profile.payment_terms ?? 30, bank_info: profile.bank_info || "", updated_at: new Date().toISOString() });
+    await supabase.from("business_profile").upsert({ user_id: user.id, notes: profile.notes || "", default_tax: profile.default_tax ?? 20, invoice_prefix: profile.invoice_prefix || "INV-", payment_terms: profile.payment_terms ?? 30, bank_info: profile.bank_info || "", default_invoice_language: normalizeDocumentLanguage(profile.default_invoice_language), updated_at: new Date().toISOString() });
     setSavingDefaults(false);
     setSavedDefaults(true);
     setTimeout(() => setSavedDefaults(false), 2000);
   };
-  
+
 
   useEffect(() => {
     const load = async () => {
@@ -1438,7 +1477,7 @@ function Settings({ currency, setCurrency, userEmail, invoices, onProfileSaved }
       const owner = (await myTeamOwner(user.id)) || user.id;
       const { data } = await supabase.from("business_profile").select("*").eq("user_id", owner).maybeSingle();
       if (data) {
-        setProfile({ name: data.name || "", email: data.email || "", phone: data.phone || "", country: data.country || "NL", address: data.address || "", default_tax: data.default_tax ?? 20, notes: data.notes || "", invoice_prefix: data.invoice_prefix || "INV-", payment_terms: data.payment_terms ?? 30, bank_info: data.bank_info || "" });
+        setProfile({ name: data.name || "", email: data.email || "", phone: data.phone || "", country: data.country || "NL", address: data.address || "", default_tax: data.default_tax ?? 20, notes: data.notes || "", invoice_prefix: data.invoice_prefix || "INV-", payment_terms: data.payment_terms ?? 30, bank_info: data.bank_info || "", default_invoice_language: normalizeDocumentLanguage(data.default_invoice_language) });
         setProfilePreviouslyComplete(Boolean((data.name || "").trim()));
       }
     };
@@ -1451,7 +1490,7 @@ function Settings({ currency, setCurrency, userEmail, invoices, onProfileSaved }
     if (!user) { setSaving(false); return; }
     const { error } = await supabase.from("business_profile").upsert({ user_id: user.id, ...profile, default_tax: profile.default_tax ?? 20, updated_at: new Date().toISOString() });
     setSaving(false);
-    if (error) { alert("Could not save your business details. Please try again."); return; }
+    if (error) { alert(t("save_business_error", "Could not save your business details. Please try again.")); return; }
     const profileComplete = Boolean((profile.name || "").trim());
     onProfileSaved && onProfileSaved(profileComplete, profile);
     if (profileComplete) {
@@ -1475,21 +1514,21 @@ function Settings({ currency, setCurrency, userEmail, invoices, onProfileSaved }
         <div className="card-title" style={{ marginBottom:8 }}>{t("language", "App language")}</div>
         <p style={{ fontSize:13, color:"var(--text2)", marginBottom:14 }}>{t("language_help", "Choose the language used for sign-in and primary navigation.")}</p>
         <select value={locale} onChange={(event) => { setLocale(event.target.value); window.location.reload(); }}>
-          <option value="en">English</option><option value="es">Español</option><option value="fr">Français</option><option value="nl">Nederlands</option>
+          <option value="en">English</option><option value="nl">Nederlands</option><option value="fr">Français</option><option value="ar">العربية</option>
         </select>
       </div>
       <div className="card" style={{ padding:28, marginBottom:20 }}>
         <div className="card-title" style={{ marginBottom:20 }}>{t("business_profile", "Business Profile")}</div>
         <div className="form-grid">
           <div className="form-group"><label>{t("business_name", "Business Name")}</label><input value={profile.name} onChange={e => setProfile(p => ({ ...p, name: e.target.value }))} placeholder="e.g. Vyynd Agency BV" /></div>
-          <div className="form-group"><label>Email</label><input value={profile.email} onChange={e => setProfile(p => ({ ...p, email: e.target.value }))} placeholder="me@company.com" /></div>
-          <div className="form-group"><label>Phone</label><input value={profile.phone} onChange={e => setProfile(p => ({ ...p, phone: e.target.value }))} placeholder="+31 6 XX XX XX XX" /></div>
+          <div className="form-group"><label>{t("email_address", "Email")}</label><input dir="ltr" value={profile.email} onChange={e => setProfile(p => ({ ...p, email: e.target.value }))} placeholder="me@company.com" /></div>
+          <div className="form-group"><label>{t("phone", "Phone")}</label><input dir="ltr" value={profile.phone} onChange={e => setProfile(p => ({ ...p, phone: e.target.value }))} placeholder="+31 6 XX XX XX XX" /></div>
           <div className="form-group"><label>{t("country", "Country")}</label>
             <select value={profile.country} onChange={e => setProfile(p => ({ ...p, country: e.target.value }))}>
               {COUNTRY_OPTIONS.map(([v, l]) => <option key={v} value={v}>{l}</option>)}
             </select>
           </div>
-          <div className="form-group"><label>VAT / BTW number</label><input value={profile.vat_number || ""} onChange={e => setProfile(p => ({ ...p, vat_number: e.target.value }))} placeholder="e.g. NL123456789B01" /></div>
+          <div className="form-group"><label>{t("vat_number", "VAT / BTW number")}</label><input dir="ltr" value={profile.vat_number || ""} onChange={e => setProfile(p => ({ ...p, vat_number: e.target.value }))} placeholder="e.g. NL123456789B01" /></div>
           <div className="form-group full"><label>{t("address", "Address")}</label><input value={profile.address} onChange={e => setProfile(p => ({ ...p, address: e.target.value }))} placeholder="Keizersgracht 123, Amsterdam" /></div>
         </div>
         <button className="btn btn-primary" onClick={saveProfile} disabled={saving}>
@@ -1499,23 +1538,22 @@ function Settings({ currency, setCurrency, userEmail, invoices, onProfileSaved }
       {/* Every plan can take its own data out. Portability is a right, and
           nobody stays because their invoices are locked in. */}
       <div className="card" style={{ padding:28, marginBottom:20 }}>
-        <div className="card-title" style={{ marginBottom:8 }}>Your data</div>
+        <div className="card-title" style={{ marginBottom:8 }}>{t("your_data", "Your data")}</div>
         <p style={{ fontSize:13, color:"var(--text2)", marginBottom:16, lineHeight:1.6 }}>
-          Download every invoice and credit note in your account as a CSV file you can open
-          in Excel or hand to your accountant. Available on every plan, including after you cancel.
+          {t("data_export_help", "Download every invoice and credit note in your account as a CSV file you can open in Excel or hand to your accountant. Available on every plan, including after you cancel.")}
         </p>
         <button className="btn btn-ghost" onClick={() => exportInvoicesCSV(invoices || [], "fatura-pro-my-invoices-" + new Date().toISOString().slice(0, 10) + ".csv")}>
-          Download my invoices (CSV)
+          {t("download_invoices", "Download my invoices (CSV)")}
         </button>
         <div style={{ fontSize:12, color:"var(--text2)", marginTop:12 }}>
-          {(invoices || []).length} document{(invoices || []).length === 1 ? "" : "s"} will be included.
+          {(invoices || []).length} {locale === "ar" ? t("documents_included", "documents will be included.") : `document${(invoices || []).length === 1 ? "" : "s"} will be included.`}
         </div>
       </div>
       <div className="card" style={{ padding:28 }}>
-        <div className="card-title" style={{ marginBottom:20 }}>Invoice Defaults</div>
+        <div className="card-title" style={{ marginBottom:20 }}>{t("invoice_defaults", "Invoice Defaults")}</div>
         <div className="form-grid">
           <div className="form-group full">
-            <label>Default Currency</label>
+            <label>{t("default_currency", "Default Currency")}</label>
             <select value={currency} onChange={e => setCurrency(e.target.value)}>
               {CURRENCIES.map(group => (
                 <optgroup key={group.group} label={"── " + group.group + " ──"}>
@@ -1524,27 +1562,28 @@ function Settings({ currency, setCurrency, userEmail, invoices, onProfileSaved }
               ))}
             </select>
             <div style={{ fontSize:12, color:"var(--gold)", marginTop:6, padding:"8px 12px", background:"var(--gold-dim)", borderRadius:6, border:"1px solid var(--border)" }}>
-              Preview: {fmtCurrency(1234.5, currency)} · {cur.label}
+              {t("preview_label", "Preview")}: <bdi dir="ltr">{fmtCurrency(1234.5, currency)} · {cur.label}</bdi>
             </div>
           </div>
-          <div className="form-group"><label>Default Tax (%)</label><input type="number" value={profile.default_tax ?? 20} onChange={e => setProfile(p => ({ ...p, default_tax: +e.target.value }))} /></div>
-          <div className="form-group"><label>Payment Terms (days)</label><input type="number" value={profile.payment_terms ?? 30} onChange={e => setProfile(p => ({ ...p, payment_terms: +e.target.value }))} /></div>
-          <div className="form-group"><label>Invoice Prefix</label><input value={profile.invoice_prefix || "INV-"} onChange={e => setProfile(p => ({ ...p, invoice_prefix: e.target.value }))} /></div>
-          <div className="form-group full"><label>Invoice Notes</label>
-            <textarea rows={3} value={profile.notes || ""} onChange={e => setProfile(p => ({ ...p, notes: e.target.value }))} style={{ resize:"vertical" }} placeholder="Thank you for your business. Payment is due within 30 days." />
+          <div className="form-group full"><label>{t("default_invoice_language", "Default invoice language")}</label><select value={normalizeDocumentLanguage(profile.default_invoice_language)} onChange={e => setProfile(p => ({ ...p, default_invoice_language:e.target.value }))}>{DOCUMENT_LANGUAGES.map(language => <option key={language.value} value={language.value}>{language.label}</option>)}</select><div style={{ fontSize:11, color:"var(--text2)", marginTop:6 }}>{t("invoice_language_help", "This controls PDF language only. You can override it on each invoice.")}</div></div>
+          <div className="form-group"><label>{t("default_tax", "Default Tax (%)")}</label><input type="number" value={profile.default_tax ?? 20} onChange={e => setProfile(p => ({ ...p, default_tax: +e.target.value }))} /></div>
+          <div className="form-group"><label>{t("payment_terms", "Payment Terms (days)")}</label><input type="number" value={profile.payment_terms ?? 30} onChange={e => setProfile(p => ({ ...p, payment_terms: +e.target.value }))} /></div>
+          <div className="form-group"><label>{t("invoice_prefix", "Invoice Prefix")}</label><input value={profile.invoice_prefix || "INV-"} onChange={e => setProfile(p => ({ ...p, invoice_prefix: e.target.value }))} /></div>
+          <div className="form-group full"><label>{t("invoice_notes_label", "Invoice Notes")}</label>
+            <textarea rows={3} value={profile.notes || ""} onChange={e => setProfile(p => ({ ...p, notes: e.target.value }))} style={{ resize:"vertical" }} placeholder={t("invoice_notes_placeholder", "Thank you for your business. Payment is due within 30 days.")} />
           </div>
 
-          <div className="form-group full"><label>Bank / Payment Information</label>
+          <div className="form-group full"><label>{t("bank_payment_info", "Bank / Payment Information")}</label>
             <textarea rows={3} value={profile.bank_info || ""} onChange={e => setProfile(p => ({ ...p, bank_info: e.target.value }))} style={{ resize:"vertical" }} placeholder="IBAN: NL00 BANK 0000 0000 00 — BIC — Account name" />
           </div>
         </div>
-        <button className="btn btn-primary" onClick={saveDefaults} disabled={savingDefaults}>{savingDefaults ? "Saving..." : savedDefaults ? "✓ Saved!" : "Save Defaults"}</button>
+        <button className="btn btn-primary" onClick={saveDefaults} disabled={savingDefaults}>{savingDefaults ? t("saving", "Saving...") : savedDefaults ? "✓ " + t("saved", "Saved!") : t("save_defaults", "Save Defaults")}</button>
       </div>
     </div>
   );
 }
 
-function NewInvoiceModal({ bizProfiles = [], clients, onSave, onClose, invoiceCount, currency: globalCurrency, f: globalF, editData, draftData, onDiscardDraft, editDraft, onDiscardEditDraft }) {
+function NewInvoiceModal({ bizProfiles = [], clients, onSave, onClose, invoiceCount, currency: globalCurrency, f: globalF, defaultInvoiceLanguage = "en", editData, draftData, onDiscardDraft, editDraft, onDiscardEditDraft }) {
   const locale = getLocale();
   const t = (key, fallback) => tr(key, fallback, locale);
   const isEdit = !!editData;
@@ -1559,7 +1598,7 @@ function NewInvoiceModal({ bizProfiles = [], clients, onSave, onClose, invoiceCo
 
   const [sellerLogoSize, setSellerLogoSize] = useState((sourceData && sourceData.sellerLogoSize) || 80);
   const [buyerLogoSize, setBuyerLogoSize] = useState((sourceData && sourceData.buyerLogoSize) || 60);
-  
+
   const [isMobile, setIsMobile] = React.useState(false);
 
 React.useEffect(() => {
@@ -1577,7 +1616,7 @@ React.useEffect(() => {
     client:(clients[0] && clients[0].name) || "", email:(clients[0] && clients[0].email) || "",
     buyerPhone:"", buyerAddress:"", buyerCountry:"", buyerLogo:null,
     date:new Date().toISOString().split("T")[0], due:"",
-    tax:20, discount:0, depositPct:0, notes:"", bankInfo:"",
+    tax:20, discount:0, depositPct:0, notes:"", bankInfo:"", documentLanguage:normalizeDocumentLanguage(defaultInvoiceLanguage),
   };
 
   useEffect(() => {
@@ -1597,6 +1636,7 @@ React.useEffect(() => {
           sellerCountry: f.sellerCountry || data.country || "",
           notes: f.notes || data.notes || "", bankInfo: f.bankInfo || data.bank_info || "",
           tax: f.tax !== 20 ? f.tax : (data.default_tax ?? 20),
+          documentLanguage: normalizeDocumentLanguage(f.documentLanguage || data.default_invoice_language || defaultInvoiceLanguage),
         }));
       }
     };
@@ -1622,6 +1662,7 @@ React.useEffect(() => {
     depositPct: sourceData.depositPct != null ? sourceData.depositPct : 0,
     notes: sourceData.notes || "",
     bankInfo: sourceData.bankInfo || "",
+    documentLanguage: normalizeDocumentLanguage(sourceData.documentLanguage || defaultInvoiceLanguage),
   } : emptyForm);
 
   const [items, setItems] = useState(
@@ -1705,27 +1746,27 @@ React.useEffect(() => {
         <div style={{ width:90, height:90, borderRadius:10, background:"var(--bg3)", border:"2px dashed var(--border)", display:"flex", alignItems:"center", justifyItems:"center", justifyContent:"center", overflow:"hidden", flexShrink:0 }}>
           {form[logoKey]
             ? <img src={form[logoKey]} style={{ width:(sizeVal)+"%", height:(sizeVal)+"%", objectFit:"contain" }} alt="logo" />
-            : <span style={{ fontSize:14, fontWeight:600, color:"var(--text2)" }}>Logo</span>}
+            : <span style={{ fontSize:14, fontWeight:600, color:"var(--text2)" }}>{t("logo", "Logo")}</span>}
         </div>
         <div style={{ flex:1 }}>
           <div style={{ display:"flex", gap:8, marginBottom:10 }}>
             <input type="file" accept="image/*" id={inputId} style={{ display:"none" }} onChange={e => handleLogo(logoKey, e)} />
             <label htmlFor={inputId} className="btn btn-ghost btn-sm" style={{ cursor:"pointer", display:"inline-block" }}>
-              {form[logoKey] ? "Change Logo" : "Upload Logo"}
+              {form[logoKey] ? t("change_logo", "Change Logo") : t("upload_logo", "Upload Logo")}
             </label>
-            {form[logoKey] && <button className="btn btn-danger btn-sm" onClick={() => set(logoKey, null)}>Remove</button>}
+            {form[logoKey] && <button className="btn btn-danger btn-sm" onClick={() => set(logoKey, null)}>{t("remove", "Remove")}</button>}
           </div>
           {form[logoKey] ? (
             <div>
-              <div style={{ fontSize:11, color:"var(--text2)", marginBottom:6 }}>Logo Size: <strong style={{ color:"var(--gold)" }}>{sizeVal}%</strong></div>
+              <div style={{ fontSize:11, color:"var(--text2)", marginBottom:6 }}>{t("logo_size", "Logo Size")}: <strong dir="ltr" style={{ color:"var(--gold)" }}>{sizeVal}%</strong></div>
               <input type="range" min={20} max={100} value={sizeVal} onChange={e => onSizeChange(+e.target.value)}
                 style={{ width:"100%", accentColor:"var(--gold)", cursor:"pointer", height:4 }} />
               <div style={{ display:"flex", justifyContent:"space-between", fontSize:10, color:"var(--text2)", marginTop:3 }}>
-                <span>Small</span><span>Large</span>
+                <span>{t("small", "Small")}</span><span>{t("large", "Large")}</span>
               </div>
             </div>
           ) : (
-            <div style={{ fontSize:11, color:"var(--text2)" }}>PNG or JPG — transparent background recommended</div>
+            <div style={{ fontSize:11, color:"var(--text2)" }}>{t("logo_hint", "PNG or JPG — transparent background recommended")}</div>
           )}
         </div>
       </div>
@@ -1737,28 +1778,28 @@ React.useEffect(() => {
       <div className="modal" style={{ maxWidth:700 }}>
 
         {showDraftBanner && (
-          <div style={{ background:"rgba(201,168,76,0.12)", border:"1px solid var(--gold)", borderRadius:10, padding:"12px 16px", marginBottom:18, display:"flex", alignItems:"center", justifyContent:"space-between", gap:12 }}>
+          <div style={{ background:"rgba(99,102,241,0.12)", border:"1px solid var(--gold)", borderRadius:10, padding:"12px 16px", marginBottom:18, display:"flex", alignItems:"center", justifyContent:"space-between", gap:12 }}>
             <div style={{ display:"flex", alignItems:"center", gap:10 }}>
               <div>
-                <div style={{ fontSize:13, fontWeight:700, color:"var(--gold)" }}>Draft Restored</div>
-                <div style={{ fontSize:11, color:"var(--text2)" }}>Continue where you left off?</div>
+                <div style={{ fontSize:13, fontWeight:700, color:"var(--gold)" }}>{t("restored_draft", "Draft Restored")}</div>
+                <div style={{ fontSize:11, color:"var(--text2)" }}>{t("restored_draft_help", "Continue where you left off?")}</div>
               </div>
             </div>
             <div style={{ display:"flex", gap:8 }}>
-              <button className="btn btn-ghost btn-sm" onClick={() => { setShowDraftBanner(false); setForm(emptyForm); setItems([{ desc:"", qty:1, price:0, note:"" }]); if (onDiscardDraft) onDiscardDraft(); }}>Discard</button>
-              <button className="btn btn-primary btn-sm" onClick={() => setShowDraftBanner(false)}>Continue</button>
+              <button className="btn btn-ghost btn-sm" onClick={() => { setShowDraftBanner(false); setForm(emptyForm); setItems([{ desc:"", qty:1, price:0, note:"" }]); if (onDiscardDraft) onDiscardDraft(); }}>{t("discard", "Discard")}</button>
+              <button className="btn btn-primary btn-sm" onClick={() => setShowDraftBanner(false)}>{t("continue_action", "Continue")}</button>
             </div>
           </div>
         )}
         {/* Draft restore banner — edit invoice */}
 {showEditDraftBanner && (
-  <div style={{ background: "rgba(201,168,76,0.12)", border: "1px solid var(--gold)", borderRadius: 10,
+  <div style={{ background: "rgba(99,102,241,0.12)", border: "1px solid var(--gold)", borderRadius: 10,
     padding: "12px 16px", marginBottom: 18, display: "flex", alignItems: "center", justifyContent: "space-between", gap: 12 }}>
     <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
       <span style={{ fontSize: 18 }}>📝</span>
       <div>
-        <div style={{ fontSize: 13, fontWeight: 700, color: "var(--gold)" }}>Unsaved Changes Restored</div>
-        <div style={{ fontSize: 11, color: "var(--text2)" }}>You have unsaved edits for this invoice. Continue where you left off?</div>
+        <div style={{ fontSize: 13, fontWeight: 700, color: "var(--gold)" }}>{t("restored_edits", "Unsaved Changes Restored")}</div>
+        <div style={{ fontSize: 11, color: "var(--text2)" }}>{t("restored_edits_help", "You have unsaved edits for this invoice. Continue where you left off?")}</div>
       </div>
     </div>
     <div style={{ display: "flex", gap: 8 }}>
@@ -1773,12 +1814,13 @@ React.useEffect(() => {
           date: editData.date || new Date().toISOString().split("T")[0],
           due: editData.due || "", tax: editData.tax ?? 20, discount: editData.discount ?? 0,
           depositPct: editData.depositPct ?? 0,
-          notes: editData.notes || "", bankInfo: editData.bankInfo || "",
+           notes: editData.notes || "", bankInfo: editData.bankInfo || "",
+           documentLanguage: normalizeDocumentLanguage(editData.documentLanguage || defaultInvoiceLanguage),
         });
         setItems(editData.items?.length > 0 ? editData.items : [{ desc: "", qty: 1, price: 0 }]);
         if (onDiscardEditDraft) onDiscardEditDraft();
-      }}>Discard</button>
-      <button className="btn btn-primary btn-sm" onClick={() => setShowEditDraftBanner(false)}>Continue ✓</button>
+      }}>{t("discard", "Discard")}</button>
+      <button className="btn btn-primary btn-sm" onClick={() => setShowEditDraftBanner(false)}>{t("continue_action", "Continue")} ✓</button>
     </div>
   </div>
 )}
@@ -1788,9 +1830,16 @@ React.useEffect(() => {
             {isEdit ? t("edit_invoice", "Edit Invoice") : t("new_invoice", "New Invoice")}
             {isEdit && <span style={{ fontSize:13, color:"var(--gold)", marginLeft:10, fontWeight:600 }}>{editData.id}</span>}
           </div>
-          <div style={{ display:"flex", flexDirection:"column", alignItems:"flex-end", gap:4 }}>
-            <label style={{ fontSize:10, fontWeight:700, color:"var(--text2)", letterSpacing:1, textTransform:"uppercase" }}>{t("currency", "Currency")}</label>
-            <div style={{ position:"relative" }}>
+          <div style={{ display:"flex", alignItems:"flex-end", gap:10, flexWrap:"wrap", justifyContent:"flex-end" }}>
+            <div style={{ display:"flex", flexDirection:"column", alignItems:"stretch", gap:4 }}>
+              <label style={{ fontSize:10, fontWeight:700, color:"var(--text2)", letterSpacing:1, textTransform:"uppercase" }}>{t("invoice_language", "Invoice language")}</label>
+              <select value={normalizeDocumentLanguage(form.documentLanguage || defaultInvoiceLanguage)} onChange={e => set("documentLanguage", e.target.value)} style={{ background:"var(--gold-dim)", border:"1.5px solid var(--gold)", color:"var(--gold)", fontWeight:700, fontSize:13, borderRadius:8, padding:"7px 12px", cursor:"pointer" }}>
+                {DOCUMENT_LANGUAGES.map(language => <option key={language.value} value={language.value}>{language.label}</option>)}
+              </select>
+            </div>
+            <div style={{ display:"flex", flexDirection:"column", alignItems:"stretch", gap:4 }}>
+              <label style={{ fontSize:10, fontWeight:700, color:"var(--text2)", letterSpacing:1, textTransform:"uppercase" }}>{t("currency", "Currency")}</label>
+              <div style={{ position:"relative" }}>
               <select value={invoiceCurrency} onChange={e => setInvoiceCurrency(e.target.value)}
                 style={{ background:"var(--gold-dim)", border:"1.5px solid var(--gold)", color:"var(--gold)", fontWeight:700, fontSize:13, borderRadius:8, padding:"7px 32px 7px 12px", cursor:"pointer", appearance:"none", fontFamily:"'DM Sans', sans-serif" }}>
                 {CURRENCIES.map(group => (
@@ -1800,8 +1849,9 @@ React.useEffect(() => {
                 ))}
               </select>
               <span style={{ position:"absolute", right:10, top:"50%", transform:"translateY(-50%)", pointerEvents:"none", color:"var(--gold)", fontSize:10 }}>▼</span>
+              </div>
+              <div style={{ fontSize:11, color:"var(--text2)" }}>{curInfo.label}</div>
             </div>
-            <div style={{ fontSize:11, color:"var(--text2)" }}>{curInfo.label}</div>
           </div>
         </div>
 
@@ -1809,7 +1859,7 @@ React.useEffect(() => {
           {steps.map((s, i) => (
             <div key={i} style={{ display:"flex", alignItems:"center", flex:i < steps.length - 1 ? 1 : "none" }}>
               <div onClick={() => (canJumpSteps || i < step) && setStep(i)} style={{ width:34, height:34, borderRadius:"50%", display:"flex", alignItems:"center", justifyItems:"center", justifyContent:"center", fontSize:13, fontWeight:700, flexShrink:0, cursor:(canJumpSteps || i < step) ? "pointer" : "default",
-                background:i===step?"var(--gold)":i<step?"rgba(201,168,76,0.3)":"var(--bg3)",
+                background:i===step?"var(--gold)":i<step?"rgba(99,102,241,0.3)":"var(--bg3)",
                 border:i===step?"2px solid var(--gold)":i<step?"2px solid var(--gold)":"2px solid var(--border)",
                 color:i===step?"#000":i<step?"var(--gold)":"var(--text2)" }}>
                 {i < step ? "✓" : s.icon}
@@ -1843,9 +1893,9 @@ React.useEffect(() => {
                 </div>
               )}
               <div className="form-group full"><label>{t("seller_name", "Seller / Company Name")}</label><input value={form.sellerName} onChange={e => set("sellerName", e.target.value)} placeholder="e.g. Vyynd Agency BV" /></div>
-              <div className="form-group"><label>Email</label><input value={form.sellerEmail} onChange={e => set("sellerEmail", e.target.value)} placeholder="contact@yourcompany.com" /></div>
+              <div className="form-group"><label>{t("email_address", "Email")}</label><input dir="ltr" value={form.sellerEmail} onChange={e => set("sellerEmail", e.target.value)} placeholder="contact@yourcompany.com" /></div>
               <div className="form-group"><label>{t("phone", "Phone")}</label><input value={form.sellerPhone} onChange={e => set("sellerPhone", e.target.value)} placeholder="+31 6 XX XX XX XX" /></div>
-              <div className="form-group"><label>{t("country", "Country")}</label><select value={COUNTRY_OPTIONS.some(([c]) => c === (form.sellerCountry || countryCodeFrom(form.sellerAddress))) ? (form.sellerCountry || countryCodeFrom(form.sellerAddress)) : "OTHER"} onChange={e => set("sellerCountry", e.target.value)}>{COUNTRY_OPTIONS.map(([c, n]) => <option key={c} value={c}>{n}</option>)}<option value="OTHER">Other…</option></select>{!COUNTRY_OPTIONS.some(([c]) => c === (form.sellerCountry || countryCodeFrom(form.sellerAddress))) && <input placeholder="Country or 2-letter code (e.g. JP)" value={form.sellerCountry === "OTHER" ? "" : (form.sellerCountry || "")} onChange={e => set("sellerCountry", e.target.value === "" ? "OTHER" : e.target.value)} style={{ marginTop:6 }} />}</div><div className="form-group"><label>{t("vat_number", "VAT / BTW number")}</label><input value={form.sellerVat || ""} onChange={e => set("sellerVat", e.target.value)} placeholder="e.g. NL123456789B01" /></div><div className="form-group full"><label>{t("address", "Address")}</label><textarea rows={2} value={form.sellerAddress} onChange={e => set("sellerAddress", e.target.value)} placeholder="e.g. Keizersgracht 123, Amsterdam" style={{ resize:"none" }} /></div>
+              <div className="form-group"><label>{t("country", "Country")}</label><select value={COUNTRY_OPTIONS.some(([c]) => c === (form.sellerCountry || countryCodeFrom(form.sellerAddress))) ? (form.sellerCountry || countryCodeFrom(form.sellerAddress)) : "OTHER"} onChange={e => set("sellerCountry", e.target.value)}>{COUNTRY_OPTIONS.map(([c, n]) => <option key={c} value={c}>{n}</option>)}<option value="OTHER">{t("other", "Other…")}</option></select>{!COUNTRY_OPTIONS.some(([c]) => c === (form.sellerCountry || countryCodeFrom(form.sellerAddress))) && <input placeholder={t("country_code_placeholder", "Country or 2-letter code (e.g. JP)")} value={form.sellerCountry === "OTHER" ? "" : (form.sellerCountry || "")} onChange={e => set("sellerCountry", e.target.value === "" ? "OTHER" : e.target.value)} style={{ marginTop:6 }} />}</div><div className="form-group"><label>{t("vat_number", "VAT / BTW number")}</label><input dir="ltr" value={form.sellerVat || ""} onChange={e => set("sellerVat", e.target.value)} placeholder="e.g. NL123456789B01" /></div><div className="form-group full"><label>{t("address", "Address")}</label><textarea rows={2} value={form.sellerAddress} onChange={e => set("sellerAddress", e.target.value)} placeholder="e.g. Keizersgracht 123, Amsterdam" style={{ resize:"none" }} /></div>
             </div>
           </div>
         )}
@@ -1862,10 +1912,10 @@ React.useEffect(() => {
                 </select>
               </div>
               <div className="form-group full"><label>{t("client_name", "Client / Company Name *")}</label><input value={form.client} onChange={e => set("client", e.target.value)} placeholder="e.g. TechFlow Solutions BV" /></div>
-              <div className="form-group"><label>Email</label><input value={form.email} onChange={e => set("email", e.target.value)} placeholder="client@company.com" /></div>
+              <div className="form-group"><label>{t("email_address", "Email")}</label><input dir="ltr" value={form.email} onChange={e => set("email", e.target.value)} placeholder="client@company.com" /></div>
               <div className="form-group"><label>{t("phone", "Phone")}</label><input value={form.buyerPhone} onChange={e => set("buyerPhone", e.target.value)} placeholder="+971 50 XXX XXXX" /></div>
               <div className="form-group full"><label>{t("address", "Address")}</label><textarea rows={2} value={form.buyerAddress} onChange={e => set("buyerAddress", e.target.value)} placeholder="e.g. Sheikh Zayed Rd, Dubai, UAE" style={{ resize:"none" }} /></div>
-              <div className="form-group"><label>{t("country", "Country")}</label><select value={COUNTRY_OPTIONS.some(([c]) => c === (form.buyerCountry || countryCodeFrom(form.buyerAddress))) ? (form.buyerCountry || countryCodeFrom(form.buyerAddress)) : "OTHER"} onChange={e => set("buyerCountry", e.target.value)}>{COUNTRY_OPTIONS.map(([c, n]) => <option key={c} value={c}>{n}</option>)}<option value="OTHER">Other…</option></select>{!COUNTRY_OPTIONS.some(([c]) => c === (form.buyerCountry || countryCodeFrom(form.buyerAddress))) && <input placeholder="Client country or code (e.g. JP)" value={form.buyerCountry === "OTHER" ? "" : (form.buyerCountry || "")} onChange={e => set("buyerCountry", e.target.value === "" ? "OTHER" : e.target.value)} style={{ marginTop:6 }} />}</div><div className="form-group"><label>{t("invoice_date", "Invoice Date *")}</label><input type="date" value={form.date} onChange={e => set("date", e.target.value)} /></div>
+              <div className="form-group"><label>{t("country", "Country")}</label><select value={COUNTRY_OPTIONS.some(([c]) => c === (form.buyerCountry || countryCodeFrom(form.buyerAddress))) ? (form.buyerCountry || countryCodeFrom(form.buyerAddress)) : "OTHER"} onChange={e => set("buyerCountry", e.target.value)}>{COUNTRY_OPTIONS.map(([c, n]) => <option key={c} value={c}>{n}</option>)}<option value="OTHER">{t("other", "Other…")}</option></select>{!COUNTRY_OPTIONS.some(([c]) => c === (form.buyerCountry || countryCodeFrom(form.buyerAddress))) && <input placeholder={t("client_country_placeholder", "Client country or code (e.g. JP)")} value={form.buyerCountry === "OTHER" ? "" : (form.buyerCountry || "")} onChange={e => set("buyerCountry", e.target.value === "" ? "OTHER" : e.target.value)} style={{ marginTop:6 }} />}</div><div className="form-group"><label>{t("invoice_date", "Invoice Date *")}</label><input type="date" value={form.date} onChange={e => set("date", e.target.value)} /></div>
               <div className="form-group"><label>{t("due_date", "Due Date")} *</label><input type="date" value={form.due} onChange={e => set("due", e.target.value)} /></div>
             </div>
           </div>
@@ -1884,27 +1934,27 @@ React.useEffect(() => {
                   {isMobile ? (
                     <div style={{ padding:"10px 12px", display:"flex", flexDirection:"column", gap:8 }}>
                       <div style={{ display:"flex", gap:8, alignItems:"center" }}>
-                        <input value={it.desc} onChange={e => updateItem(idx, "desc", e.target.value)} placeholder="Description" style={{ flex:1, padding:"10px", fontSize:14, borderRadius:6, background:"var(--bg3)", border:"1px solid var(--border)", color:"var(--text)", outline:"none" }} />
+                        <input value={it.desc} onChange={e => updateItem(idx, "desc", e.target.value)} placeholder={t("description", "Description")} style={{ flex:1, padding:"10px", fontSize:14, borderRadius:6, background:"var(--bg3)", border:"1px solid var(--border)", color:"var(--text)", outline:"none" }} />
                         <button onClick={() => removeItem(idx)} style={{ background:"none", border:"none", color:"var(--red)", cursor:"pointer", fontSize:20, padding:"0 4px", flexShrink:0 }}>×</button>
                       </div>
                       <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr 1fr", gap:8 }}>
                         <div>
-                          <div style={{ fontSize:10, color:"var(--text2)", fontWeight:600, marginBottom:4, textTransform:"uppercase" }}>Qty</div>
+                          <div style={{ fontSize:10, color:"var(--text2)", fontWeight:600, marginBottom:4, textTransform:"uppercase" }}>{t("quantity", "Qty")}</div>
                           <input type="number" value={it.qty === 0 ? "" : it.qty} min={0} onChange={e => updateItem(idx, "qty", e.target.value===""?0:+e.target.value)} placeholder="1" style={{ width:"100%", padding:"10px 8px", fontSize:14, fontWeight:600, textAlign:"center", borderRadius:6, background:"var(--bg3)", border:"1px solid var(--border)", color:"var(--text)", outline:"none" }} />
                         </div>
                         <div>
-                          <div style={{ fontSize:10, color:"var(--text2)", fontWeight:600, marginBottom:4, textTransform:"uppercase" }}>Price</div>
+                          <div style={{ fontSize:10, color:"var(--text2)", fontWeight:600, marginBottom:4, textTransform:"uppercase" }}>{t("price", "Price")}</div>
                           <input type="number" value={it.price === 0 ? "" : it.price} min={0} onChange={e => updateItem(idx, "price", e.target.value===""?0:+e.target.value)} placeholder="0.00" style={{ width:"100%", padding:"10px 8px", fontSize:14, fontWeight:600, textAlign:"right", borderRadius:6, background:"var(--bg3)", border:"1px solid var(--border)", color:"var(--text)", outline:"none" }} />
                         </div>
                         <div>
-                          <div style={{ fontSize:10, color:"var(--gold)", fontWeight:600, marginBottom:4, textTransform:"uppercase" }}>Total</div>
+                          <div style={{ fontSize:10, color:"var(--gold)", fontWeight:600, marginBottom:4, textTransform:"uppercase" }}>{t("total", "Total")}</div>
                           <div style={{ padding:"10px 8px", fontSize:14, fontWeight:700, color:"var(--gold)", textAlign:"right" }}>{fLocal(it.qty * it.price)}</div>
                         </div>
                       </div>
                     </div>
                   ) : (
                     <div style={{ display:"grid", gridTemplateColumns:"minmax(140px, 2fr) 90px 120px 100px 30px", gap:8, padding:"8px 12px", alignItems:"center" }}>
-                      <input value={it.desc} onChange={e => updateItem(idx, "desc", e.target.value)} placeholder="e.g. Social Media Package" style={{ width:"100%", padding:"8px 10px", fontSize:13, minWidth: 0 }} />
+                      <input value={it.desc} onChange={e => updateItem(idx, "desc", e.target.value)} placeholder={t("description", "e.g. Social Media Package")} style={{ width:"100%", padding:"8px 10px", fontSize:13, minWidth: 0 }} />
                       <input type="number" value={it.qty === 0 ? "" : it.qty} min={0} onChange={e => updateItem(idx, "qty", e.target.value===""?0:+e.target.value)} placeholder="1" style={{ width:"100%", padding:"8px 10px", fontSize:14, fontWeight:600, textAlign:"center" }} />
                       <input type="number" value={it.price === 0 ? "" : it.price} min={0} onChange={e => updateItem(idx, "price", e.target.value===""?0:+e.target.value)} placeholder="0.00" style={{ width:"100%", padding:"8px 10px", fontSize:14, fontWeight:600, textAlign:"right" }} />
                       <div style={{ fontSize:13, fontWeight:700, color:"var(--gold)", textAlign:"right" }}>{fLocal(it.qty * it.price)}</div>
@@ -1929,8 +1979,8 @@ React.useEffect(() => {
             </div>
             <div className="totals-box" style={{ marginTop:12 }}>
               <div className="totals-row"><span>{t("subtotal", "Subtotal")}</span><span>{fLocal(subtotal)}</span></div>
-              {form.discount > 0 && <div className="totals-row" style={{ color:"var(--green)" }}><span>Discount ({form.discount}%)</span><span>-{fLocal(discountAmt)}</span></div>}
-              <div className="totals-row"><span>Tax ({form.tax}%)</span><span>{fLocal(taxAmt)}</span></div>
+              {form.discount > 0 && <div className="totals-row" style={{ color:"var(--green)" }}><span>{t("discount", "Discount").replace(" (%)", "")} ({form.discount}%)</span><span>-{fLocal(discountAmt)}</span></div>}
+              <div className="totals-row"><span>{t("tax", "Tax").replace(" (%)", "")} ({form.tax}%)</span><span>{fLocal(taxAmt)}</span></div>
               <div className={"totals-row" + (depositPct > 0 ? "" : " grand")}><span>{depositPct > 0 ? t("invoice_total", "Invoice total") : t("total", "Total")}</span><span>{fLocal(total)}</span></div>
               {depositPct > 0 && <>
                 <div className="totals-row grand" style={{ gap:20 }}><span>{t("deposit_due", "Deposit due now")} ({depositPct}%)</span><span style={{ whiteSpace:"nowrap", marginLeft:12 }}>{fLocal(depositAmt)}</span></div>
@@ -1944,21 +1994,21 @@ React.useEffect(() => {
           <div style={{ display:"flex", flexDirection:"column", gap:16 }}>
             <div className="form-group">
               <label>{t("invoice_notes", "Invoice Notes")}</label>
-              <textarea rows={4} value={form.notes} onChange={e => set("notes", e.target.value)} placeholder="e.g. Thank you for your business. Payment is due within 30 days." style={{ resize:"vertical" }} />
-              <span style={{ fontSize:11, color:"var(--text2)" }}>Shown at the bottom of the invoice</span>
+              <textarea rows={4} value={form.notes} onChange={e => set("notes", e.target.value)} placeholder={t("invoice_notes_placeholder", "e.g. Thank you for your business. Payment is due within 30 days.")} style={{ resize:"vertical" }} />
+              <span style={{ fontSize:11, color:"var(--text2)" }}>{t("shown_invoice_bottom", "Shown at the bottom of the invoice")}</span>
             </div>
             <div className="form-group">
               <label>{t("payment_info", "Bank / Payment Information")}</label>
               <textarea rows={6} value={form.bankInfo} onChange={e => set("bankInfo", e.target.value)}
-                placeholder={"Bank: ING Bank Netherlands\nAccount Name: My Company BV\nIBAN: NL00 INGB 0000 0000 00\nBIC/Swift: INGBNL2A\n\nOr pay via:\nWise: yourname@wise.com"}
+                placeholder={t("bank_info_placeholder", "Bank: ING Bank Netherlands\nAccount Name: My Company BV\nIBAN: NL00 INGB 0000 0000 00\nBIC/Swift: INGBNL2A\n\nOr pay via:\nWise: yourname@wise.com")}
                 style={{ resize:"vertical", fontFamily:"monospace", fontSize:12, lineHeight:1.8 }} />
-              <span style={{ fontSize:11, color:"var(--text2)" }}>Bank details, Wise, PayPal, or any payment instructions</span>
+              <span style={{ fontSize:11, color:"var(--text2)" }}>{t("bank_details_hint", "Bank details, Wise, PayPal, or any payment instructions")}</span>
             </div>
             <div style={{ background:"var(--bg3)", border:"1px solid var(--border)", borderRadius:10, padding:"14px 18px" }}>
               <div style={{ fontSize:11, fontWeight:700, color:"var(--text2)", letterSpacing:0.5, marginBottom:10, textTransform:"uppercase" }}>
                 {isEdit ? t("edit_invoice", "Editing Invoice") : t("summary", "Summary")}
               </div>
-              {[[t("seller", "Seller"), form.sellerName||"—"],[t("client", "Client"), form.client||"—"],[t("due_date", "Due Date"), formatDate(form.due)||"—"],[t("items", "Items"), (items.filter(i => i.desc).length) + " line item(s)"]].map(([k, v]) => (
+              {[[t("seller", "Seller"), form.sellerName||"—"],[t("client", "Client"), form.client||"—"],[t("due_date", "Due Date"), formatDate(form.due)||"—"],[t("items", "Items"), (items.filter(i => i.desc).length) + " " + t("line_items_count", "line item(s)")]].map(([k, v]) => (
                 <div key={k} style={{ display:"flex", justifyContent:"space-between", fontSize:13, marginBottom:4 }}>
                   <span style={{ color:"var(--text2)" }}>{k}</span><span style={{ fontWeight:600 }}>{v}</span>
                 </div>
@@ -1968,14 +2018,14 @@ React.useEffect(() => {
                 <span style={{ fontWeight:700, color:"var(--gold)" }}>{invoiceCurrency} ({curInfo.symbol})</span>
               </div>
               <div style={{ display:"flex", justifyContent:"space-between", fontSize:16, fontWeight:700, marginTop:8, paddingTop:8, borderTop:"1px solid var(--border)" }}>
-                <span>{depositPct > 0 ? "Invoice total" : "Total due"}</span><span style={{ color:"var(--gold)" }}>{fLocal(total)}</span>
+                <span>{depositPct > 0 ? t("invoice_total", "Invoice total") : t("total_due", "Total due")}</span><span dir="ltr" style={{ color:"var(--gold)" }}>{fLocal(total)}</span>
               </div>
               {depositPct > 0 && <>
                 <div style={{ display:"flex", justifyContent:"space-between", fontSize:14, fontWeight:700, marginTop:8 }}>
-                  <span>Deposit due now ({depositPct}%)</span><span style={{ color:"var(--gold)" }}>{fLocal(depositAmt)}</span>
+                  <span>{t("deposit_due", "Deposit due now")} ({depositPct}%)</span><span dir="ltr" style={{ color:"var(--gold)" }}>{fLocal(depositAmt)}</span>
                 </div>
                 <div style={{ display:"flex", justifyContent:"space-between", fontSize:13, marginTop:5 }}>
-                  <span style={{ color:"var(--text2)" }}>Remaining after deposit</span><span style={{ fontWeight:600 }}>{fLocal(remainingAfterDeposit)}</span>
+                  <span style={{ color:"var(--text2)" }}>{t("remaining", "Remaining after deposit")}</span><span dir="ltr" style={{ fontWeight:600 }}>{fLocal(remainingAfterDeposit)}</span>
                 </div>
               </>}
             </div>
@@ -2037,7 +2087,7 @@ function NewClientModal({ onSave, onClose }) {
               {["Netherlands","Belgium","France","Germany","United Kingdom","United States","Spain","Italy","Switzerland","Sweden","Ireland","Austria","Luxembourg","Canada","Australia","UAE","Saudi Arabia","Qatar","Kuwait","Bahrain","Oman","Jordan","Lebanon","Turkey","Egypt","Morocco","Tunisia","Algeria","Libya","Iraq","Yemen","Other"].map(c => <option key={c}>{c}</option>)}
              </select>
             {!["Netherlands","Belgium","France","Germany","United Kingdom","United States","Spain","Italy","Switzerland","Sweden","Ireland","Austria","Luxembourg","Canada","Australia","UAE","Saudi Arabia","Qatar","Kuwait","Bahrain","Oman","Jordan","Lebanon","Turkey","Egypt","Morocco","Tunisia","Algeria","Libya","Iraq","Yemen"].includes(form.country) && form.country !== "" && (
-              <input placeholder="Type your country" autoFocus value={form.country.trim() === "" ? "" : form.country} onChange={e => setForm(f => ({ ...f, country: e.target.value }))} style={{ marginTop: 6 }} />
+              <input placeholder={t("type_country", "Type your country")} autoFocus value={form.country.trim() === "" ? "" : form.country} onChange={e => setForm(f => ({ ...f, country: e.target.value }))} style={{ marginTop: 6 }} />
             )}
           </div>
         </div>
@@ -2083,6 +2133,9 @@ function FirstInvoiceSuccess({ invoice, onPreview, onCreateAnother, onDashboard 
 
 function InvoicePreview({ invoice, onExportUBL, onClose, currency, plan, isFirstInvoice }) {
   const f = (n) => fmtCurrency(n, invoice.currency || currency || "EUR");
+  const documentLanguage = normalizeDocumentLanguage(invoice.documentLanguage);
+  const copy = invoiceCopy(documentLanguage);
+  const documentDir = documentDirection(documentLanguage);
   const firstExportTracked = useRef(false);
   const showAttribution = !hasBusinessAccess(plan);
   useEffect(() => {
@@ -2111,29 +2164,29 @@ function InvoicePreview({ invoice, onExportUBL, onClose, currency, plan, isFirst
     <div className="modal-overlay"> {/* إزالة خاصية الإغلاق بالنقر هنا */}
       <div className="invoice-preview-wrapper" style={{ width:"100%", maxWidth:760, maxHeight:"95vh", overflow:"auto", borderRadius:16, margin:"0 auto" }}>
         <div className="print-hide" style={{ display:"flex", justifyContent:"space-between", padding:"12px 0 16px" }}>
-          <div style={{ display:"flex", gap:8 }}><button className="btn btn-ghost btn-sm" onClick={() => { trackDownload("pdf"); window.print(); }}>Print / PDF</button><button className="btn btn-ghost btn-sm" title="Download UBL/XML for an EN 16931 workflow; validate the receiver's required profile" onClick={() => { const canExport = plan === "pro" || plan === "business"; trackDownload("ubl", canExport); onExportUBL && onExportUBL(invoice); }}>UBL (XML)</button></div>
-          <button className="btn btn-ghost btn-sm" onClick={onClose}>Close</button>
+          <div style={{ display:"flex", gap:8 }}><button className="btn btn-ghost btn-sm" onClick={() => { trackDownload("pdf"); window.print(); }}>{copy.printPdf}</button><button className="btn btn-ghost btn-sm" title={documentLanguage === "ar" ? "تنزيل UBL/XML لمسار EN 16931؛ تحقّق من الملف والمتطلبات التي يطلبها المستلم" : "Download UBL/XML for an EN 16931 workflow; validate the receiver's required profile"} onClick={() => { const canExport = plan === "pro" || plan === "business"; trackDownload("ubl", canExport); onExportUBL && onExportUBL(invoice); }}>UBL (XML)</button></div>
+          <button className="btn btn-ghost btn-sm" onClick={onClose}>{copy.close}</button>
         </div>
-        <div className="invoice-preview">
+        <div className="invoice-preview" lang={documentLanguage} dir={documentDir} style={{ fontFamily:documentLanguage === "ar" ? "'Noto Sans Arabic','Segoe UI',Tahoma,Arial,sans-serif" : undefined, textAlign:documentDir === "rtl" ? "right" : "left" }}>
           <div style={{ display:"flex", justifyContent:"space-between", alignItems:"flex-start", marginBottom:36 }}>
             <div style={{ display:"flex", alignItems:"center", gap:14 }}>
               {invoice.sellerLogo
                 ? <img src={invoice.sellerLogo} style={{ height: (invoice.sellerLogoSize || 80) * 1.5, maxWidth:220, width: "auto", objectFit:"contain" }} alt="seller logo" />
-                : <div style={{ fontFamily:"'Playfair Display', serif", fontSize:26, color:"#c9a84c", fontWeight:700 }}>{invoice.sellerName || "Fatūra"}</div>
+                : <div style={{ fontFamily:"'Playfair Display', serif", fontSize:26, color:"#6366F1", fontWeight:700 }}>{invoice.sellerName || "Fatūra"}</div>
               }
             </div>
-            <div style={{ textAlign:"right" }}>
-              <div style={{ fontSize:11, color:"#aaa", fontWeight:600, letterSpacing:1, textTransform:"uppercase", marginBottom:4 }}>{invoice.docType === "credit_note" ? "Credit note" : "Invoice"}</div>
-              <div style={{ fontSize:22, fontWeight:800, color:"#1a1a2e" }}>{invoice.id}</div>
+            <div style={{ textAlign:documentDir === "rtl" ? "left" : "right" }}>
+              <div style={{ fontSize:11, color:"#aaa", fontWeight:600, letterSpacing:1, textTransform:documentLanguage === "ar" ? "none" : "uppercase", marginBottom:4 }}>{invoice.docType === "credit_note" ? copy.creditNote : copy.invoice}</div>
+              <div className="document-number" style={{ fontSize:22, fontWeight:800, color:"#1a1a2e" }}>{invoice.id}</div>
               <div style={{ fontSize:12, color:"#777", marginTop:6 }}>
-                <div><span style={{ fontWeight:600 }}>Date:</span> {formatDate(invoice.date)}</div>
-                {invoice.docType === "credit_note" ? <div><span style={{ fontWeight:600 }}>Credit for:</span> {invoice.creditOf}</div> : <div><span style={{ fontWeight:600 }}>Due:</span> {formatDate(invoice.due)}</div>}
+                <div><span style={{ fontWeight:600 }}>{copy.date}:</span> <span data-direction="ltr">{formatDate(invoice.date)}</span></div>
+                {invoice.docType === "credit_note" ? <div><span style={{ fontWeight:600 }}>{copy.creditFor}:</span> <span data-direction="ltr">{invoice.creditOf}</span></div> : <div><span style={{ fontWeight:600 }}>{copy.due}:</span> <span data-direction="ltr">{formatDate(invoice.due)}</span></div>}
               </div>
               <div style={{ marginTop:8 }}>
                 <span style={{ display:"inline-block", padding:"3px 10px", borderRadius:20, fontSize:11, fontWeight:700,
                   background:invoice.status==="paid"?"#e6f7f1":invoice.status==="overdue"?"#fdeaea":"#fef8ec",
                   color:invoice.status==="paid"?"#2d8c65":invoice.status==="overdue"?"#c0392b":"#c17f24" }}>
-                  {invoice.status && invoice.status.toUpperCase()}
+                  {invoice.status && (copy.status[invoice.status] || invoice.status)}
                 </span>
               </div>
             </div>
@@ -2141,100 +2194,100 @@ function InvoicePreview({ invoice, onExportUBL, onClose, currency, plan, isFirst
 
           <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:24, marginBottom:36, background:"#faf8f3", borderRadius:10, padding:"20px 24px" }}>
             <div>
-              <div style={{ fontSize:10, fontWeight:800, color:"#c9a84c", letterSpacing:1.5, textTransform:"uppercase", marginBottom:10, display:"flex", alignItems:"center", gap:6 }}>
-                <span style={{ background:"#c9a84c", color:"#fff", borderRadius:4, padding:"2px 7px", fontSize:9 }}>FROM</span>Seller
+              <div style={{ fontSize:10, fontWeight:800, color:"#6366F1", letterSpacing:1.5, textTransform:"uppercase", marginBottom:10, display:"flex", alignItems:"center", gap:6 }}>
+                <span style={{ background:"#6366F1", color:"#fff", borderRadius:4, padding:"2px 7px", fontSize:9 }}>{copy.from}</span>{copy.seller}
               </div>
               {invoice.buyerLogo && <img src={invoice.buyerLogo} style={{ height: (invoice.buyerLogoSize || 60) * 1.5, maxWidth: 180, width: "auto", objectFit:"contain", marginBottom:8, display:"block" }} alt="" />}
               <div style={{ fontWeight:700, fontSize:14, color:"#1a1a2e", marginBottom:4 }}>{invoice.sellerName || "—"}</div>
-              {invoice.sellerEmail && <div style={{ fontSize:12, color:"#555" }}>{invoice.sellerEmail}</div>}
-              {invoice.sellerPhone && <div style={{ fontSize:12, color:"#555" }}>{invoice.sellerPhone}</div>}
-              {invoice.sellerAddress && <div style={{ fontSize:12, color:"#777", marginTop:4, lineHeight:1.5 }}>{invoice.sellerAddress}</div>}{countryLabel(invoice.sellerCountry, invoice.sellerAddress) && <div style={{ fontSize:12, color:"#777", lineHeight:1.5 }}>{countryLabel(invoice.sellerCountry, invoice.sellerAddress)}</div>}{invoice.sellerVat && <div style={{ fontSize:12, color:"#777", marginTop:2 }}>VAT: {invoice.sellerVat}</div>}
+              {invoice.sellerEmail && <div data-direction="ltr" style={{ fontSize:12, color:"#555" }}>{invoice.sellerEmail}</div>}
+              {invoice.sellerPhone && <div data-direction="ltr" style={{ fontSize:12, color:"#555" }}>{invoice.sellerPhone}</div>}
+              {invoice.sellerAddress && <div style={{ fontSize:12, color:"#777", marginTop:4, lineHeight:1.5 }}>{invoice.sellerAddress}</div>}{countryLabel(invoice.sellerCountry, invoice.sellerAddress) && <div style={{ fontSize:12, color:"#777", lineHeight:1.5 }}>{countryLabel(invoice.sellerCountry, invoice.sellerAddress)}</div>}{invoice.sellerVat && <div style={{ fontSize:12, color:"#777", marginTop:2 }}>{copy.vat}: <span data-direction="ltr">{invoice.sellerVat}</span></div>}
             </div>
-            <div style={{ borderLeft:"1px solid #e8dfc8", paddingLeft:24 }}>
-              <div style={{ fontSize:10, fontWeight:800, color:"#c9a84c", letterSpacing:1.5, textTransform:"uppercase", marginBottom:10, display:"flex", alignItems:"center", gap:6 }}>
-                <span style={{ background:"#c9a84c", color:"#fff", borderRadius:4, padding:"2px 7px", fontSize:9 }}>TO</span>Client
+            <div style={{ borderInlineStart:"1px solid #e8dfc8", paddingInlineStart:24 }}>
+              <div style={{ fontSize:10, fontWeight:800, color:"#6366F1", letterSpacing:1.5, textTransform:"uppercase", marginBottom:10, display:"flex", alignItems:"center", gap:6 }}>
+                <span style={{ background:"#6366F1", color:"#fff", borderRadius:4, padding:"2px 7px", fontSize:9 }}>{copy.to}</span>{copy.client}
               </div>
               {invoice.buyerLogo && <img src={invoice.buyerLogo} style={{ height: (invoice.buyerLogoSize || 60) * 1.5, maxWidth: 180, width: "auto", objectFit:"contain", marginBottom:8, display:"block" }} alt="" />}
               <div style={{ fontWeight:700, fontSize:14, color:"#1a1a2e", marginBottom:4 }}>{invoice.client || "—"}</div>
-              {invoice.email && <div style={{ fontSize:12, color:"#555" }}>{invoice.email}</div>}
-              {invoice.buyerPhone && <div style={{ fontSize:12, color:"#555" }}>{invoice.buyerPhone}</div>}
+              {invoice.email && <div data-direction="ltr" style={{ fontSize:12, color:"#555" }}>{invoice.email}</div>}
+              {invoice.buyerPhone && <div data-direction="ltr" style={{ fontSize:12, color:"#555" }}>{invoice.buyerPhone}</div>}
               {invoice.buyerAddress && <div style={{ fontSize:12, color:"#777", marginTop:4, lineHeight:1.5 }}>{invoice.buyerAddress}</div>}{countryLabel(invoice.buyerCountry, invoice.buyerAddress) && <div style={{ fontSize:12, color:"#777", lineHeight:1.5 }}>{countryLabel(invoice.buyerCountry, invoice.buyerAddress)}</div>}
             </div>
           </div>
 
           <table className="preview-table">
             <thead><tr>
-              <th style={{ width:"45%" }}>Description</th>
-              <th style={{ width:"10%" }}>Qty</th>
-              <th style={{ width:"20%" }}>Unit Price</th>
-              <th style={{ width:"25%", textAlign:"right" }}>Amount</th>
+              <th style={{ width:"45%" }}>{copy.description}</th>
+              <th style={{ width:"10%" }}>{copy.qty}</th>
+              <th style={{ width:"20%" }}>{copy.unitPrice}</th>
+              <th style={{ width:"25%", textAlign:documentDir === "rtl" ? "left" : "right" }}>{copy.amount}</th>
             </tr></thead>
             <tbody>
-              {(invoice.items && invoice.items.length > 0 ? invoice.items : [{ desc:"Professional Services", qty:1, price:invoice.amount }]).map((it, i) => (
+              {(invoice.items && invoice.items.length > 0 ? invoice.items : [{ desc:copy.professionalServices, qty:1, price:invoice.amount }]).map((it, i) => (
                 <tr key={i}>
                   <td>
-                    <div style={{ fontWeight:500, color:"#1a1a2e" }}>{it.desc || "Service"}</div>
+                    <div style={{ fontWeight:500, color:"#1a1a2e" }}>{it.desc || copy.service}</div>
                     {it.note && <div style={{ fontSize:11, color:"#999", marginTop:3, fontStyle:"italic", lineHeight:1.5 }}>{it.note}</div>}
                   </td>
                   <td>{it.qty}</td>
                   <td>{f(it.price)}</td>
-                  <td style={{ textAlign:"right" }}>{f(it.qty * it.price)}</td>
+                  <td className="money" style={{ textAlign:documentDir === "rtl" ? "left" : "right" }}>{f(it.qty * it.price)}</td>
                 </tr>
               ))}
             </tbody>
           </table>
 
-          <div style={{ display:"flex", justifyContent:"flex-end", marginBottom:28 }}>
+          <div style={{ display:"flex", justifyContent:documentDir === "rtl" ? "flex-start" : "flex-end", marginBottom:28 }}>
             <div style={{ minWidth:260 }}>
               <div className="preview-total-section">
-                <div className="preview-total-row"><span>Subtotal</span><span>{f(subtotal)}</span></div>
-                {discountAmt > 0 && <div className="preview-total-row" style={{ color:"#2d8c65" }}><span>Discount ({discount}%)</span><span>- {f(discountAmt)}</span></div>}
-                <div className="preview-total-row"><span>Tax ({tax}%)</span><span>{f(taxAmt)}</span></div>
+                <div className="preview-total-row"><span>{copy.subtotal}</span><span className="money">{f(subtotal)}</span></div>
+                {discountAmt > 0 && <div className="preview-total-row" style={{ color:"#2d8c65" }}><span>{copy.discount} ({discount}%)</span><span className="money">- {f(discountAmt)}</span></div>}
+                <div className="preview-total-row"><span>{copy.tax} ({tax}%)</span><span className="money">{f(taxAmt)}</span></div>
                 <div className={"preview-total-row" + (depositPct === 0 && paidAmount === 0 ? " grand" : "")}>
-                  <span>{depositPct > 0 || paidAmount > 0 ? "Invoice total" : "Total due"}</span><span>{f(total)}</span>
+                  <span>{depositPct > 0 || paidAmount > 0 ? copy.invoiceTotal : copy.totalDue}</span><span className="money">{f(total)}</span>
                 </div>
                 {depositPct > 0 && paidAmount === 0 && <>
-                  <div className="preview-total-row grand" style={{ gap:20 }}><span>Deposit due now ({depositPct}%)</span><span style={{ whiteSpace:"nowrap", marginLeft:12 }}>{f(depositAmt)}</span></div>
-                  <div className="preview-total-row"><span>Remaining after deposit</span><span>{f(remainingAfterDeposit)}</span></div>
+                  <div className="preview-total-row grand" style={{ gap:20 }}><span>{copy.depositDue} ({depositPct}%)</span><span className="money" style={{ whiteSpace:"nowrap", marginInlineStart:12 }}>{f(depositAmt)}</span></div>
+                  <div className="preview-total-row"><span>{copy.remaining}</span><span className="money">{f(remainingAfterDeposit)}</span></div>
                 </>}
                 {paidAmount > 0 && <>
-                  <div className="preview-total-row"><span>Paid</span><span>{f(paidAmount)}</span></div>
-                  <div className="preview-total-row grand"><span>Balance due</span><span>{f(Math.max(0, Math.abs(total) - paidAmount))}</span></div>
+                  <div className="preview-total-row"><span>{copy.paid}</span><span className="money">{f(paidAmount)}</span></div>
+                  <div className="preview-total-row grand"><span>{copy.balanceDue}</span><span className="money">{f(Math.max(0, Math.abs(total) - paidAmount))}</span></div>
                 </>}
               </div>
             </div>
           </div>
 
           {invoice.notes && (
-            <div className="invoice-notes" style={{ marginBottom:16, padding:"14px 18px", background:"#f5f3ef", borderRadius:8, borderLeft:"3px solid #c9a84c" }}>
-              <div style={{ fontSize:10, fontWeight:800, color:"#c9a84c", letterSpacing:1, textTransform:"uppercase", marginBottom:6 }}>Notes</div>
+            <div className="invoice-notes" style={{ marginBottom:16, padding:"14px 18px", background:"#f5f3ef", borderRadius:8, borderInlineStart:"3px solid #6366F1" }}>
+              <div style={{ fontSize:10, fontWeight:800, color:"#6366F1", letterSpacing:1, textTransform:documentLanguage === "ar" ? "none" : "uppercase", marginBottom:6 }}>{copy.notes}</div>
               <div style={{ fontSize:13, color:"#555", lineHeight:1.6 }}>{invoice.notes}</div>
             </div>
           )}
 
           {invoice.bankInfo && (
-            <div className="invoice-bank-info" style={{ padding:"14px 18px", background:"#f5f3ef", borderRadius:8, borderLeft:"3px solid #c9a84c" }}>
-              <div style={{ fontSize:10, fontWeight:800, color:"#c9a84c", letterSpacing:1, textTransform:"uppercase", marginBottom:8 }}>Payment Information</div>
-              <pre style={{ fontSize:12, color:"#333", lineHeight:1.8, fontFamily:"monospace", whiteSpace:"pre-wrap", margin:0 }}>{invoice.bankInfo}</pre>
+            <div className="invoice-bank-info" style={{ padding:"14px 18px", background:"#f5f3ef", borderRadius:8, borderInlineStart:"3px solid #6366F1" }}>
+              <div style={{ fontSize:10, fontWeight:800, color:"#6366F1", letterSpacing:1, textTransform:documentLanguage === "ar" ? "none" : "uppercase", marginBottom:8 }}>{copy.paymentInformation}</div>
+              <pre style={{ fontSize:12, color:"#333", lineHeight:1.8, fontFamily:documentLanguage === "ar" ? "'Noto Sans Arabic','Segoe UI',sans-serif" : "monospace", whiteSpace:"pre-wrap", margin:0 }}>{invoice.bankInfo}</pre>
             </div>
           )}
 
           <div className="preview-footer" style={{ marginTop:32 }}>
             {hasBusinessAccess(plan) && invoice.status !== "paid" && (
             <div style={{ textAlign:"center", margin:"14px 0" }}>
-              <button className="btn btn-ghost btn-sm" onClick={() => { const url = window.location.origin + "/pay/" + encodeURIComponent(invoice.id); navigator.clipboard.writeText(url); alert("Payment link copied:\n" + url); }}>🔗 Copy payment link</button>
+              <button className="btn btn-ghost btn-sm" onClick={() => { const url = window.location.origin + "/pay/" + encodeURIComponent(invoice.id); navigator.clipboard.writeText(url); alert(copy.paymentCopied + ":\n" + url); }}>🔗 {copy.copyPayment}</button>
             </div>
           )}
-            <div>{invoice.sellerName ? (invoice.sellerName + " · ") : ""}Thank you for your business</div>
+            <div>{invoice.sellerName ? (invoice.sellerName + " · ") : ""}{copy.thankYou}</div>
             {showAttribution && (
               <a
                 href={INVOICE_ATTRIBUTION_URL}
                 target="_blank"
                 rel="noreferrer"
                 onClick={() => trackEvent("invoice_brand_link_clicked", { placement:"invoice_footer", plan:plan || "free" })}
-                style={{ display:"inline-block", marginTop:5, color:"#9d8647", fontWeight:700, letterSpacing:0.25, textDecoration:"none" }}
+                style={{ display:"inline-block", marginTop:5, color:"#6366F1", fontWeight:700, letterSpacing:0.25, textDecoration:"none" }}
               >
-                Made with Fatūra Pro ↗
+                {copy.madeWith} ↗
               </a>
             )}
           </div>
@@ -2244,12 +2297,12 @@ function InvoicePreview({ invoice, onExportUBL, onClose, currency, plan, isFirst
   );
 }
 
-function ReminderModal({ invoice: reminderTarget, onClose, onLog }) { const f = (n) => fmtCurrency(n, reminderTarget.currency || "EUR"); const reminderPaid = Number(reminderTarget.paidAmount) || 0; const invoice = reminderPaid > 0 ? { ...reminderTarget, amount: outstandingOf(reminderTarget) } : reminderTarget;
+function ReminderModal({ invoice: reminderTarget, onClose, onLog }) { const locale = getLocale(); const t = (key, fallback) => tr(key, fallback, locale); const f = (n) => fmtCurrency(n, reminderTarget.currency || "EUR"); const reminderPaid = Number(reminderTarget.paidAmount) || 0; const invoice = reminderPaid > 0 ? { ...reminderTarget, amount: outstandingOf(reminderTarget) } : reminderTarget;
   const today = new Date().toISOString().split("T")[0];
   const daysOverdue = invoice.due ? Math.floor((new Date(today) - new Date(invoice.due)) / 86400000) : 0;
   const [tone, setTone] = useState("polite");
   const [channel, setChannel] = useState("email");
-  const [lang, setLang] = useState("en");
+  const [lang, setLang] = useState(normalizeDocumentLanguage(invoice.documentLanguage));
   const [sent, setSent] = useState(false);
 
   const TEMPLATES = {
@@ -2312,13 +2365,13 @@ function ReminderModal({ invoice: reminderTarget, onClose, onLog }) { const f = 
   };
   const [editedText, setEditedText] = useState(getBody("polite","email"));
   const tones = [
-    { id:"polite", label:"Polite", desc:"Friendly first reminder", color:"var(--green)" },
-    { id:"firm", label:"Firm", desc:"Professional follow-up", color:"var(--orange)" },
-    { id:"final", label:"Final", desc:"Last notice before action", color:"var(--red)" },
+    { id:"polite", label:t("polite", "Polite"), desc:t("polite_help", "Friendly first reminder"), color:"var(--green)" },
+    { id:"firm", label:t("firm", "Firm"), desc:t("firm_help", "Professional follow-up"), color:"var(--orange)" },
+    { id:"final", label:t("final", "Final"), desc:t("final_help", "Last notice before action"), color:"var(--red)" },
   ];
   const handleSend = () => {
     if (channel === "email" && !invoice.email) {
-      window.alert("This client has no email address on file. Add one on the invoice, or send the reminder by WhatsApp instead.");
+      window.alert(t("missing_client_email", "This client has no email address on file. Add one on the invoice, or send the reminder by WhatsApp instead."));
       return;
     }
     if (channel === "email" && invoice.email) {
@@ -2337,21 +2390,21 @@ function ReminderModal({ invoice: reminderTarget, onClose, onLog }) { const f = 
       <div className="modal" style={{ maxWidth:600 }}>
         <div style={{ display:"flex", justifyContent:"space-between", alignItems:"flex-start", marginBottom:4 }}>
           <div>
-            <div className="modal-title" style={{ marginBottom:4 }}>Payment Reminder</div>
+            <div className="modal-title" style={{ marginBottom:4 }}>{t("payment_reminder", "Payment Reminder")}</div>
             <div style={{ fontSize:13, color:"var(--text2)" }}>
               <span style={{ color:"var(--gold)", fontWeight:700 }}>{invoice.id}</span> · {invoice.client} · <span style={{ color:"var(--red)", fontWeight:600 }}>{f(invoice.amount)}</span>
-              {daysOverdue > 0 && <span style={{ marginLeft:8, background:"rgba(224,85,85,0.15)", color:"var(--red)", borderRadius:20, padding:"2px 8px", fontSize:11, fontWeight:700 }}>{daysOverdue}d overdue</span>}
+              {daysOverdue > 0 && <span style={{ marginInlineStart:8, background:"rgba(224,85,85,0.15)", color:"var(--red)", borderRadius:20, padding:"2px 8px", fontSize:11, fontWeight:700 }}>{daysOverdue} {t("days_overdue", "days overdue")}</span>}
             </div>
           </div>
           <button onClick={onClose} style={{ background:"none", border:"none", color:"var(--text2)", cursor:"pointer", fontSize:18 }}>✕</button>
         </div>
 
         <div style={{ margin:"18px 0 14px" }}>
-          <div style={{ fontSize:11, fontWeight:700, color:"var(--text2)", letterSpacing:0.5, textTransform:"uppercase", marginBottom:8 }}>Send Via</div>
+          <div style={{ fontSize:11, fontWeight:700, color:"var(--text2)", letterSpacing:0.5, textTransform:"uppercase", marginBottom:8 }}>{t("send_via", "Send Via")}</div>
           <div style={{ display:"flex", gap:8 }}>
             {[["email","Email"],["whatsapp","WhatsApp"]].map(([id,label]) => (
               <button key={id} onClick={() => { setChannel(id); setEditedText(getBody(tone,id)); }} className="btn btn-sm"
-                style={{ background:channel===id?"var(--gold)":"var(--bg3)", color:channel===id?"#000":"var(--text2)", border:"1px solid var(--border)", fontWeight:channel===id?700:500 }}>
+                style={{ background:channel===id?"var(--gold)":"var(--bg3)", color:channel===id?"#fff":"var(--text2)", border:"1px solid var(--border)", fontWeight:channel===id?700:500 }}>
                 {label}
               </button>
             ))}
@@ -2359,11 +2412,11 @@ function ReminderModal({ invoice: reminderTarget, onClose, onLog }) { const f = 
         </div>
 
         <div style={{ marginBottom:16 }}>
-          <div style={{ fontSize:11, fontWeight:700, color:"var(--text2)", letterSpacing:0.5, textTransform:"uppercase", marginBottom:8 }}>Language</div>
+          <div style={{ fontSize:11, fontWeight:700, color:"var(--text2)", letterSpacing:0.5, textTransform:"uppercase", marginBottom:8 }}>{t("reminder_language", "Language")}</div>
           <select value={lang} onChange={e => { setLang(e.target.value); setEditedText(TEMPLATES[e.target.value][channel==="email"?"bodies":"wa"][tone]); }} style={{ width:"100%", marginBottom:16 }}>
             {Object.entries(TEMPLATES).map(([code, t]) => <option key={code} value={code}>{t.label}</option>)}
           </select>
-          <div style={{ fontSize:11, fontWeight:700, color:"var(--text2)", letterSpacing:0.5, textTransform:"uppercase", marginBottom:8 }}>Tone</div>
+          <div style={{ fontSize:11, fontWeight:700, color:"var(--text2)", letterSpacing:0.5, textTransform:"uppercase", marginBottom:8 }}>{t("tone", "Tone")}</div>
           <div style={{ display:"flex", gap:8 }}>
             {tones.map(t => (
               <div key={t.id} onClick={() => { setTone(t.id); setEditedText(getBody(t.id,channel)); }}
@@ -2378,19 +2431,19 @@ function ReminderModal({ invoice: reminderTarget, onClose, onLog }) { const f = 
         </div>
 
         <div className="form-group" style={{ marginBottom:16 }}>
-          <label>{channel==="email" && <span style={{ color:"var(--text2)", fontSize:11 }}>Subject: <strong style={{ color:"var(--text)" }}>{TEMPLATES[lang].subjects[tone]}</strong></span>}</label>
-          <textarea rows={channel==="email"?9:5} value={editedText} onChange={e => setEditedText(e.target.value)} style={{ resize:"vertical", fontSize:12, lineHeight:1.7, marginTop:channel==="email"?8:0 }} />
-          <div style={{ fontSize:11, color:"var(--text2)", marginTop:4 }}>You can edit the message before sending</div>
+          <label>{channel==="email" && <span style={{ color:"var(--text2)", fontSize:11 }}>{t("subject", "Subject")}: <strong style={{ color:"var(--text)" }}>{TEMPLATES[lang].subjects[tone]}</strong></span>}</label>
+          <textarea dir={lang === "ar" ? "rtl" : "ltr"} rows={channel==="email"?9:5} value={editedText} onChange={e => setEditedText(e.target.value)} style={{ resize:"vertical", fontSize:12, lineHeight:1.7, marginTop:channel==="email"?8:0 }} />
+          <div style={{ fontSize:11, color:"var(--text2)", marginTop:4 }}>{t("edit_before_send", "You can edit the message before sending")}</div>
         </div>
 
         <div style={{ display:"flex", gap:10, justifyContent:"space-between", alignItems:"center", borderTop:"1px solid var(--border)", paddingTop:16 }}>
-          <button className="btn btn-ghost" onClick={onClose}>Cancel</button>
+          <button className="btn btn-ghost" onClick={onClose}>{t("cancel", "Cancel")}</button>
           {sent
-            ? <div style={{ color:"var(--green)", fontWeight:700, fontSize:14 }}>✓ Done!</div>
+            ? <div style={{ color:"var(--green)", fontWeight:700, fontSize:14 }}>✓ {t("done", "Done!")}</div>
             : <div style={{ display:"flex", gap:8 }}>
-                <button className="btn btn-ghost btn-sm" onClick={() => { navigator.clipboard.writeText(editedText); onLog(invoice.id,{date:today,tone,channel:"copy"}); setSent(true); setTimeout(()=>setSent(false),2000); }}>Copy</button>
-                <button className="btn btn-primary" onClick={handleSend} style={{ background:tone==="final"?"var(--red)":"var(--gold)", color:"#000" }}>
-                  {channel==="email" ? "Open in Mail" : "Open WhatsApp"}
+                <button className="btn btn-ghost btn-sm" onClick={() => { navigator.clipboard.writeText(editedText); onLog(invoice.id,{date:today,tone,channel:"copy"}); setSent(true); setTimeout(()=>setSent(false),2000); }}>{t("copy", "Copy")}</button>
+                <button className="btn btn-primary" onClick={handleSend} style={{ background:tone==="final"?"var(--red)":"var(--gold)", color:"#fff" }}>
+                  {channel==="email" ? t("open_mail", "Open in Mail") : t("open_whatsapp", "Open WhatsApp")}
                 </button>
               </div>
           }
@@ -2401,30 +2454,33 @@ function ReminderModal({ invoice: reminderTarget, onClose, onLog }) { const f = 
 }
 
 function UpgradeModal({ feature, onClose, onActivate, initialPlan, userEmail, userId }) {
+  const locale = getLocale();
+  const t = (key, fallback) => tr(key, fallback, locale);
+  const ar = locale === "ar";
   const [loading, setLoading] = useState(false);
   const [step, setStep] = useState("plans");
   const [selectedPlan, setSelectedPlan] = useState(initialPlan || "pro");
 
   const PLANS_INFO = {
-    pro: { name:"Pro", price:"\u20ac9", period:"/month", color:"var(--gold)", stripe_link:"https://buy.stripe.com/fZu4gzepGdT05Gx48j5ZC00",
-      features:["Unlimited invoices","Unlimited clients","UBL e-invoicing (EN 16931)","Deposits & partial payments","Payment reminders (Email + WhatsApp)","PDF export","Custom logo & branding"] },
-    business: { name:"Business", price:"\u20ac19", period:"/month", color:"#a78bfa", badge: BUSINESS_ENABLED ? null : "Coming Soon", stripe_link: BUSINESS_ENABLED ? "https://buy.stripe.com/6oU28repG8yG9WNfR15ZC01" : null,
-      features:["Everything in Pro","Quotes that convert to invoices","Expenses & VAT/BTW report","Advanced analytics","Team members (up to 5)","Multi-business profiles","Stripe payment integration","API access"] },
+    pro: { name:"Pro", price:"\u20ac9", period:t("per_month", "/month"), color:"var(--gold)", stripe_link:"https://buy.stripe.com/fZu4gzepGdT05Gx48j5ZC00",
+      features:ar ? ["فواتير غير محدودة","عملاء غير محدودين","تصدير UBL/XML وفق EN 16931","دفعات مقدّمة وجزئية","تذكيرات دفع عبر البريد وWhatsApp","تصدير PDF","شعار وهوية مخصصان"] : ["Unlimited invoices","Unlimited clients","UBL/XML export (EN 16931)","Deposits & partial payments","Payment reminders (Email + WhatsApp)","PDF export","Custom logo & branding"] },
+    business: { name:"Business", price:"\u20ac19", period:t("per_month", "/month"), color:"#a78bfa", badge: BUSINESS_ENABLED ? null : (ar ? "قريبًا" : "Coming Soon"), stripe_link: BUSINESS_ENABLED ? "https://buy.stripe.com/6oU28repG8yG9WNfR15ZC01" : null,
+      features:ar ? ["كل مزايا Pro","عروض أسعار تتحول إلى فواتير","المصروفات وملخص VAT/BTW","تحليلات متقدمة","حتى 5 أعضاء فريق","ملفات أنشطة تجارية متعددة","مدفوعات بطاقات عبر Stripe","الوصول إلى API"] : ["Everything in Pro","Quotes that convert to invoices","Expenses & VAT/BTW report","Advanced analytics","Team members (up to 5)","Multi-business profiles","Stripe payment integration","API access"] },
   };
 
   const featureLabels = {
-    reminders: { icon:"!", label:"Payment Reminders", desc:"Prepare and review overdue reminders, then open them in Email or WhatsApp" },
-    unlimited_invoices: { icon:"!", label:"Unlimited Invoices", desc:"You've hit the 20 invoice limit on the Free plan" },
-    deposits: { icon:"!", label:"Deposits & Partial Payments", desc:"Ask for a deposit up front and track what is still owed" },
-    ubl: { icon:"!", label:"UBL/XML Export", desc:"Download structured XML for EN 16931 workflows, then validate and deliver it as your client requests" },
-    recurring: { icon:"!", label:"Recurring Invoices", desc:"Create new pending invoices weekly, biweekly, monthly or yearly for you to review and send" },
-    quotes: { icon:"!", label:"Quotes", desc:"Send quotes and turn an accepted one into an invoice in a click" },
-    expenses: { icon:"!", label:"Expenses & VAT/BTW Summary", desc:"Track expenses and review a quarterly summary per currency for your bookkeeping" },
-    analytics: { icon:"!", label:"Advanced Analytics", desc:"Revenue per month, top clients, collection rate and payment terms" },
-    unlimited_clients: { icon:"!", label:"Unlimited Clients", desc:"You've hit the 5 client limit on the Free plan" },
+    reminders: { icon:"!", label:ar?"تذكيرات الدفع":"Payment Reminders", desc:ar?"حضّر وراجع تذكيرات الفواتير المتأخرة ثم افتحها في البريد أو WhatsApp":"Prepare and review overdue reminders, then open them in Email or WhatsApp" },
+    unlimited_invoices: { icon:"!", label:ar?"فواتير غير محدودة":"Unlimited Invoices", desc:ar?"وصلت إلى حد 20 فاتورة في الخطة المجانية":"You've hit the 20 invoice limit on the Free plan" },
+    deposits: { icon:"!", label:ar?"دفعات مقدّمة وجزئية":"Deposits & Partial Payments", desc:ar?"اطلب دفعة مقدّمة وتابع الرصيد المتبقي":"Ask for a deposit up front and track what is still owed" },
+    ubl: { icon:"!", label:ar?"تصدير UBL/XML":"UBL/XML Export", desc:ar?"نزّل ملف XML منظمًا لعمليات EN 16931، ثم تحقّق منه وسلّمه بالطريقة التي يطلبها عميلك":"Download structured XML for EN 16931 workflows, then validate and deliver it as your client requests" },
+    recurring: { icon:"!", label:ar?"الفواتير المتكررة":"Recurring Invoices", desc:ar?"أنشئ فواتير معلقة أسبوعيًا أو كل أسبوعين أو شهريًا أو سنويًا لمراجعتها وإرسالها":"Create new pending invoices weekly, biweekly, monthly or yearly for you to review and send" },
+    quotes: { icon:"!", label:ar?"عروض الأسعار":"Quotes", desc:ar?"أرسل عروض أسعار وحوّل العرض المقبول إلى فاتورة بنقرة":"Send quotes and turn an accepted one into an invoice in a click" },
+    expenses: { icon:"!", label:ar?"المصروفات وملخص VAT/BTW":"Expenses & VAT/BTW Summary", desc:ar?"تابع المصروفات وراجع ملخصًا فصليًا لكل عملة لمحاسبتك":"Track expenses and review a quarterly summary per currency for your bookkeeping" },
+    analytics: { icon:"!", label:ar?"تحليلات متقدمة":"Advanced Analytics", desc:ar?"الإيرادات الشهرية وأفضل العملاء ونسبة التحصيل ومهل الدفع":"Revenue per month, top clients, collection rate and payment terms" },
+    unlimited_clients: { icon:"!", label:ar?"عملاء غير محدودين":"Unlimited Clients", desc:ar?"وصلت إلى حد 5 عملاء في الخطة المجانية":"You've hit the 5 client limit on the Free plan" },
   };
 
-  const feat = featureLabels[feature] || { icon:"✦", label:"Pro Feature", desc:"Unlock all Pro features" };
+  const feat = featureLabels[feature] || { icon:"✦", label:ar?"ميزة Pro":"Pro Feature", desc:ar?"افتح جميع مزايا Pro":"Unlock all Pro features" };
 
   const handleStripe = () => {
     const link = PLANS_INFO[selectedPlan]?.stripe_link;
@@ -2442,9 +2498,9 @@ function UpgradeModal({ feature, onClose, onActivate, initialPlan, userEmail, us
     return (
       <div className="modal-overlay" onClick={e => e.target === e.currentTarget && onClose()}>
         <div className="modal" style={{ maxWidth:440, textAlign:"center" }}>
-          <div style={{ fontSize:32, marginBottom:16, fontWeight: 700, color:"var(--green)" }}>Success</div>
-          <div className="modal-title" style={{ textAlign:"center", color:"var(--gold)" }}>Welcome to Pro!</div>
-          <p style={{ color:"var(--text2)", fontSize:14, marginBottom:28, lineHeight:1.7 }}>Your account has been upgraded. All Pro features are now unlocked.</p>
+          <div style={{ fontSize:32, marginBottom:16, fontWeight: 700, color:"var(--green)" }}>{t("success", "Success")}</div>
+          <div className="modal-title" style={{ textAlign:"center", color:"var(--gold)" }}>{t("welcome_pro", "Welcome to Pro!")}</div>
+          <p style={{ color:"var(--text2)", fontSize:14, marginBottom:28, lineHeight:1.7 }}>{t("upgraded_help", "Your account has been upgraded. All Pro features are now unlocked.")}</p>
           <div style={{ background:"var(--bg3)", border:"1px solid var(--border)", borderRadius:12, padding:"16px 20px", marginBottom:24, textAlign:"left" }}>
             {PLANS_INFO.pro.features.map((feat2, i) => (
               <div key={i} style={{ display:"flex", gap:10, fontSize:13, color:"var(--text)", marginBottom:i<PLANS_INFO.pro.features.length-1?8:0 }}>
@@ -2452,7 +2508,7 @@ function UpgradeModal({ feature, onClose, onActivate, initialPlan, userEmail, us
               </div>
             ))}
           </div>
-          <button className="btn btn-primary" style={{ width:"100%", justifyContent:"center", fontSize:15, padding:"13px" }} onClick={() => { onActivate(); onClose(); }}>Start Using Pro →</button>
+          <button className="btn btn-primary" style={{ width:"100%", justifyContent:"center", fontSize:15, padding:"13px" }} onClick={() => { onActivate(); onClose(); }}>{t("start_using_pro", "Start Using Pro →")}</button>
         </div>
       </div>
     );
@@ -2463,7 +2519,7 @@ function UpgradeModal({ feature, onClose, onActivate, initialPlan, userEmail, us
       <div className="modal" style={{ maxWidth:520 }}>
         <div style={{ textAlign:"center", marginBottom:24 }}>
           <div style={{ fontSize:36, marginBottom:10, color:"var(--gold)", fontWeight:700 }}>{feat.icon}</div>
-          <div className="modal-title" style={{ textAlign:"center", marginBottom:6 }}>Unlock <span style={{ color:"var(--gold)" }}>{feat.label}</span></div>
+          <div className="modal-title" style={{ textAlign:"center", marginBottom:6 }}>{t("unlock", "Unlock")} <span style={{ color:"var(--gold)" }}>{feat.label}</span></div>
           <div style={{ fontSize:13, color:"var(--text2)" }}>{feat.desc}</div>
         </div>
 
@@ -2479,12 +2535,13 @@ function UpgradeModal({ feature, onClose, onActivate, initialPlan, userEmail, us
                 <span style={{ fontSize:26, fontWeight:800, color:p.color, fontFamily:"'Playfair Display', serif" }}>{p.price}</span>
                 <span style={{ fontSize:12, color:"var(--text2)" }}>{p.period}</span>
               </div>
+              <div style={{ fontSize:11, fontWeight:600, color:"var(--text2)", marginTop:-7, marginBottom:10 }}>excl. btw</div>
               {p.features.slice(0,3).map((feat3, i) => (
                 <div key={i} style={{ fontSize:11, color:"var(--text2)", marginBottom:4, display:"flex", gap:6 }}>
                   <span style={{ color:"var(--green)" }}>✓</span>{feat3}
                 </div>
               ))}
-              {p.features.length > 3 && <div style={{ fontSize:11, color:"var(--text3)", marginTop:4 }}>+{p.features.length-3} more features</div>}
+              {p.features.length > 3 && <div style={{ fontSize:11, color:"var(--text3)", marginTop:4 }}>+{p.features.length-3} {t("more_features", "more features")}</div>}
             </div>
           ))}
         </div>
@@ -2492,12 +2549,12 @@ function UpgradeModal({ feature, onClose, onActivate, initialPlan, userEmail, us
         <div style={{ background:"var(--bg3)", border:"1px solid var(--border)", borderRadius:12, padding:"16px 18px", marginBottom:16 }}>
           <div style={{ display:"flex", alignItems:"center", gap:10, marginBottom:8 }}>
             <div>
-              <div style={{ fontSize:13, fontWeight:700, color:"var(--text)" }}>Secure payment via Stripe</div>
+              <div style={{ fontSize:13, fontWeight:700, color:"var(--text)" }}>{t("secure_stripe", "Secure payment via Stripe")}</div>
               <div style={{ fontSize:11, color:"var(--text2)" }}>Visa · Mastercard · Apple Pay · Google Pay</div>
             </div>
           </div>
           <div style={{ fontSize:11, color:"var(--text2)", display:"flex", gap:16, flexWrap:"wrap" }}>
-            <span>TLS encrypted</span><span>Cancel anytime</span><span>Invoice sent to email</span>
+            <span>{t("tls_encrypted", "TLS encrypted")}</span><span>{t("cancel_anytime", "Cancel anytime")}</span><span>{t("receipt_email", "Invoice sent to email")}</span>
           </div>
         </div>
 
@@ -2519,15 +2576,15 @@ function UpgradeModal({ feature, onClose, onActivate, initialPlan, userEmail, us
             {loading
               ? <span style={{ display:"flex", alignItems:"center", gap:8 }}>
                   <span style={{ width:16, height:16, border:"2px solid #000", borderTopColor:"transparent", borderRadius:"50%", display:"inline-block", animation:"spin 0.7s linear infinite" }} />
-                  Connecting to Stripe...
+                  {t("connecting_stripe", "Connecting to Stripe...")}
                 </span>
-              : ("Upgrade to " + PLANS_INFO[selectedPlan].name + " — " + PLANS_INFO[selectedPlan].price + "/mo")
+              : (t("upgrade_to", "Upgrade to") + " " + PLANS_INFO[selectedPlan].name + " — " + PLANS_INFO[selectedPlan].price + t("per_month", "/mo"))
             }
           </button>
         )}
 
-        <div style={{ textAlign:"center", fontSize:11, color:"var(--text3)" }}>No commitment · Cancel anytime · Secure checkout by Stripe</div>
-        <button onClick={onClose} style={{ display:"block", margin:"14px auto 0", background:"none", border:"none", color:"var(--text2)", cursor:"pointer", fontSize:13 }}>Maybe later</button>
+        <div style={{ textAlign:"center", fontSize:11, color:"var(--text3)" }}>{t("no_commitment", "No commitment · Cancel anytime · Secure checkout by Stripe")}</div>
+        <button onClick={onClose} style={{ display:"block", margin:"14px auto 0", background:"none", border:"none", color:"var(--text2)", cursor:"pointer", fontSize:13 }}>{t("maybe_later", "Maybe later")}</button>
       </div>
     </div>
   );

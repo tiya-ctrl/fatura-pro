@@ -199,11 +199,11 @@ export default async function handler(req, res) {
             const html = [
               '<div style="background:#0d0d0d;padding:32px 16px;font-family:-apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif;">',
               '<div style="max-width:520px;margin:0 auto;background:#141414;border:1px solid #2a2a2a;border-radius:12px;padding:32px;">',
-              '<div style="color:#d4af37;font-size:20px;font-weight:600;letter-spacing:0.5px;">Fat&umacr;ra Pro</div>',
+              '<div style="color:#6366F1;font-size:20px;font-weight:600;letter-spacing:0.5px;">Fat&umacr;ra Pro</div>',
               '<div style="height:1px;background:#2a2a2a;margin:20px 0 24px;"></div>',
               '<h1 style="color:#ffffff;font-size:20px;margin:0 0 16px;font-weight:600;">Your cancellation is confirmed</h1>',
               '<p style="color:#c9c9c9;font-size:15px;line-height:1.6;margin:0 0 16px;">',
-              'You will keep full access to your <strong style="color:#d4af37;">' + planName + '</strong> plan until ',
+              'You will keep full access to your <strong style="color:#6366F1;">' + planName + '</strong> plan until ',
               '<strong style="color:#ffffff;">' + endDate + '</strong>. You will not be charged again.',
               '</p>',
               '<p style="color:#c9c9c9;font-size:15px;line-height:1.6;margin:0 0 16px;">',
@@ -213,11 +213,11 @@ export default async function handler(req, res) {
               '<p style="color:#c9c9c9;font-size:15px;line-height:1.6;margin:0 0 24px;">',
               'Changed your mind? You can restart your subscription any time from <strong style="color:#ffffff;">Settings &rarr; Subscription</strong> inside the app.',
               '</p>',
-              '<a href="https://faturapro.app/app" style="display:inline-block;background:#d4af37;color:#0d0d0d;text-decoration:none;padding:12px 24px;border-radius:8px;font-weight:600;font-size:15px;">Open Fat&umacr;ra Pro</a>',
+              '<a href="https://faturapro.app/app" style="display:inline-block;background:#6366F1;color:#0d0d0d;text-decoration:none;padding:12px 24px;border-radius:8px;font-weight:600;font-size:15px;">Open Fat&umacr;ra Pro</a>',
               '<div style="height:1px;background:#2a2a2a;margin:28px 0 20px;"></div>',
               '<p style="color:#7a7a7a;font-size:13px;line-height:1.6;margin:0;">',
               'If you cancelled by mistake, or something in the app did not work for you, just reply to this email or write to ',
-              '<a href="mailto:support@faturapro.app" style="color:#d4af37;text-decoration:none;">support@faturapro.app</a>. We read every message.',
+              '<a href="mailto:support@faturapro.app" style="color:#6366F1;text-decoration:none;">support@faturapro.app</a>. We read every message.',
               '</p>',
               '</div></div>'
             ].join("");

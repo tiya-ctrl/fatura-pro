@@ -12,9 +12,9 @@ const GLOBAL = `
 html { scroll-behavior: smooth; }
 body { font-family: 'DM Sans', sans-serif; background: #08080e; color: #e8e4dc; -webkit-text-size-adjust:100%; overflow-x:hidden; }
 :root {
-  --gold: #c9a84c; --gold-l: #e8c97a; --gold-dim: rgba(201,168,76,0.13);
+  --gold: var(--brand-primary, #6366F1); --gold-l: var(--brand-highlight, #7C6CF2); --gold-dim: rgba(var(--brand-primary-rgb, 99,102,241),0.13);
   --bg: #08080e; --bg2: #0f0f17; --bg3: #16161f; --bg4: #1c1c27;
-  --border: rgba(201,168,76,0.16); --border2: rgba(255,255,255,0.07);
+  --border: rgba(99,102,241,0.16); --border2: rgba(255,255,255,0.07);
   --text: #e8e4dc; --text2: #9a9690; --text3: #5a5750;
   --green: #4caf89; --red: #e05555; --radius: 14px;
 }
@@ -55,7 +55,7 @@ nav.topnav.scrolled {
   font-size:13px; font-weight:600; cursor:pointer; border:none; transition:all 0.2s;
   font-family:'DM Sans',sans-serif; text-decoration:none; white-space:nowrap; }
 .btn-gold { background:var(--gold); color:#000; }
-.btn-gold:hover { background:var(--gold-l); transform:translateY(-1px); box-shadow:0 6px 22px rgba(201,168,76,0.35); }
+.btn-gold:hover { background:var(--gold-l); transform:translateY(-1px); box-shadow:0 6px 22px rgba(99,102,241,0.35); }
 .btn-outline { background:transparent; color:var(--text); border:1px solid var(--border2); }
 .btn-outline:hover { border-color:var(--gold); color:var(--gold); }
 .btn-lg { padding:14px 32px; font-size:15px; border-radius:11px; }
@@ -74,7 +74,7 @@ nav.topnav.scrolled {
 .hero-glow {
   position:absolute; top:15%; right:-5%;
   width:700px; height:400px; border-radius:50%;
-  background: radial-gradient(ellipse, rgba(201,168,76,0.12) 0%, transparent 70%);
+  background: radial-gradient(ellipse, rgba(99,102,241,0.12) 0%, transparent 70%);
   pointer-events:none;
 }
 
@@ -122,7 +122,7 @@ nav.topnav.scrolled {
 .fact-value { display:block; color:var(--text); font-family:'Playfair Display',serif; font-size:20px; margin-bottom:3px; }
 .fact-label { color:var(--text2); font-size:11px; line-height:1.45; }
 .mockup-glow { position:absolute; bottom:-60px; left:50%; transform:translateX(-50%);
-  width:80%; height:200px; background:radial-gradient(ellipse, rgba(201,168,76,0.18) 0%, transparent 70%); }
+  width:80%; height:200px; background:radial-gradient(ellipse, rgba(99,102,241,0.18) 0%, transparent 70%); }
 .mockup-frame {
   background:var(--bg2); border:1px solid var(--border); border-radius:16px;
   overflow:hidden; box-shadow:0 40px 80px rgba(0,0,0,0.6);
@@ -154,8 +154,8 @@ section { padding:100px 24px; }
   padding:32px; transition:all 0.25s; position:relative; overflow:hidden; display:flex; flex-direction:column; justify-content:flex-end;
 }
 .feat-card:nth-child(1),.feat-card:nth-child(6) { grid-column:span 2; }
-.feat-card:nth-child(1) { background:radial-gradient(circle at 85% 10%,rgba(201,168,76,.17),transparent 38%),var(--bg2); }
-.feat-card:nth-child(6) { background:linear-gradient(135deg,rgba(201,168,76,.12),transparent 55%),var(--bg2); }
+.feat-card:nth-child(1) { background:radial-gradient(circle at 85% 10%,rgba(99,102,241,.17),transparent 38%),var(--bg2); }
+.feat-card:nth-child(6) { background:linear-gradient(135deg,rgba(99,102,241,.12),transparent 55%),var(--bg2); }
 .feat-card::before {
   content:''; position:absolute; top:0; left:0; right:0; height:2px;
   background:linear-gradient(90deg, transparent, var(--gold), transparent);
@@ -171,7 +171,7 @@ section { padding:100px 24px; }
   padding:2px 8px; margin-top:10px; letter-spacing:0.5px; }
 .audience-grid { display:grid; grid-template-columns:repeat(3,1fr); gap:18px; margin-top:48px; }
 .audience-card { min-height:330px; border:1px solid var(--border2); border-radius:20px; padding:30px; background:var(--bg2); position:relative; overflow:hidden; display:flex; flex-direction:column; }
-.audience-card::after { content:attr(data-number); position:absolute; right:20px; top:4px; font-family:'Playfair Display',serif; font-size:92px; color:rgba(201,168,76,.07); }
+.audience-card::after { content:attr(data-number); position:absolute; right:20px; top:4px; font-family:'Playfair Display',serif; font-size:92px; color:rgba(99,102,241,.07); }
 .audience-kicker { color:var(--gold); text-transform:uppercase; letter-spacing:1.5px; font-size:10px; font-weight:800; margin-bottom:auto; }
 .audience-card h3 { font-family:'Playfair Display',serif; font-size:28px; line-height:1.14; margin:36px 0 12px; max-width:250px; }
 .audience-card p { color:var(--text2); font-size:14px; line-height:1.7; margin-bottom:22px; }
@@ -200,7 +200,7 @@ section { padding:100px 24px; }
 }
 .price-card.featured {
   background: linear-gradient(160deg, #16161f 0%, #1a1520 100%);
-  border:1.5px solid var(--gold); box-shadow:0 0 40px rgba(201,168,76,0.12);
+  border:1.5px solid var(--gold); box-shadow:0 0 40px rgba(99,102,241,0.12);
   transform:scale(1.04);
 }
 .price-badge {
@@ -213,6 +213,7 @@ section { padding:100px 24px; }
 .price-currency { font-size:22px; font-weight:700; color:var(--text2); }
 .price-num { font-family:'Playfair Display',serif; font-size:54px; color:var(--text); font-weight:700; line-height:1; }
 .price-period { font-size:14px; color:var(--text2); }
+.price-tax-note { color:var(--text2); font-size:12px; font-weight:600; margin:-1px 0 10px; }
 .price-desc { font-size:13px; color:var(--text2); margin-bottom:24px; line-height:1.5; }
 .price-divider { height:1px; background:var(--border2); margin:24px 0; }
 .price-feature { display:flex; align-items:flex-start; gap:10px; font-size:13px; color:var(--text2); margin-bottom:11px; line-height:1.5; }
@@ -222,11 +223,11 @@ section { padding:100px 24px; }
 /* referral loop */
 .referral-shell {
   position:relative; overflow:hidden; display:grid; grid-template-columns:minmax(0,1.05fr) minmax(360px,.95fr);
-  gap:64px; align-items:center; padding:58px; border:1px solid rgba(201,168,76,.28); border-radius:28px;
-  background:linear-gradient(135deg,rgba(201,168,76,.13),rgba(15,15,23,.96) 46%,rgba(24,19,29,.96));
+  gap:64px; align-items:center; padding:58px; border:1px solid rgba(99,102,241,.28); border-radius:28px;
+  background:linear-gradient(135deg,rgba(99,102,241,.13),rgba(15,15,23,.96) 46%,rgba(24,19,29,.96));
   box-shadow:0 28px 80px rgba(0,0,0,.28);
 }
-.referral-shell::after { content:"03"; position:absolute; right:-6px; top:-72px; font-family:'Playfair Display',serif; font-size:230px; font-weight:700; color:rgba(201,168,76,.045); pointer-events:none; }
+.referral-shell::after { content:"03"; position:absolute; right:-6px; top:-72px; font-family:'Playfair Display',serif; font-size:230px; font-weight:700; color:rgba(99,102,241,.045); pointer-events:none; }
 .referral-copy,.referral-steps { position:relative; z-index:1; }
 .referral-copy .section-sub { max-width:620px; }
 .referral-location { display:inline-flex; align-items:center; gap:9px; margin:24px 0 30px; padding:9px 13px; border:1px solid var(--border); border-radius:999px; background:rgba(8,8,14,.48); color:var(--text2); font-size:12px; }
@@ -263,7 +264,7 @@ section { padding:100px 24px; }
 /* cta section */
 .cta-section {
   text-align:center; padding:120px 24px;
-  background:radial-gradient(ellipse at 50% 0%, rgba(201,168,76,0.08) 0%, transparent 70%);
+  background:radial-gradient(ellipse at 50% 0%, rgba(99,102,241,0.08) 0%, transparent 70%);
   border-top:1px solid var(--border);
 }
 /* footer */
@@ -282,10 +283,10 @@ footer {
   position:fixed; bottom:28px; right:28px; z-index:200;
   width:56px; height:56px; border-radius:50%; background:var(--gold);
   border:none; cursor:pointer; display:flex; align-items:center; justify-content:center;
-  font-size:24px; box-shadow:0 6px 24px rgba(201,168,76,0.5);
+  font-size:24px; box-shadow:0 6px 24px rgba(99,102,241,0.5);
   transition:transform 0.2s, box-shadow 0.2s; animation:float 4s ease-in-out infinite;
 }
-.chat-btn:hover { transform:scale(1.1); box-shadow:0 8px 32px rgba(201,168,76,0.6); }
+.chat-btn:hover { transform:scale(1.1); box-shadow:0 8px 32px rgba(99,102,241,0.6); }
 .chat-window {
   position:fixed; bottom:96px; right:28px; z-index:200;
   width:360px; max-width:calc(100vw - 40px);
@@ -522,7 +523,7 @@ function NavBar({ onOpenApp, onSignIn }) {
       <button className="nav-hamburger" onClick={() => setMenuOpen(true)}>☰</button>
       <ul className={"nav-links" + (menuOpen ? " open" : "")}>
         {menuOpen && <button className="nav-close" onClick={() => setMenuOpen(false)}>✕</button>}
-        {[["#product","Product"],["#solutions","Solutions"],["#pricing","Pricing"],["/invoice-generator","Free Generator"],["/blog","Guides"],["/es","Español"],["/fr","Français"],["/nl","Nederlands"]].map(([h,l]) => (
+        {[["#product","Product"],["#solutions","Solutions"],["#pricing","Pricing"],["/invoice-generator","Free Generator"],["/blog","Guides"],["/es","Español"],["/fr","Français"],["/nl","Nederlands"],["/ar","العربية"]].map(([h,l]) => (
           <li key={h}><a href={h} onClick={() => setMenuOpen(false)}>{l}</a></li>
         ))}
       </ul>
@@ -566,8 +567,8 @@ function Hero({ onOpenApp }) {
         <button className="btn btn-gold btn-xl" onClick={() => openSignup("hero_primary")}>Create your first invoice — free →</button>
         <a href="#how" className="btn btn-outline btn-lg" onClick={() => trackEvent("hero_secondary_cta_clicked", { placement:"hero" })}>See how it works</a>
         <div style={{ marginTop:18, fontSize:14, color:"var(--text2)" }}>
-          Invoicing for <a href="/for-freelancers" style={{ color:"var(--gold)", textDecoration:"none", borderBottom:"1px solid rgba(201,168,76,0.35)" }}>freelancers</a>
-          {" "}and for <a href="/for-agencies" style={{ color:"var(--gold)", textDecoration:"none", borderBottom:"1px solid rgba(201,168,76,0.35)" }}>agencies &amp; small business</a>
+          Invoicing for <a href="/for-freelancers" style={{ color:"var(--gold)", textDecoration:"none", borderBottom:"1px solid rgba(99,102,241,0.35)" }}>freelancers</a>
+          {" "}and for <a href="/for-agencies" style={{ color:"var(--gold)", textDecoration:"none", borderBottom:"1px solid rgba(99,102,241,0.35)" }}>agencies &amp; small business</a>
         </div>
       </div>
       <div className="hero-social-proof fade-up delay-4">
@@ -799,6 +800,7 @@ function Pricing({ onOpenApp }) {
                   <span className="price-period">/ mo</span>
                 </> : <span className="price-num" style={{ fontSize:42 }}>Free</span>}
               </div>
+              {p.price > 0 && <div className="price-tax-note">excl. btw</div>}
               {p.price > 0 && annual && <div style={{ fontSize:12, color:"var(--green)", marginBottom:4 }}>Billed €{Math.round(p.price * 0.8 * 12)}/year</div>}
               <div className="price-desc">{p.desc}</div>
               <div className="price-divider" />
@@ -816,7 +818,7 @@ function Pricing({ onOpenApp }) {
         <div style={{ textAlign:"center", marginTop:36, fontSize:13, color:"var(--text2)" }}>
           🔒 Payments powered by Stripe · TLS encrypted · Cancel anytime
         </div>
-        {showWaitlist && <div style={{ position:"fixed", inset:0, background:"rgba(0,0,0,0.75)", zIndex:200, display:"flex", alignItems:"center", justifyContent:"center", padding:16 }}><div style={{ background:"#111118", border:"1px solid rgba(201,168,76,0.18)", borderRadius:16, padding:32, maxWidth:440, width:"100%", maxHeight:"90vh", overflowY:"auto" }}><div style={{ fontFamily:"Playfair Display, serif", fontSize:22, marginBottom:8, color:"#e8e4dc" }}>Business Plan — Coming Soon</div><div style={{ fontSize:13, color:"#9a9690", marginBottom:16, lineHeight:1.6 }}>Join the waitlist and be the first to know when we launch.</div>{waitStatus === "success" ? <div style={{ textAlign:"center", padding:"16px 0" }}><div style={{ color:"#4caf89", fontSize:15, fontWeight:600, marginBottom:8 }}>You are on the list!</div><div style={{ color:"#9a9690", fontSize:13, lineHeight:1.6, marginBottom:16 }}>Thank you! We will notify you when Business Plan launches. Meanwhile, enjoy Pro free for 7 days.</div><button onClick={() => setShowWaitlist(false)} style={{ padding:"10px 24px", borderRadius:8, background:"#c9a84c", border:"none", color:"#000", fontWeight:600, cursor:"pointer" }}>Continue with Pro</button></div> : <div><input value={waitEmail} onChange={e => setWaitEmail(e.target.value)} placeholder="your@email.com" style={{ width:"100%", background:"#18181f", border:"1px solid rgba(201,168,76,0.18)", borderRadius:8, color:"#e8e4dc", fontSize:14, padding:"11px 14px", marginBottom:12, fontFamily:"DM Sans, sans-serif", outline:"none", boxSizing:"border-box" }} />{waitStatus === "already" && <div style={{ fontSize:12, color:"#c9a84c", marginBottom:8 }}>Already on the waitlist!</div>}<div style={{ display:"flex", gap:10 }}><button onClick={() => setShowWaitlist(false)} style={{ flex:1, padding:"10px", borderRadius:8, background:"#18181f", border:"1px solid rgba(255,255,255,0.07)", color:"#9a9690", cursor:"pointer" }}>Cancel</button><button onClick={handleWaitlist} style={{ flex:1, padding:"10px", borderRadius:8, background:"#c9a84c", border:"none", color:"#000", fontWeight:600, cursor:"pointer" }}>Notify Me</button></div></div>}</div></div>}
+        {showWaitlist && <div style={{ position:"fixed", inset:0, background:"rgba(0,0,0,0.75)", zIndex:200, display:"flex", alignItems:"center", justifyContent:"center", padding:16 }}><div style={{ background:"#111118", border:"1px solid rgba(99,102,241,0.18)", borderRadius:16, padding:32, maxWidth:440, width:"100%", maxHeight:"90vh", overflowY:"auto" }}><div style={{ fontFamily:"Playfair Display, serif", fontSize:22, marginBottom:8, color:"#e8e4dc" }}>Business Plan — Coming Soon</div><div style={{ fontSize:13, color:"#9a9690", marginBottom:16, lineHeight:1.6 }}>Join the waitlist and be the first to know when we launch.</div>{waitStatus === "success" ? <div style={{ textAlign:"center", padding:"16px 0" }}><div style={{ color:"#4caf89", fontSize:15, fontWeight:600, marginBottom:8 }}>You are on the list!</div><div style={{ color:"#9a9690", fontSize:13, lineHeight:1.6, marginBottom:16 }}>Thank you! We will notify you when Business Plan launches. Meanwhile, enjoy Pro free for 7 days.</div><button onClick={() => setShowWaitlist(false)} style={{ padding:"10px 24px", borderRadius:8, background:"#6366F1", border:"none", color:"#000", fontWeight:600, cursor:"pointer" }}>Continue with Pro</button></div> : <div><input value={waitEmail} onChange={e => setWaitEmail(e.target.value)} placeholder="your@email.com" style={{ width:"100%", background:"#18181f", border:"1px solid rgba(99,102,241,0.18)", borderRadius:8, color:"#e8e4dc", fontSize:14, padding:"11px 14px", marginBottom:12, fontFamily:"DM Sans, sans-serif", outline:"none", boxSizing:"border-box" }} />{waitStatus === "already" && <div style={{ fontSize:12, color:"#6366F1", marginBottom:8 }}>Already on the waitlist!</div>}<div style={{ display:"flex", gap:10 }}><button onClick={() => setShowWaitlist(false)} style={{ flex:1, padding:"10px", borderRadius:8, background:"#18181f", border:"1px solid rgba(255,255,255,0.07)", color:"#9a9690", cursor:"pointer" }}>Cancel</button><button onClick={handleWaitlist} style={{ flex:1, padding:"10px", borderRadius:8, background:"#6366F1", border:"none", color:"#000", fontWeight:600, cursor:"pointer" }}>Notify Me</button></div></div>}</div></div>}
       </div>
     </section>
   );

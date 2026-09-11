@@ -6,6 +6,7 @@
     <xhtml:link rel="alternate" hreflang="nl" href="https://faturapro.app/nl" />
     <xhtml:link rel="alternate" hreflang="es" href="https://faturapro.app/es" />
     <xhtml:link rel="alternate" hreflang="fr" href="https://faturapro.app/fr" />
+    <xhtml:link rel="alternate" hreflang="ar" href="https://faturapro.app/ar" />
     <xhtml:link rel="alternate" hreflang="x-default" href="https://faturapro.app/" />
     <lastmod>2026-09-08</lastmod>
     <changefreq>weekly</changefreq>
@@ -122,6 +123,7 @@
     <xhtml:link rel="alternate" hreflang="nl" href="https://faturapro.app/nl" />
     <xhtml:link rel="alternate" hreflang="es" href="https://faturapro.app/es" />
     <xhtml:link rel="alternate" hreflang="fr" href="https://faturapro.app/fr" />
+    <xhtml:link rel="alternate" hreflang="ar" href="https://faturapro.app/ar" />
     <xhtml:link rel="alternate" hreflang="x-default" href="https://faturapro.app/" />
     <lastmod>2026-09-08</lastmod>
     <changefreq>monthly</changefreq>
@@ -133,6 +135,7 @@
     <xhtml:link rel="alternate" hreflang="nl" href="https://faturapro.app/nl" />
     <xhtml:link rel="alternate" hreflang="es" href="https://faturapro.app/es" />
     <xhtml:link rel="alternate" hreflang="fr" href="https://faturapro.app/fr" />
+    <xhtml:link rel="alternate" hreflang="ar" href="https://faturapro.app/ar" />
     <xhtml:link rel="alternate" hreflang="x-default" href="https://faturapro.app/" />
     <lastmod>2026-09-08</lastmod>
     <changefreq>monthly</changefreq>
@@ -144,8 +147,21 @@
     <xhtml:link rel="alternate" hreflang="nl" href="https://faturapro.app/nl" />
     <xhtml:link rel="alternate" hreflang="es" href="https://faturapro.app/es" />
     <xhtml:link rel="alternate" hreflang="fr" href="https://faturapro.app/fr" />
+    <xhtml:link rel="alternate" hreflang="ar" href="https://faturapro.app/ar" />
     <xhtml:link rel="alternate" hreflang="x-default" href="https://faturapro.app/" />
     <lastmod>2026-09-08</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.9</priority>
+  </url>
+  <url>
+    <loc>https://faturapro.app/ar</loc>
+    <xhtml:link rel="alternate" hreflang="en" href="https://faturapro.app/" />
+    <xhtml:link rel="alternate" hreflang="nl" href="https://faturapro.app/nl" />
+    <xhtml:link rel="alternate" hreflang="es" href="https://faturapro.app/es" />
+    <xhtml:link rel="alternate" hreflang="fr" href="https://faturapro.app/fr" />
+    <xhtml:link rel="alternate" hreflang="ar" href="https://faturapro.app/ar" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://faturapro.app/" />
+    <lastmod>2026-09-10</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.9</priority>
   </url>

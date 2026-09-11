@@ -2,8 +2,8 @@ import { useEffect, useState } from "react";
 import { applyPageSeo, suspendBaseSiteSchema } from "../lib/pageSeo";
 import { trackEvent } from "../lib/tracking";
 
-const GOLD = "#c9a84c";
-const GOLD_L = "#e8c97a";
+const GOLD = "#6366F1";
+const GOLD_L = "#7C6CF2";
 const BG = "#08080e";
 const TEXT = "#e8e4dc";
 const MUTED = "#9a9690";
@@ -15,8 +15,8 @@ const BORDER = "rgba(255,255,255,0.08)";
 
 const STAGES = [
   { key: "heads-up", label: "3 days before due", tone: "Heads-up", color: "#7aa7c9" },
-  { key: "due-today", label: "On the due date", tone: "Due today", color: "#c9a84c" },
-  { key: "polite", label: "3 days overdue", tone: "Polite", color: "#c9a84c" },
+  { key: "due-today", label: "On the due date", tone: "Due today", color: "#6366F1" },
+  { key: "polite", label: "3 days overdue", tone: "Polite", color: "#6366F1" },
   { key: "firm", label: "14 days overdue", tone: "Firm", color: "#d98b45" },
   { key: "final", label: "30 days overdue", tone: "Final notice", color: "#e05555" },
 ];
@@ -509,7 +509,7 @@ export default function LatePaymentScripts() {
       <div style={{ maxWidth: 820, margin: "0 auto", padding: "56px 24px 100px" }}>
         <a href="/" style={{ color: GOLD, fontSize: 13, textDecoration: "none", display: "inline-block", marginBottom: 30 }}>← Back to Fatūra Pro</a>
 
-        <div style={{ display: "inline-block", background: "rgba(201,168,76,0.12)", border: "1px solid rgba(201,168,76,0.3)", color: GOLD_L, borderRadius: 999, padding: "5px 13px", fontSize: 12, fontWeight: 600, letterSpacing: 0.4, marginBottom: 18 }}>
+        <div style={{ display: "inline-block", background: "rgba(99,102,241,0.12)", border: "1px solid rgba(99,102,241,0.3)", color: GOLD_L, borderRadius: 999, padding: "5px 13px", fontSize: 12, fontWeight: 600, letterSpacing: 0.4, marginBottom: 18 }}>
           Free toolkit · no signup, no email required
         </div>
 
@@ -548,7 +548,7 @@ export default function LatePaymentScripts() {
 
         <div style={{ marginTop: 26, marginBottom: 44 }}>
           {lang === "fr" && (
-            <div style={{ background: "rgba(201,168,76,0.08)", border: "1px solid rgba(201,168,76,0.26)", borderRadius: 10, padding: "14px 16px", marginBottom: 20, color: MUTED, fontSize: 14, lineHeight: 1.7 }}>
+            <div style={{ background: "rgba(99,102,241,0.08)", border: "1px solid rgba(99,102,241,0.26)", borderRadius: 10, padding: "14px 16px", marginBottom: 20, color: MUTED, fontSize: 14, lineHeight: 1.7 }}>
               Besoin d'explications en français&nbsp;? Consultez le guide complet avec sept <a href="/fr/relance-facture-impayee-anglais" style={{ color: GOLD_L, fontWeight: 600 }}>modèles de relance pour facture impayée en anglais</a>.
             </div>
           )}
@@ -558,7 +558,7 @@ export default function LatePaymentScripts() {
         </div>
 
         {/* CTA */}
-        <div style={{ background: "linear-gradient(135deg, rgba(201,168,76,0.14), rgba(201,168,76,0.04))", border: "1px solid rgba(201,168,76,0.3)", borderRadius: 14, padding: "26px 24px", marginBottom: 52 }}>
+        <div style={{ background: "linear-gradient(135deg, rgba(99,102,241,0.14), rgba(99,102,241,0.04))", border: "1px solid rgba(99,102,241,0.3)", borderRadius: 14, padding: "26px 24px", marginBottom: 52 }}>
           <div style={{ fontFamily: "Playfair Display, serif", fontSize: 22, color: TEXT, marginBottom: 10 }}>Tired of chasing invoices manually?</div>
           <div style={{ fontSize: 14.5, color: MUTED, lineHeight: 1.8, marginBottom: 18 }}>
             Fatūra Pro identifies overdue invoices and prepares editable polite, firm and final reminder text. You review it, then open it in your email app or WhatsApp to send it yourself.

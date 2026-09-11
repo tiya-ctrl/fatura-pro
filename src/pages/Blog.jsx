@@ -292,17 +292,17 @@ function ShareButtons({ title }) {
       <a href={"https://wa.me/?text=" + enc(title + " " + url)} target="_blank" rel="noreferrer" style={{ padding:"8px 18px", borderRadius:8, background:"rgba(37,211,102,0.12)", border:"1px solid rgba(37,211,102,0.3)", color:"#25d366", fontSize:13, textDecoration:"none", fontWeight:600 }}>WhatsApp</a>
       <a href={"https://twitter.com/intent/tweet?text=" + enc(title) + "&url=" + enc(url)} target="_blank" rel="noreferrer" style={{ padding:"8px 18px", borderRadius:8, background:"rgba(255,255,255,0.06)", border:"1px solid rgba(255,255,255,0.15)", color:"#e8e4dc", fontSize:13, textDecoration:"none", fontWeight:600 }}>X / Twitter</a>
       <a href={"https://www.linkedin.com/sharing/share-offsite/?url=" + enc(url)} target="_blank" rel="noreferrer" style={{ padding:"8px 18px", borderRadius:8, background:"rgba(10,102,194,0.12)", border:"1px solid rgba(10,102,194,0.35)", color:"#4a9eda", fontSize:13, textDecoration:"none", fontWeight:600 }}>LinkedIn</a>
-      <button onClick={() => { navigator.clipboard.writeText(url); alert("Link copied!"); }} style={{ padding:"8px 18px", borderRadius:8, background:"rgba(201,168,76,0.1)", border:"1px solid rgba(201,168,76,0.3)", color:"#c9a84c", fontSize:13, cursor:"pointer", fontWeight:600, fontFamily:"inherit" }}>Copy Link</button>
+      <button onClick={() => { navigator.clipboard.writeText(url); alert("Link copied!"); }} style={{ padding:"8px 18px", borderRadius:8, background:"rgba(99,102,241,0.1)", border:"1px solid rgba(99,102,241,0.3)", color:"#6366F1", fontSize:13, cursor:"pointer", fontWeight:600, fontFamily:"inherit" }}>Copy Link</button>
     </div>
   );
 }
 
 function CTABox({ ar, source, placement }) {
   return (
-    <div style={{ background:"rgba(201,168,76,0.07)", border:"1px solid rgba(201,168,76,0.25)", borderRadius:14, padding:"28px 26px", margin:"36px 0", textAlign:"center" }}>
+    <div style={{ background:"rgba(99,102,241,0.07)", border:"1px solid rgba(99,102,241,0.25)", borderRadius:14, padding:"28px 26px", margin:"36px 0", textAlign:"center" }}>
       <div style={{ fontFamily:"Playfair Display, Georgia, serif", fontSize:22, color:"#e8e4dc", marginBottom:8 }}>{ar ? "جاهز تنشئ فاتورتك الأولى؟" : "Ready to create your first invoice?"}</div>
       <div style={{ fontSize:14, color:"#9a9690", marginBottom:18, lineHeight:1.7 }}>{ar ? "أنشئ فاتورتك الأولى مجاناً وبدون بطاقة ائتمانية" : "Create your first invoice free — no credit card required"}</div>
-      <a href={"/login?signup=1&source=seo_" + encodeURIComponent(source || "blog")} onClick={() => trackEvent("seo_cta_clicked", { page:source || "blog", placement:placement || "article", destination:"signup" })} style={{ display:"inline-block", padding:"12px 32px", borderRadius:10, background:"linear-gradient(135deg,#f0d878,#c9a84c)", color:"#0a0a0f", fontWeight:700, fontSize:15, textDecoration:"none" }}>{ar ? "ابدأ مجاناً ←" : "Start Free →"}</a>
+      <a href={"/login?signup=1&source=seo_" + encodeURIComponent(source || "blog")} onClick={() => trackEvent("seo_cta_clicked", { page:source || "blog", placement:placement || "article", destination:"signup" })} style={{ display:"inline-block", padding:"12px 32px", borderRadius:10, background:"linear-gradient(135deg,#7C6CF2,#6366F1)", color:"#0a0a0f", fontWeight:700, fontSize:15, textDecoration:"none" }}>{ar ? "ابدأ مجاناً ←" : "Start Free →"}</a>
     </div>
   );
 }
@@ -310,11 +310,11 @@ function CTABox({ ar, source, placement }) {
 function RelatedLinks({ links }) {
   if (!links?.length) return null;
   return (
-    <nav aria-label="Related invoicing guides" style={{ margin:"42px 0", padding:"24px", background:"#111118", border:"1px solid rgba(201,168,76,0.18)", borderRadius:14 }}>
+    <nav aria-label="Related invoicing guides" style={{ margin:"42px 0", padding:"24px", background:"#111118", border:"1px solid rgba(99,102,241,0.18)", borderRadius:14 }}>
       <h2 style={{ fontFamily:"Playfair Display, Georgia, serif", fontSize:22, color:"#e8e4dc", margin:"0 0 14px" }}>Useful next steps</h2>
       <div style={{ display:"grid", gridTemplateColumns:"repeat(auto-fit,minmax(210px,1fr))", gap:10 }}>
         {links.map((link) => (
-          <a key={link.href} href={link.href} style={{ color:"#e8c97a", fontSize:14, lineHeight:1.5, textDecoration:"none", borderBottom:"1px solid rgba(201,168,76,0.25)", padding:"7px 0" }}>{link.label} →</a>
+          <a key={link.href} href={link.href} style={{ color:"#7C6CF2", fontSize:14, lineHeight:1.5, textDecoration:"none", borderBottom:"1px solid rgba(99,102,241,0.25)", padding:"7px 0" }}>{link.label} →</a>
         ))}
       </div>
     </nav>
@@ -325,10 +325,10 @@ function Sources({ sources }) {
   if (!sources?.length) return null;
   return (
     <section style={{ margin:"42px 0" }} aria-labelledby="official-sources-heading">
-      <h2 id="official-sources-heading" style={{ fontFamily:"Playfair Display, Georgia, serif", fontSize:22, color:"#c9a84c", margin:"0 0 12px" }}>Official sources</h2>
+      <h2 id="official-sources-heading" style={{ fontFamily:"Playfair Display, Georgia, serif", fontSize:22, color:"#6366F1", margin:"0 0 12px" }}>Official sources</h2>
       <p style={{ fontSize:13.5, color:"#9a9690", lineHeight:1.7, margin:"0 0 10px" }}>Use the official guidance for the rules or technical profile that applies to your transaction.</p>
       <ul style={{ margin:0, paddingLeft:20, color:"#9a9690" }}>
-        {sources.map((source) => <li key={source.href} style={{ margin:"7px 0" }}><a href={source.href} target="_blank" rel="noreferrer" style={{ color:"#e8c97a" }}>{source.label}</a></li>)}
+        {sources.map((source) => <li key={source.href} style={{ margin:"7px 0" }}><a href={source.href} target="_blank" rel="noreferrer" style={{ color:"#7C6CF2" }}>{source.label}</a></li>)}
       </ul>
     </section>
   );
@@ -365,12 +365,12 @@ export function BlogIndex() {
   return (
     <div style={{ minHeight:"100vh", background:"#08080e", color:"#e8e4dc", fontFamily:"DM Sans, sans-serif" }}>
       <div style={{ maxWidth:760, margin:"0 auto", padding:"60px 24px" }}>
-        <a href="/" style={{ color:"#c9a84c", fontSize:13, textDecoration:"none", display:"inline-block", marginBottom:32 }}>← Fatūra Pro</a>
+        <a href="/" style={{ color:"#6366F1", fontSize:13, textDecoration:"none", display:"inline-block", marginBottom:32 }}>← Fatūra Pro</a>
         <h1 style={{ fontFamily:"Playfair Display, Georgia, serif", fontSize:38, marginBottom:8 }}>Blog</h1>
         <p style={{ color:"#9a9690", marginBottom:44, fontSize:15 }}>Invoicing tips, guides and best practices — in English and Arabic.</p>
         {POSTS.map(p => (
-          <Link key={p.slug} to={"/blog/" + p.slug} style={{ display:"block", background:"#111118", border:"1px solid rgba(201,168,76,0.15)", borderRadius:14, padding:"26px 28px", marginBottom:18, textDecoration:"none", direction: p.lang === "ar" ? "rtl" : "ltr" }}>
-            <div style={{ fontSize:12, color:"#c9a84c", marginBottom:8, letterSpacing:1 }}>{p.date} · {p.readTime}</div>
+          <Link key={p.slug} to={"/blog/" + p.slug} style={{ display:"block", background:"#111118", border:"1px solid rgba(99,102,241,0.15)", borderRadius:14, padding:"26px 28px", marginBottom:18, textDecoration:"none", direction: p.lang === "ar" ? "rtl" : "ltr" }}>
+            <div style={{ fontSize:12, color:"#6366F1", marginBottom:8, letterSpacing:1 }}>{p.date} · {p.readTime}</div>
             <div style={{ fontFamily:"Playfair Display, Georgia, serif", fontSize:22, color:"#e8e4dc", marginBottom:8, lineHeight:1.4 }}>{p.title}</div>
             <div style={{ fontSize:14, color:"#9a9690", lineHeight:1.7 }}>{p.description}</div>
           </Link>
@@ -423,14 +423,14 @@ export function BlogPost() {
   return (
     <div style={{ minHeight:"100vh", background:"#08080e", color:"#e8e4dc", fontFamily:"DM Sans, sans-serif" }}>
       <div style={{ maxWidth:760, margin:"0 auto", padding:"60px 24px", direction: ar ? "rtl" : "ltr" }}>
-        <a href="/blog" style={{ color:"#c9a84c", fontSize:13, textDecoration:"none", display:"inline-block", marginBottom:32 }}>{ar ? "→ المدونة" : "← Blog"}</a>
-        <div style={{ fontSize:12, color:"#c9a84c", marginBottom:12, letterSpacing:1 }}>Published {post.date}{post.dateModified ? ` · Updated ${post.dateModified}` : ""} · {post.readTime}</div>
+        <a href="/blog" style={{ color:"#6366F1", fontSize:13, textDecoration:"none", display:"inline-block", marginBottom:32 }}>{ar ? "→ المدونة" : "← Blog"}</a>
+        <div style={{ fontSize:12, color:"#6366F1", marginBottom:12, letterSpacing:1 }}>Published {post.date}{post.dateModified ? ` · Updated ${post.dateModified}` : ""} · {post.readTime}</div>
         <h1 style={{ fontFamily:"Playfair Display, Georgia, serif", fontSize:34, lineHeight:1.35, marginBottom:16 }}>{post.title}</h1>
         <p style={{ fontSize:16, color:"#9a9690", lineHeight:1.8, marginBottom:12 }}>{post.description}</p>
         <ShareButtons title={post.title} />
         {post.quickAnswer && (
-          <aside style={{ background:"linear-gradient(135deg,rgba(201,168,76,0.13),rgba(201,168,76,0.03))", border:"1px solid rgba(201,168,76,0.3)", borderRadius:14, padding:"22px 24px", margin:"28px 0 34px" }}>
-            <div style={{ fontSize:13, color:"#e8c97a", fontWeight:700, letterSpacing:.4, textTransform:"uppercase", marginBottom:8 }}>Quick answer</div>
+          <aside style={{ background:"linear-gradient(135deg,rgba(99,102,241,0.13),rgba(99,102,241,0.03))", border:"1px solid rgba(99,102,241,0.3)", borderRadius:14, padding:"22px 24px", margin:"28px 0 34px" }}>
+            <div style={{ fontSize:13, color:"#7C6CF2", fontWeight:700, letterSpacing:.4, textTransform:"uppercase", marginBottom:8 }}>Quick answer</div>
             <p style={{ margin:0, fontSize:15, lineHeight:1.85, color:"rgba(232,228,220,0.9)" }}>{post.quickAnswer}</p>
           </aside>
         )}
@@ -444,14 +444,14 @@ export function BlogPost() {
         )}
         {post.sections.map((s, i) => (
           <div key={i}>
-            <h2 style={{ fontFamily:"Playfair Display, Georgia, serif", fontSize:23, color:"#c9a84c", margin:"36px 0 14px" }}>{s.h}</h2>
+            <h2 style={{ fontFamily:"Playfair Display, Georgia, serif", fontSize:23, color:"#6366F1", margin:"36px 0 14px" }}>{s.h}</h2>
             <p style={{ fontSize:15.5, lineHeight:1.9, color:"rgba(232,228,220,0.85)" }}>{s.p}</p>
             {i === 3 && <CTABox ar={ar} source={post.slug} placement="mid_article" />}
           </div>
         ))}
         {post.faqs?.length > 0 && (
           <section style={{ margin:"50px 0" }}>
-            <h2 style={{ fontFamily:"Playfair Display, Georgia, serif", fontSize:26, color:"#c9a84c", margin:"0 0 18px" }}>Frequently asked questions</h2>
+            <h2 style={{ fontFamily:"Playfair Display, Georgia, serif", fontSize:26, color:"#6366F1", margin:"0 0 18px" }}>Frequently asked questions</h2>
             {post.faqs.map((faq) => (
               <div key={faq.q} style={{ padding:"18px 0", borderBottom:"1px solid rgba(255,255,255,0.08)" }}>
                 <h3 style={{ margin:"0 0 7px", fontSize:16, color:"#e8e4dc" }}>{faq.q}</h3>

@@ -21,11 +21,11 @@
   <meta name="twitter:image" content="https://faturapro.app/hero-dashboard.png" />
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <meta name="theme-color" content="#c9a84c" />
-  <link rel="icon" href="/fatura-mark.svg" type="image/svg+xml" />
+  <meta name="theme-color" content="#6366F1" />
+  <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
   <link rel="apple-touch-icon" href="/logo192.png" />
   <style>
-    :root { --bg:#0d0d10; --bg2:#141419; --bg3:#1b1b22; --gold:#c9a84c; --text:#e8e4dc; --text2:#9a9690; --border:#26262e; }
+    :root { --bg:#0d0d10; --bg2:#141419; --bg3:#1b1b22; --gold:#6366F1; --text:#e8e4dc; --text2:#9a9690; --border:#26262e; }
     * { box-sizing:border-box; margin:0; padding:0; }
     body { background:var(--bg); color:var(--text); font-family:'DM Sans',-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif; line-height:1.7; -webkit-font-smoothing:antialiased; }
     .wrap { max-width:860px; margin:0 auto; padding:0 22px; }
@@ -42,6 +42,7 @@
     ul { color:var(--text2); margin:0 0 18px 20px; }
     li { margin-bottom:9px; }
     .card { background:var(--bg2); border:1px solid var(--border); border-radius:14px; padding:22px; margin-bottom:16px; }
+    .tax-note { color:var(--text2); font-size:13px; font-weight:600; margin:-1px 0 12px; }
     .cta { background:var(--bg2); border:1px solid var(--border); border-radius:16px; padding:30px; text-align:center; margin:52px 0; }
     .cta p { margin-bottom:20px; }
     footer { border-top:1px solid var(--border); margin-top:60px; padding:26px 0 44px; }
@@ -106,6 +107,7 @@
     <h2>What it costs</h2>
     <div class="card">
       <h3>Business - &euro;19 per month</h3>
+      <div class="tax-note">excl. btw</div>
       <p>Everything in Pro, plus quotes, scheduled recurring invoice creation, expenses and VAT/BTW summaries, advanced analytics, up to 5 team members, multiple business profiles, connected Stripe client payments, API access, accountant export and priority support. New accounts start with a 7-day Pro trial; these Business features require the Business plan.</p>
     </div>
 

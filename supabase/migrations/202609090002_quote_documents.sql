@@ -16,7 +16,7 @@ begin
   ) then
     alter table public.quotes
       add constraint quotes_document_language_check
-      check (document_language in ('en', 'fr', 'es', 'nl')) not valid;
+      check (document_language in ('en', 'fr', 'es', 'nl', 'ar')) not valid;
   end if;
 end;
 $$;

@@ -45,13 +45,13 @@ export default function InvoiceGenerator() {
   const total = subtotal + taxAmt;
   const f = (n) => cur.symbol + " " + n.toFixed(2);
 
-  const inputStyle = { width:"100%", background:"#18181f", border:"1px solid rgba(201,168,76,0.18)", borderRadius:8, color:"#e8e4dc", fontSize:14, padding:"10px 12px", outline:"none", boxSizing:"border-box", fontFamily:"DM Sans, sans-serif" };
+  const inputStyle = { width:"100%", background:"#18181f", border:"1px solid rgba(99,102,241,0.18)", borderRadius:8, color:"#e8e4dc", fontSize:14, padding:"10px 12px", outline:"none", boxSizing:"border-box", fontFamily:"DM Sans, sans-serif" };
   const labelStyle = { fontSize:11, fontWeight:700, color:"#9a9690", letterSpacing:0.5, textTransform:"uppercase", marginBottom:6, display:"block" };
 
   return (
     <div style={{ minHeight:"100vh", background:"#08080e", color:"#e8e4dc", fontFamily:"DM Sans, sans-serif" }}>
       <div style={{ maxWidth:1100, margin:"0 auto", padding:"40px 20px" }}>
-        <a href="/" style={{ color:"#c9a84c", fontSize:13, textDecoration:"none", display:"inline-block", marginBottom:24 }}>← Fatūra Pro</a>
+        <a href="/" style={{ color:"#6366F1", fontSize:13, textDecoration:"none", display:"inline-block", marginBottom:24 }}>← Fatūra Pro</a>
         <h1 style={{ fontFamily:"Playfair Display, Georgia, serif", fontSize:34, marginBottom:8 }}>Free Invoice Generator</h1>
         <p style={{ color:"#9a9690", marginBottom:36, fontSize:15, lineHeight:1.7 }}>Create a professional invoice and download it as a PDF — free, no signup, no account needed. Fill in the details and review the invoice as you build it.</p>
 
@@ -75,7 +75,7 @@ export default function InvoiceGenerator() {
           `}</style>
 
           {/* FORM */}
-          <div style={{ background:"#111118", border:"1px solid rgba(201,168,76,0.15)", borderRadius:16, padding:28 }}>
+          <div style={{ background:"#111118", border:"1px solid rgba(99,102,241,0.15)", borderRadius:16, padding:28 }}>
             <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:14, marginBottom:14 }}>
               <div><label style={labelStyle}>Your Name / Business</label><input style={inputStyle} value={form.yourName} onChange={e => set("yourName", e.target.value)} placeholder="e.g. Sarah Design Studio" /></div>
               <div><label style={labelStyle}>Client Name</label><input style={inputStyle} value={form.clientName} onChange={e => set("clientName", e.target.value)} placeholder="e.g. Acme BV" /></div>
@@ -103,14 +103,14 @@ export default function InvoiceGenerator() {
                 <button onClick={() => setItems(prev => prev.filter((_, idx) => idx !== i))} style={{ background:"none", border:"none", color:"#e05555", cursor:"pointer", fontSize:18 }}>×</button>
               </div>
             ))}
-            <button onClick={() => setItems(prev => [...prev, { desc:"", qty:1, price:0 }])} style={{ background:"none", border:"1px solid rgba(201,168,76,0.25)", color:"#c9a84c", borderRadius:8, padding:"8px 16px", fontSize:13, cursor:"pointer", marginTop:6, fontFamily:"DM Sans, sans-serif" }}>+ Add Item</button>
+            <button onClick={() => setItems(prev => [...prev, { desc:"", qty:1, price:0 }])} style={{ background:"none", border:"1px solid rgba(99,102,241,0.25)", color:"#6366F1", borderRadius:8, padding:"8px 16px", fontSize:13, cursor:"pointer", marginTop:6, fontFamily:"DM Sans, sans-serif" }}>+ Add Item</button>
           </div>
 
           {/* PREVIEW */}
           <div>
             <div className="gen-invoice" style={{ background:"#fdfcf9", borderRadius:16, padding:"36px 34px", color:"#1a1a2e", boxShadow:"0 20px 60px rgba(0,0,0,0.5)" }}>
               <div style={{ display:"flex", justifyContent:"space-between", alignItems:"flex-start", marginBottom:28 }}>
-                <div style={{ fontFamily:"Playfair Display, Georgia, serif", fontSize:22, fontWeight:700, color:"#c9a84c" }}>{form.yourName || "Your Business"}</div>
+                <div style={{ fontFamily:"Playfair Display, Georgia, serif", fontSize:22, fontWeight:700, color:"#6366F1" }}>{form.yourName || "Your Business"}</div>
                 <div style={{ textAlign:"right" }}>
                   <div style={{ fontSize:10, letterSpacing:2, color:"#999", textTransform:"uppercase" }}>Invoice</div>
                   <div style={{ fontWeight:700, fontSize:16 }}>{form.invoiceNumber}</div>
@@ -119,7 +119,7 @@ export default function InvoiceGenerator() {
                 </div>
               </div>
               <div style={{ background:"#faf7f0", borderRadius:8, padding:"12px 16px", marginBottom:24 }}>
-                <div style={{ fontSize:10, letterSpacing:1.5, color:"#c9a84c", textTransform:"uppercase", fontWeight:800, marginBottom:4 }}>Bill To</div>
+                <div style={{ fontSize:10, letterSpacing:1.5, color:"#6366F1", textTransform:"uppercase", fontWeight:800, marginBottom:4 }}>Bill To</div>
                 <div style={{ fontWeight:700, fontSize:14 }}>{form.clientName || "Client Name"}</div>
               </div>
               <table style={{ width:"100%", borderCollapse:"collapse", marginBottom:20 }}>
@@ -142,17 +142,17 @@ export default function InvoiceGenerator() {
                 <div style={{ minWidth:200 }}>
                   <div style={{ display:"flex", justifyContent:"space-between", fontSize:13, padding:"4px 0" }}><span style={{ color:"#777" }}>Subtotal</span><span>{f(subtotal)}</span></div>
                   {form.tax > 0 && <div style={{ display:"flex", justifyContent:"space-between", fontSize:13, padding:"4px 0" }}><span style={{ color:"#777" }}>Tax ({form.tax}%)</span><span>{f(taxAmt)}</span></div>}
-                  <div style={{ display:"flex", justifyContent:"space-between", fontWeight:800, fontSize:17, padding:"10px 0", borderTop:"2px solid #eee", marginTop:6 }}><span>Total</span><span style={{ color:"#c9a84c" }}>{f(total)}</span></div>
+                  <div style={{ display:"flex", justifyContent:"space-between", fontWeight:800, fontSize:17, padding:"10px 0", borderTop:"2px solid #eee", marginTop:6 }}><span>Total</span><span style={{ color:"#6366F1" }}>{f(total)}</span></div>
                 </div>
               </div>
               <div style={{ borderTop:"1px solid #eee", marginTop:26, paddingTop:12, textAlign:"center", fontSize:10, letterSpacing:0.6, color:"#b3aea4" }}>
-                <a href={INVOICE_ATTRIBUTION_URL} target="_blank" rel="noreferrer" onClick={() => trackEvent("invoice_brand_link_clicked", { placement:"free_generator_footer", plan:"generator" })} style={{ color:"#9d8647", fontWeight:700, textDecoration:"none" }}>
+                <a href={INVOICE_ATTRIBUTION_URL} target="_blank" rel="noreferrer" onClick={() => trackEvent("invoice_brand_link_clicked", { placement:"free_generator_footer", plan:"generator" })} style={{ color:"#6366F1", fontWeight:700, textDecoration:"none" }}>
                   Made with Fatūra Pro ↗
                 </a>
               </div>
             </div>
 
-            <button className="gen-noprint" onClick={() => { trackEvent("free_generator_pdf_downloaded", { has_items:items.some(item => item.desc || Number(item.price) > 0) }); window.print(); }} style={{ width:"100%", marginTop:16, padding:"14px 20px", borderRadius:11, background:"linear-gradient(135deg,#f0d878,#c9a84c)", color:"#0a0a0f", fontWeight:700, fontSize:15, border:"none", cursor:"pointer", fontFamily:"DM Sans, sans-serif" }}>
+            <button className="gen-noprint" onClick={() => { trackEvent("free_generator_pdf_downloaded", { has_items:items.some(item => item.desc || Number(item.price) > 0) }); window.print(); }} style={{ width:"100%", marginTop:16, padding:"14px 20px", borderRadius:11, background:"linear-gradient(135deg,#7C6CF2,#6366F1)", color:"#0a0a0f", fontWeight:700, fontSize:15, border:"none", cursor:"pointer", fontFamily:"DM Sans, sans-serif" }}>
               Download PDF
             </button>
             <div className="gen-noprint" style={{ fontSize:11.5, color:"#5a5750", textAlign:"center", marginTop:8, lineHeight:1.7 }}>
@@ -160,10 +160,10 @@ export default function InvoiceGenerator() {
             </div>
 
             {/* CTA */}
-            <div className="gen-noprint" style={{ background:"rgba(201,168,76,0.07)", border:"1px solid rgba(201,168,76,0.25)", borderRadius:14, padding:"22px 24px", marginTop:20, textAlign:"center" }}>
+            <div className="gen-noprint" style={{ background:"rgba(99,102,241,0.07)", border:"1px solid rgba(99,102,241,0.25)", borderRadius:14, padding:"22px 24px", marginTop:20, textAlign:"center" }}>
               <div style={{ fontSize:15, fontWeight:700, color:"#e8e4dc", marginBottom:6 }}>Invoicing more than once?</div>
               <div style={{ fontSize:13, color:"#9a9690", marginBottom:14 }}>Create a free account to add your logo, save clients for repeat billing, track who has paid, and prepare payment reminders.</div>
-              <a href="/login" style={{ display:"inline-block", padding:"12px 30px", borderRadius:10, background:"linear-gradient(135deg,#f0d878,#c9a84c)", color:"#0a0a0f", fontWeight:700, fontSize:15, textDecoration:"none" }}>Continue Free →</a>
+              <a href="/login" style={{ display:"inline-block", padding:"12px 30px", borderRadius:10, background:"linear-gradient(135deg,#7C6CF2,#6366F1)", color:"#0a0a0f", fontWeight:700, fontSize:15, textDecoration:"none" }}>Continue Free →</a>
               <div style={{ fontSize:11, color:"#5a5750", marginTop:10 }}>No credit card · 7-day Pro trial included</div>
             </div>
           </div>
@@ -171,9 +171,9 @@ export default function InvoiceGenerator() {
 
         {/* SEO text */}
         <div style={{ maxWidth:760, margin:"60px auto 0" }}>
-          <h2 style={{ fontFamily:"Playfair Display, Georgia, serif", fontSize:24, color:"#c9a84c", marginBottom:12 }}>How to use this free invoice generator</h2>
+          <h2 style={{ fontFamily:"Playfair Display, Georgia, serif", fontSize:24, color:"#6366F1", marginBottom:12 }}>How to use this free invoice generator</h2>
           <p style={{ fontSize:14.5, lineHeight:1.9, color:"rgba(232,228,220,0.75)", marginBottom:20 }}>Enter your business name, your client's details, and your services with quantities and prices. The invoice preview updates instantly. Choose EUR, USD, GBP, AED, MAD or SAR. Add tax or VAT if needed—the totals calculate automatically. When it looks right, press Download PDF and choose “Save as PDF” in the browser's print window: no signup, account or email address required. To add your logo, save clients, track payment status and prepare payment reminders, create a free Fatūra Pro account.</p>
-          <h2 style={{ fontFamily:"Playfair Display, Georgia, serif", fontSize:24, color:"#c9a84c", marginBottom:12 }}>Why professionals choose Fatūra Pro</h2>
+          <h2 style={{ fontFamily:"Playfair Display, Georgia, serif", fontSize:24, color:"#6366F1", marginBottom:12 }}>Why professionals choose Fatūra Pro</h2>
           <p style={{ fontSize:14.5, lineHeight:1.9, color:"rgba(232,228,220,0.75)" }}>Fatūra Pro is an online invoicing app for freelancers, consultants and small businesses. Create and manage professional invoices, track payment status and prepare editable reminders in English, Arabic, French or Dutch. You review each reminder before opening it in Email or WhatsApp to send. Your business profile and clients can be saved and reused on later invoices.</p>
         </div>
       </div>
