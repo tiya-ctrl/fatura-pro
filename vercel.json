@@ -7,6 +7,7 @@
     { "source": "/es.html", "destination": "/es", "permanent": true },
     { "source": "/fr.html", "destination": "/fr", "permanent": true },
     { "source": "/ar.html", "destination": "/ar", "permanent": true },
+    { "source": "/ar-invoicing-europe.html", "destination": "/ar/invoicing-netherlands-germany-belgium", "permanent": true },
     { "source": "/ubl-factuur-maken.html", "destination": "/ubl-factuur-maken", "permanent": true },
     { "source": "/relance-facture-impayee-anglais.html", "destination": "/fr/relance-facture-impayee-anglais", "permanent": true }
   ],
@@ -17,6 +18,7 @@
     { "source": "/es", "destination": "/es.html" },
     { "source": "/fr", "destination": "/fr.html" },
     { "source": "/ar", "destination": "/ar.html" },
+    { "source": "/ar/invoicing-netherlands-germany-belgium", "destination": "/ar-invoicing-europe.html" },
     { "source": "/ubl-factuur-maken", "destination": "/ubl-factuur-maken.html" },
     { "source": "/fr/relance-facture-impayee-anglais", "destination": "/relance-facture-impayee-anglais.html" },
     { "source": "/login", "destination": "/index.html" },

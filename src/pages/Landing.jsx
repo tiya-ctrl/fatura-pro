@@ -1,3 +1,4 @@
+import LanguageLinks from "../components/LanguageLinks";
 import { useState, useRef, useEffect } from "react";
 import { BUSINESS_ENABLED } from "../lib/businessPlan";
 import { trackEvent } from "../lib/tracking";
@@ -403,7 +404,7 @@ const PLANS = [
       { text:"20 invoices", ok:true },
       { text:"5 clients", ok:true },
       { text:"All currencies", ok:true },
-      { text:"Dashboard & analytics", ok:true },
+      { text:"Dashboard totals & invoice overview", ok:true },
       { text:"PDF export & print", ok:true },
       { text:"Custom logo & branding", ok:true },
       { text:"Credit notes (creditnota)", ok:true },
@@ -422,7 +423,7 @@ const PLANS = [
       { text:"Unlimited invoices", ok:true },
       { text:"Unlimited clients", ok:true },
       { text:"All currencies", ok:true },
-      { text:"Dashboard & analytics", ok:true },
+      { text:"Dashboard totals & invoice overview", ok:true },
       { text:"UBL/XML export for EN 16931 workflows", ok:true },
       { text:"Deposits & partial payments", ok:true },
       { text:"Credit notes (creditnota)", ok:true },
@@ -446,8 +447,8 @@ const PLANS = [
       { text:"Advanced analytics & reports", ok:true },
       { text:"Stripe payment integration", ok:true },
       { text:"API access", ok:true },
-      { text:"Accountant export (CSV/Excel)", ok:true },
-      { text:"Priority + live chat support", ok:true },
+      { text:"Accountant CSV export (opens in Excel)", ok:true },
+      { text:"Priority support", ok:true },
     ],
     cta: BUSINESS_ENABLED ? "Get Business" : "Join Waitlist", ctaStyle: BUSINESS_ENABLED ? "btn-gold" : "btn-outline",
   },
@@ -462,7 +463,7 @@ const FAQS = [
   { q:"Can I ask for a deposit and invoice the rest later?", a:"Yes. Record what you received - 50% up front, for example - and the invoice shows as partially paid with the balance still owed. Your dashboard counts the received part as revenue and the rest as outstanding, and reminders chase the balance rather than the full amount." },
   { q:"Can I invoice in different currencies?", a:"Yes, in 17 currencies. Amounts are never converted between them: each currency keeps its own total, so you always see exactly what you were paid in the currency you were paid in. No exchange rates are applied anywhere." },
   { q:"Do I need a business registration to use Fatūra?", a:"No. Anyone can use Fatūra — freelancers, solopreneurs, and small businesses alike. You don't need a registered company or VAT number to get started." },
-  { q:"Can I use Arabic on an invoice?", a:"Yes. Invoice fields can contain Arabic client names, company names, line items and notes, and the printable document supports right-to-left text. App navigation is currently available in English, Spanish and French." },
+  { q:"Can I use Arabic on an invoice?", a:"Yes. Invoice fields can contain Arabic client names, company names, line items and notes, and the printable document supports right-to-left text. Sign-in and primary navigation are available in English, Dutch, French, Spanish and Arabic. Invoice document labels are available in English, Dutch, French and Arabic." },
   { q:"How does the payment reminder work?", a:"Fatūra detects when an invoice passes its due date. You choose a Polite, Firm, or Final tone, review the prepared message, then open it in Email or WhatsApp to send." },
   { q:"Can clients pay an invoice online?", a:"Business accounts can connect Stripe so clients can pay by card from the invoice payment page. Available payment methods depend on the connected Stripe account and region." },
   { q:"How is my data handled?", a:"Connections are encrypted in transit, and account and invoice data handled by Supabase is stored in its EU region in Ireland. We do not sell personal data. Our Privacy Policy explains the providers we use and how to request access, export or deletion." },
@@ -476,7 +477,7 @@ WHAT THE PRODUCT DOES
 - Credit notes (creditnota): cancel or correct an invoice that has already been issued. The credit note gets its own number, a negative amount and a reference to the original invoice, and it flows into the VAT report automatically. An issued invoice is never edited or deleted. Included on EVERY plan, including Free.
 - Deposits and partial payments: ask for e.g. 50% up front, record each payment received, and the invoice shows as "Partially paid" with the balance still owed. Reminders then chase the balance, not the full amount.
 - UBL/XML export: invoices and credit notes can be downloaded as structured XML intended for EN 16931 workflows. Invoices use document type 380 and credit notes use 381 with a reference to the original. Receiving systems can require extra profile rules, so users should validate the file. Fatura Pro is NOT connected to Peppol; the user delivers the file themselves.
-- Payment reminders: the app prepares editable text in English, Dutch, French or Arabic. The user reviews it, opens it in email or WhatsApp and sends it themselves. There is no unattended reminder delivery.
+- Payment reminders: the app prepares editable text in English, Dutch, French, Spanish or Arabic. The user reviews it, opens it in email or WhatsApp and sends it themselves. There is no unattended reminder delivery.
 - Business quotes can be saved, previewed, printed or saved as PDF, and converted to an invoice. Opening an email for a quote uses the user's own mail app and does not attach or send the PDF automatically. Recurring schedules create new pending invoices for review and sending; expenses provide quarterly VAT/BTW summaries per currency but do not file tax returns; analytics, team members, multiple business profiles, API access and accountant CSV export are also available on Business.
 - A new account with no invoices is guided directly into creating its first invoice. Business and client details entered in that invoice flow can be saved for reuse.
 
@@ -486,7 +487,7 @@ PLANS
 - Business, 19 EUR/month: everything in Pro plus quotes, recurring invoices, expenses and the VAT/BTW report, advanced analytics, up to 5 team members with no per-user fee, multiple business profiles, online card payments for your clients via Stripe, API access, accountant CSV export, removal of Fatura branding, and priority support.
 - Every new account starts with a 7-day free trial of Pro. No business registration is needed to use the app.
 - Do not describe cancellation as including a cash-back promise or a fixed grace period. For cancellation timing, billing questions or a charge the user believes is incorrect, direct them to support@faturapro.app.
-- App navigation is available in English, Spanish and French. Invoice fields can contain Arabic text. Reminder templates are available in English, Dutch, French and Arabic. Do not claim a full Arabic or Dutch app interface.
+- Sign-in and primary navigation are available in English, Dutch, French, Spanish and Arabic. Some secondary screens can still use English. Invoice document labels are available in English, Dutch, French and Arabic; do not claim Spanish invoice labels. Editable reminder templates are available in all five interface languages.
 
 HOW TO ANSWER
 - Reply in the same language the user writes in.
@@ -523,14 +524,15 @@ function NavBar({ onOpenApp, onSignIn }) {
       <button className="nav-hamburger" onClick={() => setMenuOpen(true)}>☰</button>
       <ul className={"nav-links" + (menuOpen ? " open" : "")}>
         {menuOpen && <button className="nav-close" onClick={() => setMenuOpen(false)}>✕</button>}
-        {[["#product","Product"],["#solutions","Solutions"],["#pricing","Pricing"],["/invoice-generator","Free Generator"],["/blog","Guides"],["/es","Español"],["/fr","Français"],["/nl","Nederlands"],["/ar","العربية"]].map(([h,l]) => (
+        {[["#product","Product"],["#solutions","Solutions"],["#pricing","Pricing"],["/invoice-generator","Free Generator"],["/blog","Guides"]].map(([h,l]) => (
           <li key={h}><a href={h} onClick={() => setMenuOpen(false)}>{l}</a></li>
         ))}
       </ul>
+      <LanguageLinks current="en" />
       <div className="nav-cta">
-        <a className="btn btn-outline nav-lang" href="/es" title="Versión en español" style={{ padding:"8px 12px", fontSize:13, textDecoration:"none" }}>ES</a>
-        <a className="btn btn-outline nav-lang" href="/fr" title="Version française" style={{ padding:"8px 12px", fontSize:13, textDecoration:"none" }}>FR</a>
-        <a className="btn btn-outline nav-lang" href="/nl" title="Nederlandse versie" style={{ padding:"8px 12px", fontSize:13, textDecoration:"none" }}>NL</a>
+
+
+
         <button className="btn btn-outline" onClick={onOpenApp}>Sign In</button>
         <button className="btn btn-gold" onClick={() => onOpenApp({ signup:true, source:"nav" })}>Try Free →</button>
       </div>
@@ -602,7 +604,7 @@ function ProductFacts() {
   const facts = [
     ["17 currencies","Balances stay separate"],
     ["Free plan","No credit card"],
-    ["4 languages","For payment reminders"],
+    ["5 languages","For payment reminders"],
     ["UBL XML","EN 16931 export"],
     ["5 team seats","Included in Business"],
   ];

@@ -1514,7 +1514,7 @@ function Settings({ currency, setCurrency, userEmail, invoices, onProfileSaved }
         <div className="card-title" style={{ marginBottom:8 }}>{t("language", "App language")}</div>
         <p style={{ fontSize:13, color:"var(--text2)", marginBottom:14 }}>{t("language_help", "Choose the language used for sign-in and primary navigation.")}</p>
         <select value={locale} onChange={(event) => { setLocale(event.target.value); window.location.reload(); }}>
-          <option value="en">English</option><option value="nl">Nederlands</option><option value="fr">Français</option><option value="ar">العربية</option>
+          <option value="en">English</option><option value="nl">Nederlands</option><option value="fr">Français</option><option value="es">Español</option><option value="ar">العربية</option>
         </select>
       </div>
       <div className="card" style={{ padding:28, marginBottom:20 }}>
@@ -2318,6 +2318,19 @@ function ReminderModal({ invoice: reminderTarget, onClose, onLog }) { const loca
         final: "Dear " + invoice.client + ", Invoice " + invoice.id + " is " + daysOverdue + " days overdue. Final notice — please pay immediately.",
       },
       subjects: { polite:"Friendly Reminder – Invoice " + invoice.id, firm:"Payment Overdue – Invoice " + invoice.id, final:"FINAL NOTICE – Invoice " + invoice.id },
+    },
+    es: { label: "Español",
+      bodies: {
+        polite: "Hola " + invoice.client + ",\n\nTe recordamos que la factura " + invoice.id + " por " + f(invoice.amount) + " tenía como fecha de vencimiento el " + formatDate(invoice.due) + ".\n\nPor favor, realiza el pago cuando te sea posible. Si ya lo has realizado, envíanos la confirmación para actualizar nuestros registros.\n\nUn saludo,\n" + (invoice.sellerName || "Tu empresa"),
+        firm: "Hola " + invoice.client + ",\n\nLa factura " + invoice.id + " por " + f(invoice.amount) + " lleva " + daysOverdue + " días vencida.\n\nPor favor, realiza el pago en los próximos 5 días laborables o confirma la fecha prevista de pago.\n\nUn saludo,\n" + (invoice.sellerName || "Tu empresa"),
+        final: "Hola " + invoice.client + ",\n\nEste es nuestro último recordatorio sobre la factura " + invoice.id + " por " + f(invoice.amount) + ", vencida hace " + daysOverdue + " días.\n\nPor favor, realiza el pago de inmediato o ponte en contacto con nosotros en un plazo de 48 horas.\n\nUn saludo,\n" + (invoice.sellerName || "Tu empresa"),
+      },
+      wa: {
+        polite: "Hola " + invoice.client + ", te recordamos la factura " + invoice.id + " por " + f(invoice.amount) + ", con vencimiento el " + formatDate(invoice.due) + ". Si ya has pagado, envíanos la confirmación. ¡Gracias!",
+        firm: "Hola " + invoice.client + ", la factura " + invoice.id + " por " + f(invoice.amount) + " lleva " + daysOverdue + " días vencida. Por favor, realiza el pago en los próximos 5 días.",
+        final: "Hola " + invoice.client + ", último recordatorio: la factura " + invoice.id + " por " + f(invoice.amount) + " lleva " + daysOverdue + " días vencida. Por favor, paga de inmediato o contacta con nosotros.",
+      },
+      subjects: { polite:"Recordatorio de pago – Factura " + invoice.id, firm:"Pago pendiente – Factura " + invoice.id, final:"ÚLTIMO RECORDATORIO – Factura " + invoice.id },
     },
     ar: { label: "العربية",
       bodies: {

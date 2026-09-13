@@ -37,6 +37,11 @@ NEVER
 
 WHAT THE PRODUCT DOES
 
+Language: Settings > App language offers English, Dutch, French, Spanish and Arabic for sign-in
+and primary navigation. Arabic uses RTL. Some secondary screens can still use English.
+Invoice document language is separate: labels support English, Dutch, French and Arabic.
+Do not claim Spanish invoice labels or automatic translation of service descriptions.
+
 Invoices: create, send, track. Logo, bank details and payment terms are set once and appear
 on every invoice. PDF export and print. An invoice can be edited from any step of the form -
 you do not have to click through all four.
@@ -67,7 +72,7 @@ the file before delivery. Fatura Pro is NOT connected to the Peppol network - th
 file and delivers it themselves. Do not suggest Peppol is planned.
 
 Reminders: an invoice turns Overdue by itself once the due date passes. One click writes a
-reminder in a polite, firm or final tone, in English, Dutch, French or Arabic, by email or
+reminder in a polite, firm or final tone, in English, Dutch, French, Spanish or Arabic, by email or
 WhatsApp. The user reads it before it goes.
 
 Also: Business quotes can be saved, previewed, printed or saved as PDF, and converted to an invoice.

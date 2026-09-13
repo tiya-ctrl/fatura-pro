@@ -1,6 +1,5 @@
-export const SUPPORTED_LOCALES = ["en", "nl", "fr", "ar"];
-const LEGACY_LOCALES = ["es"];
-const SUPPORTED = [...SUPPORTED_LOCALES, ...LEGACY_LOCALES];
+export const SUPPORTED_LOCALES = ["en", "nl", "fr", "es", "ar"];
+const SUPPORTED = SUPPORTED_LOCALES;
 
 export function syncDocumentLocale(locale) {
   if (typeof document === "undefined") return;
@@ -78,6 +77,7 @@ const COPY = {
     how_found:"كيف عرفت FaturaPro؟", how_found_help:"اختياري — يساعدنا على فهم القنوات المفيدة لأصحاب المشاريع.", choose_source:"اختر إجابة…", source_instagram:"Instagram", source_tiktok:"TikTok", source_facebook:"Facebook", source_google:"Google", source_accountant:"محاسب / شريك", source_friend:"صديق أو معرفة", source_qr:"رمز QR / منشور", source_other:"أخرى", thanks_feedback:"شكرًا لمشاركتنا.",
   },
   es: {
+    payment_reminder:"Recordatorio de pago", send_via:"Enviar por", reminder_language:"Idioma del mensaje", tone:"Tono", polite:"Amable", polite_help:"Primer recordatorio cordial", firm:"Firme", firm_help:"Seguimiento profesional", final:"Final", final_help:"Último recordatorio", subject:"Asunto", edit_before_send:"Puedes editar el mensaje antes de enviarlo", done:"¡Listo!", copy:"Copiar", open_mail:"Abrir correo", open_whatsapp:"Abrir WhatsApp", days_overdue:"días de retraso", missing_client_email:"Este cliente no tiene correo guardado. Añádelo a la factura o usa WhatsApp.",
     sign_in_account:"Inicia sesión en tu cuenta", create_free_account:"Crea tu cuenta gratis",
     sign_in:"Iniciar sesión", sign_up:"Registrarse", full_name:"Nombre completo", email_address:"Correo electrónico",
     password:"Contraseña", confirm_password:"Confirmar contraseña", forgot_password:"¿Olvidaste la contraseña?",
@@ -108,6 +108,7 @@ const COPY = {
     first_invoice_ready:"Tu primera factura está lista 🎉", first_invoice_ready_body:"Revisa el documento final, guárdalo como PDF o continúa desde tu panel.", preview_download:"Previsualizar / guardar PDF", create_another_invoice:"Crear otra factura", back_dashboard:"Ir al panel",
   },
   fr: {
+    payment_reminder:"Relance de paiement", send_via:"Envoyer via", reminder_language:"Langue du message", tone:"Ton", polite:"Amical", polite_help:"Premier rappel cordial", firm:"Ferme", firm_help:"Suivi professionnel", final:"Dernier rappel", final_help:"Dernière relance", subject:"Objet", edit_before_send:"Vous pouvez modifier le message avant l’envoi", done:"Terminé !", copy:"Copier", open_mail:"Ouvrir la messagerie", open_whatsapp:"Ouvrir WhatsApp", days_overdue:"jours de retard", missing_client_email:"Ce client n’a pas d’adresse e-mail enregistrée. Ajoutez-la à la facture ou utilisez WhatsApp.",
     sign_in_account:"Connectez-vous à votre compte", create_free_account:"Créez votre compte gratuit",
     sign_in:"Se connecter", sign_up:"S’inscrire", full_name:"Nom complet", email_address:"Adresse e-mail",
     password:"Mot de passe", confirm_password:"Confirmer le mot de passe", forgot_password:"Mot de passe oublié ?",
@@ -138,6 +139,7 @@ const COPY = {
     first_invoice_ready:"Votre première facture est prête 🎉", first_invoice_ready_body:"Prévisualisez le document final, enregistrez-le en PDF ou continuez depuis votre tableau de bord.", preview_download:"Prévisualiser / enregistrer le PDF", create_another_invoice:"Créer une autre facture", back_dashboard:"Ouvrir le tableau de bord",
   },
   nl: {
+    payment_reminder:"Betalingsherinnering", send_via:"Versturen via", reminder_language:"Taal van het bericht", tone:"Toon", polite:"Vriendelijk", polite_help:"Eerste vriendelijke herinnering", firm:"Zakelijk", firm_help:"Professionele opvolging", final:"Laatste", final_help:"Laatste herinnering", subject:"Onderwerp", edit_before_send:"Je kunt het bericht aanpassen voordat je het verstuurt", done:"Klaar!", copy:"Kopiëren", open_mail:"E-mail openen", open_whatsapp:"WhatsApp openen", days_overdue:"dagen te laat", missing_client_email:"Deze klant heeft geen opgeslagen e-mailadres. Voeg het toe aan de factuur of gebruik WhatsApp.",
     sign_in_account:"Log in op je account", create_free_account:"Maak je gratis account aan",
     sign_in:"Inloggen", sign_up:"Registreren", full_name:"Volledige naam", email_address:"E-mailadres",
     password:"Wachtwoord", confirm_password:"Wachtwoord bevestigen", forgot_password:"Wachtwoord vergeten?",

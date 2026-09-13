@@ -237,7 +237,7 @@ export default function LoginPage({ onLogin, onBack, returnTo = "/app" }) {
         </div>
 
         <div style={{ display:"flex", justifyContent:"center", gap:12, marginTop:-20, marginBottom:18, fontSize:12 }}>
-          {["en","nl","fr","ar"].map(code => <button key={code} onClick={() => { setLocale(code); const params = new URLSearchParams(window.location.search); params.set("lang", code); window.location.search = params.toString(); }} style={{ border:0, background:"none", color:locale===code?"var(--gold)":"var(--text3)", fontWeight:locale===code?700:500, cursor:"pointer" }}>{code.toUpperCase()}</button>)}
+          {["en","nl","fr","es","ar"].map(code => <button key={code} onClick={() => { setLocale(code); const params = new URLSearchParams(window.location.search); params.set("lang", code); window.location.search = params.toString(); }} title={{en:"English",nl:"Nederlands",fr:"Français",es:"Español",ar:"العربية"}[code]} style={{ border:0, background:"none", color:locale===code?"var(--gold)":"var(--text3)", fontWeight:locale===code?700:500, cursor:"pointer", minWidth:40, minHeight:40 }}>{code.toUpperCase()}</button>)}
         </div>
 
         {/* Badge */}

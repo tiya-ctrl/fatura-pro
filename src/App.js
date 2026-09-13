@@ -1,3 +1,4 @@
+import { PublicLanguageFooter } from "./components/LanguageLinks";
 import { BrowserRouter, Routes, Route, useNavigate } from "react-router-dom";
 import { Analytics } from "@vercel/analytics/react";
 import { useEffect, useState } from "react";
@@ -144,6 +145,7 @@ export default function App() {
   return (
     <BrowserRouter>
       <AppRoutes />
+      <PublicLanguageFooter />
       <TopBar />
       <InstallPrompt />
       <CookieConsent />
