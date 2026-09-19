@@ -2,6 +2,7 @@ import React, { useState, useRef, useEffect } from "react";
 import { supabase } from "../supabase";
 import { hasBusinessAccess, BUSINESS_ENABLED } from "../lib/businessPlan";
 import { exportInvoicesCSV } from "../lib/accountantExport";
+import { ensureUserPlan } from "../lib/userPlan";
 import { downloadUBL, ublWarnings, countryCodeFrom, COUNTRY_OPTIONS } from "../lib/ubl";
 import Quotes, { loadQuotes } from "./Quotes";
 import SupportChat from "./SupportChat";
@@ -548,15 +549,7 @@ export default function InvoiceApp({ onGoHome }) {
       loadRecurring(dataOwnerId).then(setRecurring);
       loadTeam(user.id).then(setTeam);
       supabase.from("api_keys").select("id, key_prefix, label, last_used_at, created_at").eq("user_id",  user.id).then(({ data }) => setApiKeys(data || []));
-      let { data } = await supabase.from("user_plans").select("plan, trial_end").eq("user_id", user.id).maybeSingle();
-      if (!data) {
-        const trialEndDate = new Date();
-        trialEndDate.setDate(trialEndDate.getDate() + 7);
-        let country = null;
-        try { const geo = await fetch("https://ipapi.co/json/"); const gd = await geo.json(); country = gd.country_name || null; } catch(e) {}
-        await supabase.from("user_plans").upsert({ user_id: user.id, plan: "free", trial_end: trialEndDate.toISOString(), email: user.email, country });
-        data = { plan: "free", trial_end: trialEndDate.toISOString() };
-      }
+      const data = await ensureUserPlan(user);
       if (data?.plan === "business") {
         setPlan("business");
       } else if (data?.plan === "pro") {
