@@ -4,13 +4,28 @@ import { getLocale } from "./lib/locale";
 const KEY = "fatura_cookie_consent";
 const ANALYTICS_ID = "xjcvo64scy";
 
-function startAnalytics() {
-  if (window.clarity || document.getElementById("analytics-tag")) return;
-  (function (c, l, a, r, i, t, y) {
-    c[a] = c[a] || function () { (c[a].q = c[a].q || []).push(arguments); };
-    t = l.createElement(r); t.async = 1; t.id = "analytics-tag"; t.src = "https://www.clarity.ms/tag/" + i;
-    y = l.getElementsByTagName(r)[0]; y.parentNode.insertBefore(t, y);
-  })(window, document, "clarity", "script", ANALYTICS_ID);
+function loadClarity() {
+  /** @type {any} */
+  const clarity = window["clarity"] || function () {
+    (clarity.q = clarity.q || []).push(arguments);
+  };
+  window["clarity"] = clarity;
+
+  if (!document.getElementById("analytics-tag")) {
+    const script = document.createElement("script");
+    script.async = true;
+    script.id = "analytics-tag";
+    script.src = `https://www.clarity.ms/tag/${ANALYTICS_ID}`;
+    document.head.appendChild(script);
+  }
+}
+
+function setClarityConsent(accepted) {
+  loadClarity();
+  window["clarity"]("consentv2", {
+    ad_Storage: "denied",
+    analytics_Storage: accepted ? "granted" : "denied",
+  });
 }
 
 export default function CookieConsent() {
@@ -20,13 +35,13 @@ export default function CookieConsent() {
   useEffect(() => {
     let choice = null;
     try { choice = localStorage.getItem(KEY); } catch (e) {}
-    if (choice === "yes") startAnalytics();
-    else if (!choice) setShow(true);
+    setClarityConsent(choice === "yes");
+    if (!choice) setShow(true);
   }, []);
 
   const decide = (accepted) => {
     try { localStorage.setItem(KEY, accepted ? "yes" : "no"); } catch (e) {}
-    if (accepted) startAnalytics();
+    setClarityConsent(accepted);
     setShow(false);
   };
 
@@ -36,7 +51,7 @@ export default function CookieConsent() {
     <div style={{ position:"fixed", left:12, right:12, bottom:12, zIndex:500, maxWidth:520, margin:"0 auto", background:"#111118", border:"1px solid rgba(99,102,241,0.35)", borderRadius:14, padding:"16px 18px", boxShadow:"0 12px 40px rgba(0,0,0,0.55)", fontFamily:"DM Sans, sans-serif" }}>
       <div style={{ color:"#e8e4dc", fontSize:14, fontWeight:600, marginBottom:6 }}>{ar ? "ملفات تعريف الارتباط" : "Cookies"}</div>
       <div style={{ color:"#9a9690", fontSize:13, lineHeight:1.7, marginBottom:14 }}>
-        {ar ? "نستخدم ملفات ضرورية للحفاظ على تسجيل دخولك. وبموافقتك نقيس أيضًا كيفية استخدام الموقع لتحسينه. يمكنك تغيير قرارك في أي وقت. " : "We use essential cookies to keep you signed in. With your permission we also measure how the site is used, so we can improve it. You can change your mind anytime. "}
+        {ar ? "نستخدم ملفات ضرورية للحفاظ على تسجيل دخولك، وقياسًا محدودًا بلا ملفات تعريف ارتباط. وبموافقتك تربط ملفات التحليلات الصفحات ضمن جلسة واحدة حتى نتمكن من تحسين المنتج. يمكنك تغيير قرارك في أي وقت. " : "We use essential cookies to keep you signed in, plus limited cookieless measurement. With your permission, analytics cookies connect pages into one session so we can improve the product. You can change your mind anytime. "}
         <a href="/privacy" style={{ color:"var(--brand-primary)" }}>{ar ? "سياسة الخصوصية" : "Privacy Policy"}</a>
       </div>
       <div style={{ display:"flex", gap:10 }}>

@@ -1,17 +1,15 @@
 import { supabase } from "./supabase";
+import { ensureUserPlan, getVisitorCountry } from "./lib/userPlan";
 
 export const signUp = async (email, password) => {
-  const { data, error } = await supabase.auth.signUp({ email, password });
+  const country = await getVisitorCountry();
+  const { data, error } = await supabase.auth.signUp({
+    email,
+    password,
+    options: { data: { country } },
+  });
   if (error) throw error;
-  if (data?.user) {
-    const trialEnd = new Date();
-    trialEnd.setDate(trialEnd.getDate() + 7);
-    await supabase.from("user_plans").upsert({
-      user_id: data.user.id,
-      plan: "free",
-      trial_end: trialEnd.toISOString(),
-    });
-  }
+  if (data?.user && data?.session) await ensureUserPlan(data.user, country);
   return data;
 };
 
