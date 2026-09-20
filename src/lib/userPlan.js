@@ -4,7 +4,7 @@ const TRIAL_DAYS = 7;
 
 export async function getVisitorCountry() {
   try {
-    const response = await fetch("/api/location", {
+    const response = await fetch("/api/pay?action=location", {
       headers: { Accept: "application/json" },
       cache: "no-store",
     });
