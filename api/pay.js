@@ -13,6 +13,23 @@ const supabaseAdmin = createClient(
 const ZERO_DECIMAL = ["jpy", "krw", "vnd"];
 
 export default async function handler(req, res) {
+  // Reuse this existing function for lightweight visitor geolocation so the
+  // Hobby deployment stays within Vercel's serverless-function limit.
+  if (req.method === "GET" && req.query?.action === "location") {
+    const code = String(req.headers["x-vercel-ip-country"] || "").trim().toUpperCase();
+    const validCode = /^[A-Z]{2}$/.test(code) ? code : null;
+    let country = null;
+    if (validCode) {
+      try {
+        country = new Intl.DisplayNames(["en"], { type: "region" }).of(validCode) || null;
+      } catch {
+        country = null;
+      }
+    }
+    res.setHeader("Cache-Control", "private, no-store");
+    return res.status(200).json({ countryCode: validCode, country });
+  }
+
   // --- ملخص عام للفاتورة ---
   if (req.method === "GET") {
     const { id } = req.query || {};
