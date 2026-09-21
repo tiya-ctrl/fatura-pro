@@ -164,7 +164,7 @@ export default function InvoiceGenerator() {
               <div style={{ fontSize:15, fontWeight:700, color:"#e8e4dc", marginBottom:6 }}>Invoicing more than once?</div>
               <div style={{ fontSize:13, color:"#9a9690", marginBottom:14 }}>Create a free account to add your logo, save clients for repeat billing, track who has paid, and prepare payment reminders.</div>
               <a href="/login" style={{ display:"inline-block", padding:"12px 30px", borderRadius:10, background:"linear-gradient(135deg,#7C6CF2,#6366F1)", color:"#0a0a0f", fontWeight:700, fontSize:15, textDecoration:"none" }}>Continue Free →</a>
-              <div style={{ fontSize:11, color:"#5a5750", marginTop:10 }}>No credit card · 7-day Pro trial included</div>
+              <div style={{ fontSize:11, color:"#5a5750", marginTop:10 }}>No credit card · 7-day Essential trial included</div>
             </div>
           </div>
         </div>
