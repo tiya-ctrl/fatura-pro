@@ -418,7 +418,7 @@ const PLANS = [
     cta:"Start Free", ctaStyle:"btn-outline",
   },
   {
-    name:"Pro", price:9, desc:"For freelancers and small businesses growing fast.", featured:true,
+    id:"pro", name:"Essential", price:9, desc:"For freelancers and small businesses growing fast.", featured:true,
     features:[
       { text:"Unlimited invoices", ok:true },
       { text:"Unlimited clients", ok:true },
@@ -432,12 +432,12 @@ const PLANS = [
       { text:"Custom logo & branding", ok:true },
       { text:"Priority support", ok:false },
     ],
-    cta:"Start 7-day Trial", ctaStyle:"btn-gold",
+    cta:"Start 7-day Essential Trial", ctaStyle:"btn-gold",
   },
   {
-    name:"Business", price:19, desc:"For agencies and teams managing multiple clients.", badge: BUSINESS_ENABLED ? null : "Coming Soon",
+    id:"business", name:"Advanced", price:19, desc:"For agencies and teams managing multiple clients.", badge: BUSINESS_ENABLED ? null : "Coming Soon",
     features:[
-      { text:"Everything in Pro", ok:true },
+      { text:"Everything in Essential", ok:true },
       { text:"Quotes that convert to invoices", ok:true },
       { text:"Expenses & VAT/BTW report per quarter", ok:true },
       { text:"Scheduled recurring invoice creation", ok:true },
@@ -450,13 +450,13 @@ const PLANS = [
       { text:"Accountant CSV export (opens in Excel)", ok:true },
       { text:"Priority support", ok:true },
     ],
-    cta: BUSINESS_ENABLED ? "Get Business" : "Join Waitlist", ctaStyle: BUSINESS_ENABLED ? "btn-gold" : "btn-outline",
+    cta: BUSINESS_ENABLED ? "Get Advanced" : "Join Waitlist", ctaStyle: BUSINESS_ENABLED ? "btn-gold" : "btn-outline",
   },
 ];
 
 
 const FAQS = [
-  { q:"Does Fatūra Pro have a referral program?", a:"Yes. Open Settings and choose Earn Pro to copy your personal referral link. A friend who joins through it receives 7 extra Pro days after creating their first valid invoice. Every three activated friends earn you 30 Pro days; paid subscribers can bank those days for later." },
+  { q:"Does Fatūra Pro have a referral program?", a:"Yes. Open Settings and choose Earn Essential to copy your personal referral link. A friend who joins through it receives 7 extra Essential days after creating their first valid invoice. Every three activated friends earn you 30 Essential days; paid subscribers can bank those days for later." },
   { q:"Can I create a UBL invoice with Fatura Pro?", a:"Yes. Invoices and credit notes can be exported as downloadable UBL/XML files intended for EN 16931 workflows. Receiving systems can apply extra country, network or customer rules, so confirm the required profile and validate the file before delivery." },
   { q:"Does Fatura Pro send invoices through Peppol?", a:"No. Fatura Pro exports a downloadable UBL/XML file, but it is not connected to the Peppol delivery network. You deliver the file using the method your customer requests." },
   { q:"How do I make a credit note (creditnota)?", a:"Open the invoice and press Credit. Fatura Pro creates a separate document with its own number, a negative amount and a reference to the original invoice, so your records keep a clear correction trail. Credit notes are included on every plan, including Free." },
@@ -465,7 +465,7 @@ const FAQS = [
   { q:"Do I need a business registration to use Fatūra?", a:"No. Anyone can use Fatūra — freelancers, solopreneurs, and small businesses alike. You don't need a registered company or VAT number to get started." },
   { q:"Can I use Arabic on an invoice?", a:"Yes. Invoice fields can contain Arabic client names, company names, line items and notes, and the printable document supports right-to-left text. Sign-in and primary navigation are available in English, Dutch, French, Spanish and Arabic. Invoice document labels are available in English, Dutch, French and Arabic." },
   { q:"How does the payment reminder work?", a:"Fatūra detects when an invoice passes its due date. You choose a Polite, Firm, or Final tone, review the prepared message, then open it in Email or WhatsApp to send." },
-  { q:"Can clients pay an invoice online?", a:"Business accounts can connect Stripe so clients can pay by card from the invoice payment page. Available payment methods depend on the connected Stripe account and region." },
+  { q:"Can clients pay an invoice online?", a:"Advanced accounts can connect Stripe so clients can pay by card from the invoice payment page. Available payment methods depend on the connected Stripe account and region." },
   { q:"How is my data handled?", a:"Connections are encrypted in transit, and account and invoice data handled by Supabase is stored in its EU region in Ireland. We do not sell personal data. Our Privacy Policy explains the providers we use and how to request access, export or deletion." },
   { q:"Can I upgrade or cancel anytime?", a:"Yes, absolutely. No lock-in contracts. Upgrade, downgrade, or cancel at any time directly from your account settings." },
 ];
@@ -478,14 +478,14 @@ WHAT THE PRODUCT DOES
 - Deposits and partial payments: ask for e.g. 50% up front, record each payment received, and the invoice shows as "Partially paid" with the balance still owed. Reminders then chase the balance, not the full amount.
 - UBL/XML export: invoices and credit notes can be downloaded as structured XML intended for EN 16931 workflows. Invoices use document type 380 and credit notes use 381 with a reference to the original. Receiving systems can require extra profile rules, so users should validate the file. Fatura Pro is NOT connected to Peppol; the user delivers the file themselves.
 - Payment reminders: the app prepares editable text in English, Dutch, French, Spanish or Arabic. The user reviews it, opens it in email or WhatsApp and sends it themselves. There is no unattended reminder delivery.
-- Business quotes can be saved, previewed, printed or saved as PDF, and converted to an invoice. Opening an email for a quote uses the user's own mail app and does not attach or send the PDF automatically. Recurring schedules create new pending invoices for review and sending; expenses provide quarterly VAT/BTW summaries per currency but do not file tax returns; analytics, team members, multiple business profiles, API access and accountant CSV export are also available on Business.
+- Advanced quotes can be saved, previewed, printed or saved as PDF, and converted to an invoice. Opening an email for a quote uses the user's own mail app and does not attach or send the PDF automatically. Recurring schedules create new pending invoices for review and sending; expenses provide quarterly VAT/BTW summaries per currency but do not file tax returns; analytics, team members, multiple business profiles, API access and accountant CSV export are also available on Advanced.
 - A new account with no invoices is guided directly into creating its first invoice. Business and client details entered in that invoice flow can be saved for reuse.
 
 PLANS
 - Free: 20 invoices, 5 clients, all 17 currencies, PDF export and print, your own logo, and credit notes. Free forever, no credit card.
-- Pro, 9 EUR/month: everything in Free plus unlimited invoices and clients, payment reminders (email and WhatsApp), deposits and partial payments, and UBL e-invoice export.
-- Business, 19 EUR/month: everything in Pro plus quotes, recurring invoices, expenses and the VAT/BTW report, advanced analytics, up to 5 team members with no per-user fee, multiple business profiles, online card payments for your clients via Stripe, API access, accountant CSV export, removal of Fatura branding, and priority support.
-- Every new account starts with a 7-day free trial of Pro. No business registration is needed to use the app.
+- Essential, 9 EUR/month: everything in Free plus unlimited invoices and clients, payment reminders (email and WhatsApp), deposits and partial payments, and UBL e-invoice export.
+- Advanced, 19 EUR/month: everything in Essential plus quotes, recurring invoices, expenses and the VAT/BTW report, advanced analytics, up to 5 team members with no per-user fee, multiple business profiles, online card payments for your clients via Stripe, API access, accountant CSV export, removal of Fatura branding, and priority support.
+- Every new account starts with a 7-day free trial of Essential. No business registration is needed to use the app.
 - Do not describe cancellation as including a cash-back promise or a fixed grace period. For cancellation timing, billing questions or a charge the user believes is incorrect, direct them to support@faturapro.app.
 - Sign-in and primary navigation are available in English, Dutch, French, Spanish and Arabic. Some secondary screens can still use English. Invoice document labels are available in English, Dutch, French and Arabic; do not claim Spanish invoice labels. Editable reminder templates are available in all five interface languages.
 
@@ -606,7 +606,7 @@ function ProductFacts() {
     ["Free plan","No credit card"],
     ["5 languages","For payment reminders"],
     ["UBL XML","EN 16931 export"],
-    ["5 team seats","Included in Business"],
+    ["5 team seats","Included in Advanced"],
   ];
   return (
     <div className="fact-strip" aria-label="Fatura Pro product facts">
@@ -812,15 +812,15 @@ function Pricing({ onOpenApp }) {
                   <span style={{ color: f.ok ? "var(--text)" : "var(--text3)" }}>{f.text}</span>
                 </div>
               ))}
-              <button className={`btn ${p.ctaStyle} price-cta`} onClick={p.cta === "Join Waitlist" ? () => setShowWaitlist(true) : () => { if (p.cta !== "Start Free") localStorage.setItem("fatura_intent_plan", p.cta === "Get Business" ? "business" : "pro"); trackEvent("pricing_cta_clicked", { plan:p.name.toLowerCase() }); onOpenApp({ signup:true, source:`pricing_${p.name.toLowerCase()}` }); }}>{p.cta}</button>
-              {p.cta === "Get Business" && <div style={{ textAlign:"center", marginTop:10, fontSize:12, color:"var(--gold)" }}>Secure Stripe checkout · Cancel anytime</div>}
+              <button className={`btn ${p.ctaStyle} price-cta`} onClick={p.cta === "Join Waitlist" ? () => setShowWaitlist(true) : () => { if (p.cta !== "Start Free") localStorage.setItem("fatura_intent_plan", p.id); trackEvent("pricing_cta_clicked", { plan:p.id || "free" }); onOpenApp({ signup:true, source:`pricing_${p.id || "free"}` }); }}>{p.cta}</button>
+              {p.id === "business" && BUSINESS_ENABLED && <div style={{ textAlign:"center", marginTop:10, fontSize:12, color:"var(--gold)" }}>Secure Stripe checkout · Cancel anytime</div>}
             </div>
           ))}
         </div>
         <div style={{ textAlign:"center", marginTop:36, fontSize:13, color:"var(--text2)" }}>
           🔒 Payments powered by Stripe · TLS encrypted · Cancel anytime
         </div>
-        {showWaitlist && <div style={{ position:"fixed", inset:0, background:"rgba(0,0,0,0.75)", zIndex:200, display:"flex", alignItems:"center", justifyContent:"center", padding:16 }}><div style={{ background:"#111118", border:"1px solid rgba(99,102,241,0.18)", borderRadius:16, padding:32, maxWidth:440, width:"100%", maxHeight:"90vh", overflowY:"auto" }}><div style={{ fontFamily:"Playfair Display, serif", fontSize:22, marginBottom:8, color:"#e8e4dc" }}>Business Plan — Coming Soon</div><div style={{ fontSize:13, color:"#9a9690", marginBottom:16, lineHeight:1.6 }}>Join the waitlist and be the first to know when we launch.</div>{waitStatus === "success" ? <div style={{ textAlign:"center", padding:"16px 0" }}><div style={{ color:"#4caf89", fontSize:15, fontWeight:600, marginBottom:8 }}>You are on the list!</div><div style={{ color:"#9a9690", fontSize:13, lineHeight:1.6, marginBottom:16 }}>Thank you! We will notify you when Business Plan launches. Meanwhile, enjoy Pro free for 7 days.</div><button onClick={() => setShowWaitlist(false)} style={{ padding:"10px 24px", borderRadius:8, background:"#6366F1", border:"none", color:"#000", fontWeight:600, cursor:"pointer" }}>Continue with Pro</button></div> : <div><input value={waitEmail} onChange={e => setWaitEmail(e.target.value)} placeholder="your@email.com" style={{ width:"100%", background:"#18181f", border:"1px solid rgba(99,102,241,0.18)", borderRadius:8, color:"#e8e4dc", fontSize:14, padding:"11px 14px", marginBottom:12, fontFamily:"DM Sans, sans-serif", outline:"none", boxSizing:"border-box" }} />{waitStatus === "already" && <div style={{ fontSize:12, color:"#6366F1", marginBottom:8 }}>Already on the waitlist!</div>}<div style={{ display:"flex", gap:10 }}><button onClick={() => setShowWaitlist(false)} style={{ flex:1, padding:"10px", borderRadius:8, background:"#18181f", border:"1px solid rgba(255,255,255,0.07)", color:"#9a9690", cursor:"pointer" }}>Cancel</button><button onClick={handleWaitlist} style={{ flex:1, padding:"10px", borderRadius:8, background:"#6366F1", border:"none", color:"#000", fontWeight:600, cursor:"pointer" }}>Notify Me</button></div></div>}</div></div>}
+        {showWaitlist && <div style={{ position:"fixed", inset:0, background:"rgba(0,0,0,0.75)", zIndex:200, display:"flex", alignItems:"center", justifyContent:"center", padding:16 }}><div style={{ background:"#111118", border:"1px solid rgba(99,102,241,0.18)", borderRadius:16, padding:32, maxWidth:440, width:"100%", maxHeight:"90vh", overflowY:"auto" }}><div style={{ fontFamily:"Playfair Display, serif", fontSize:22, marginBottom:8, color:"#e8e4dc" }}>Advanced Plan — Coming Soon</div><div style={{ fontSize:13, color:"#9a9690", marginBottom:16, lineHeight:1.6 }}>Join the waitlist and be the first to know when we launch.</div>{waitStatus === "success" ? <div style={{ textAlign:"center", padding:"16px 0" }}><div style={{ color:"#4caf89", fontSize:15, fontWeight:600, marginBottom:8 }}>You are on the list!</div><div style={{ color:"#9a9690", fontSize:13, lineHeight:1.6, marginBottom:16 }}>Thank you! We will notify you when Advanced Plan launches. Meanwhile, enjoy Essential free for 7 days.</div><button onClick={() => setShowWaitlist(false)} style={{ padding:"10px 24px", borderRadius:8, background:"#6366F1", border:"none", color:"#000", fontWeight:600, cursor:"pointer" }}>Continue with Essential</button></div> : <div><input value={waitEmail} onChange={e => setWaitEmail(e.target.value)} placeholder="your@email.com" style={{ width:"100%", background:"#18181f", border:"1px solid rgba(99,102,241,0.18)", borderRadius:8, color:"#e8e4dc", fontSize:14, padding:"11px 14px", marginBottom:12, fontFamily:"DM Sans, sans-serif", outline:"none", boxSizing:"border-box" }} />{waitStatus === "already" && <div style={{ fontSize:12, color:"#6366F1", marginBottom:8 }}>Already on the waitlist!</div>}<div style={{ display:"flex", gap:10 }}><button onClick={() => setShowWaitlist(false)} style={{ flex:1, padding:"10px", borderRadius:8, background:"#18181f", border:"1px solid rgba(255,255,255,0.07)", color:"#9a9690", cursor:"pointer" }}>Cancel</button><button onClick={handleWaitlist} style={{ flex:1, padding:"10px", borderRadius:8, background:"#6366F1", border:"none", color:"#000", fontWeight:600, cursor:"pointer" }}>Notify Me</button></div></div>}</div></div>}
       </div>
     </section>
   );
@@ -867,14 +867,14 @@ function ReferralSection({ onOpenApp }) {
         <div className="referral-shell">
           <div className="referral-copy">
             <div className="section-tag">Built into your account</div>
-            <h2 className="section-title" id="referral-title">Share good invoicing.<br /><em style={{ color:"var(--gold)", fontStyle:"italic" }}>Earn Pro together.</em></h2>
-            <p className="section-sub">Invite people who would genuinely use Fatūra Pro. Your friend receives 7 extra Pro days after their first real invoice, and every three activated friends earn you 30 Pro days.</p>
-            <div className="referral-location"><span aria-hidden="true">✦</span><span>Find your personal link inside <strong>Settings → Earn Pro</strong></span></div>
+            <h2 className="section-title" id="referral-title">Share good invoicing.<br /><em style={{ color:"var(--gold)", fontStyle:"italic" }}>Earn Essential together.</em></h2>
+            <p className="section-sub">Invite people who would genuinely use Fatūra Pro. Your friend receives 7 extra Essential days after their first real invoice, and every three activated friends earn you 30 Essential days.</p>
+            <div className="referral-location"><span aria-hidden="true">✦</span><span>Find your personal link inside <strong>Settings → Earn Essential</strong></span></div>
             <div className="referral-actions">
               <button className="btn btn-gold btn-lg" onClick={start}>Start free &amp; get your link →</button>
               <span className="referral-fineprint">No credit card required.<br />Only genuine activated accounts count.</span>
             </div>
-            <a className="referral-ambassador-link" href="/ambassadors" onClick={() => trackEvent("ambassador_program_clicked", { placement:"landing_referral_section" })}>Creator, consultant or community leader? Earn 25% on Pro and 35% on Business for 12 months →</a>
+            <a className="referral-ambassador-link" href="/ambassadors" onClick={() => trackEvent("ambassador_program_clicked", { placement:"landing_referral_section" })}>Creator, consultant or community leader? Earn 25% on Essential and 35% on Advanced for 12 months →</a>
           </div>
           <div className="referral-steps" aria-label="How referral rewards work">
             <div className="referral-step">
@@ -888,7 +888,7 @@ function ReferralSection({ onOpenApp }) {
             </div>
             <div className="referral-step">
               <div className="referral-step-num">3</div>
-              <div><strong>Three active friends unlock Pro</strong><span>If you already subscribe, your earned days stay banked.</span></div>
+              <div><strong>Three active friends unlock Essential</strong><span>If you already subscribe, your earned days stay banked.</span></div>
               <div className="referral-reward">+30 days</div>
             </div>
           </div>
@@ -984,7 +984,7 @@ function Footer({ onOpenApp }) {
 }
 
 /* ─── CHATBOT ────────────────────────────────────────────────── */
-const SUGGESTIONS = ["What's in the Pro plan?", "كيف تشتغل؟", "Do I need a company?", "How does the trial work?"];
+const SUGGESTIONS = ["What's in the Essential plan?", "كيف تشتغل؟", "Do I need a company?", "How does the trial work?"];
 const INIT_MSG = { role:"bot", text:"Hey! 👋 I'm Fatūra's assistant. Ask me anything about features, pricing, or how to get started.", time: timeStr() };
 
 function Chatbot() {
