@@ -112,8 +112,8 @@ export default function ReferralProgram({ userId, plan }) {
     }
   };
 
-  if (!summary && !error) return <><style>{CSS}</style><div className="fref-compact"><div className="fref-compact-copy"><div className="fref-kicker">{ar ? "مكافآت الإحالة" : "Referral rewards"}</div><div className="fref-compact-title">{ar ? "اكسب 30 يومًا من Pro" : "Earn 30 Pro days"}</div><div className="fref-compact-sub">{ar ? "جارٍ تحميل رابط دعوتك الخاص…" : "Loading your private invite link…"}</div></div></div></>;
-  if (!summary) return <><style>{CSS}</style><div className="fref-compact"><div className="fref-compact-copy"><div className="fref-kicker">{ar ? "مكافآت الإحالة" : "Referral rewards"}</div><div className="fref-compact-title">{ar ? "اكسب Pro مجانًا" : "Earn free Pro"}</div><div className="fref-error">{error}</div></div><button className="btn btn-ghost btn-sm" onClick={load}>{ar ? "حاول مرة أخرى" : "Try again"}</button></div></>;
+  if (!summary && !error) return <><style>{CSS}</style><div className="fref-compact"><div className="fref-compact-copy"><div className="fref-kicker">{ar ? "مكافآت الإحالة" : "Referral rewards"}</div><div className="fref-compact-title">{ar ? "اكسب 30 يومًا من Essential" : "Earn 30 Essential days"}</div><div className="fref-compact-sub">{ar ? "جارٍ تحميل رابط دعوتك الخاص…" : "Loading your private invite link…"}</div></div></div></>;
+  if (!summary) return <><style>{CSS}</style><div className="fref-compact"><div className="fref-compact-copy"><div className="fref-kicker">{ar ? "مكافآت الإحالة" : "Referral rewards"}</div><div className="fref-compact-title">{ar ? "اكسب Essential مجانًا" : "Earn free Essential"}</div><div className="fref-error">{error}</div></div><button className="btn btn-ghost btn-sm" onClick={load}>{ar ? "حاول مرة أخرى" : "Try again"}</button></div></>;
 
   const progress = Number(summary.progress || 0);
   const earnedDays = Number(summary.appliedRewards || 0) * 30 + Number(summary.bankedDays || 0);
@@ -124,8 +124,8 @@ export default function ReferralProgram({ userId, plan }) {
       <section className="fref-compact">
         <div className="fref-compact-copy">
           <div className="fref-kicker">{ar ? "مكافآت إحالة اختيارية" : "Optional referral rewards"}</div>
-          <h2 className="fref-compact-title">{ar ? "ادعُ 3 أصدقاء نشطين واكسب 30 يومًا من Pro." : "Invite 3 active friends. Earn 30 Pro days."}</h2>
-          <p className="fref-compact-sub">{ar ? "يحصل صديقك على 7 أيام Pro إضافية. افتح هذا القسم فقط للمشاركة أو متابعة التقدم." : "Your friend gets 7 extra Pro days. Open this only when you want to share or check progress."}</p>
+          <h2 className="fref-compact-title">{ar ? "ادعُ 3 أصدقاء نشطين واكسب 30 يومًا من Essential." : "Invite 3 active friends. Earn 30 Essential days."}</h2>
+          <p className="fref-compact-sub">{ar ? "يحصل صديقك على 7 أيام Essential إضافية. افتح هذا القسم فقط للمشاركة أو متابعة التقدم." : "Your friend gets 7 extra Essential days. Open this only when you want to share or check progress."}</p>
         </div>
         <div className="fref-compact-side">
           <span className="fref-compact-progress">{progress}/3 {ar ? "نشط" : "active"}</span>
@@ -143,8 +143,8 @@ export default function ReferralProgram({ userId, plan }) {
         <div className="fref-grid">
           <div>
             <div className="fref-kicker">{ar ? "مكافآت مرتبطة بالاستخدام الحقيقي" : "Rewards that follow real use"}</div>
-            <h2 className="fref-title">{ar ? "ادعُ ثلاثة أصدقاء نشطين واكسب 30 يومًا من Pro." : "Invite three active friends. Earn 30 days of Pro."}</h2>
-            <p className="fref-copy">{ar ? "تُحتسب الإحالة نشطة فقط بعد أن ينشئ صديقك أول فاتورة حقيقية. يحصل هو على 7 أيام Pro إضافية، وتحصل أنت على 30 يومًا بعد كل ثلاث إحالات نشطة." : "A referral becomes active only after your friend creates a real first invoice. They receive 7 extra Pro days, and every three active referrals earn you 30 Pro days."}</p>
+            <h2 className="fref-title">{ar ? "ادعُ ثلاثة أصدقاء نشطين واكسب 30 يومًا من Essential." : "Invite three active friends. Earn 30 days of Essential."}</h2>
+            <p className="fref-copy">{ar ? "تُحتسب الإحالة نشطة فقط بعد أن ينشئ صديقك أول فاتورة حقيقية. يحصل هو على 7 أيام Essential إضافية، وتحصل أنت على 30 يومًا بعد كل ثلاث إحالات نشطة." : "A referral becomes active only after your friend creates a real first invoice. They receive 7 extra Essential days, and every three active referrals earn you 30 Essential days."}</p>
             <div className="fref-linkbox">
               <div className="fref-link" title={referralLink}>{referralLink}</div>
               <button className="btn btn-primary btn-sm" onClick={copyLink}>{copied ? (ar ? "✓ تم النسخ" : "✓ Copied") : (ar ? "نسخ رابط الدعوة" : "Copy invite link")}</button>
@@ -153,7 +153,7 @@ export default function ReferralProgram({ userId, plan }) {
               <button className="btn btn-ghost btn-sm" onClick={shareWhatsApp}>{ar ? "مشاركة عبر WhatsApp" : "Share on WhatsApp"}</button>
               {summary.bankedDays > 0 && summary.currentPlan === "free" && <button className="btn btn-ghost btn-sm" onClick={redeem} disabled={redeeming}>{redeeming ? (ar ? "جارٍ التطبيق…" : "Applying…") : (ar ? `استخدم ${summary.bankedDays} يومًا محفوظًا` : `Use ${summary.bankedDays} saved days`)}</button>}
             </div>
-            {summary.bankedDays > 0 && summary.currentPlan !== "free" && <div className="fref-note">{ar ? `لديك ${summary.bankedDays} يومًا من Pro محفوظة بأمان، ويمكنك استخدامها بعد انتهاء اشتراكك المدفوع.` : `You have ${summary.bankedDays} Pro days safely saved. You can use them after your paid subscription ends.`}</div>}
+            {summary.bankedDays > 0 && summary.currentPlan !== "free" && <div className="fref-note">{ar ? `لديك ${summary.bankedDays} يومًا من Essential محفوظة بأمان، ويمكنك استخدامها بعد انتهاء اشتراكك المدفوع.` : `You have ${summary.bankedDays} Essential days safely saved. You can use them after your paid subscription ends.`}</div>}
             {summary.preview && <div className="fref-note">{ar ? "وضع المعاينة: يبدأ عدّ الإحالات الفعلي بعد نشر هذه النسخة." : "Preview mode: live referral counts begin after this version is published."}</div>}
             {error && <div className="fref-error">{error}</div>}
             <a className="fref-ambassador" href="/ambassadors" onClick={() => trackEvent("ambassador_program_clicked", { placement:"referral_settings" })}>{ar ? "لديك جمهور أو مجتمع؟ قدّم إلى برنامج السفراء ←" : "Build an audience or community? Apply to the Founding Ambassador Circle →"}</a>
@@ -171,8 +171,8 @@ export default function ReferralProgram({ userId, plan }) {
               <div className="fref-stat"><strong>{earnedDays}</strong><span>{ar ? "أيام مكتسبة" : "Days earned"}</span></div>
             </div>
             <div className="fref-rule"><span className="fref-rule-num">1</span><span>{ar ? "يفتح صديقك رابط الدعوة وينشئ حسابًا." : "Your friend opens the invite link and creates an account."}</span></div>
-            <div className="fref-rule"><span className="fref-rule-num">2</span><span>{ar ? "ينشئ أول فاتورة صحيحة ويحصل على 7 أيام Pro إضافية." : "They create their first valid invoice and receive 7 extra Pro days."}</span></div>
-            <div className="fref-rule"><span className="fref-rule-num">3</span><span>{ar ? "تحصل أنت على 30 يومًا من Pro، وتُحفظ الأيام بأمان للمشتركين المدفوعين." : "You earn 30 Pro days. Paid subscribers keep the days safely banked."}</span></div>
+            <div className="fref-rule"><span className="fref-rule-num">2</span><span>{ar ? "ينشئ أول فاتورة صحيحة ويحصل على 7 أيام Essential إضافية." : "They create their first valid invoice and receive 7 extra Essential days."}</span></div>
+            <div className="fref-rule"><span className="fref-rule-num">3</span><span>{ar ? "تحصل أنت على 30 يومًا من Essential، وتُحفظ الأيام بأمان للمشتركين المدفوعين." : "You earn 30 Essential days. Paid subscribers keep the days safely banked."}</span></div>
           </div>
         </div>
       </section>
