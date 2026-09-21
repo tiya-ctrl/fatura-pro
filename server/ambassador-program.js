@@ -9,8 +9,8 @@ function approvalTerms(body = {}) {
   const proPercent = Number(body.proCommissionPercent ?? AMBASSADOR_POLICY.plans.pro.commissionPercent);
   const businessPercent = Number(body.businessCommissionPercent ?? AMBASSADOR_POLICY.plans.business.commissionPercent);
   const commissionMonths = Number(body.commissionMonths ?? AMBASSADOR_POLICY.commissionMonths);
-  if (!Number.isFinite(proPercent) || proPercent < 5 || proPercent > 50) return { error:"Choose a Pro commission between 5% and 50%." };
-  if (!Number.isFinite(businessPercent) || businessPercent < 5 || businessPercent > 50) return { error:"Choose a Business commission between 5% and 50%." };
+  if (!Number.isFinite(proPercent) || proPercent < 5 || proPercent > 50) return { error:"Choose a Essential commission between 5% and 50%." };
+  if (!Number.isFinite(businessPercent) || businessPercent < 5 || businessPercent > 50) return { error:"Choose an Advanced commission between 5% and 50%." };
   if (!Number.isInteger(commissionMonths) || commissionMonths < 1 || commissionMonths > 36) return { error:"Choose a commission period between 1 and 36 months." };
   return {
     proCommissionBps:Math.round(proPercent * 100),
@@ -54,7 +54,7 @@ export function ambassadorAcceptanceEmail(application, account) {
   return {
     to:application.email,
     subject:"You’re approved for the Fatūra Pro Ambassador Program",
-    html:`<div style="font-family:Arial,sans-serif;max-width:600px;margin:0 auto;padding:32px;color:#222"><div style="color:#6366F1;font-size:12px;font-weight:700;letter-spacing:1px;text-transform:uppercase">Fatūra Pro Ambassador Program</div><h1 style="font-size:27px;margin:12px 0">Welcome, ${htmlEscape(application.name)}.</h1><p style="line-height:1.7">Your application has been approved. Your personal tracking link is active and your private dashboard is ready.</p><div style="margin:24px 0;padding:18px;border-radius:10px;background:#f7f3e8"><b>Your commission terms</b><p style="margin:8px 0 0;line-height:1.7">Pro: ${terms.plans.pro.commissionPercent}% · Business: ${terms.plans.business.commissionPercent}% · First ${terms.commissionMonths} paid months of each qualified customer. Refunds, disputes and tax are excluded automatically.</p></div><div style="margin:20px 0;padding:18px;border:1px solid #e4d7b5;border-radius:10px"><b>Your personal ambassador link</b><p style="margin:9px 0 15px;word-break:break-all;font-size:13px"><a href="${htmlEscape(links.referral)}">${htmlEscape(links.referral)}</a></p><a href="${htmlEscape(links.referral)}" style="display:inline-block;background:#6366F1;color:#000;padding:12px 20px;border-radius:8px;text-decoration:none;font-weight:700">Open personal link →</a></div><p style="margin:28px 0"><a href="${links.dashboard}" style="display:inline-block;background:#17171f;color:#fff;padding:12px 20px;border-radius:8px;text-decoration:none;font-weight:700">Open tracking dashboard →</a></p><p style="color:#777;font-size:12px;line-height:1.6">Sign in with ${htmlEscape(application.email)}. Your dashboard shows clicks, sign-ups, paid customers, commission and payouts while customer identities remain private.</p></div>`,
+    html:`<div style="font-family:Arial,sans-serif;max-width:600px;margin:0 auto;padding:32px;color:#222"><div style="color:#6366F1;font-size:12px;font-weight:700;letter-spacing:1px;text-transform:uppercase">Fatūra Pro Ambassador Program</div><h1 style="font-size:27px;margin:12px 0">Welcome, ${htmlEscape(application.name)}.</h1><p style="line-height:1.7">Your application has been approved. Your personal tracking link is active and your private dashboard is ready.</p><div style="margin:24px 0;padding:18px;border-radius:10px;background:#f7f3e8"><b>Your commission terms</b><p style="margin:8px 0 0;line-height:1.7">Essential: ${terms.plans.pro.commissionPercent}% · Advanced: ${terms.plans.business.commissionPercent}% · First ${terms.commissionMonths} paid months of each qualified customer. Refunds, disputes and tax are excluded automatically.</p></div><div style="margin:20px 0;padding:18px;border:1px solid #e4d7b5;border-radius:10px"><b>Your personal ambassador link</b><p style="margin:9px 0 15px;word-break:break-all;font-size:13px"><a href="${htmlEscape(links.referral)}">${htmlEscape(links.referral)}</a></p><a href="${htmlEscape(links.referral)}" style="display:inline-block;background:#6366F1;color:#000;padding:12px 20px;border-radius:8px;text-decoration:none;font-weight:700">Open personal link →</a></div><p style="margin:28px 0"><a href="${links.dashboard}" style="display:inline-block;background:#17171f;color:#fff;padding:12px 20px;border-radius:8px;text-decoration:none;font-weight:700">Open tracking dashboard →</a></p><p style="color:#777;font-size:12px;line-height:1.6">Sign in with ${htmlEscape(application.email)}. Your dashboard shows clicks, sign-ups, paid customers, commission and payouts while customer identities remain private.</p></div>`,
   };
 }
 
@@ -299,7 +299,7 @@ export async function updateAmbassador(supabaseAdmin, user, body) {
   if (allowedStatus.has(body?.status)) updates.status = body.status;
   if (body?.proCommissionPercent != null || body?.businessCommissionPercent != null || body?.commissionMonths != null) {
     if (body?.proCommissionPercent == null || body?.businessCommissionPercent == null || body?.commissionMonths == null) {
-      return { status:400, body:{ error:"Provide the Pro rate, Business rate and customer term together." } };
+      return { status:400, body:{ error:"Provide the Essential rate, Advanced rate and customer term together." } };
     }
     const terms = approvalTerms({
       proCommissionPercent:body.proCommissionPercent,
