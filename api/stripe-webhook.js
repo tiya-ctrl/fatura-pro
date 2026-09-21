@@ -181,7 +181,7 @@ export default async function handler(req, res) {
             ? new Date(endTs * 1000).toLocaleDateString("en-GB", { day: "numeric", month: "long", year: "numeric" })
             : "the end of your current billing period";
 
-          const planName = newPlan === "business" ? "Business" : "Pro";
+          const planName = newPlan === "business" ? "Advanced" : "Essential";
 
           let to = null;
           try {
