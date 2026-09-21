@@ -43,7 +43,7 @@ export default function ApiDocs() {
   useEffect(() => {
     const canonical = "https://faturapro.app/api-docs";
     const title = "Invoicing API Documentation | FaturaPro";
-    const description = "Use the FaturaPro REST API to list invoices or create a pending invoice from a server, store, CRM or internal tool. Business plan required.";
+    const description = "Use the FaturaPro REST API to list invoices or create a pending invoice from a server, store, CRM or internal tool. Advanced plan required.";
     const cleanupSeo = applyPageSeo({ title, description, canonical, language:"en", locale:"en_US", imageAlt:"FaturaPro invoicing API documentation", alternates:{ en:canonical, "x-default":canonical } });
     const restoreSiteSchema = suspendBaseSiteSchema();
     const schema = document.createElement("script");
@@ -74,9 +74,9 @@ export default function ApiDocs() {
         </p>
 
         <div style={{ background: CARD, border: "1px solid " + GOLD + "33", borderLeft: "3px solid " + GOLD, borderRadius: 10, padding: "16px 18px", marginBottom: 40 }}>
-          <div style={{ fontSize: 14, color: TEXT, marginBottom: 6, fontWeight: 600 }}>Available on the Business plan</div>
+          <div style={{ fontSize: 14, color: TEXT, marginBottom: 6, fontWeight: 600 }}>Available on the Advanced plan</div>
           <div style={{ fontSize: 13.5, color: MUTED, lineHeight: 1.7 }}>
-            API access requires Fatūra Pro Business (€19/month). Generate your key in the app under Settings → API access.
+            API access requires Fatūra Pro Advanced (€19/month). Generate your key in the app under Settings → API access.
           </div>
         </div>
 
@@ -231,7 +231,7 @@ console.log(data.invoice.id);`}</Code>
         <div style={{ background: CARD, border: "1px solid " + GOLD + "33", borderRadius: 12, padding: "26px 24px", textAlign: "center", marginTop: 50 }}>
           <div style={{ fontFamily: "Playfair Display, serif", fontSize: 22, marginBottom: 8 }}>Get your API key</div>
           <div style={{ color: MUTED, fontSize: 14, lineHeight: 1.7, marginBottom: 18 }}>
-            API access is part of the Business plan, along with quotes, scheduled recurring invoice creation, VAT summaries and team access.
+            API access is part of the Advanced plan, along with quotes, scheduled recurring invoice creation, VAT summaries and team access.
           </div>
           <a href="/app" style={{ display: "inline-block", background: GOLD, color: "#000", padding: "12px 26px", borderRadius: 8, textDecoration: "none", fontWeight: 600, fontSize: 14 }}>Start free →</a>
         </div>
