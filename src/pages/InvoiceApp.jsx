@@ -591,12 +591,12 @@ export default function InvoiceApp({ onGoHome }) {
   // test below to open it up to every plan.
   const f = (n) => fmtCurrency(n, currency);
 
-  // Pro-only: deposits and the UBL e-invoice export. Credit notes stay free -
+  // Essential-only: deposits and the UBL e-invoice export. Credit notes stay free -
   // correcting a wrong invoice is a legal necessity, not a paid extra.
   const recordPaymentGated = (inv) => requirePro("deposits", () => recordPayment(inv));
   const exportUBLGated = (inv) => requirePro("ubl", () => exportUBL(inv));
 
-  // A locked menu item is shown, not hidden - a Pro customer should be able to
+  // A locked menu item is shown, not hidden - a Essential customer should be able to
   // see that quotes, expenses and analytics exist before deciding to upgrade.
   const openNav = (n) => {
     if (n.href) { window.location.href = n.href; return; }
@@ -949,17 +949,17 @@ export default function InvoiceApp({ onGoHome }) {
           <div className="nav-section">
             <div className="nav-label">{t("main", "Main")}</div>
             {navItems.map(n => (
-              <div key={n.id} className={"nav-item" + (page === n.id ? " active" : "")} onClick={() => { openNav(n); setSidebarOpen(false); }} style={n.locked ? { opacity:0.45 } : undefined} title={n.locked ? t("business_feature", "Business plan feature") : undefined}>
+              <div key={n.id} className={"nav-item" + (page === n.id ? " active" : "")} onClick={() => { openNav(n); setSidebarOpen(false); }} style={n.locked ? { opacity:0.45 } : undefined} title={n.locked ? t("business_feature", "Advanced plan feature") : undefined}>
                 <span className="icon">{n.icon}</span>
                 {n.label}
-                {n.locked && <span style={{ marginInlineStart:"auto", fontSize:10, color:"var(--text2)", border:"1px solid var(--border)", borderRadius:20, padding:"1px 7px" }}>Business</span>}
+                {n.locked && <span style={{ marginInlineStart:"auto", fontSize:10, color:"var(--text2)", border:"1px solid var(--border)", borderRadius:20, padding:"1px 7px" }}>Advanced</span>}
                 {n.badge > 0 && <span className="nav-badge">{n.badge}</span>}
               </div>
             ))}
           </div>
           <div className="sidebar-footer">
             <button className="referral-nav-card" onClick={() => { trackEvent("referral_program_opened", { placement:"sidebar" }); setPage("settings"); }}>
-              <span>✦ {locale === "ar" ? "اكسب 30 يومًا من Pro" : "Earn 30 Pro days"}</span><span className="directional-icon" style={{ color:"var(--gold)" }}>→</span>
+              <span>✦ {locale === "ar" ? "اكسب 30 يومًا من Essential" : "Earn 30 Essential days"}</span><span className="directional-icon" style={{ color:"var(--gold)" }}>→</span>
             </button>
             {userEmail && (
               <div style={{ marginBottom:12, padding:"8px 12px", background:"var(--bg3)", borderRadius:8, border:"1px solid var(--border)" }}>
@@ -986,7 +986,7 @@ export default function InvoiceApp({ onGoHome }) {
                   </div>
                 </div>
                 <button className="btn btn-primary" style={{ width:"100%", justifyContent:"center", fontSize:13, padding:"10px 14px" }} onClick={() => setShowUpgrade(true)}>
-                  ⚡ {t("upgrade_pro", "Upgrade to Pro")}
+                  ⚡ {t("upgrade_pro", "Upgrade to Essential")}
                 </button>
               </div>
             )}
@@ -1067,7 +1067,7 @@ export default function InvoiceApp({ onGoHome }) {
             {page === "expenses" && (hasBusinessAccess(plan) || isTeamMember) && <Expenses expenses={expenses} setExpenses={setExpenses} invoices={invoicesWithStatus} userId={ownerId || userId} f={f} />}
             {page === "analytics" && hasBusinessAccess(plan) && <Analytics invoices={invoicesWithStatus} f={f} fc={fmtCurrency} defaultCurrency={currency} />}
             {page === "clients" && <Clients clients={clients} invoices={invoicesWithStatus} f={f} onAdd={() => setShowNewClient(true)} onDeleteClient={deleteClient} onEditClient={(c) => setEditingClient(c)} />}
-            {page === "settings" && <><ReferralProgram userId={userId} plan={plan} /><Settings currency={currency} setCurrency={setCurrency} userEmail={userEmail} invoices={invoicesWithStatus} onProfileSaved={(ready, profile) => { setBusinessProfileReady(ready); setBusinessProfile(profile); }} />{hasBusinessAccess(plan) && <BusinessProfiles profiles={bizProfiles} setProfiles={setBizProfiles} userId={userId} />}{hasBusinessAccess(plan) && <RecurringList recurring={recurring} setRecurring={setRecurring} userId={userId} f={f} />}{hasBusinessAccess(plan) && <div className="card" style={{ marginTop: 20 }}><div className="card-title" style={{ marginBottom: 10 }}>{t("online_payments", "Online payments")}</div><div style={{ fontSize: 13, color: "#999", marginBottom: 12 }}>{t("connect_stripe_help", "Connect your Stripe account so clients can pay invoices online. Money goes directly to your bank.")}</div><button className="btn btn-primary btn-sm" onClick={async () => { const { data: { session } } = await supabase.auth.getSession(); const r = await fetch("/api/connect-stripe", { method: "POST", headers: { Authorization: "Bearer " + (session?.access_token || "") } }); const d = await r.json(); if (d.url) window.location.href = d.url; else alert(d.error || t("stripe_start_error", "Could not start Stripe onboarding")); }}>{t("connect_stripe", "Connect Stripe →")}</button></div>}{hasBusinessAccess(plan) && <TeamMembers team={team} setTeam={setTeam} userId={userId} />}{hasBusinessAccess(plan) && <ApiKeys keys={apiKeys} setKeys={setApiKeys} userId={userId} />}{(plan === "pro" || plan === "business") && <div className="card" style={{ marginTop: 20 }}><div className="card-title" style={{ marginBottom: 10 }}>{t("subscription", "Subscription")}</div><div style={{ fontSize: 13, color: "#999", marginBottom: 12 }}>{t("subscription_help", "Switch between Pro and Business, update your card, view invoices, or cancel anytime.")}</div><a className="btn btn-primary btn-sm" href="https://billing.stripe.com/p/login/fZu4gzepGdT05Gx48j5ZC00" target="_blank" rel="noreferrer">{t("manage_subscription", "Manage subscription →")}</a></div>}{plan === "free" && <div className="card" style={{ marginTop: 20 }}><div className="card-title" style={{ marginBottom: 10 }}>{t("plan", "Plan")}</div><div style={{ fontSize: 13, color:"#999", marginBottom:12 }}>{t("free_plan_help", "You are on the Free plan. Upgrade for unlimited invoices, reminders, and more.")}</div><button className="btn btn-primary btn-sm" onClick={() => { setUpgradeIntent(null); setShowUpgrade(true); }}>{t("upgrade", "Upgrade →")}</button></div>}</>}
+            {page === "settings" && <><ReferralProgram userId={userId} plan={plan} /><Settings currency={currency} setCurrency={setCurrency} userEmail={userEmail} invoices={invoicesWithStatus} onProfileSaved={(ready, profile) => { setBusinessProfileReady(ready); setBusinessProfile(profile); }} />{hasBusinessAccess(plan) && <BusinessProfiles profiles={bizProfiles} setProfiles={setBizProfiles} userId={userId} />}{hasBusinessAccess(plan) && <RecurringList recurring={recurring} setRecurring={setRecurring} userId={userId} f={f} />}{hasBusinessAccess(plan) && <div className="card" style={{ marginTop: 20 }}><div className="card-title" style={{ marginBottom: 10 }}>{t("online_payments", "Online payments")}</div><div style={{ fontSize: 13, color: "#999", marginBottom: 12 }}>{t("connect_stripe_help", "Connect your Stripe account so clients can pay invoices online. Money goes directly to your bank.")}</div><button className="btn btn-primary btn-sm" onClick={async () => { const { data: { session } } = await supabase.auth.getSession(); const r = await fetch("/api/connect-stripe", { method: "POST", headers: { Authorization: "Bearer " + (session?.access_token || "") } }); const d = await r.json(); if (d.url) window.location.href = d.url; else alert(d.error || t("stripe_start_error", "Could not start Stripe onboarding")); }}>{t("connect_stripe", "Connect Stripe →")}</button></div>}{hasBusinessAccess(plan) && <TeamMembers team={team} setTeam={setTeam} userId={userId} />}{hasBusinessAccess(plan) && <ApiKeys keys={apiKeys} setKeys={setApiKeys} userId={userId} />}{(plan === "pro" || plan === "business") && <div className="card" style={{ marginTop: 20 }}><div className="card-title" style={{ marginBottom: 10 }}>{t("subscription", "Subscription")}</div><div style={{ fontSize: 13, color: "#999", marginBottom: 12 }}>{t("subscription_help", "Switch between Essential and Advanced, update your card, view invoices, or cancel anytime.")}</div><a className="btn btn-primary btn-sm" href="https://billing.stripe.com/p/login/fZu4gzepGdT05Gx48j5ZC00" target="_blank" rel="noreferrer">{t("manage_subscription", "Manage subscription →")}</a></div>}{plan === "free" && <div className="card" style={{ marginTop: 20 }}><div className="card-title" style={{ marginBottom: 10 }}>{t("plan", "Plan")}</div><div style={{ fontSize: 13, color:"#999", marginBottom:12 }}>{t("free_plan_help", "You are on the Free plan. Upgrade for unlimited invoices, reminders, and more.")}</div><button className="btn btn-primary btn-sm" onClick={() => { setUpgradeIntent(null); setShowUpgrade(true); }}>{t("upgrade", "Upgrade →")}</button></div>}</>}
           </div>
         </div>
 
@@ -1083,7 +1083,7 @@ export default function InvoiceApp({ onGoHome }) {
             {!isPro && (
               <div className="mobile-nav-item" onClick={() => setShowUpgrade(true)} style={{ color:"var(--gold)" }}>
                 <span className="m-icon">⚡</span>
-                <span className="m-label">Pro</span>
+                <span className="m-label">Essential</span>
               </div>
             )}
           </div>
@@ -2468,10 +2468,10 @@ function UpgradeModal({ feature, onClose, onActivate, initialPlan, userEmail, us
   const [selectedPlan, setSelectedPlan] = useState(initialPlan || "pro");
 
   const PLANS_INFO = {
-    pro: { name:"Pro", price:"\u20ac9", period:t("per_month", "/month"), color:"var(--gold)", stripe_link:"https://buy.stripe.com/fZu4gzepGdT05Gx48j5ZC00",
+    pro: { name:"Essential", price:"\u20ac9", period:t("per_month", "/month"), color:"var(--gold)", stripe_link:"https://buy.stripe.com/fZu4gzepGdT05Gx48j5ZC00",
       features:ar ? ["فواتير غير محدودة","عملاء غير محدودين","تصدير UBL/XML وفق EN 16931","دفعات مقدّمة وجزئية","تذكيرات دفع عبر البريد وWhatsApp","تصدير PDF","شعار وهوية مخصصان"] : ["Unlimited invoices","Unlimited clients","UBL/XML export (EN 16931)","Deposits & partial payments","Payment reminders (Email + WhatsApp)","PDF export","Custom logo & branding"] },
-    business: { name:"Business", price:"\u20ac19", period:t("per_month", "/month"), color:"#a78bfa", badge: BUSINESS_ENABLED ? null : (ar ? "قريبًا" : "Coming Soon"), stripe_link: BUSINESS_ENABLED ? "https://buy.stripe.com/6oU28repG8yG9WNfR15ZC01" : null,
-      features:ar ? ["كل مزايا Pro","عروض أسعار تتحول إلى فواتير","المصروفات وملخص VAT/BTW","تحليلات متقدمة","حتى 5 أعضاء فريق","ملفات أنشطة تجارية متعددة","مدفوعات بطاقات عبر Stripe","الوصول إلى API"] : ["Everything in Pro","Quotes that convert to invoices","Expenses & VAT/BTW report","Advanced analytics","Team members (up to 5)","Multi-business profiles","Stripe payment integration","API access"] },
+    business: { name:"Advanced", price:"\u20ac19", period:t("per_month", "/month"), color:"#a78bfa", badge: BUSINESS_ENABLED ? null : (ar ? "قريبًا" : "Coming Soon"), stripe_link: BUSINESS_ENABLED ? "https://buy.stripe.com/6oU28repG8yG9WNfR15ZC01" : null,
+      features:ar ? ["كل مزايا Essential","عروض أسعار تتحول إلى فواتير","المصروفات وملخص VAT/BTW","تحليلات متقدمة","حتى 5 أعضاء فريق","ملفات أنشطة تجارية متعددة","مدفوعات بطاقات عبر Stripe","الوصول إلى API"] : ["Everything in Essential","Quotes that convert to invoices","Expenses & VAT/BTW report","Advanced analytics","Team members (up to 5)","Multi-business profiles","Stripe payment integration","API access"] },
   };
 
   const featureLabels = {
@@ -2486,7 +2486,7 @@ function UpgradeModal({ feature, onClose, onActivate, initialPlan, userEmail, us
     unlimited_clients: { icon:"!", label:ar?"عملاء غير محدودين":"Unlimited Clients", desc:ar?"وصلت إلى حد 5 عملاء في الخطة المجانية":"You've hit the 5 client limit on the Free plan" },
   };
 
-  const feat = featureLabels[feature] || { icon:"✦", label:ar?"ميزة Pro":"Pro Feature", desc:ar?"افتح جميع مزايا Pro":"Unlock all Pro features" };
+  const feat = featureLabels[feature] || { icon:"✦", label:ar?"ميزة Essential":"Essential Feature", desc:ar?"افتح جميع مزايا Essential":"Unlock all Essential features" };
 
   const handleStripe = () => {
     const link = PLANS_INFO[selectedPlan]?.stripe_link;
@@ -2505,8 +2505,8 @@ function UpgradeModal({ feature, onClose, onActivate, initialPlan, userEmail, us
       <div className="modal-overlay" onClick={e => e.target === e.currentTarget && onClose()}>
         <div className="modal" style={{ maxWidth:440, textAlign:"center" }}>
           <div style={{ fontSize:32, marginBottom:16, fontWeight: 700, color:"var(--green)" }}>{t("success", "Success")}</div>
-          <div className="modal-title" style={{ textAlign:"center", color:"var(--gold)" }}>{t("welcome_pro", "Welcome to Pro!")}</div>
-          <p style={{ color:"var(--text2)", fontSize:14, marginBottom:28, lineHeight:1.7 }}>{t("upgraded_help", "Your account has been upgraded. All Pro features are now unlocked.")}</p>
+          <div className="modal-title" style={{ textAlign:"center", color:"var(--gold)" }}>{t("welcome_pro", "Welcome to Essential!")}</div>
+          <p style={{ color:"var(--text2)", fontSize:14, marginBottom:28, lineHeight:1.7 }}>{t("upgraded_help", "Your account has been upgraded. All Essential features are now unlocked.")}</p>
           <div style={{ background:"var(--bg3)", border:"1px solid var(--border)", borderRadius:12, padding:"16px 20px", marginBottom:24, textAlign:"left" }}>
             {PLANS_INFO.pro.features.map((feat2, i) => (
               <div key={i} style={{ display:"flex", gap:10, fontSize:13, color:"var(--text)", marginBottom:i<PLANS_INFO.pro.features.length-1?8:0 }}>
@@ -2514,7 +2514,7 @@ function UpgradeModal({ feature, onClose, onActivate, initialPlan, userEmail, us
               </div>
             ))}
           </div>
-          <button className="btn btn-primary" style={{ width:"100%", justifyContent:"center", fontSize:15, padding:"13px" }} onClick={() => { onActivate(); onClose(); }}>{t("start_using_pro", "Start Using Pro →")}</button>
+          <button className="btn btn-primary" style={{ width:"100%", justifyContent:"center", fontSize:15, padding:"13px" }} onClick={() => { onActivate(); onClose(); }}>{t("start_using_pro", "Start Using Essential →")}</button>
         </div>
       </div>
     );
@@ -2567,12 +2567,12 @@ function UpgradeModal({ feature, onClose, onActivate, initialPlan, userEmail, us
         {selectedPlan === "business" && !BUSINESS_ENABLED ? (
           <button className="btn btn-primary" style={{ width:"100%", justifyContent:"center", fontSize:15, padding:"14px", marginBottom:10 }}
             onClick={async () => {
-              const email = prompt("Enter your email to join the Business plan waitlist:");
+              const email = prompt("Enter your email to join the Advanced plan waitlist:");
               if (!email || !email.includes("@")) return;
               const { createClient } = await import("@supabase/supabase-js");
               const sb = createClient(process.env.REACT_APP_SUPABASE_URL, process.env.REACT_APP_SUPABASE_ANON_KEY);
               const { error } = await sb.from("waitlist").insert({ email });
-              alert(error ? "You are already on the waitlist!" : "You are on the list! We will notify you when Business launches.");
+              alert(error ? "You are already on the waitlist!" : "You are on the list! We will notify you when Advanced launches.");
             }}>
             Join Waitlist
           </button>
