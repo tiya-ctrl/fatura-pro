@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { getLocale } from "./lib/locale";
+import useDocumentLanguage from "./lib/useDocumentLanguage";
 
 const KEY = "fatura_cookie_consent";
 const ANALYTICS_ID = "xjcvo64scy";
@@ -29,7 +29,8 @@ function setClarityConsent(accepted) {
 }
 
 export default function CookieConsent() {
-  const ar = getLocale() === "ar";
+  // Follow the language of the page on screen, not only the saved interface language.
+  const ar = useDocumentLanguage() === "ar";
   const [show, setShow] = useState(false);
 
   useEffect(() => {
@@ -48,7 +49,7 @@ export default function CookieConsent() {
   if (!show) return null;
 
   return (
-    <div style={{ position:"fixed", left:12, right:12, bottom:12, zIndex:500, maxWidth:520, margin:"0 auto", background:"#111118", border:"1px solid rgba(99,102,241,0.35)", borderRadius:14, padding:"16px 18px", boxShadow:"0 12px 40px rgba(0,0,0,0.55)", fontFamily:"DM Sans, sans-serif" }}>
+    <div dir={ar ? "rtl" : "ltr"} style={{ position:"fixed", left:12, right:12, bottom:12, zIndex:500, maxWidth:520, margin:"0 auto", background:"#111118", border:"1px solid rgba(99,102,241,0.35)", borderRadius:14, padding:"16px 18px", boxShadow:"0 12px 40px rgba(0,0,0,0.55)", fontFamily:"DM Sans, sans-serif" }}>
       <div style={{ color:"#e8e4dc", fontSize:14, fontWeight:600, marginBottom:6 }}>{ar ? "ملفات تعريف الارتباط" : "Cookies"}</div>
       <div style={{ color:"#9a9690", fontSize:13, lineHeight:1.7, marginBottom:14 }}>
         {ar ? "نستخدم ملفات ضرورية للحفاظ على تسجيل دخولك، وقياسًا محدودًا بلا ملفات تعريف ارتباط. وبموافقتك تربط ملفات التحليلات الصفحات ضمن جلسة واحدة حتى نتمكن من تحسين المنتج. يمكنك تغيير قرارك في أي وقت. " : "We use essential cookies to keep you signed in, plus limited cookieless measurement. With your permission, analytics cookies connect pages into one session so we can improve the product. You can change your mind anytime. "}
