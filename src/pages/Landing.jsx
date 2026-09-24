@@ -466,7 +466,7 @@ const FAQS = [
   { q:"Can I use Arabic on an invoice?", a:"Yes. Invoice fields can contain Arabic client names, company names, line items and notes, and the printable document supports right-to-left text. Sign-in and primary navigation are available in English, Dutch, French, Spanish and Arabic. Invoice document labels are available in English, Dutch, French and Arabic." },
   { q:"How does the payment reminder work?", a:"Fatūra detects when an invoice passes its due date. You choose a Polite, Firm, or Final tone, review the prepared message, then open it in Email or WhatsApp to send." },
   { q:"Can clients pay an invoice online?", a:"Advanced accounts can connect Stripe so clients can pay by card from the invoice payment page. Available payment methods depend on the connected Stripe account and region." },
-  { q:"How is my data handled?", a:"Connections are encrypted in transit, and account and invoice data handled by Supabase is stored in its EU region in Ireland. We do not sell personal data. Our Privacy Policy explains the providers we use and how to request access, export or deletion." },
+  { q:"How is my data handled?", a:"Connections are encrypted in transit, and account and invoice data is hosted in the European Union (Ireland). We do not sell personal data. Our Privacy Policy explains the providers we use and how to request access, export or deletion." },
   { q:"Can I upgrade or cancel anytime?", a:"Yes, absolutely. No lock-in contracts. Upgrade, downgrade, or cancel at any time directly from your account settings." },
 ];
 
@@ -954,7 +954,7 @@ function Footer({ onOpenApp }) {
 
 /* ─── CHATBOT ────────────────────────────────────────────────── */
 const SUGGESTIONS = ["What's in the Essential plan?", "كيف تشتغل؟", "Do I need a company?", "How does the trial work?"];
-const INIT_MSG = { role:"bot", text:"Hey! 👋 I'm Fatūra's assistant. Ask me anything about features, pricing, or how to get started.", time: timeStr() };
+const INIT_MSG = { role:"bot", text:"Hey! 👋 I'm Fatūra's AI assistant. Ask me anything about features, pricing, or how to get started.", time: timeStr() };
 
 function Chatbot() {
   const [open, setOpen] = useState(false);

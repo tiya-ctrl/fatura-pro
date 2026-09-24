@@ -32,10 +32,10 @@ export default function SupportChat({ userEmail, plan }) {
   const ar = getLocale() === "ar";
   const firstName = (userEmail || "").split("@")[0].split(/[._-]/)[0];
   const hello = ar
-    ? `مرحبًا${firstName ? ` ${firstName}` : ""}، أنا ${NAME}. كيف يمكنني مساعدتك؟`
+    ? `مرحبًا${firstName ? ` ${firstName}` : ""}، أنا ${NAME}، المساعد الذكي (AI) في Fatūra. كيف يمكنني مساعدتك؟`
     : firstName
-      ? `Hi ${firstName.charAt(0).toUpperCase() + firstName.slice(1)} - I'm ${NAME}. What can I help you with?`
-      : `Hi, I'm ${NAME}. What can I help you with?`;
+      ? `Hi ${firstName.charAt(0).toUpperCase() + firstName.slice(1)} - I'm ${NAME}, Fatūra's AI assistant. What can I help you with?`
+      : `Hi, I'm ${NAME}, Fatūra's AI assistant. What can I help you with?`;
 
   const [open, setOpen] = useState(false);
   const [msgs, setMsgs] = useState([{ role: "bot", text: hello, time: timeStr() }]);
@@ -105,7 +105,7 @@ export default function SupportChat({ userEmail, plan }) {
               display:"flex", alignItems:"center", justifyContent:"center", fontWeight:800 }}>{NAME.charAt(0)}</div>
             <div>
               <div style={{ fontWeight:700, fontSize:14 }}>{NAME}</div>
-              <div style={{ fontSize:11, color:"var(--text2)" }}>{ar ? "دعم Fatūra Pro" : "Fatūra Pro support"}</div>
+              <div style={{ fontSize:11, color:"var(--text2)" }}>{ar ? "مساعد ذكي (AI) · دعم Fatūra Pro" : "AI assistant · Fatūra Pro support"}</div>
             </div>
           </div>
 

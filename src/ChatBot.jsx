@@ -38,7 +38,7 @@ const timeStr = () =>
 
 const INIT_MSG = {
   role: "bot",
-  text: "Hey! 👋 I'm Fatūra's assistant. Ask me anything about features, pricing, or how to get started.",
+  text: "Hey! 👋 I'm Fatūra's AI assistant. Ask me anything about features, pricing, or how to get started.",
   time: timeStr(),
 };
 
