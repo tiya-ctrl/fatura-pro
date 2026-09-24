@@ -16,6 +16,14 @@ function nextDate(from, frequency) {
 }
 
 export default async function handler(req, res) {
+  // Vercel Cron sends "Authorization: Bearer <CRON_SECRET>" automatically when
+  // CRON_SECRET is set (trial-reminder already relies on it). Outside callers are refused.
+  const cronSecret = process.env.CRON_SECRET;
+  if (cronSecret && req.headers.authorization !== `Bearer ${cronSecret}`) {
+    return res.status(401).json({ error: "Unauthorized" });
+  }
+  if (!cronSecret) console.warn("cron-recurring: CRON_SECRET is not set; endpoint is unprotected");
+
   const today = new Date().toISOString().split("T")[0];
 
   // الاشتراكات النشطة المستحقة اليوم أو قبله (لو فات يوم لأي سبب، يتدارك)

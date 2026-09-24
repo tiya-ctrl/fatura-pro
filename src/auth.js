@@ -6,11 +6,28 @@ export const signUp = async (email, password) => {
   const { data, error } = await supabase.auth.signUp({
     email,
     password,
-    options: { data: { country } },
+    // Used only when "Confirm email" is on in Supabase: the link in the email
+    // brings the person straight into the app (same return path as Google sign-in).
+    options: { data: { country }, emailRedirectTo: window.location.origin + "/app" },
   });
   if (error) throw error;
   if (data?.user && data?.session) await ensureUserPlan(data.user, country);
   return data;
+};
+
+// No session after sign-up means Supabase is waiting for the email to be confirmed.
+export const needsEmailConfirmation = (signUpData) => Boolean(signUpData?.user && !signUpData?.session);
+
+export const isEmailNotConfirmedError = (error) =>
+  error?.code === "email_not_confirmed" || /email not confirmed/i.test(String(error?.message || ""));
+
+export const resendConfirmationEmail = async (email) => {
+  const { error } = await supabase.auth.resend({
+    type: "signup",
+    email,
+    options: { emailRedirectTo: window.location.origin + "/app" },
+  });
+  if (error) throw error;
 };
 
 export const signIn = async (email, password) => {

@@ -2,6 +2,7 @@
 // POST /api/team?action=claim   -> تفعيل دعوة العضو
 // POST /api/team?action=invite  -> إرسال إيميل دعوة
 import { createClient } from "@supabase/supabase-js";
+import { safeOrigin, escapeHtml } from "../server/request-safety.js";
 
 const supabaseAdmin = createClient(
   process.env.REACT_APP_SUPABASE_URL,
@@ -40,7 +41,7 @@ export default async function handler(req, res) {
       .eq("owner_id", user.id).eq("member_email", invitee).maybeSingle();
     if (!invite) return res.status(404).json({ error: "Invite not found" });
 
-    const origin = req.headers.origin || "https://faturapro.app";
+    const origin = safeOrigin(req);
     try {
       await fetch("https://api.resend.com/emails", {
         method: "POST",
@@ -52,8 +53,8 @@ export default async function handler(req, res) {
           html: `
             <div style="font-family:system-ui,sans-serif;max-width:480px;margin:0 auto;padding:24px">
               <h2 style="margin:0 0 8px">You're invited 🎉</h2>
-              <p style="color:#555;line-height:1.6"><b>${user.email}</b> invited you to join their team on <b>Fatūra Pro</b> — you'll be able to work on their invoices, clients and quotes.</p>
-              <p style="color:#555;line-height:1.6">Sign up (or log in) with <b>${invitee}</b> and you'll join the team automatically.</p>
+              <p style="color:#555;line-height:1.6"><b>${escapeHtml(user.email)}</b> invited you to join their team on <b>Fatūra Pro</b> — you'll be able to work on their invoices, clients and quotes.</p>
+              <p style="color:#555;line-height:1.6">Sign up (or log in) with <b>${escapeHtml(invitee)}</b> and you'll join the team automatically.</p>
               <a href="${origin}/app?invited=${encodeURIComponent(invitee)}" style="display:inline-block;margin:16px 0;padding:12px 22px;background:#1a1a2e;color:#fff;text-decoration:none;border-radius:8px;font-weight:700">Join the team →</a>
               <p style="color:#999;font-size:12px">If you didn't expect this invite, you can ignore this email.</p>
             </div>
