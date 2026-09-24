@@ -40,6 +40,19 @@ export default async function handler(req, res) {
 
     // ندفع فقط الجلسات المدفوعة فعلاً وفيها فاتورتنا
     if (invoiceId && session.payment_status === "paid") {
+      // The payment must have gone to the Stripe account of the invoice's owner.
+      // Without this check, another seller could put someone else's invoice id
+      // in their own checkout and mark that invoice as paid.
+      const { data: inv } = await supabaseAdmin
+        .from("invoices").select("user_id").eq("id", invoiceId).maybeSingle();
+      const { data: acct } = inv
+        ? await supabaseAdmin.from("stripe_accounts").select("stripe_account_id").eq("user_id", inv.user_id).maybeSingle()
+        : { data: null };
+      if (!event.account || !acct?.stripe_account_id || acct.stripe_account_id !== event.account) {
+        console.error("invoice-paid-webhook: account mismatch for", invoiceId, "event account", event.account || "none");
+        return res.status(200).json({ received: true, ignored: true });
+      }
+
       const { error } = await supabaseAdmin
         .from("invoices")
         .update({ status: "paid" })

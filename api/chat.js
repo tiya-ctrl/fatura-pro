@@ -1,4 +1,6 @@
-const RATE_LIMIT = 25;                 // أقصى عدد رسائل
+import { chatSystemPrompt } from "../src/lib/chatPrompts.js";
+
+const RATE_LIMIT = 25;                // أقصى عدد رسائل
 const RATE_WINDOW_MS = 10 * 60 * 1000; // خلال 10 دقائق
 const hits = new Map();
 
@@ -48,7 +50,7 @@ export default async function handler(req, res) {
     return res.status(429).json({ error: "Too many messages. Please try again in a few minutes." });
   }
 
-  const { messages, system } = req.body || {};
+  const { messages, system, bot: requestedBot, plan } = req.body || {};
 
   // 3) تحقق من الشكل والحجم
   if (!Array.isArray(messages) || messages.length === 0 || messages.length > 25) {
@@ -64,13 +66,16 @@ export default async function handler(req, res) {
   if (total > 12000) {
     return res.status(400).json({ error: "Message too long" });
   }
-  if (typeof system !== "string" || system.length > 24000 || system.indexOf("Fat") === -1) {
-    return res.status(400).json({ error: "Invalid request" });
-  }
+  // 4) التعليمات تُبنى على السيرفر فقط — لا نستخدم أي نص تعليمات مرسل من المتصفح.
+  // (نص system القديم يُستخدم فقط لمعرفة نوع المساعد من نسخ الصفحة القديمة المفتوحة.)
+  const bot = requestedBot === "support" || requestedBot === "landing"
+    ? requestedBot
+    : (typeof system === "string" && system.indexOf("Edy") >= 0 ? "support" : "landing");
+  const serverSystem = chatSystemPrompt(bot, plan);
 
-  // 4) تاريخ اليوم حتى يقدر يجاوب عنه
+  // 5) تاريخ اليوم حتى يقدر يجاوب عنه
   const today = new Date().toISOString().slice(0, 10);
-  const systemWithDate = system + "\n\nToday's date is " + today + ".";
+  const systemWithDate = serverSystem + "\n\nToday's date is " + today + ".";
 
   try {
     const response = await fetch("https://api.anthropic.com/v1/messages", {
@@ -115,7 +120,7 @@ export default async function handler(req, res) {
             Prefer: "return=minimal",
           },
           body: JSON.stringify({
-            bot: system.indexOf("Edy") >= 0 ? "edy" : "landing",
+            bot: bot === "support" ? "edy" : "landing",
             question: question.slice(0, 2000),
             answer: answer.slice(0, 4000),
             turns: messages.length,

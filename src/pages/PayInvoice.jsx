@@ -53,8 +53,8 @@ export default function PayInvoice() {
       <div style={box}>
         <div style={{ fontSize: 13, color: "#999", marginBottom: 4 }}>{copy.invoice} <bdi dir="ltr">{inv.id}</bdi></div>
         <h2 style={{ margin: "0 0 4px" }}>{inv.seller_name || copy.payment}</h2>
-        <div style={{ color: "#777", fontSize: 14, marginBottom: 18 }}>{copy.to}: {inv.client}{inv.due ? ` · ${copy.due} ` : ""}<bdi dir="ltr">{inv.due || ""}</bdi></div>
-        <div dir="ltr" style={{ fontSize: 34, fontWeight: 800, marginBottom: 20, textAlign:dir === "rtl" ? "right" : "left" }}>{Number(inv.total).toFixed(2)} {inv.currency || "EUR"}</div>
+        {inv.client != null && <div style={{ color: "#777", fontSize: 14, marginBottom: 18 }}>{copy.to}: {inv.client}{inv.due ? ` · ${copy.due} ` : ""}<bdi dir="ltr">{inv.due || ""}</bdi></div>}
+        {inv.total != null && <div dir="ltr" style={{ fontSize: 34, fontWeight: 800, marginBottom: 20, textAlign:dir === "rtl" ? "right" : "left" }}>{Number(inv.total).toFixed(2)} {inv.currency || "EUR"}</div>}
 
         {isPaid ? (
           <div style={{ padding: "14px 18px", background: "rgba(45,140,101,0.1)", border: "1px solid rgba(45,140,101,0.35)", borderRadius: 10, color: "#2d8c65", fontWeight: 700 }}>

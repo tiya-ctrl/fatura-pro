@@ -3,6 +3,10 @@
 // POST /api/pay  {invoiceId}      -> إنشاء جلسة Checkout
 import Stripe from "stripe";
 import { createClient } from "@supabase/supabase-js";
+import { safeOrigin, clientIp, createRateLimiter } from "../server/request-safety.js";
+
+// A real customer opens one payment link a few times; guessing invoice ids needs many.
+const invoiceLookupLimited = createRateLimiter(40, 10 * 60 * 1000);
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY);
 const supabaseAdmin = createClient(
@@ -30,6 +34,10 @@ export default async function handler(req, res) {
     return res.status(200).json({ countryCode: validCode, country });
   }
 
+  if ((req.method === "GET" || req.method === "POST") && invoiceLookupLimited(clientIp(req))) {
+    return res.status(429).json({ error: "Too many requests. Please try again in a few minutes." });
+  }
+
   // --- ملخص عام للفاتورة ---
   if (req.method === "GET") {
     const { id } = req.query || {};
@@ -41,8 +49,20 @@ export default async function handler(req, res) {
     if (error || !inv) return res.status(404).json({ error: "Invoice not found" });
     const { data: acct } = await supabaseAdmin
       .from("stripe_accounts").select("onboarded").eq("user_id", inv.user_id).maybeSingle();
+    res.setHeader("Cache-Control", "private, no-store");
+    // Invoice details are only public when the seller has turned on online payments
+    // (that is the only case where they share a payment link). Otherwise we return
+    // just enough for the page to say online payment is not available.
+    if (!acct?.onboarded) {
+      return res.status(200).json({
+        id: inv.id,
+        status: inv.status,
+        document_language: inv.document_language,
+        payments_enabled: false,
+      });
+    }
     const { user_id, ...safe } = inv;
-    return res.status(200).json({ ...safe, payments_enabled: !!acct?.onboarded });
+    return res.status(200).json({ ...safe, payments_enabled: true });
   }
 
   // --- إنشاء جلسة الدفع ---
@@ -66,7 +86,7 @@ export default async function handler(req, res) {
         : Math.round(Number(inv.total) * 100);
       if (!amount || amount <= 0) return res.status(400).json({ error: "Invalid amount" });
 
-      const origin = req.headers.origin || "https://faturapro.app";
+      const origin = safeOrigin(req);
       const session = await stripe.checkout.sessions.create({
         mode: "payment",
         line_items: [{

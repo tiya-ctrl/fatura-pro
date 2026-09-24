@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from "react";
-import { signIn, signUp, loginWithGoogle } from "../auth";
+import { signIn, signUp, loginWithGoogle, needsEmailConfirmation, isEmailNotConfirmedError, resendConfirmationEmail } from "../auth";
 import { trackEvent } from "../lib/tracking";
 import { getLocale, localeHome, setLocale, tr } from "../lib/locale";
 import { attributionEventProperties } from "../lib/attribution";
@@ -147,6 +147,8 @@ export default function LoginPage({ onLogin, onBack, returnTo = "/app" }) {
   const [loading,  setLoading]  = useState(false);
   const [showPass, setShowPass] = useState(false);
   const [success,  setSuccess]  = useState(false);
+  const [awaitingEmail, setAwaitingEmail] = useState(null); // { email, fromLogin } while waiting for email confirmation
+  const [resendState,   setResendState]   = useState("idle"); // "idle" | "sending" | "sent" | "error"
 
   const set = (k, v) => {
     setForm(f => ({ ...f, [k]: v }));
@@ -179,14 +181,35 @@ export default function LoginPage({ onLogin, onBack, returnTo = "/app" }) {
     } else {
       const res = await signUp(form.email, form.password);
       trackEvent("signup_completed", { method:"email", source:signupSource, ...attributionEventProperties() });
+      if (needsEmailConfirmation(res)) {
+        setAwaitingEmail({ email: form.email.trim(), fromLogin: false });
+        setLoading(false);
+        return;
+      }
       setSuccess(true);
       setTimeout(() => onLogin(res.user), 1200);
     }
   } catch (err) {
+    if (mode === "login" && isEmailNotConfirmedError(err)) {
+      setAwaitingEmail({ email: form.email.trim(), fromLogin: true });
+      setLoading(false);
+      return;
+    }
     setErrors({ email: err.message });
     setLoading(false);
   }
 };
+
+  const resend = async () => {
+    if (!awaitingEmail || resendState === "sending") return;
+    setResendState("sending");
+    try {
+      await resendConfirmationEmail(awaitingEmail.email);
+      setResendState("sent");
+    } catch {
+      setResendState("error");
+    }
+  };
 
   const handleKey = (e) => { if (e.key === "Enter") handleSubmit(); };
 
@@ -199,6 +222,43 @@ export default function LoginPage({ onLogin, onBack, returnTo = "/app" }) {
     setErrors({});
     setForm({ name:"", email:"", password:"", confirm:"" });
   };
+
+  /* ── Check-your-email screen (only when Supabase requires email confirmation) ── */
+  if (awaitingEmail) return (
+    <div className="login-page">
+      <style>{FONTS + CSS}</style>
+      <div className="login-bg-glow" /><div className="login-bg-grid" />
+      <div className="login-card" style={{ textAlign:"center" }} role="status" aria-live="polite">
+        <div style={{ fontSize:52, marginBottom:14 }} aria-hidden="true">✉</div>
+        <div style={{ fontFamily:"'Playfair Display',serif", fontSize:26, color:"var(--gold)", marginBottom:10 }}>
+          {t("check_email_title", "Check your email")}
+        </div>
+        {awaitingEmail.fromLogin && (
+          <div style={{ color:"var(--text)", fontSize:14, marginBottom:10 }}>
+            {t("email_not_confirmed", "Please confirm your email first, using the link we sent you.")}
+          </div>
+        )}
+        <div style={{ color:"var(--text2)", fontSize:14, marginBottom:4 }}>
+          {t("check_email_sent_to", "We sent a confirmation link to:")}
+        </div>
+        <div dir="ltr" style={{ color:"var(--text)", fontSize:15, fontWeight:600, marginBottom:14, wordBreak:"break-all" }}>
+          {awaitingEmail.email}
+        </div>
+        <div style={{ color:"var(--text2)", fontSize:13, marginBottom:22 }}>
+          {t("check_email_help", "Open the link to activate your account. If you don't see it, check your spam folder.")}
+        </div>
+        <button type="button" className="login-btn" onClick={resend} disabled={resendState === "sending" || resendState === "sent"}>
+          {resendState === "sending" ? t("processing", "Processing...") : t("resend_confirmation", "Resend email")}
+        </button>
+        {resendState === "sent" && <div style={{ color:"var(--green)", fontSize:13, marginTop:12 }}>{t("confirmation_resent", "Sent again. Check your inbox.")}</div>}
+        {resendState === "error" && <div className="login-error" style={{ marginTop:12 }}>{t("confirmation_resend_failed", "Could not send the email right now. Please try again in a minute.")}</div>}
+        <button type="button" onClick={() => { const email = awaitingEmail.email; setAwaitingEmail(null); setResendState("idle"); setMode("login"); setErrors({}); setForm({ name:"", email, password:"", confirm:"" }); }}
+          style={{ marginTop:18, background:"none", border:0, color:"var(--gold)", cursor:"pointer", fontSize:13, fontFamily:"inherit" }}>
+          {t("back_to_login", "Back to sign in")}
+        </button>
+      </div>
+    </div>
+  );
 
   /* ── Success screen ── */
   if (success) return (
