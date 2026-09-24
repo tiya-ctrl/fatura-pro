@@ -1,8 +1,9 @@
 import { useEffect, useState } from "react";
-import { getLocale } from "./lib/locale";
+import useDocumentLanguage from "./lib/useDocumentLanguage";
 
 export default function InstallPrompt() {
-  const ar = getLocale() === "ar";
+  // Follow the language of the page on screen, not only the saved interface language.
+  const ar = useDocumentLanguage() === "ar";
   const [deferred, setDeferred] = useState(null);
   const [show, setShow] = useState(false);
   const [iosHelp, setIosHelp] = useState(false);

@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { getLocale } from "./lib/locale";
+import useDocumentLanguage from "./lib/useDocumentLanguage";
 
 const KEY = "fatura_cookie_consent";
 const ANALYTICS_ID = "xjcvo64scy";
@@ -29,7 +29,8 @@ function setClarityConsent(accepted) {
 }
 
 export default function CookieConsent() {
-  const ar = getLocale() === "ar";
+  // Follow the language of the page on screen, not only the saved interface language.
+  const ar = useDocumentLanguage() === "ar";
   const [show, setShow] = useState(false);
 
   useEffect(() => {
