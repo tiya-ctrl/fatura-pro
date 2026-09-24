@@ -1,6 +1,7 @@
 // Fatura Pro - Recurring invoices generator (Business plan)
 // يشتغل يومياً عبر Vercel Cron: يولد الفواتير المستحقة ويحدث المواعيد
 import { createClient } from "@supabase/supabase-js";
+import { advancedUserIds } from "../server/plan-access.js";
 const supabase = createClient(
   process.env.REACT_APP_SUPABASE_URL,
   process.env.SUPABASE_SERVICE_ROLE_KEY
@@ -36,8 +37,30 @@ export default async function handler(req, res) {
   if (error) return res.status(500).json({ error: error.message });
   if (!due || due.length === 0) return res.status(200).json({ generated: 0 });
 
+  // Recurring invoices are an Advanced feature. When the owner is no longer on
+  // Advanced, skip creating invoices but move the schedule past today, so that
+  // after they subscribe again the schedule simply continues (no catch-up burst).
+  // The recurring templates themselves are kept.
+  let advanced;
+  try {
+    advanced = await advancedUserIds(supabase, due.map((rec) => rec.user_id));
+  } catch (planErr) {
+    return res.status(500).json({ error: "Could not check plans" });
+  }
+
   let generated = 0;
+  let paused = 0;
   for (const rec of due) {
+    if (!advanced.has(rec.user_id)) {
+      let next = nextDate(rec.next_run, rec.frequency);
+      for (let i = 0; i < 1000 && next.toISOString().split("T")[0] <= today; i++) next = nextDate(next, rec.frequency);
+      await supabase.from("recurring_invoices").update({
+        next_run: next.toISOString().split("T")[0],
+      }).eq("id", rec.id);
+      paused++;
+      continue;
+    }
+
     const t = rec.template || {};
     const invoiceId = "INV-R-" + Date.now().toString().slice(-6) + "-" + Math.random().toString(36).slice(2, 5).toUpperCase();
 
@@ -66,5 +89,5 @@ export default async function handler(req, res) {
     generated++;
   }
 
-  return res.status(200).json({ generated });
+  return res.status(200).json({ generated, paused });
 }

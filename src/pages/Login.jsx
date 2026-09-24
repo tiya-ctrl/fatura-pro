@@ -147,6 +147,25 @@ export default function LoginPage({ onLogin, onBack, returnTo = "/app" }) {
   const [loading,  setLoading]  = useState(false);
   const [showPass, setShowPass] = useState(false);
   const [success,  setSuccess]  = useState(false);
+  // Which free trial the visitor wants. Essential starts automatically (no card);
+  // Advanced opens the Stripe checkout with its 7-day trial after sign-up
+  // (InvoiceApp reads "fatura_intent_plan" and opens the upgrade window).
+  const invited = Boolean(new URLSearchParams(window.location.search).get("invited"));
+  const [trialChoice, setTrialChoice] = useState(() => {
+    const fromUrl = new URLSearchParams(window.location.search).get("plan");
+    if (fromUrl === "business" || fromUrl === "pro") return fromUrl;
+    try { return localStorage.getItem("fatura_intent_plan") === "business" ? "business" : "pro"; } catch { return "pro"; }
+  });
+  const chooseTrial = (choice) => {
+    setTrialChoice(choice);
+    try { localStorage.setItem("fatura_intent_plan", choice); } catch {}
+  };
+  useEffect(() => {
+    const fromUrl = new URLSearchParams(window.location.search).get("plan");
+    if (!invited && (fromUrl === "business" || fromUrl === "pro")) {
+      try { localStorage.setItem("fatura_intent_plan", fromUrl); } catch {}
+    }
+  }, [invited]);
   const [awaitingEmail, setAwaitingEmail] = useState(null); // { email, fromLogin } while waiting for email confirmation
   const [resendState,   setResendState]   = useState("idle"); // "idle" | "sending" | "sent" | "error"
 
@@ -179,7 +198,7 @@ export default function LoginPage({ onLogin, onBack, returnTo = "/app" }) {
       setSuccess(true);
       setTimeout(() => onLogin(res.user), 1200);
     } else {
-      const res = await signUp(form.email, form.password);
+      const res = await signUp(form.email, form.password, invited ? null : trialChoice);
       trackEvent("signup_completed", { method:"email", source:signupSource, ...attributionEventProperties() });
       if (needsEmailConfirmation(res)) {
         setAwaitingEmail({ email: form.email.trim(), fromLogin: false });
@@ -204,7 +223,7 @@ export default function LoginPage({ onLogin, onBack, returnTo = "/app" }) {
     if (!awaitingEmail || resendState === "sending") return;
     setResendState("sending");
     try {
-      await resendConfirmationEmail(awaitingEmail.email);
+      await resendConfirmationEmail(awaitingEmail.email, invited ? null : trialChoice);
       setResendState("sent");
     } catch {
       setResendState("error");
@@ -367,6 +386,28 @@ export default function LoginPage({ onLogin, onBack, returnTo = "/app" }) {
               onChange={e => set("confirm", e.target.value)} onKeyDown={handleKey}
               placeholder={t("repeat_password", "Repeat your password")} />
             {errors.confirm && <div className="login-error">{errors.confirm}</div>}
+          </div>
+        )}
+
+        {/* Free trial choice — signup only (not for team invites) */}
+        {mode === "signup" && !invited && (
+          <div className="login-field" role="radiogroup" aria-label={t("trial_choice_label", "Choose your free trial")}>
+            <label>{t("trial_choice_label", "Choose your free trial")}</label>
+            <div style={{ display:"flex", gap:10 }}>
+              {[
+                { id:"pro", name:"Essential", note:t("trial_essential_note", "7 days free · no card needed") },
+                { id:"business", name:"Advanced", note:t("trial_advanced_note", "7 days free · card via Stripe, cancel anytime") },
+              ].map(option => (
+                <button key={option.id} type="button" role="radio" aria-checked={trialChoice === option.id}
+                  onClick={() => chooseTrial(option.id)}
+                  style={{ flex:1, textAlign:"start", padding:"12px 12px", borderRadius:10, cursor:"pointer", fontFamily:"inherit",
+                    background: trialChoice === option.id ? "var(--gold-dim)" : "var(--bg3)",
+                    border: "1.5px solid " + (trialChoice === option.id ? "var(--gold)" : "var(--border2)"), color:"var(--text)" }}>
+                  <div style={{ fontWeight:700, fontSize:14, marginBottom:3 }}>{option.name}</div>
+                  <div style={{ fontSize:11.5, color:"var(--text2)", lineHeight:1.4 }}>{option.note}</div>
+                </button>
+              ))}
+            </div>
           </div>
         )}
 

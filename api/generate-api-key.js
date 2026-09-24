@@ -2,6 +2,7 @@
 // يولد مفتاحاً عشوائياً، يخزن بصمته فقط، ويرجع المفتاح مرة واحدة للعرض
 import crypto from "crypto";
 import { createClient } from "@supabase/supabase-js";
+import { hasAdvancedAccess } from "../server/plan-access.js";
 
 const supabaseAdmin = createClient(
   process.env.REACT_APP_SUPABASE_URL,
@@ -16,6 +17,9 @@ export default async function handler(req, res) {
     if (!token) return res.status(401).json({ error: "Not authenticated" });
     const { data: { user }, error: userErr } = await supabaseAdmin.auth.getUser(token);
     if (userErr || !user) return res.status(401).json({ error: "Invalid session" });
+    if (!(await hasAdvancedAccess(supabaseAdmin, user.id))) {
+      return res.status(403).json({ error: "API access requires the Advanced plan." });
+    }
 
     // حد أقصى 3 مفاتيح لكل مستخدم
     const { count } = await supabaseAdmin
