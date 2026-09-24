@@ -4,6 +4,7 @@
 import Stripe from "stripe";
 import { createClient } from "@supabase/supabase-js";
 import { safeOrigin, clientIp, createRateLimiter } from "../server/request-safety.js";
+import { hasAdvancedAccess } from "../server/plan-access.js";
 
 // A real customer opens one payment link a few times; guessing invoice ids needs many.
 const invoiceLookupLimited = createRateLimiter(40, 10 * 60 * 1000);
@@ -51,9 +52,12 @@ export default async function handler(req, res) {
       .from("stripe_accounts").select("onboarded").eq("user_id", inv.user_id).maybeSingle();
     res.setHeader("Cache-Control", "private, no-store");
     // Invoice details are only public when the seller has turned on online payments
-    // (that is the only case where they share a payment link). Otherwise we return
-    // just enough for the page to say online payment is not available.
-    if (!acct?.onboarded) {
+    // (that is the only case where they share a payment link) and is on Advanced.
+    // Otherwise we return just enough for the page to say online payment is not available.
+    const sellerAdvanced = acct?.onboarded
+      ? await hasAdvancedAccess(supabaseAdmin, inv.user_id).catch(() => false)
+      : false;
+    if (!acct?.onboarded || !sellerAdvanced) {
       return res.status(200).json({
         id: inv.id,
         status: inv.status,
@@ -79,6 +83,9 @@ export default async function handler(req, res) {
       const { data: acct } = await supabaseAdmin
         .from("stripe_accounts").select("*").eq("user_id", inv.user_id).maybeSingle();
       if (!acct?.onboarded) return res.status(400).json({ error: "Seller has not enabled online payments" });
+      if (!(await hasAdvancedAccess(supabaseAdmin, inv.user_id))) {
+        return res.status(400).json({ error: "Seller has not enabled online payments" });
+      }
 
       const currency = (inv.currency || "EUR").toLowerCase();
       const amount = ZERO_DECIMAL.includes(currency)

@@ -4,6 +4,7 @@
 // المصادقة: Authorization: Bearer fp_live_xxx
 import crypto from "crypto";
 import { createClient } from "@supabase/supabase-js";
+import { hasAdvancedAccess } from "../../server/plan-access.js";
 
 const supabaseAdmin = createClient(
   process.env.REACT_APP_SUPABASE_URL,
@@ -25,6 +26,10 @@ async function authenticate(req) {
 export default async function handler(req, res) {
   const userId = await authenticate(req);
   if (!userId) return res.status(401).json({ error: "Invalid or missing API key" });
+  // Keys are kept when a plan ends, but only work again after upgrading to Advanced.
+  if (!(await hasAdvancedAccess(supabaseAdmin, userId))) {
+    return res.status(403).json({ error: "API access requires the Advanced plan." });
+  }
 
   if (req.method === "GET") {
     const { data, error } = await supabaseAdmin

@@ -450,7 +450,7 @@ const PLANS = [
       { text:"Accountant CSV export (opens in Excel)", ok:true },
       { text:"Priority support", ok:true },
     ],
-    cta: BUSINESS_ENABLED ? "Get Advanced" : "Join Waitlist", ctaStyle: BUSINESS_ENABLED ? "btn-gold" : "btn-outline",
+    cta: BUSINESS_ENABLED ? "Try Advanced Free for 7 Days" : "Join Waitlist", ctaStyle: BUSINESS_ENABLED ? "btn-gold" : "btn-outline",
   },
 ];
 
@@ -771,6 +771,7 @@ function Pricing({ onOpenApp }) {
                 </> : <span className="price-num" style={{ fontSize:42 }}>Free</span>}
               </div>
               {p.price > 0 && <div className="price-tax-note">excl. btw</div>}
+              {p.id === "business" && BUSINESS_ENABLED && <div className="price-tax-note">7-day free trial · card via Stripe · cancel anytime</div>}
               {p.price > 0 && annual && <div style={{ fontSize:12, color:"var(--green)", marginBottom:4 }}>Billed €{Math.round(p.price * 0.8 * 12)}/year</div>}
               <div className="price-desc">{p.desc}</div>
               <div className="price-divider" />

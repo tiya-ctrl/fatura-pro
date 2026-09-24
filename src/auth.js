@@ -1,14 +1,19 @@
 import { supabase } from "./supabase";
 import { ensureUserPlan, getVisitorCountry } from "./lib/userPlan";
 
-export const signUp = async (email, password) => {
+// The app address the confirmation email links to. It carries the chosen trial
+// so an Advanced choice survives opening the email on another device.
+const appReturnUrl = (intentPlan) =>
+  window.location.origin + "/app" + (intentPlan === "business" ? "?plan=business" : "");
+
+export const signUp = async (email, password, intentPlan) => {
   const country = await getVisitorCountry();
   const { data, error } = await supabase.auth.signUp({
     email,
     password,
     // Used only when "Confirm email" is on in Supabase: the link in the email
     // brings the person straight into the app (same return path as Google sign-in).
-    options: { data: { country }, emailRedirectTo: window.location.origin + "/app" },
+    options: { data: { country }, emailRedirectTo: appReturnUrl(intentPlan) },
   });
   if (error) throw error;
   if (data?.user && data?.session) await ensureUserPlan(data.user, country);
@@ -21,11 +26,11 @@ export const needsEmailConfirmation = (signUpData) => Boolean(signUpData?.user &
 export const isEmailNotConfirmedError = (error) =>
   error?.code === "email_not_confirmed" || /email not confirmed/i.test(String(error?.message || ""));
 
-export const resendConfirmationEmail = async (email) => {
+export const resendConfirmationEmail = async (email, intentPlan) => {
   const { error } = await supabase.auth.resend({
     type: "signup",
     email,
-    options: { emailRedirectTo: window.location.origin + "/app" },
+    options: { emailRedirectTo: appReturnUrl(intentPlan) },
   });
   if (error) throw error;
 };

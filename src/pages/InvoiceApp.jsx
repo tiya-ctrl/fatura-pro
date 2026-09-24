@@ -571,9 +571,17 @@ export default function InvoiceApp({ onGoHome }) {
     trackEvent("upgrade_clicked", { feature:upgradeFeature || "general", intended_plan:upgradeIntent || "undecided" });
   }, [showUpgrade]);
   useEffect(() => {
-    const intent = localStorage.getItem("fatura_intent_plan");
+    // The confirmation email link carries ?plan=business, in case it is opened
+    // on another device where the choice made at sign-up is not stored.
+    const urlParams = new URLSearchParams(window.location.search);
+    const urlPlan = urlParams.get("plan");
+    const intent = (urlPlan === "business" || urlPlan === "pro") ? urlPlan : localStorage.getItem("fatura_intent_plan");
     if (!intent || !plan) return;
     localStorage.removeItem("fatura_intent_plan");
+    if (urlPlan) {
+      urlParams.delete("plan");
+      window.history.replaceState({}, "", window.location.pathname + (urlParams.toString() ? "?" + urlParams : "") + window.location.hash);
+    }
     if (plan === "business") return;
     if (intent === "pro" && plan === "pro") return;
     setUpgradeIntent(intent);
@@ -2584,9 +2592,17 @@ function UpgradeModal({ feature, onClose, onActivate, initialPlan, userEmail, us
                   <span style={{ width:16, height:16, border:"2px solid #000", borderTopColor:"transparent", borderRadius:"50%", display:"inline-block", animation:"spin 0.7s linear infinite" }} />
                   {t("connecting_stripe", "Connecting to Stripe...")}
                 </span>
-              : (t("upgrade_to", "Upgrade to") + " " + PLANS_INFO[selectedPlan].name + " — " + PLANS_INFO[selectedPlan].price + t("per_month", "/mo"))
+              : selectedPlan === "business"
+                ? t("start_advanced_trial", "Start 7-day free trial of Advanced")
+                : (t("upgrade_to", "Upgrade to") + " " + PLANS_INFO[selectedPlan].name + " — " + PLANS_INFO[selectedPlan].price + t("per_month", "/mo"))
             }
           </button>
+        )}
+        {/* The Advanced Stripe payment link includes a 7-day free trial. */}
+        {selectedPlan === "business" && BUSINESS_ENABLED && (
+          <div style={{ textAlign:"center", fontSize:12, color:"var(--text2)", marginBottom:10, lineHeight:1.5 }}>
+            {t("advanced_trial_note", "7 days free, then €19/month. Cancel before the trial ends and you won't be charged.")}
+          </div>
         )}
 
         <div style={{ textAlign:"center", fontSize:11, color:"var(--text3)" }}>{t("no_commitment", "No commitment · Cancel anytime · Secure checkout by Stripe")}</div>
