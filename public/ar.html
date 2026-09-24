@@ -31,7 +31,7 @@
   <link rel="preload" as="image" href="/ar-dashboard-preview.jpg" fetchpriority="high" />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@400;500;600;700&amp;display=swap" />
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@400;500;600&amp;family=Readex+Pro:wght@500;600;700&amp;display=swap" />
   <style>
     @property --angle{syntax:"<angle>";inherits:false;initial-value:0deg}
     :root{
@@ -110,7 +110,8 @@
     .pulse{position:relative;width:8px;height:8px;border-radius:50%;background:var(--ok)}
     .pulse::after{content:"";position:absolute;inset:-4px;border-radius:50%;border:2px solid var(--ok);animation:ping 2s var(--ease) infinite}
     @keyframes ping{0%{transform:scale(.6);opacity:.9}100%{transform:scale(2.2);opacity:0}}
-    h1{font-size:clamp(36px,4.6vw,58px);line-height:1.16;font-weight:700;margin:22px 0 20px;letter-spacing:-.5px}
+    h1,h2,h3,.section-title,.price,.facts strong,.inv-title,.plan-name{font-family:"Readex Pro","IBM Plex Sans Arabic",sans-serif}
+    h1{font-size:clamp(34px,4.5vw,58px);line-height:1.28;font-weight:700;margin:22px 0 20px;letter-spacing:0}
     h1 .line{display:block}
     .js h1 .line{opacity:0;transform:translateY(30px);filter:blur(8px);animation:rise 1s var(--ease) forwards}
     .js h1 .line:nth-child(2){animation-delay:.15s}
@@ -160,7 +161,7 @@
     .section{padding:96px 0}
     .section-head{max-width:740px;margin:0 auto 48px;text-align:center}
     .eyebrow{display:inline-flex;align-items:center;gap:8px;color:var(--brand-ink);font-size:13px;font-weight:700;letter-spacing:.4px;margin-bottom:12px;padding:5px 12px;border-radius:999px;background:rgba(124,108,242,.10);border:1px solid rgba(124,108,242,.25)}
-    .section-title{font-size:clamp(28px,4vw,46px);line-height:1.28;margin:0 0 14px;font-weight:700;letter-spacing:-.3px}
+    .section-title{font-size:clamp(26px,3.8vw,44px);line-height:1.38;margin:0 0 14px;font-weight:600;letter-spacing:0}
     .section-head p{color:var(--muted);margin:0;font-size:16.5px}
 
     /* Steps */
@@ -292,6 +293,16 @@
       .chip.two{inset-inline-end:8px;top:-14px}
       .actions .button{flex:1 1 100%}
       .section{padding:68px 0}
+      body{font-size:16px;line-height:1.9}
+      h1{font-size:clamp(31px,8.6vw,40px);line-height:1.35;margin:16px 0 14px}
+      .lead{font-size:16px;line-height:1.95}
+      .section-head{margin-bottom:32px}
+      .section-head p{font-size:15.5px}
+      .kicker{font-size:12px;padding:6px 12px}
+      .feature,.plan{padding:22px 20px}
+      .faq summary h3{font-size:15.5px;line-height:1.6}
+      .price{font-size:40px}
+      .cta{padding:48px 20px;border-radius:24px}
       .guide{flex-direction:column;align-items:flex-start;padding:26px}
       .plan-desc{min-height:0}
       .plan.featured{order:-1;margin-top:10px}
