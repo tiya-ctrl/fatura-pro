@@ -3,7 +3,11 @@ const SUPPORTED = SUPPORTED_LOCALES;
 
 export function syncDocumentLocale(locale) {
   if (typeof document === "undefined") return;
-  const next = SUPPORTED.includes(locale) ? locale : "en";
+  // Public pages (landing, blog, legal…) pin the language of their own content
+  // via applyPageSeo. The saved interface language must not override it, or an
+  // English page would render right-to-left after a visit to the Arabic site.
+  const pinned = document.documentElement.getAttribute("data-page-language");
+  const next = SUPPORTED.includes(pinned) ? pinned : (SUPPORTED.includes(locale) ? locale : "en");
   document.documentElement.setAttribute("lang", next);
   document.documentElement.setAttribute("dir", next === "ar" ? "rtl" : "ltr");
 }

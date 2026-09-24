@@ -49,7 +49,7 @@ export default function InstallPrompt() {
   if (!show) return null;
 
   return (
-    <div style={{ position: "fixed", left: 12, right: 12, bottom: 12, zIndex: 400, maxWidth: 460, margin: "0 auto", background: "#111118", border: "1px solid rgba(99,102,241,0.35)", borderRadius: 14, padding: "14px 16px", boxShadow: "0 12px 40px rgba(0,0,0,0.55)", fontFamily: "DM Sans, sans-serif" }}>
+    <div dir={ar ? "rtl" : "ltr"} style={{ position: "fixed", left: 12, right: 12, bottom: 12, zIndex: 400, maxWidth: 460, margin: "0 auto", background: "#111118", border: "1px solid rgba(99,102,241,0.35)", borderRadius: 14, padding: "14px 16px", boxShadow: "0 12px 40px rgba(0,0,0,0.55)", fontFamily: "DM Sans, sans-serif" }}>
       <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
         <div style={{ width: 40, height: 40, borderRadius: 10, background: "var(--brand-primary)", color: "#fff", display: "flex", alignItems: "center", justifyContent: "center", fontFamily: "Playfair Display, serif", fontSize: 22, fontWeight: 700, flexShrink: 0 }}>F</div>
         <div style={{ flex: 1, minWidth: 0 }}>

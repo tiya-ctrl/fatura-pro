@@ -79,12 +79,23 @@ export function applyPageSeo({
   const previousTitle = document.title;
   const previousLanguage = document.documentElement.getAttribute("lang");
 
+  const root = document.documentElement;
+  const previousDirection = root.getAttribute("dir");
+  const previousPinned = root.getAttribute("data-page-language");
+
   document.title = title;
-  document.documentElement.setAttribute("lang", language);
+  // The page's content language decides lang and dir, not the saved interface language.
+  root.setAttribute("data-page-language", language);
+  root.setAttribute("lang", language);
+  root.setAttribute("dir", language === "ar" ? "rtl" : "ltr");
   cleanups.push(() => {
     document.title = previousTitle;
-    if (previousLanguage == null) document.documentElement.removeAttribute("lang");
-    else document.documentElement.setAttribute("lang", previousLanguage);
+    if (previousLanguage == null) root.removeAttribute("lang");
+    else root.setAttribute("lang", previousLanguage);
+    if (previousDirection == null) root.removeAttribute("dir");
+    else root.setAttribute("dir", previousDirection);
+    if (previousPinned == null) root.removeAttribute("data-page-language");
+    else root.setAttribute("data-page-language", previousPinned);
   });
 
   setMeta('meta[name="description"]', { name: "description", content: description }, cleanups);
