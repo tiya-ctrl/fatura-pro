@@ -1,17 +1,14 @@
 import LanguageLinks from "../components/LanguageLinks";
 import { useState, useRef, useEffect } from "react";
-import { BUSINESS_ENABLED } from "../lib/businessPlan";
 import { trackEvent } from "../lib/tracking";
 import { storeReferralCode } from "../lib/referrals";
 import { applyPageSeo } from "../lib/pageSeo";
+import { initLandingMotion } from "../lib/landingMotion";
+import "./landing-v2.en.css";
 
-/* ─── FONTS & GLOBAL ─────────────────────────────────────────── */
-const FONTS = ``;
-
-const GLOBAL = `
-*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-html { scroll-behavior: smooth; }
-body { font-family: 'DM Sans', sans-serif; background: #08080e; color: #e8e4dc; -webkit-text-size-adjust:100%; overflow-x:hidden; }
+// Landing page design lives in landing-v2.en.css (generated from public/landing-v2.css,
+// scoped to .lv2). The chat widget keeps its original styles below.
+const CHAT_CSS = `
 :root {
   --gold: var(--brand-primary, #6366F1); --gold-l: var(--brand-highlight, #7C6CF2); --gold-dim: rgba(var(--brand-primary-rgb, 99,102,241),0.13);
   --bg: #08080e; --bg2: #0f0f17; --bg3: #16161f; --bg4: #1c1c27;
@@ -19,266 +16,7 @@ body { font-family: 'DM Sans', sans-serif; background: #08080e; color: #e8e4dc; 
   --text: #e8e4dc; --text2: #9a9690; --text3: #5a5750;
   --green: #4caf89; --red: #e05555; --radius: 14px;
 }
-::-webkit-scrollbar{width:5px;height:5px}
-::-webkit-scrollbar-track{background:var(--bg)}
-::-webkit-scrollbar-thumb{background:var(--border);border-radius:3px}
-/* animations */
-@keyframes fadeUp { from{opacity:0;transform:translateY(28px)} to{opacity:1;transform:translateY(0)} }
-@keyframes float  { 0%,100%{transform:translateY(0)} 50%{transform:translateY(-10px)} }
 @keyframes pulse  { 0%,100%{opacity:1} 50%{opacity:0.4} }
-@keyframes spin   { to{transform:rotate(360deg)} }
-@keyframes shimmer{ 0%{background-position:-200% center} 100%{background-position:200% center} }
-@keyframes blink  { 0%,100%{opacity:1} 50%{opacity:0} }
-.fade-up { animation: fadeUp 0.6s ease both; }
-.delay-1 { animation-delay: 0.1s; }
-.delay-2 { animation-delay: 0.22s; }
-.delay-3 { animation-delay: 0.34s; }
-.delay-4 { animation-delay: 0.46s; }
-/* nav */
-nav.topnav {
-  position: fixed; top:0; left:0; right:0; z-index:100;
-  display:flex; align-items:center; justify-content:space-between;
-  padding:16px 48px; padding-top: max(16px, env(safe-area-inset-top)); transition: background 0.3s, backdrop-filter 0.3s;
-}
-nav.topnav.scrolled {
-  background: rgba(8,8,14,0.88); backdrop-filter: blur(16px);
-  border-bottom: 1px solid var(--border);
-}
-.nav-logo { display:flex; align-items:center; gap:10px; text-decoration:none; }
-.nav-logo-icon { width:36px;height:36px;object-fit:contain; }
-.nav-logo-text { font-family:'Playfair Display',serif; font-size:20px; color:var(--gold); letter-spacing:0.3px; }
-.nav-links { display:flex; gap:32px; list-style:none; }
-.nav-links a { font-size:14px; font-weight:500; color:var(--text2); text-decoration:none; transition:color 0.2s; }
-.nav-links a:hover { color:var(--text); }
-.nav-cta { display:flex; gap:10px; align-items:center; }
-.nav-hamburger { display:none; background:none; border:none; color:var(--text); cursor:pointer; font-size:24px; padding:4px; }
-.btn { display:inline-flex; align-items:center; gap:6px; padding:10px 22px; border-radius:9px;
-  font-size:13px; font-weight:600; cursor:pointer; border:none; transition:all 0.2s;
-  font-family:'DM Sans',sans-serif; text-decoration:none; white-space:nowrap; }
-.btn-gold { background:var(--gold); color:#000; }
-.btn-gold:hover { background:var(--gold-l); transform:translateY(-1px); box-shadow:0 6px 22px rgba(99,102,241,0.35); }
-.btn-outline { background:transparent; color:var(--text); border:1px solid var(--border2); }
-.btn-outline:hover { border-color:var(--gold); color:var(--gold); }
-.btn-lg { padding:14px 32px; font-size:15px; border-radius:11px; }
-.btn-xl { padding:16px 40px; font-size:16px; border-radius:12px; }
-/* hero */
-.hero {
-  min-height:100vh; padding:150px 48px 72px; position:relative; overflow:hidden;
-}
-.hero-stage { width:min(1240px,100%); margin:0 auto; display:grid; grid-template-columns:minmax(0,0.9fr) minmax(460px,1.1fr); align-items:center; gap:72px; position:relative; z-index:1; }
-.hero-copy { text-align:left; }
-.hero-grid {
-  position:absolute; inset:0; opacity:0.04;
-  background-image: linear-gradient(var(--border2) 1px, transparent 1px), linear-gradient(90deg, var(--border2) 1px, transparent 1px);
-  background-size: 50px 50px;
-}
-.hero-glow {
-  position:absolute; top:15%; right:-5%;
-  width:700px; height:400px; border-radius:50%;
-  background: radial-gradient(ellipse, rgba(99,102,241,0.12) 0%, transparent 70%);
-  pointer-events:none;
-}
-
-@media (max-width: 640px) {
-  .hero-glow {
-    width: 320px;
-    height: 220px;
-  }
-}
-
-.hero-tag {
-  display:inline-flex; align-items:center; gap:8px; background:var(--gold-dim);
-  border:1px solid var(--border); border-radius:100px; padding:6px 16px;
-  font-size:12px; font-weight:600; color:var(--gold); letter-spacing:0.5px;
-  margin-bottom:28px; text-transform:uppercase;
-}
-.hero-tag-dot { width:6px;height:6px;border-radius:50%;background:var(--gold);animation:pulse 2s infinite; }
-.hero-title {
-  font-family:'Playfair Display',serif; font-size:clamp(48px,5.6vw,78px);
-  line-height:1.08; color:var(--text); margin-bottom:8px; font-weight:700;
-}
-.hero-title em { font-style:italic; color:var(--gold); }
-.hero-sub {
-  font-size:clamp(16px,1.6vw,19px); color:var(--text2); max-width:620px;
-  margin:22px 0 34px; line-height:1.7; font-weight:300;
-}
-.hero-actions { display:flex; gap:14px; justify-content:flex-start; flex-wrap:wrap; margin-bottom:34px; }
-.hero-social-proof { display:flex; align-items:center; gap:16px; justify-content:flex-start; flex-wrap:wrap; }
-.proof-avatars { display:flex; }
-.proof-avatar {
-  width:34px;height:34px;border-radius:50%;border:2px solid var(--bg);
-  background:var(--bg3); display:flex;align-items:center;justify-content:center;
-  font-size:14px; margin-left:-10px;
-}
-.proof-avatar:first-child { margin-left:0; }
-.proof-text { font-size:13px; color:var(--text2); }
-.proof-text strong { color:var(--text); }
-/* dashboard mockup */
-.mockup-wrap { width:100%; max-width:760px; margin:0; position:relative; transform:rotate(1.2deg); }
-.capability-strip { width:min(1240px,100%); margin:54px auto 0; display:flex; justify-content:center; gap:8px; flex-wrap:wrap; position:relative; z-index:1; }
-.capability-pill { padding:8px 14px; border:1px solid var(--border2); border-radius:999px; color:var(--text2); font-size:12px; background:rgba(17,17,24,.7); }
-.fact-strip { width:min(1240px,calc(100% - 40px)); margin:0 auto; display:grid; grid-template-columns:repeat(5,1fr); border:1px solid var(--border2); border-radius:18px; overflow:hidden; background:rgba(15,15,23,.78); position:relative; z-index:2; }
-.fact-item { padding:20px 18px; border-right:1px solid var(--border2); }
-.fact-item:last-child { border-right:0; }
-.fact-value { display:block; color:var(--text); font-family:'Playfair Display',serif; font-size:20px; margin-bottom:3px; }
-.fact-label { color:var(--text2); font-size:11px; line-height:1.45; }
-.mockup-glow { position:absolute; bottom:-60px; left:50%; transform:translateX(-50%);
-  width:80%; height:200px; background:radial-gradient(ellipse, rgba(99,102,241,0.18) 0%, transparent 70%); }
-.mockup-frame {
-  background:var(--bg2); border:1px solid var(--border); border-radius:16px;
-  overflow:hidden; box-shadow:0 40px 80px rgba(0,0,0,0.6);
-}
-.mockup-bar { background:var(--bg3); padding:12px 16px; border-bottom:1px solid var(--border);
-  display:flex; align-items:center; gap:8px; }
-.mockup-dot { width:10px;height:10px;border-radius:50%; }
-.mockup-body { display:flex; height:280px; }
-.mockup-side { width:160px; background:var(--bg2); border-right:1px solid var(--border); padding:16px 12px; flex-shrink:0; }
-.mockup-nav-item { height:30px; border-radius:7px; margin-bottom:6px; background:var(--bg3); }
-.mockup-nav-item.active { background:var(--gold-dim); }
-.mockup-content { flex:1; padding:16px; display:grid; grid-template-columns:repeat(4,1fr); gap:10px; align-content:start; }
-.mockup-stat { background:var(--bg3); border:1px solid var(--border); border-radius:10px; padding:12px; }
-.mockup-stat-val { height:18px; border-radius:4px; background:var(--bg4); margin-top:8px; width:70%; }
-.mockup-stat-val.gold { background:var(--gold-dim); }
-.mockup-row { grid-column:1/-1; background:var(--bg3); border:1px solid var(--border); border-radius:10px; padding:12px; display:flex; gap:10px; align-items:center; }
-.mockup-row-bar { height:10px; border-radius:4px; background:var(--bg4); flex:1; }
-.mockup-badge { width:52px; height:20px; border-radius:20px; background:rgba(76,175,137,0.2); flex-shrink:0; }
-/* sections */
-section { padding:100px 24px; }
-.container { max-width:1100px; margin:0 auto; }
-.section-tag { font-size:11px; font-weight:700; color:var(--gold); letter-spacing:2px; text-transform:uppercase; margin-bottom:14px; }
-.section-title { font-family:'Playfair Display',serif; font-size:clamp(30px,4vw,48px); color:var(--text); line-height:1.15; margin-bottom:16px; }
-.section-sub { font-size:17px; color:var(--text2); line-height:1.7; max-width:520px; }
-/* features */
-.features-grid { display:grid; grid-template-columns:repeat(3,1fr); gap:18px; margin-top:52px; }
-.feat-card {
-  min-height:250px; background:var(--bg2); border:1px solid var(--border2); border-radius:20px;
-  padding:32px; transition:all 0.25s; position:relative; overflow:hidden; display:flex; flex-direction:column; justify-content:flex-end;
-}
-.feat-card:nth-child(1),.feat-card:nth-child(6) { grid-column:span 2; }
-.feat-card:nth-child(1) { background:radial-gradient(circle at 85% 10%,rgba(99,102,241,.17),transparent 38%),var(--bg2); }
-.feat-card:nth-child(6) { background:linear-gradient(135deg,rgba(99,102,241,.12),transparent 55%),var(--bg2); }
-.feat-card::before {
-  content:''; position:absolute; top:0; left:0; right:0; height:2px;
-  background:linear-gradient(90deg, transparent, var(--gold), transparent);
-  opacity:0; transition:opacity 0.3s;
-}
-.feat-card:hover { border-color:var(--border); transform:translateY(-3px); box-shadow:0 12px 40px rgba(0,0,0,0.3); }
-.feat-card:hover::before { opacity:1; }
-.feat-icon { font-size:28px; margin-bottom:auto; display:block; }
-.feat-title { font-family:'Playfair Display',serif; font-size:clamp(20px,2.5vw,29px); font-weight:600; color:var(--text); margin:24px 0 9px; max-width:520px; }
-.feat-desc { font-size:14px; color:var(--text2); line-height:1.7; max-width:620px; }
-.feat-pro { display:inline-block; font-size:10px; font-weight:700; color:var(--gold);
-  background:var(--gold-dim); border:1px solid var(--border); border-radius:20px;
-  padding:2px 8px; margin-top:10px; letter-spacing:0.5px; }
-.audience-grid { display:grid; grid-template-columns:repeat(3,1fr); gap:18px; margin-top:48px; }
-.audience-card { min-height:330px; border:1px solid var(--border2); border-radius:20px; padding:30px; background:var(--bg2); position:relative; overflow:hidden; display:flex; flex-direction:column; }
-.audience-card::after { content:attr(data-number); position:absolute; right:20px; top:4px; font-family:'Playfair Display',serif; font-size:92px; color:rgba(99,102,241,.07); }
-.audience-kicker { color:var(--gold); text-transform:uppercase; letter-spacing:1.5px; font-size:10px; font-weight:800; margin-bottom:auto; }
-.audience-card h3 { font-family:'Playfair Display',serif; font-size:28px; line-height:1.14; margin:36px 0 12px; max-width:250px; }
-.audience-card p { color:var(--text2); font-size:14px; line-height:1.7; margin-bottom:22px; }
-.audience-card a { color:var(--gold); text-decoration:none; font-size:13px; font-weight:700; }
-.audience-card a:hover { color:var(--gold-l); }
-/* how it works */
-.how-grid { display:grid; grid-template-columns:repeat(4,1fr); gap:20px; margin-top:60px; position:relative; }
-.how-grid::before {
-  content:''; position:absolute; top:32px; left:10%; right:10%; height:1px;
-  background:linear-gradient(90deg, transparent, var(--border), var(--gold), var(--border), transparent);
-}
-.how-step { text-align:center; position:relative; z-index:1; }
-.how-num {
-  width:64px; height:64px; border-radius:50%; background:var(--bg2);
-  border:2px solid var(--border); display:flex; align-items:center; justify-content:center;
-  font-family:'Playfair Display',serif; font-size:22px; color:var(--gold);
-  margin:0 auto 20px; font-weight:700;
-}
-.how-title { font-size:15px; font-weight:700; color:var(--text); margin-bottom:8px; }
-.how-desc { font-size:13px; color:var(--text2); line-height:1.6; }
-/* pricing */
-.pricing-grid { display:grid; grid-template-columns:repeat(3,1fr); gap:20px; margin-top:60px; align-items:start; }
-.price-card {
-  background:var(--bg2); border:1px solid var(--border2); border-radius:var(--radius);
-  padding:32px; position:relative; overflow:hidden;
-}
-.price-card.featured {
-  background: linear-gradient(160deg, #16161f 0%, #1a1520 100%);
-  border:1.5px solid var(--gold); box-shadow:0 0 40px rgba(99,102,241,0.12);
-  transform:scale(1.04);
-}
-.price-badge {
-  position:absolute; top:16px; right:16px; background:var(--gold); color:#000;
-  font-size:10px; font-weight:800; letter-spacing:1px; text-transform:uppercase;
-  border-radius:20px; padding:4px 12px;
-}
-.price-plan { font-size:12px; font-weight:700; color:var(--text2); letter-spacing:1.5px; text-transform:uppercase; margin-bottom:12px; }
-.price-amount { display:flex; align-items:baseline; gap:4px; margin-bottom:6px; }
-.price-currency { font-size:22px; font-weight:700; color:var(--text2); }
-.price-num { font-family:'Playfair Display',serif; font-size:54px; color:var(--text); font-weight:700; line-height:1; }
-.price-period { font-size:14px; color:var(--text2); }
-.price-tax-note { color:var(--text2); font-size:12px; font-weight:600; margin:-1px 0 10px; }
-.price-desc { font-size:13px; color:var(--text2); margin-bottom:24px; line-height:1.5; }
-.price-divider { height:1px; background:var(--border2); margin:24px 0; }
-.price-feature { display:flex; align-items:flex-start; gap:10px; font-size:13px; color:var(--text2); margin-bottom:11px; line-height:1.5; }
-.price-feature-check { color:var(--green); font-size:14px; flex-shrink:0; margin-top:1px; }
-.price-feature-x { color:var(--text3); font-size:14px; flex-shrink:0; margin-top:1px; }
-.price-cta { width:100%; margin-top:28px; justify-content:center; }
-/* referral loop */
-.referral-shell {
-  position:relative; overflow:hidden; display:grid; grid-template-columns:minmax(0,1.05fr) minmax(360px,.95fr);
-  gap:64px; align-items:center; padding:58px; border:1px solid rgba(99,102,241,.28); border-radius:28px;
-  background:linear-gradient(135deg,rgba(99,102,241,.13),rgba(15,15,23,.96) 46%,rgba(24,19,29,.96));
-  box-shadow:0 28px 80px rgba(0,0,0,.28);
-}
-.referral-shell::after { content:"03"; position:absolute; right:-6px; top:-72px; font-family:'Playfair Display',serif; font-size:230px; font-weight:700; color:rgba(99,102,241,.045); pointer-events:none; }
-.referral-copy,.referral-steps { position:relative; z-index:1; }
-.referral-copy .section-sub { max-width:620px; }
-.referral-location { display:inline-flex; align-items:center; gap:9px; margin:24px 0 30px; padding:9px 13px; border:1px solid var(--border); border-radius:999px; background:rgba(8,8,14,.48); color:var(--text2); font-size:12px; }
-.referral-location strong { color:var(--gold-l); }
-.referral-actions { display:flex; align-items:center; gap:14px; flex-wrap:wrap; }
-.referral-fineprint { color:var(--text3); font-size:11px; line-height:1.5; }
-.referral-ambassador-link { display:inline-flex; align-items:center; gap:7px; margin-top:20px; color:var(--text2); font-size:12px; font-weight:700; text-decoration:none; transition:color .2s; }
-.referral-ambassador-link:hover { color:var(--gold-l); }
-.referral-steps { display:grid; gap:12px; }
-.referral-step { display:grid; grid-template-columns:42px minmax(0,1fr) auto; gap:14px; align-items:center; padding:18px; border:1px solid var(--border2); border-radius:15px; background:rgba(8,8,14,.64); }
-.referral-step-num { width:42px; height:42px; display:flex; align-items:center; justify-content:center; border-radius:50%; border:1px solid var(--border); background:var(--gold-dim); color:var(--gold); font-family:'Playfair Display',serif; font-weight:700; }
-.referral-step strong { display:block; color:var(--text); font-size:14px; margin-bottom:3px; }
-.referral-step span { color:var(--text2); font-size:12px; line-height:1.5; }
-.referral-reward { color:var(--gold-l); font-family:'Playfair Display',serif; font-size:18px; font-weight:700; white-space:nowrap; }
-/* testimonials */
-.testi-grid { display:grid; grid-template-columns:repeat(2,1fr); gap:18px; margin-top:52px; }
-.testi-card { background:var(--bg2); border:1px solid var(--border2); border-radius:var(--radius); padding:28px; }
-.testi-stars { color:var(--gold); font-size:14px; margin-bottom:14px; letter-spacing:2px; }
-.testi-text { font-size:14px; color:var(--text); line-height:1.75; margin-bottom:20px; font-style:italic; }
-.testi-author { display:flex; align-items:center; gap:12px; }
-.testi-avatar { width:40px;height:40px;border-radius:50%;background:var(--bg4);
-  display:flex;align-items:center;justify-content:center;font-size:18px;border:1px solid var(--border); }
-.testi-name { font-size:13px; font-weight:700; color:var(--text); }
-.testi-role { font-size:12px; color:var(--text2); }
-/* faq */
-.faq-list { max-width:700px; margin:48px auto 0; }
-.faq-item { border-bottom:1px solid var(--border2); }
-.faq-q { display:flex; justify-content:space-between; align-items:center; padding:20px 0;
-  cursor:pointer; font-size:15px; font-weight:600; color:var(--text); transition:color 0.2s; }
-.faq-q:hover { color:var(--gold); }
-.faq-icon { color:var(--gold); font-size:18px; transition:transform 0.25s; flex-shrink:0; }
-.faq-icon.open { transform:rotate(45deg); }
-.faq-a { font-size:14px; color:var(--text2); line-height:1.75; padding-bottom:20px; }
-/* cta section */
-.cta-section {
-  text-align:center; padding:120px 24px;
-  background:radial-gradient(ellipse at 50% 0%, rgba(99,102,241,0.08) 0%, transparent 70%);
-  border-top:1px solid var(--border);
-}
-/* footer */
-footer {
-  background:var(--bg2); border-top:1px solid var(--border2);
-  padding:64px 48px 32px;
-}
-.footer-grid { display:grid; grid-template-columns:minmax(260px,1.8fr) repeat(4,1fr); gap:36px; margin:0 auto 52px; max-width:1240px; }
-.footer-brand p { font-size:13px; color:var(--text2); line-height:1.75; margin-top:14px; max-width:300px; }
-.footer-col h4 { font-size:12px; font-weight:700; color:var(--text2); letter-spacing:1.5px; text-transform:uppercase; margin-bottom:16px; }
-.footer-col a { display:block; font-size:13px; color:var(--text2); text-decoration:none; margin-bottom:10px; transition:color 0.2s; }
-.footer-col a:hover { color:var(--gold); }
-.footer-bottom { max-width:1240px; margin:0 auto; border-top:1px solid var(--border2); padding-top:24px; display:flex; justify-content:space-between; align-items:center; font-size:12px; color:var(--text2); flex-wrap:wrap; gap:10px; }
 /* chatbot */
 .chat-btn {
   position:fixed; bottom:28px; right:28px; z-index:200;
@@ -347,614 +85,17 @@ footer {
 .chat-send:hover { background:var(--gold-l); transform:scale(1.05); }
 .chat-send:disabled { opacity:0.5; cursor:not-allowed; transform:none; }
 /* mobile */
-@media(max-width:900px){
-  nav.topnav { padding:14px 20px; }
-  .nav-cta .nav-lang { display:none; }
-  .nav-links { display:none; }
-  .nav-hamburger { display:flex !important; }
-  .nav-links.open { display:flex; flex-direction:column; position:fixed; top:0; left:0; width:100vw; height:100vh; background:#08080e !important; z-index:999; align-items:center; justify-content:center; gap:32px; list-style:none; margin:0; padding:0; }
-  .nav-links.open a { font-size:22px; color:var(--text); }
-  .nav-close { position:fixed; top:20px; right:20px; background:none; border:none; color:var(--text); font-size:28px; cursor:pointer; z-index:1000; }
-  .features-grid,.how-grid,.pricing-grid,.testi-grid,.audience-grid { grid-template-columns:1fr; }
-  .referral-shell { grid-template-columns:1fr; gap:38px; padding:40px; }
-  .feat-card:nth-child(1),.feat-card:nth-child(6) { grid-column:span 1; }
-  .fact-strip { grid-template-columns:repeat(2,1fr); }
-  .fact-item { border-bottom:1px solid var(--border2); }
-  .fact-item:nth-child(2n) { border-right:0; }
-  .price-card.featured { transform:scale(1); }
-  .footer-grid { grid-template-columns:1.4fr 1fr 1fr; }
-  .hero-title { font-size:clamp(36px,8vw,60px); }
-  .hero { padding:120px 22px 64px; }
-  .hero-stage { grid-template-columns:1fr; gap:48px; }
-  .hero-copy { text-align:center; }
-  .hero-sub { margin:18px auto 32px; }
-  .hero-actions,.hero-social-proof { justify-content:center; }
-  .mockup-wrap { margin:0 auto; transform:none; }
-  .how-grid::before { display:none; }
-}
 @media(max-width:500px){
-  section { padding:70px 18px; }
-  .footer-grid { grid-template-columns:1fr; }
-  .fact-strip { grid-template-columns:1fr; }
-  .fact-item { border-right:0; }
-  footer { padding:36px 20px 24px; }
   .chat-window { right:14px; bottom:86px; width:calc(100vw - 28px); }
   .chat-btn { right:18px; bottom:20px; }
-  .referral-shell { padding:30px 22px; border-radius:20px; }
-  .referral-step { grid-template-columns:36px minmax(0,1fr); }
-  .referral-step-num { width:36px; height:36px; }
-  .referral-reward { grid-column:2; }
 }
 `;
 
-/* ─── DATA ───────────────────────────────────────────────────── */
-const FEATURES = [
-  { icon:"globe", title:"Multi-currency invoicing that stays honest", desc:"Invoice international clients in 17 currencies. EUR, USD, GBP, AED and every other balance stays separate—no misleading conversion hiding what you were actually paid.", pro:false },
-  { icon:"users", title:"Enter client details once", desc:"Save clients and business details, then reuse them on every invoice and quote. Less retyping, fewer mistakes, faster billing.", pro:false },
-  { icon:"send", title:"Quotes become invoices", desc:"Turn an accepted quote into an invoice and schedule new pending invoices for recurring work, without rebuilding the same document.", pro:true },
-  { icon:"bell", title:"Know what is paid—and what is late", desc:"Track pending, partial, paid and overdue invoices. Record deposits, prepare a clear reminder, review it, then open it in email or WhatsApp to send.", pro:true },
-  { icon:"chart", title:"Expenses and revenue in one workspace", desc:"See revenue by currency, log expenses, review VAT/BTW summaries and export clean data for your accountant.", pro:true },
-  { icon:"invoice", title:"PDF when people read it. UBL XML when systems do.", desc:"Create branded PDF invoices, export UBL XML for EN 16931 workflows, and issue credit notes that reference the original invoice. Validate the profile your customer requires; UBL export is not Peppol delivery.", pro:true },
-];
-
-const PLANS = [
-  {
-    name:"Free", price:0, desc:"Perfect for freelancers just getting started.",
-    features:[
-      { text:"20 invoices", ok:true },
-      { text:"5 clients", ok:true },
-      { text:"All currencies", ok:true },
-      { text:"Dashboard totals & invoice overview", ok:true },
-      { text:"PDF export & print", ok:true },
-      { text:"Custom logo & branding", ok:true },
-      { text:"Credit notes (creditnota)", ok:true },
-      { text:"Payment reminders (Email + WhatsApp)", ok:false },
-      { text:"UBL/XML export for EN 16931 workflows", ok:false },
-      { text:"Deposits & partial payments", ok:false },
-      { text:"Unlimited invoices & clients", ok:false },
-      { text:"Client card payments (Stripe)", ok:false },
-      { text:"Priority support", ok:false },
-    ],
-    cta:"Start Free", ctaStyle:"btn-outline",
-  },
-  {
-    id:"pro", name:"Essential", price:9, desc:"For freelancers and small businesses growing fast.", featured:true,
-    features:[
-      { text:"Unlimited invoices", ok:true },
-      { text:"Unlimited clients", ok:true },
-      { text:"All currencies", ok:true },
-      { text:"Dashboard totals & invoice overview", ok:true },
-      { text:"UBL/XML export for EN 16931 workflows", ok:true },
-      { text:"Deposits & partial payments", ok:true },
-      { text:"Credit notes (creditnota)", ok:true },
-      { text:"Payment reminders (Email + WhatsApp)", ok:true },
-      { text:"PDF export & print", ok:true },
-      { text:"Custom logo & branding", ok:true },
-      { text:"Priority support", ok:false },
-    ],
-    cta:"Start 7-day Essential Trial", ctaStyle:"btn-gold",
-  },
-  {
-    id:"business", name:"Advanced", price:19, desc:"For agencies and teams managing multiple clients.", badge: BUSINESS_ENABLED ? null : "Coming Soon",
-    features:[
-      { text:"Everything in Essential", ok:true },
-      { text:"Quotes that convert to invoices", ok:true },
-      { text:"Expenses & VAT/BTW report per quarter", ok:true },
-      { text:"Scheduled recurring invoice creation", ok:true },
-      { text:"Remove Fatūra branding", ok:true },
-      { text:"Team members (up to 5)", ok:true },
-      { text:"Multi-business profiles", ok:true },
-      { text:"Advanced analytics & reports", ok:true },
-      { text:"Stripe payment integration", ok:true },
-      { text:"API access", ok:true },
-      { text:"Accountant CSV export (opens in Excel)", ok:true },
-      { text:"Priority support", ok:true },
-    ],
-    cta: BUSINESS_ENABLED ? "Try Advanced Free for 7 Days" : "Join Waitlist", ctaStyle: BUSINESS_ENABLED ? "btn-gold" : "btn-outline",
-  },
-];
-
-
-const FAQS = [
-  { q:"Does Fatūra Pro have a referral program?", a:"Yes. Open Settings and choose Earn Essential to copy your personal referral link. A friend who joins through it receives 7 extra Essential days after creating their first valid invoice. Every three activated friends earn you 30 Essential days; paid subscribers can bank those days for later." },
-  { q:"Can I create a UBL invoice with Fatura Pro?", a:"Yes. Invoices and credit notes can be exported as downloadable UBL/XML files intended for EN 16931 workflows. Receiving systems can apply extra country, network or customer rules, so confirm the required profile and validate the file before delivery." },
-  { q:"Does Fatura Pro send invoices through Peppol?", a:"No. Fatura Pro exports a downloadable UBL/XML file, but it is not connected to the Peppol delivery network. You deliver the file using the method your customer requests." },
-  { q:"How do I make a credit note (creditnota)?", a:"Open the invoice and press Credit. Fatura Pro creates a separate document with its own number, a negative amount and a reference to the original invoice, so your records keep a clear correction trail. Credit notes are included on every plan, including Free." },
-  { q:"Can I ask for a deposit and invoice the rest later?", a:"Yes. Record what you received - 50% up front, for example - and the invoice shows as partially paid with the balance still owed. Your dashboard counts the received part as revenue and the rest as outstanding, and reminders chase the balance rather than the full amount." },
-  { q:"Can I invoice in different currencies?", a:"Yes, in 17 currencies. Amounts are never converted between them: each currency keeps its own total, so you always see exactly what you were paid in the currency you were paid in. No exchange rates are applied anywhere." },
-  { q:"Do I need a business registration to use Fatūra?", a:"No. Anyone can use Fatūra — freelancers, solopreneurs, and small businesses alike. You don't need a registered company or VAT number to get started." },
-  { q:"Can I use Arabic on an invoice?", a:"Yes. Invoice fields can contain Arabic client names, company names, line items and notes, and the printable document supports right-to-left text. Sign-in and primary navigation are available in English, Dutch, French, Spanish and Arabic. Invoice document labels are available in English, Dutch, French and Arabic." },
-  { q:"How does the payment reminder work?", a:"Fatūra detects when an invoice passes its due date. You choose a Polite, Firm, or Final tone, review the prepared message, then open it in Email or WhatsApp to send." },
-  { q:"Can clients pay an invoice online?", a:"Advanced accounts can connect Stripe so clients can pay by card from the invoice payment page. Available payment methods depend on the connected Stripe account and region." },
-  { q:"How is my data handled?", a:"Connections are encrypted in transit, and account and invoice data handled by Supabase is stored in its EU region in Ireland. We do not sell personal data. Our Privacy Policy explains the providers we use and how to request access, export or deletion." },
-  { q:"Can I upgrade or cancel anytime?", a:"Yes, absolutely. No lock-in contracts. Upgrade, downgrade, or cancel at any time directly from your account settings." },
-];
-
-
-/* ─── HELPERS ────────────────────────────────────────────────── */
 const timeStr = () => new Date().toLocaleTimeString("en", { hour:"2-digit", minute:"2-digit" });
-
-/* ─── COMPONENTS ─────────────────────────────────────────────── */
-function NavBar({ onOpenApp, onSignIn }) {
-  const [scrolled, setScrolled] = useState(false);
-  const [menuOpen, setMenuOpen] = useState(false);
-  useEffect(() => {
-    const fn = () => setScrolled(window.scrollY > 20);
-    window.addEventListener("scroll", fn);
-    return () => window.removeEventListener("scroll", fn);
-  }, []);
-  return (
-    <nav className={`topnav ${scrolled ? "scrolled" : ""}`}>
-      <a className="nav-logo" href="#top">
-        <img className="nav-logo-icon" src="/fatura-mark.svg" alt="" width="36" height="36" />
-        <span className="nav-logo-text">Fatūra</span>
-      </a>
-      <button className="nav-hamburger" onClick={() => setMenuOpen(true)}>☰</button>
-      <ul className={"nav-links" + (menuOpen ? " open" : "")}>
-        {menuOpen && <button className="nav-close" onClick={() => setMenuOpen(false)}>✕</button>}
-        {[["#product","Product"],["#solutions","Solutions"],["#pricing","Pricing"],["/invoice-generator","Free Generator"],["/blog","Guides"]].map(([h,l]) => (
-          <li key={h}><a href={h} onClick={() => setMenuOpen(false)}>{l}</a></li>
-        ))}
-      </ul>
-      <LanguageLinks current="en" />
-      <div className="nav-cta">
-
-
-
-        <button className="btn btn-outline" onClick={onOpenApp}>Sign In</button>
-        <button className="btn btn-gold" onClick={() => onOpenApp({ signup:true, source:"nav" })}>Try Free →</button>
-      </div>
-    </nav>
-  );
-}
-
-function Hero({ onOpenApp }) {
-  const openSignup = (placement) => {
-    trackEvent("hero_cta_clicked", { placement });
-    onOpenApp({ signup:true, source:placement });
-  };
-
-  return (
-    <section className="hero" id="top">
-      <div className="hero-grid" />
-      <div className="hero-glow" />
-      <div className="hero-stage">
-      <div className="hero-copy">
-      <div className="fade-up">
-        <div className="hero-tag">
-          <span className="hero-tag-dot" />
-          Built for freelancers &amp; businesses working across borders
-        </div>
-      </div>
-      <h1 className="hero-title fade-up delay-1">
-        Invoice clients anywhere.
-        <br /><em>Run your business in one place.</em>
-      </h1>
-      <p className="hero-sub fade-up delay-2">
-        Multi-currency invoicing software for freelancers and small service businesses. Create invoices and quotes, track expenses and payments, schedule recurring invoice creation, and manage clients—without complicated accounting software.
-      </p>
-      <div className="hero-actions fade-up delay-3">
-        <button className="btn btn-gold btn-xl" onClick={() => openSignup("hero_primary")}>Create your first invoice — free →</button>
-        <a href="#how" className="btn btn-outline btn-lg" onClick={() => trackEvent("hero_secondary_cta_clicked", { placement:"hero" })}>See how it works</a>
-        <div style={{ marginTop:18, fontSize:14, color:"var(--text2)" }}>
-          Invoicing for <a href="/for-freelancers" style={{ color:"var(--gold)", textDecoration:"none", borderBottom:"1px solid rgba(99,102,241,0.35)" }}>freelancers</a>
-          {" "}and for <a href="/for-agencies" style={{ color:"var(--gold)", textDecoration:"none", borderBottom:"1px solid rgba(99,102,241,0.35)" }}>agencies &amp; small business</a>
-        </div>
-      </div>
-      <div className="hero-social-proof fade-up delay-4">
-        <div className="proof-avatars">
-          {["🇺🇸","🇬🇧","🇲🇦","🇸🇦","🇳🇱","🇦🇪"].map((f,i) => <div key={i} className="proof-avatar">{f}</div>)}
-        </div>
-        <p className="proof-text"><strong>No credit card</strong> · Free plan available · 17 currencies</p>
-      </div>
-      </div>
-      <div className="mockup-wrap fade-up delay-4" onClick={() => openSignup("hero_visual")} title="Open the app" style={{ marginTop:64, cursor:"pointer" }}>
-        <div className="mockup-glow" />
-        <div className="mockup-frame">
-          <div className="mockup-bar">
-            <div className="mockup-dot" style={{ background:"#ff5f57" }} />
-            <div className="mockup-dot" style={{ background:"#febc2e" }} />
-            <div className="mockup-dot" style={{ background:"#28c840" }} />
-            <div style={{ flex:1, height:20, background:"var(--bg4)", borderRadius:6, marginLeft:12 }} />
-          </div>
-          <img src="/hero-dashboard.png" alt="Fatura Pro dashboard showing invoices, revenue, pending and overdue payments" loading="eager" style={{ width:"100%", display:"block" }} />
-        </div>
-      </div>
-      </div>
-      <div className="capability-strip fade-up delay-4" aria-label="Product capabilities">
-        {["Invoices","Quotes","Recurring","Expenses","Payments","UBL XML"].map(item => <span className="capability-pill" key={item}>{item}</span>)}
-      </div>
-    </section>
-  );
-}
-
-function ProductFacts() {
-  const facts = [
-    ["17 currencies","Balances stay separate"],
-    ["Free plan","No credit card"],
-    ["5 languages","For payment reminders"],
-    ["UBL XML","EN 16931 export"],
-    ["5 team seats","Included in Advanced"],
-  ];
-  return (
-    <div className="fact-strip" aria-label="Fatura Pro product facts">
-      {facts.map(([value,label]) => <div className="fact-item" key={value}><span className="fact-value">{value}</span><span className="fact-label">{label}</span></div>)}
-    </div>
-  );
-}
-const ICON_PATHS = {
-  invoice: "M7 3h7l5 5v13a1 1 0 0 1-1 1H7a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1zM14 3v5h5M9 13h7M9 17h5",
-  globe: "M12 3a9 9 0 1 0 0 18 9 9 0 0 0 0-18zM3.5 9h17M3.5 15h17M12 3c2.5 2.5 3.5 5.5 3.5 9S14.5 18.5 12 21c-2.5-2.5-3.5-5.5-3.5-9S9.5 5.5 12 3z",
-  bell: "M18 9a6 6 0 1 0-12 0c0 5-2 6-2 6h16s-2-1-2-6M10.5 20a1.8 1.8 0 0 0 3 0",
-  chart: "M4 20V10M10 20V4M16 20v-7M22 20H2",
-  users: "M15.5 20v-1.8a3.6 3.6 0 0 0-3.6-3.6H6.6A3.6 3.6 0 0 0 3 18.2V20M9.2 11.4a3.6 3.6 0 1 0 0-7.2 3.6 3.6 0 0 0 0 7.2zM21 20v-1.8a3.6 3.6 0 0 0-2.7-3.5M15.8 4.3a3.6 3.6 0 0 1 0 7",
-  download: "M12 3v12M7.5 10.5 12 15l4.5-4.5M4 20h16",
-  pencil: "M4 20h4L19.5 8.5a2.1 2.1 0 0 0-3-3L5 17v3zM14.5 6.5l3 3",
-  bank: "M3 10h18M5 10v8M10 10v8M14 10v8M19 10v8M2.5 21h19M12 3l9 5H3l9-5z",
-  mobile: "M7.5 2.5h9a1.5 1.5 0 0 1 1.5 1.5v16a1.5 1.5 0 0 1-1.5 1.5h-9A1.5 1.5 0 0 1 6 20V4a1.5 1.5 0 0 1 1.5-1.5zM11 18.5h2",
-  building: "M4 21V5a1 1 0 0 1 1-1h9a1 1 0 0 1 1 1v16M15 10h4a1 1 0 0 1 1 1v10M3 21h18M8 8h3M8 12h3M8 16h3",
-  user: "M20 21v-2a5 5 0 0 0-5-5H9a5 5 0 0 0-5 5v2M12 11a4 4 0 1 0 0-8 4 4 0 0 0 0 8z",
-  list: "M8 6h13M8 12h13M8 18h13M3.5 6h.01M3.5 12h.01M3.5 18h.01",
-  send: "M22 3 11 14M22 3l-7 19-4-8-8-4 19-7z",
-  tablet: "M6 2.5h12a1.5 1.5 0 0 1 1.5 1.5v16a1.5 1.5 0 0 1-1.5 1.5H6A1.5 1.5 0 0 1 4.5 20V4A1.5 1.5 0 0 1 6 2.5zM9.5 18.5h5",
-};
-
-function FIcon({ name, size = 28 }) {
-  const d = ICON_PATHS[name];
-  if (!d) return null;
-  return (
-    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="var(--gold)" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-      <path d={d} />
-    </svg>
-  );
-}
-
-function Features() {
-  return (
-    <section id="product" style={{ background:"var(--bg2)", borderTop:"1px solid var(--border2)", borderBottom:"1px solid var(--border2)" }}>
-      <div className="container">
-        <div className="section-tag">One workspace, less admin</div>
-        <h2 className="section-title">From “I should invoice them”<br />to <em style={{ fontStyle:"italic", color:"var(--gold)" }}>paid and recorded.</em></h2>
-        <p className="section-sub">The everyday invoicing workflow—built around real clients, multiple currencies, deposits, reminders and repeat work.</p>
-        <div className="features-grid">
-          {FEATURES.map((f, i) => (
-            <div key={i} className="feat-card" style={{ animationDelay:`${i*0.07}s` }}>
-              <span className="feat-icon" style={{ animationDelay:`${i*0.3}s` }}><FIcon name={f.icon} /></span>
-              <div className="feat-title">{f.title}</div>
-              <div className="feat-desc">{f.desc}</div>
-              {f.pro && <div className="feat-pro">✦ ESSENTIAL</div>}
-            </div>
-          ))}
-        </div>
-      </div>
-    </section>
-  );
-}
-
-function Audience() {
-  const audiences = [
-    { n:"01", kicker:"Independent", title:"Freelancers with clients in more than one country", text:"Invoice in the client’s currency, reuse their details, ask for a deposit and follow up without turning your work into bookkeeping.", href:"/for-freelancers", link:"Explore invoicing for freelancers →" },
-    { n:"02", kicker:"Client services", title:"Consultants and agencies selling projects or retainers", text:"Move from quote to invoice, schedule recurring work, separate business profiles and see what every client still owes.", href:"/for-agencies", link:"Explore agency workflows →" },
-    { n:"03", kicker:"Growing teams", title:"Small businesses that need structure, not an ERP", text:"Share one client and invoice workspace with up to five people, connect online payments and export clean records for your accountant.", href:"#pricing", link:"Compare plans →" },
-  ];
-  return (
-    <section id="solutions">
-      <div className="container">
-        <div className="section-tag">Built around your work</div>
-        <h2 className="section-title">Not accounting software<br />with invoicing <em style={{ color:"var(--gold)", fontStyle:"italic" }}>buried inside.</em></h2>
-        <p className="section-sub">Fatūra Pro starts where service businesses spend their time: clients, work, invoices and getting paid.</p>
-        <div className="audience-grid">
-          {audiences.map(a => <article className="audience-card" data-number={a.n} key={a.n}><div className="audience-kicker">{a.kicker}</div><h3>{a.title}</h3><p>{a.text}</p><a href={a.href}>{a.link}</a></article>)}
-        </div>
-      </div>
-    </section>
-  );
-}
-
-function InstallApp() {
-  return (
-    <section style={{ background:"var(--bg)", borderTop:"1px solid var(--border2)" }}>
-      <div className="container" style={{ textAlign:"center", padding:"80px 24px" }}>
-        <div className="section-tag" style={{ justifyContent:"center", display:"flex" }}>📲 Mobile App</div>
-        <h2 className="section-title">Use Fatūra as a<br /><em style={{ color:"var(--gold)", fontStyle:"italic" }}>mobile app.</em></h2>
-        <p className="section-sub" style={{ maxWidth:520, margin:"0 auto 48px" }}>
-          No App Store needed. Install Fatūra directly from your browser in seconds — works on iPhone and Android.
-        </p>
-        <div style={{ display:"grid", gridTemplateColumns:"repeat(auto-fit, minmax(220px, 1fr))", gap:20, maxWidth:700, margin:"0 auto 48px" }}>
-          <div style={{ background:"var(--bg2)", border:"1px solid var(--border)", borderRadius:14, padding:"24px 20px" }}>
-            <div style={{ fontSize:32, marginBottom:12 }}><FIcon name="mobile" size={30} /></div>
-            <div style={{ fontWeight:700, fontSize:15, marginBottom:12, color:"var(--text)" }}>iPhone (Safari)</div>
-            <ol style={{ textAlign:"left", paddingLeft:18, color:"var(--text2)", fontSize:13, lineHeight:2 }}>
-              <li>Open Fatūra in Safari</li>
-              <li>Tap the <strong style={{ color:"var(--text)" }}>Share</strong> button (□↑)</li>
-              <li>Scroll down and tap <strong style={{ color:"var(--text)" }}>Add to Home Screen</strong></li>
-              <li>Tap <strong style={{ color:"var(--text)" }}>Add</strong> — done! ✓</li>
-            </ol>
-          </div>
-          <div style={{ background:"var(--bg2)", border:"1px solid var(--border)", borderRadius:14, padding:"24px 20px" }}>
-            <div style={{ fontSize:32, marginBottom:12 }}><FIcon name="tablet" size={30} /></div>
-            <div style={{ fontWeight:700, fontSize:15, marginBottom:12, color:"var(--text)" }}>Android (Chrome)</div>
-            <ol style={{ textAlign:"left", paddingLeft:18, color:"var(--text2)", fontSize:13, lineHeight:2 }}>
-              <li>Open Fatūra in Chrome</li>
-              <li>Tap the <strong style={{ color:"var(--text)" }}>⋮ menu</strong> (top right)</li>
-              <li>Tap <strong style={{ color:"var(--text)" }}>Add to Home Screen</strong></li>
-              <li>Tap <strong style={{ color:"var(--text)" }}>Add</strong> — done! ✓</li>
-            </ol>
-          </div>
-        </div>
-        <p style={{ color:"var(--text2)", fontSize:13 }}>Opens full-screen · No ads · Internet connection required · Free plan available</p>
-      </div>
-    </section>
-  );
-}
-
-function HowItWorks({ onOpenApp }) {
-  const steps = [
-    { n:"1", icon:"building", title:"Set up your profile", desc:"Add your company name, logo, address, and banking details once. It'll appear on every invoice." },
-    { n:"2", icon:"user", title:"Add your client", desc:"Enter client details or pick from clients saved in your account. Phone, email, and address stay ready for reuse." },
-    { n:"3", icon:"list", title:"Add line items", desc:"List your services or products with quantity and price. Fatūra calculates tax and discounts automatically." },
-    { n:"4", icon:"send", title:"Export & track", desc:"Preview the invoice, save or print the PDF, then deliver it through your preferred channel and track its payment status." },
-  ];
-  return (
-    <section id="how">
-      <div className="container">
-        <div style={{ textAlign:"center", marginBottom:0 }}>
-          <div className="section-tag" style={{ justifyContent:"center", display:"flex" }}>How it works</div>
-          <h2 className="section-title">From setup to sent invoice<br />in <em style={{ color:"var(--gold)", fontStyle:"italic" }}>four clear steps.</em></h2>
-        </div>
-        <div className="how-grid">
-          {steps.map((s, i) => (
-            <div key={i} className="how-step">
-              <div className="how-num">{s.n}</div>
-              <div style={{ fontSize:26, marginBottom:14 }}><FIcon name={s.icon} size={26} /></div>
-              <div className="how-title">{s.title}</div>
-              <div className="how-desc">{s.desc}</div>
-            </div>
-          ))}
-        </div>
-        <div style={{ textAlign:"center", marginTop:56 }}>
-          <button className="btn btn-gold btn-lg" onClick={() => { trackEvent("landing_cta_clicked", { placement:"how_it_works" }); onOpenApp({ signup:true, source:"how_it_works" }); }}>Create Your First Invoice →</button>
-        </div>
-      </div>
-    </section>
-  );
-}
-
-function Pricing({ onOpenApp }) {
-  const [annual, setAnnual] = useState(false);
-  const [showWaitlist, setShowWaitlist] = useState(false);
-  const [waitEmail, setWaitEmail] = useState("");
-  const [waitStatus, setWaitStatus] = useState("");
-  const handleWaitlist = async () => {
-    if (!waitEmail.includes("@")) return;
-    const { createClient } = await import("@supabase/supabase-js");
-    const sb = createClient(process.env.REACT_APP_SUPABASE_URL, process.env.REACT_APP_SUPABASE_ANON_KEY);
-    let wCountry = null;
-    try { const geo = await fetch("https://ipapi.co/json/"); const gd = await geo.json(); wCountry = gd.country_name || null; } catch(e) {}
-    const { error } = await sb.from("waitlist").insert({ email: waitEmail, country: wCountry });
-    if (!error) { await fetch("/api/waitlist-confirm", { method:"POST", headers:{"Content-Type":"application/json"}, body:JSON.stringify({ email: waitEmail }) }); }
-    if (error && error.code === "23505") { setWaitStatus("already"); }
-    else if (error) { setWaitStatus("error"); }
-    else { setWaitStatus("success"); }
-  };
-  return (
-    <section id="pricing" style={{ background:"var(--bg2)", borderTop:"1px solid var(--border2)", borderBottom:"1px solid var(--border2)" }}>
-      <div className="container">
-        <div style={{ textAlign:"center" }}>
-          <div className="section-tag" style={{ justifyContent:"center", display:"flex" }}>Pricing</div>
-          <h2 className="section-title">Simple, honest pricing.</h2>
-          <p className="section-sub" style={{ margin:"0 auto" }}>No hidden fees. Cancel anytime. Start free, upgrade when you're ready.</p>
-          <div style={{ display:"flex", alignItems:"center", gap:12, justifyContent:"center", marginTop:24 }}>
-            <span style={{ fontSize:13, color: annual ? "var(--text2)" : "var(--text)", fontWeight:600 }}>Monthly</span>
-            <div onClick={() => setAnnual(a => !a)} style={{
-              width:44, height:24, borderRadius:12, background: annual ? "var(--gold)" : "var(--bg4)",
-              cursor:"pointer", position:"relative", transition:"background 0.2s", border:"1px solid var(--border)"
-            }}>
-              <div style={{ position:"absolute", top:3, left: annual ? 22 : 2, width:16, height:16,
-                borderRadius:50, background:"#fff", transition:"left 0.2s" }} />
-            </div>
-            <span style={{ fontSize:13, color: annual ? "var(--text)" : "var(--text2)", fontWeight:600 }}>
-              Annual <span style={{ color:"var(--green)", fontSize:11 }}>save 20%</span>
-            </span>
-          </div>
-        </div>
-        <div className="pricing-grid">
-          {PLANS.map((p, i) => (
-            <div key={i} className={`price-card ${p.featured ? "featured" : ""}`}>
-              {p.badge && <div className="price-badge">{p.badge}</div>}
-              <div className="price-plan">{p.name}</div>
-              <div className="price-amount">
-                {p.price > 0 ? <>
-                  <span className="price-currency">€</span>
-                  <span className="price-num">{annual ? Math.round(p.price * 0.8) : p.price}</span>
-                  <span className="price-period">/ mo</span>
-                </> : <span className="price-num" style={{ fontSize:42 }}>Free</span>}
-              </div>
-              {p.price > 0 && <div className="price-tax-note">excl. btw</div>}
-              {p.id === "business" && BUSINESS_ENABLED && <div className="price-tax-note">7-day free trial · card via Stripe · cancel anytime</div>}
-              {p.price > 0 && annual && <div style={{ fontSize:12, color:"var(--green)", marginBottom:4 }}>Billed €{Math.round(p.price * 0.8 * 12)}/year</div>}
-              <div className="price-desc">{p.desc}</div>
-              <div className="price-divider" />
-              {p.features.map((f, j) => (
-                <div key={j} className="price-feature">
-                  <span className={f.ok ? "price-feature-check" : "price-feature-x"}>{f.ok ? "✓" : "—"}</span>
-                  <span style={{ color: f.ok ? "var(--text)" : "var(--text3)" }}>{f.text}</span>
-                </div>
-              ))}
-              <button className={`btn ${p.ctaStyle} price-cta`} onClick={p.cta === "Join Waitlist" ? () => setShowWaitlist(true) : () => { if (p.cta !== "Start Free") localStorage.setItem("fatura_intent_plan", p.id); trackEvent("pricing_cta_clicked", { plan:p.id || "free" }); onOpenApp({ signup:true, source:`pricing_${p.id || "free"}` }); }}>{p.cta}</button>
-              {p.id === "business" && BUSINESS_ENABLED && <div style={{ textAlign:"center", marginTop:10, fontSize:12, color:"var(--gold)" }}>Secure Stripe checkout · Cancel anytime</div>}
-            </div>
-          ))}
-        </div>
-        <div style={{ textAlign:"center", marginTop:36, fontSize:13, color:"var(--text2)" }}>
-          🔒 Payments powered by Stripe · TLS encrypted · Cancel anytime
-        </div>
-        {showWaitlist && <div style={{ position:"fixed", inset:0, background:"rgba(0,0,0,0.75)", zIndex:200, display:"flex", alignItems:"center", justifyContent:"center", padding:16 }}><div style={{ background:"#111118", border:"1px solid rgba(99,102,241,0.18)", borderRadius:16, padding:32, maxWidth:440, width:"100%", maxHeight:"90vh", overflowY:"auto" }}><div style={{ fontFamily:"Playfair Display, serif", fontSize:22, marginBottom:8, color:"#e8e4dc" }}>Advanced Plan — Coming Soon</div><div style={{ fontSize:13, color:"#9a9690", marginBottom:16, lineHeight:1.6 }}>Join the waitlist and be the first to know when we launch.</div>{waitStatus === "success" ? <div style={{ textAlign:"center", padding:"16px 0" }}><div style={{ color:"#4caf89", fontSize:15, fontWeight:600, marginBottom:8 }}>You are on the list!</div><div style={{ color:"#9a9690", fontSize:13, lineHeight:1.6, marginBottom:16 }}>Thank you! We will notify you when Advanced Plan launches. Meanwhile, enjoy Essential free for 7 days.</div><button onClick={() => setShowWaitlist(false)} style={{ padding:"10px 24px", borderRadius:8, background:"#6366F1", border:"none", color:"#000", fontWeight:600, cursor:"pointer" }}>Continue with Essential</button></div> : <div><input value={waitEmail} onChange={e => setWaitEmail(e.target.value)} placeholder="your@email.com" style={{ width:"100%", background:"#18181f", border:"1px solid rgba(99,102,241,0.18)", borderRadius:8, color:"#e8e4dc", fontSize:14, padding:"11px 14px", marginBottom:12, fontFamily:"DM Sans, sans-serif", outline:"none", boxSizing:"border-box" }} />{waitStatus === "already" && <div style={{ fontSize:12, color:"#6366F1", marginBottom:8 }}>Already on the waitlist!</div>}<div style={{ display:"flex", gap:10 }}><button onClick={() => setShowWaitlist(false)} style={{ flex:1, padding:"10px", borderRadius:8, background:"#18181f", border:"1px solid rgba(255,255,255,0.07)", color:"#9a9690", cursor:"pointer" }}>Cancel</button><button onClick={handleWaitlist} style={{ flex:1, padding:"10px", borderRadius:8, background:"#6366F1", border:"none", color:"#000", fontWeight:600, cursor:"pointer" }}>Notify Me</button></div></div>}</div></div>}
-      </div>
-    </section>
-  );
-}
-
-function WhyDifferent() {
-  // Claims a visitor can check for themselves. No invented reviews - when
-  // real customers send one, put it back with their full name.
-  const POINTS = [
-    { title: "A real e-invoice, not just a PDF", text: "Export invoices as structured UBL XML built for EN 16931 workflows - the format behind European e-invoicing. Credit notes export too, as document type 381." },
-    { title: "Currencies are never converted", text: "Bill in 17 currencies and each keeps its own total. You see EUR 5.410 and USD 1.440 side by side, never one invented figure built on yesterday's exchange rate." },
-    { title: "Correcting an invoice is free", text: "When an issued invoice needs correcting, create a credit note instead of silently rewriting its history. It gets its own number, a negative amount and a reference to the original. Included on every plan, including Free." },
-    { title: "Deposits that actually add up", text: "Take 50% up front and the invoice shows a real balance. Revenue counts what arrived, outstanding counts what did not, and reminders chase the difference." },
-  ];
-  return (
-    <section>
-      <div className="container">
-        <div style={{ textAlign:"center" }}>
-          <div className="section-tag" style={{ justifyContent:"center", display:"flex" }}>Why Fat&#363;ra Pro</div>
-          <h2 className="section-title">Small details that prevent<br /><em style={{ color:"var(--gold)", fontStyle:"italic" }}>expensive confusion.</em></h2>
-        </div>
-        <div className="testi-grid">
-          {POINTS.map((p, i) => (
-            <div key={i} className="testi-card">
-              <div style={{ fontSize:16, fontWeight:700, color:"var(--gold)", marginBottom:10 }}>{p.title}</div>
-              <p className="testi-text" style={{ fontStyle:"normal" }}>{p.text}</p>
-            </div>
-          ))}
-        </div>
-      </div>
-    </section>
-  );
-}
-
-function ReferralSection({ onOpenApp }) {
-  const start = () => {
-    trackEvent("landing_referral_cta_clicked", { placement:"referral_section" });
-    onOpenApp({ signup:true, source:"referral_program" });
-  };
-
-  return (
-    <section id="referrals" aria-labelledby="referral-title">
-      <div className="container">
-        <div className="referral-shell">
-          <div className="referral-copy">
-            <div className="section-tag">Built into your account</div>
-            <h2 className="section-title" id="referral-title">Share good invoicing.<br /><em style={{ color:"var(--gold)", fontStyle:"italic" }}>Earn Essential together.</em></h2>
-            <p className="section-sub">Invite people who would genuinely use Fatūra Pro. Your friend receives 7 extra Essential days after their first real invoice, and every three activated friends earn you 30 Essential days.</p>
-            <div className="referral-location"><span aria-hidden="true">✦</span><span>Find your personal link inside <strong>Settings → Earn Essential</strong></span></div>
-            <div className="referral-actions">
-              <button className="btn btn-gold btn-lg" onClick={start}>Start free &amp; get your link →</button>
-              <span className="referral-fineprint">No credit card required.<br />Only genuine activated accounts count.</span>
-            </div>
-            <a className="referral-ambassador-link" href="/ambassadors" onClick={() => trackEvent("ambassador_program_clicked", { placement:"landing_referral_section" })}>Creator, consultant or community leader? Earn 25% on Essential and 35% on Advanced for 12 months →</a>
-          </div>
-          <div className="referral-steps" aria-label="How referral rewards work">
-            <div className="referral-step">
-              <div className="referral-step-num">1</div>
-              <div><strong>Share your personal link</strong><span>Copy it from Settings or send it directly on WhatsApp.</span></div>
-            </div>
-            <div className="referral-step">
-              <div className="referral-step-num">2</div>
-              <div><strong>Your friend creates a real invoice</strong><span>The reward activates only after meaningful use.</span></div>
-              <div className="referral-reward">+7 days</div>
-            </div>
-            <div className="referral-step">
-              <div className="referral-step-num">3</div>
-              <div><strong>Three active friends unlock Essential</strong><span>If you already subscribe, your earned days stay banked.</span></div>
-              <div className="referral-reward">+30 days</div>
-            </div>
-          </div>
-        </div>
-      </div>
-    </section>
-  );
-}
-
-function FAQ() {
-  const [open, setOpen] = useState(null);
-  return (
-    <section id="faq" style={{ background:"var(--bg2)", borderTop:"1px solid var(--border2)" }}>
-      <div className="container">
-        <div style={{ textAlign:"center" }}>
-          <div className="section-tag" style={{ justifyContent:"center", display:"flex" }}>FAQ</div>
-          <h2 className="section-title">Questions? We've got answers.</h2>
-        </div>
-        <div className="faq-list">
-          {FAQS.map((f, i) => (
-            <div key={i} className="faq-item">
-              <div className="faq-q" onClick={() => setOpen(open === i ? null : i)}>
-                {f.q}
-                <span className={`faq-icon ${open === i ? "open" : ""}`}>+</span>
-              </div>
-              {open === i && <div className="faq-a">{f.a}</div>}
-            </div>
-          ))}
-        </div>
-      </div>
-    </section>
-  );
-}
-
-function CTASection({ onOpenApp }) {
-  const start = () => {
-    trackEvent("landing_cta_clicked", { placement:"final_cta" });
-    onOpenApp({ signup:true, source:"final_cta" });
-  };
-  return (
-    <div className="cta-section">
-      <div className="container">
-        <div className="hero-tag" style={{ justifyContent:"center", margin:"0 auto 24px" }}>
-          <span className="hero-tag-dot" /> Start today — free forever
-        </div>
-        <h2 className="section-title" style={{ textAlign:"center", fontSize:"clamp(32px,5vw,56px)" }}>
-          Your next invoice should take<br /><em style={{ color:"var(--gold)", fontStyle:"italic" }}>minutes, not your evening.</em>
-        </h2>
-        <p style={{ textAlign:"center", color:"var(--text2)", fontSize:17, marginTop:16, marginBottom:40 }}>
-          Create an account, add a client and preview your first invoice. Free plan available, no credit card required.
-        </p>
-        <div style={{ display:"flex", gap:14, justifyContent:"center", flexWrap:"wrap" }}>
-          <button className="btn btn-gold btn-xl" onClick={start}>Create your first invoice — free →</button>
-          <a href="#pricing" className="btn btn-outline btn-lg">View Pricing</a>
-        </div>
-      </div>
-    </div>
-  );
-}
-
-function Footer({ onOpenApp }) {
-  const columns = [
-    { title:"Product", links:[["#product","Multi-currency invoicing"],["#how","How it works"],["#pricing","Pricing"],["#referrals","Referral rewards"],["/invoice-generator","Free invoice generator"],["/api-docs","API documentation"]] },
-    { title:"Solutions", links:[["/for-freelancers","For freelancers"],["/for-agencies","For agencies & teams"],["/ubl-factuur-maken","UBL invoice export"],["/nl","Nederlands factuurprogramma"]] },
-    { title:"Resources", links:[["/blog","Invoicing guides"],["/late-payment-scripts","Late-payment scripts"],["/fr/relance-facture-impayee-anglais","French payment reminder guide"],["/blog/how-to-create-ubl-invoice-en16931","UBL invoice guide"],["/blog/how-to-create-professional-invoice","Professional invoice guide"]] },
-    { title:"Company", links:[["/ambassadors","Ambassador program"],["mailto:support@faturapro.app","Contact support"],["/privacy","Privacy policy"],["/terms","Terms of service"],["https://x.com/Faturapro","Follow on X"]] },
-  ];
-  return (
-    <footer>
-      <div className="footer-grid">
-        <div className="footer-brand">
-          <div style={{ display:"flex", alignItems:"center", gap:10 }}>
-            <img className="nav-logo-icon" src="/fatura-mark.svg" alt="" width="36" height="36" />
-            <span className="nav-logo-text">Fatūra</span>
-          </div>
-          <p>Multi-currency invoicing software for freelancers, consultants and small service businesses working across borders.</p>
-          <div style={{ marginTop:16, display:"flex", flexDirection:"column", gap:4 }}>
-            <button className="btn btn-gold" style={{ alignSelf:"flex-start", marginTop:8 }} onClick={() => onOpenApp({ signup:true, source:"footer" })}>Start free →</button>
-            <span style={{ fontSize:11, color:"var(--gold)", marginTop:10 }}>GDPR rights explained · Account data hosted in the EU (Ireland)</span>
-            <span style={{ fontSize:11, color:"var(--text3)", marginTop:8 }}>UBL XML export · Not a Peppol access point</span>
-          </div>
-        </div>
-        {columns.map(col => <div className="footer-col" key={col.title}><h4>{col.title}</h4>{col.links.map(([h,l]) => <a key={h} href={h} target={h.startsWith("http") ? "_blank" : undefined} rel={h.startsWith("http") ? "noreferrer" : undefined}>{l}</a>)}</div>)}
-      </div>
-      <div className="footer-bottom">
-        <span>&copy; 2026 Fat&#363;ra Pro &middot; Invoicing software for business without borders</span>
-        <span style={{ display:"flex", gap:16 }}>
-          <a href="https://x.com/Faturapro" target="_blank" rel="noreferrer" style={{ color:"var(--text2)", fontSize:18, textDecoration:"none" }}>𝕏</a>
-        </span>
-      </div>
-    </footer>
-  );
-}
 
 /* ─── CHATBOT ────────────────────────────────────────────────── */
 const SUGGESTIONS = ["What's in the Essential plan?", "كيف تشتغل؟", "Do I need a company?", "How does the trial work?"];
-const INIT_MSG = { role:"bot", text:"Hey! 👋 I'm Fatūra's assistant. Ask me anything about features, pricing, or how to get started.", time: timeStr() };
+const INIT_MSG = { role:"bot", text:"Hey! 👋 I'm Fatūra's AI assistant. Ask me anything about features, pricing, or how to get started.", time: timeStr() };
 
 function Chatbot() {
   const [open, setOpen] = useState(false);
@@ -1055,7 +196,101 @@ function Chatbot() {
   );
 }
 
-export default function LandingPage({ onOpenApp, onSignIn }) {
+/* ─── CONTENT ────────────────────────────────────────────────── */
+const TRUST = ["No credit card needed", "Free plan available", "Account data hosted in the EU"];
+
+const FACTS = [
+  ["17", "currencies, balances kept separate"],
+  ["4", "languages for your invoices"],
+  ["5", "languages for payment reminders"],
+  ["UBL/XML", "export for EN 16931 workflows"],
+  ["5", "team seats included in Advanced"],
+];
+
+const STEPS = [
+  ["Set up your profile", "Add your company name, logo, address and bank details once. They appear on every invoice."],
+  ["Add your client and line items", "Pick a saved client or add a new one, choose the invoice language and currency, and list your services."],
+  ["Export and track payment", "Save or print the PDF, send it your way, and see what is paid, pending or overdue at a glance."],
+];
+
+const SHOWCASE_POINTS = [
+  "Interface language and invoice language are separate settings.",
+  "Each currency keeps its own total, with no exchange rates applied.",
+  "VAT, discounts and deposits are calculated automatically.",
+];
+
+const AUDIENCES = [
+  ["Independent", "Freelancers with clients in more than one country", "Invoice in the client’s currency, reuse their details, ask for a deposit and follow up without turning your work into bookkeeping.", "/for-freelancers", "Invoicing for freelancers"],
+  ["Client services", "Consultants and agencies selling projects or retainers", "Move from quote to invoice, schedule recurring work, separate business profiles and see what every client still owes.", "/for-agencies", "Workflows for agencies"],
+  ["Growing teams", "Small businesses that need structure, not an ERP", "Share one client and invoice workspace with up to five people, connect online payments and export clean records for your accountant.", "#pricing", "Compare plans"],
+];
+
+const FEATURES = [
+  ["free", "globe", "Multi-currency invoicing that stays honest", "Invoice international clients in 17 currencies. EUR, USD, GBP, AED and every other balance stays separate, with no conversion hiding what you were actually paid."],
+  ["free", "users", "Enter client details once", "Save clients and business details, then reuse them on every invoice. Less retyping, fewer mistakes, faster billing."],
+  ["free", "undo", "Credit notes on every plan", "Correct an issued invoice with a credit note that has its own number, a negative amount and a reference to the original. Included on every plan, including Free."],
+  ["essential", "bell", "Know what is paid, and what is late", "Track pending, partial, paid and overdue invoices. Record deposits, prepare a clear reminder, review it, then open it in email or WhatsApp to send."],
+  ["essential", "code", "PDF for people. UBL XML for systems.", "Create branded PDF invoices and export UBL XML for EN 16931 workflows. Validate the profile your customer requires; UBL export is not Peppol delivery."],
+  ["advanced", "chart", "Quotes, expenses and VAT summaries", "Turn an accepted quote into an invoice, schedule recurring invoices for review, log expenses and see quarterly VAT/BTW summaries per currency."],
+];
+
+const WHY = [
+  ["A structured e-invoice, not just a PDF", "Export invoices as UBL XML built for EN 16931 workflows. Credit notes export too, as document type 381."],
+  ["Currencies are never converted", "Bill in 17 currencies and each keeps its own total. You see EUR 5,410 and USD 1,440 side by side, never one invented figure based on yesterday’s rate."],
+  ["Corrections leave a clear trail", "Instead of silently rewriting an issued invoice, create a credit note with its own number and a reference to the original."],
+  ["Deposits that actually add up", "Take 50% up front and the invoice shows a real balance. Revenue counts what arrived, and reminders chase what is still owed."],
+];
+
+const PLANS = {
+  free: { name: "Free", price: 0, desc: "For freelancers who are just getting started.", items: ["20 invoices and 5 clients", "All 17 currencies", "Dashboard totals and invoice overview", "PDF export and print", "Your own logo and branding", "Credit notes"], cta: "Start free" },
+  pro: { name: "Essential", price: 9, desc: "Unlimited invoicing, with payment reminders.", items: ["Everything in Free", "Unlimited invoices and clients", "Editable payment reminders in 5 languages by email and WhatsApp (you send them)", "Deposits and partial payments", "UBL/XML export for EN 16931 workflows (no Peppol delivery)"], cta: "Try Essential free", foot: "7-day free trial, automatic · no card needed" },
+  business: { name: "Advanced", price: 19, desc: "For agencies and teams managing many clients.", items: ["Everything in Essential", "Quotes that convert to invoices", "Expenses and quarterly VAT/BTW summary", "Recurring invoices created for your review", "Up to 5 team members and multiple business profiles", "Online card payments via Stripe", "API access and accountant CSV export", "Remove Fatūra branding", "Priority support"], cta: "Try Advanced free for 7 days", foot: "7-day free trial · card via Stripe · cancel anytime" },
+};
+
+const FAQS = [
+  ["Is Fatūra Pro free to use?", "Yes. The Free plan lets you create up to 20 invoices for 5 clients, with PDF export, your logo and credit notes, and no credit card. For unlimited invoicing, Essential costs €9 per month excluding VAT."],
+  ["Can I invoice in different currencies?", "Yes, in 17 currencies. Amounts are never converted between them: each currency keeps its own total, so you always see exactly what you were paid in the currency you were paid in."],
+  ["Can I create an invoice in another language?", "Yes. The invoice document language is set per invoice: English, Dutch, French or Arabic, and the printable document supports right-to-left text. The app itself is available in English, Dutch, French, Spanish and Arabic."],
+  ["Can I create a UBL invoice with Fatūra Pro?", "Yes. Invoices and credit notes can be exported as UBL/XML files intended for EN 16931 workflows. Receiving systems can apply extra rules, so confirm the required profile and validate the file before delivery."],
+  ["Does Fatūra Pro send invoices through Peppol?", "No. Fatūra Pro exports a downloadable UBL/XML file, but it is not connected to the Peppol network and is not an approved platform under national e-invoicing schemes. You deliver the file using the method your customer requests."],
+  ["How do I make a credit note?", "Open the invoice and press Credit. Fatūra Pro creates a separate document with its own number, a negative amount and a reference to the original invoice. Credit notes are included on every plan, including Free."],
+  ["Can I ask for a deposit and invoice the rest later?", "Yes. Record what you received, for example 50% up front, and the invoice shows as partially paid with the balance still owed. Reminders then chase the balance rather than the full amount."],
+  ["How does the payment reminder work?", "When an invoice passes its due date, it is marked overdue. You choose a polite, firm or final tone, review the prepared message, then open it in email or WhatsApp to send it yourself."],
+  ["Do I need a registered company to start?", "No. Freelancers, sole traders and small businesses can start without a registered company or VAT number. Whether you must register to invoice depends on the rules that apply to you."],
+  ["Can clients pay an invoice online?", "Advanced accounts can connect Stripe so clients can pay by card from the invoice payment page. Available payment methods depend on the connected Stripe account and region."],
+  ["Does Fatūra Pro have a referral program?", "Yes. Open Settings and choose Earn Essential to copy your personal link. A friend who joins through it receives 7 extra Essential days after creating their first valid invoice, and every three activated friends earn you 30 Essential days."],
+  ["How is my data handled?", "Account and invoice data is hosted in the European Union (Ireland) and connections are encrypted. We do not sell personal data. The Privacy Policy explains how to request access, export or deletion."],
+];
+
+const FOOTER_COLUMNS = [
+  ["Product", [["#features", "Features"], ["#how", "How it works"], ["#pricing", "Pricing"], ["#referrals", "Referral rewards"], ["/invoice-generator", "Free invoice generator"], ["/api-docs", "API documentation"]]],
+  ["Solutions", [["/for-freelancers", "For freelancers"], ["/for-agencies", "For agencies and teams"], ["/ubl-factuur-maken", "UBL invoice export (NL)"], ["/nl", "Factuurprogramma (NL)"]]],
+  ["Resources", [["/blog", "Invoicing guides"], ["/late-payment-scripts", "Late-payment scripts"], ["/blog/how-to-create-ubl-invoice-en16931", "UBL invoice guide"], ["/blog/how-to-create-professional-invoice", "Professional invoice guide"]]],
+  ["Company", [["/ambassadors", "Ambassador program"], ["mailto:support@faturapro.app", "Contact support"], ["/privacy", "Privacy policy"], ["/terms", "Terms of service"], ["https://x.com/Faturapro", "Follow on X"]]],
+];
+
+const CURRENCIES = [["EUR", "€"], ["USD", "$"], ["GBP", "£"], ["AED", "د.إ"], ["SAR", "﷼"], ["QAR", "ر.ق"], ["KWD", "د.ك"], ["MAD", "د.م"], ["DZD", "دج"], ["TND", "د.ت"], ["EGP", "ج.م"], ["TRY", "₺"], ["JPY", "¥"], ["MYR", "RM"], ["IDR", "Rp"]];
+
+const ICONS = {
+  globe: <><circle cx="12" cy="12" r="9" /><path d="M3 12h18M12 3a14 14 0 0 1 0 18M12 3a14 14 0 0 0 0 18" /></>,
+  users: <><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2" /><circle cx="9" cy="7" r="4" /><path d="M22 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75" /></>,
+  undo: <><path d="M9 14L4 9l5-5" /><path d="M4 9h11a5 5 0 0 1 0 10h-3" /></>,
+  bell: <><path d="M18 8a6 6 0 0 0-12 0c0 7-3 9-3 9h18s-3-2-3-9" /><path d="M13.7 21a2 2 0 0 1-3.4 0" /></>,
+  code: <path d="M16 18l6-6-6-6M8 6l-6 6 6 6" />,
+  chart: <><path d="M3 3v18h18" /><path d="M7 15l4-4 3 3 5-6" /></>,
+  mobile: <><rect x="6" y="2.5" width="12" height="19" rx="2" /><path d="M11 18.5h2" /></>,
+  gift: <><rect x="3" y="8" width="18" height="4" rx="1" /><path d="M12 8v13M19 12v9H5v-9M7.5 8a2.5 2.5 0 0 1 0-5C10 3 12 8 12 8s2-5 4.5-5a2.5 2.5 0 0 1 0 5" /></>,
+};
+const Icon = ({ name }) => (
+  <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">{ICONS[name]}</svg>
+);
+const Check = () => <svg width="16" height="16" viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M5 10.5l3.2 3L15 7" /></svg>;
+const TAG = { free: ["tag", "Free"], essential: ["tag essential", "Essential"], advanced: ["tag advanced", "Advanced"] };
+
+/* ─── PAGE ───────────────────────────────────────────────────── */
+export default function LandingPage({ onOpenApp }) {
+  const rootRef = useRef(null);
+
   useEffect(() => {
     const canonical = "https://faturapro.app/";
     const cleanupSeo = applyPageSeo({
@@ -1087,22 +322,223 @@ export default function LandingPage({ onOpenApp, onSignIn }) {
     return cleanupSeo;
   }, []);
 
+  useEffect(() => initLandingMotion(rootRef.current), []);
+
+  // Sign-up links are real links (good for crawlers and "open in new tab"); a normal
+  // click keeps the existing in-app flow, including the chosen trial plan.
+  const signup = (source, plan) => (e) => {
+    if (e && (e.metaKey || e.ctrlKey || e.shiftKey || e.button === 1)) return;
+    if (e) e.preventDefault();
+    try {
+      if (plan) localStorage.setItem("fatura_intent_plan", plan);
+    } catch {}
+    trackEvent(source.startsWith("pricing") ? "pricing_cta_clicked" : "landing_cta_clicked", { placement:source, plan:plan || "free" });
+    onOpenApp({ signup:true, source });
+  };
+  const signupHref = (source, plan) => "/login?signup=1&source=" + source + (plan ? "&plan=" + plan : "");
+  const signIn = (e) => { if (e) e.preventDefault(); onOpenApp(); };
+
+  const plan = (key, featured, delay, btn) => {
+    const p = PLANS[key];
+    const trialPlan = key === "free" ? null : key;
+    return (
+      <article className={"plan reveal" + (featured ? " featured" : "")} style={delay ? { "--d": delay + "ms" } : undefined}>
+        {featured && <span className="plan-badge">Best for freelancers</span>}
+        <div className="plan-name">{p.name}</div>
+        <p className="plan-desc">{p.desc}</p>
+        <div className="price">€{p.price}{p.price > 0 && <small> / month</small>}</div>
+        {p.price > 0 && <div className="tax-note">excl. VAT</div>}
+        <ul>{p.items.map((x) => <li key={x}>{x}</li>)}</ul>
+        {p.foot && <p className="plan-foot">{p.foot}</p>}
+        <a className={"button block " + btn} href={signupHref("pricing_" + key, trialPlan)} onClick={signup("pricing_" + key, trialPlan)}>{p.cta}</a>
+      </article>
+    );
+  };
+
   return (
     <>
-      <style>{FONTS + GLOBAL}</style>
-      <NavBar onOpenApp={onOpenApp} onSignIn={onSignIn} />
-      <Hero onOpenApp={onOpenApp} />
-      <ProductFacts />
-      <Features />
-      <Audience />
-      <HowItWorks onOpenApp={onOpenApp} />
-      <WhyDifferent />
-      <Pricing onOpenApp={onOpenApp} />
-      <InstallApp />
-      <ReferralSection onOpenApp={onOpenApp} />
-      <FAQ />
-      <CTASection onOpenApp={onOpenApp} />
-      <Footer onOpenApp={onOpenApp} />
+      <div className="lv2 js" ref={rootRef}>
+        <div className="progress" aria-hidden="true" />
+        <a className="skip" href="#main">Skip to content</a>
+
+        <header className="nav"><div className="wrap nav-inner">
+          <a className="brand" href="/" aria-label="Fatūra Pro"><img src="/fatura-mark.svg" alt="" width="34" height="34" /><span>Fatūra</span></a>
+          <nav className="nav-links" aria-label="Page sections">
+            <a href="#how">How it works</a><a href="#features">Features</a><a href="#pricing">Pricing</a><a href="/invoice-generator">Free generator</a><a href="/blog">Guides</a>
+          </nav>
+          <LanguageLinks current="en" />
+          <div className="nav-end">
+            <a className="button ghost small" href="/login" onClick={signIn}>Sign in</a>
+            <a className="button primary small" href={signupHref("nav")} onClick={signup("nav")}>Start free</a>
+            <details className="menu">
+              <summary aria-label="Menu"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" aria-hidden="true"><path d="M4 7h16M4 12h16M4 17h16" /></svg></summary>
+              <div className="menu-panel">
+                <a href="#how">How it works</a><a href="#features">Features</a><a href="#pricing">Pricing</a><a href="/invoice-generator">Free invoice generator</a><a href="/blog">Guides</a>
+                <a href="/login" onClick={signIn}>Sign in</a>
+                <a className="button primary block" href={signupHref("menu")} onClick={signup("menu")}>Start free</a>
+              </div>
+            </details>
+          </div>
+        </div></header>
+
+        <main id="main">
+          <section className="hero" id="top">
+            <div className="aurora" aria-hidden="true"><i /><i /><i /></div>
+            <div className="gridlines" aria-hidden="true" />
+            <div className="wrap hero-grid">
+              <div>
+                <span className="kicker reveal"><span className="pulse" aria-hidden="true" />Invoicing for freelancers &amp; businesses working across borders</span>
+                <h1><span className="line">Invoice clients anywhere.</span> <span className="line"><em className="accent grad">Run your business in one place.</em></span></h1>
+                <p className="lead reveal" style={{ "--d":"200ms" }}>Multi-currency invoicing software for freelancers and small service businesses. Create invoices and quotes, track expenses and payments, and manage clients, without complicated accounting software.</p>
+                <div className="actions reveal" style={{ "--d":"320ms" }}>
+                  <a className="button primary" href={signupHref("hero_primary")} onClick={signup("hero_primary")}>Create your first invoice, free <span className="arrow" aria-hidden="true">→</span></a>
+                  <a className="button ghost" href="#how">See how it works</a>
+                </div>
+                <ul className="trust reveal" style={{ "--d":"420ms" }}>{TRUST.map((t) => <li key={t}><Check />{t}</li>)}</ul>
+                <p className="hero-links reveal" style={{ "--d":"480ms" }}>Invoicing <a href="/for-freelancers">for freelancers</a> · <a href="/for-agencies">for agencies &amp; small business</a></p>
+              </div>
+              <div className="stage reveal" style={{ "--d":"250ms" }}>
+                <figure className="shot" aria-label="Real screenshot of the Fatūra Pro dashboard">
+                  <div className="shot-frame"><div className="shot-inner"><img src="/hero-dashboard.png" width="1362" height="596" alt="Fatura Pro dashboard showing invoices, revenue, pending and overdue payments" fetchpriority="high" decoding="async" /></div></div>
+                  <div className="chip two" aria-hidden="true"><span className="dot">✓</span>Credit notes on every plan</div>
+                  <div className="chip one" aria-hidden="true"><span className="dot">17</span>currencies, kept separate</div>
+                  <div className="chip three" aria-hidden="true"><span className="dot">4</span>invoice languages</div>
+                  <figcaption>Real screenshot of the dashboard</figcaption>
+                </figure>
+              </div>
+            </div>
+          </section>
+
+          <div className="marquee" aria-label="Examples of supported currencies"><div className="marquee-track">
+            {CURRENCIES.map(([c, s]) => <span className="cur" key={c}><b>{c}</b><span>{s}</span></span>)}
+            {CURRENCIES.map(([c, s]) => <span className="cur" key={c + "-2"} aria-hidden="true"><b>{c}</b><span>{s}</span></span>)}
+          </div></div>
+
+          <div className="facts" aria-label="Key facts"><div className="wrap"><ul>
+            {FACTS.map(([v, t], i) => <li className="reveal" key={t} style={i ? { "--d": i * 80 + "ms" } : undefined}><strong data-count={/^\d+$/.test(v) ? v : undefined}>{v}</strong><span>{t}</span></li>)}
+          </ul></div></div>
+
+          <section id="how" className="section"><div className="wrap">
+            <div className="section-head reveal"><span className="eyebrow">How it works</span><h2 className="section-title">From setup to sent invoice <em>in three clear steps.</em></h2><p>No accounting knowledge needed. You fill in the details; Fatūra does the maths and the layout.</p></div>
+            <ol className="steps reveal">{STEPS.map(([h, p]) => <li key={h}><h3>{h}</h3><p>{p}</p></li>)}</ol>
+          </div></section>
+
+          <section className="section tight"><div className="wrap showcase">
+            <div className="showcase-copy reveal">
+              <span className="eyebrow">For international clients</span>
+              <h2 className="section-title">Your workspace in English, <em>the invoice in your client’s language.</em></h2>
+              <p className="lead">Invoicing a client in the Netherlands, France or the Gulf? Choose the document language and currency for each invoice, while your own workspace stays in the language you prefer.</p>
+              <ul>{SHOWCASE_POINTS.map((t) => <li key={t}><Check />{t}</li>)}</ul>
+            </div>
+            <div className="demo reveal" style={{ "--d":"150ms" }} data-start="en">
+              <div className="demo-ui">
+                <small>Choose the invoice language:</small>
+                <div className="lang-switch" role="group" aria-label="Language of the example invoice">
+                  {["en", "nl", "fr", "ar"].map((l) => <button type="button" key={l} data-lang={l} aria-pressed={l === "en" ? "true" : "false"}>{l.toUpperCase()}</button>)}
+                </div>
+              </div>
+              <div className="invoice" aria-live="polite">
+                <div className="inv-body" lang="en" dir="ltr">
+                  <div className="inv-head"><div><div className="inv-title" data-k="invoice">Invoice</div><div className="inv-no">INV-2026-014</div></div><span className="inv-badge" data-k="paid">Paid</span></div>
+                  <div className="inv-row"><span data-k="description">Description</span><span data-k="service">Website design</span></div>
+                  <div className="inv-row"><span data-k="subtotal">Subtotal</span><span data-k="sub">€1,200.00</span></div>
+                  <div className="inv-row"><span data-k="vat">VAT 21%</span><span data-k="vatv">€252.00</span></div>
+                  <div className="inv-row total"><span data-k="total">Total due</span><span data-k="totalv">€1,452.00</span></div>
+                </div>
+              </div>
+              <p className="demo-note">Example: the same invoice details, in your client’s language</p>
+            </div>
+          </div></section>
+
+          <section id="features" className="section tight"><div className="wrap">
+            <div className="section-head reveal"><span className="eyebrow">Features</span><h2 className="section-title">From “I should invoice them” <em>to paid and recorded.</em></h2><p>The everyday invoicing workflow, built around real clients, multiple currencies, deposits, reminders and repeat work.</p></div>
+            <div className="features">
+              {FEATURES.map(([tag, icon, h, p], i) => (
+                <article className="feature reveal" key={h} style={i % 3 ? { "--d": (i % 3) * 80 + "ms" } : undefined}>
+                  <span className={TAG[tag][0]}>{TAG[tag][1]}</span>
+                  <div className="icon"><Icon name={icon} /></div>
+                  <h3>{h}</h3><p>{p}</p>
+                </article>
+              ))}
+            </div>
+          </div></section>
+
+          <section id="solutions" className="section tight"><div className="wrap">
+            <div className="section-head reveal"><span className="eyebrow">Built around your work</span><h2 className="section-title">Not accounting software <em>with invoicing buried inside.</em></h2></div>
+            <div className="features">
+              {AUDIENCES.map(([k, h, p, href, link], i) => (
+                <article className="feature audience reveal" key={h} style={i ? { "--d": i * 80 + "ms" } : undefined}>
+                  <span className="audience-kicker">{k}</span><h3>{h}</h3><p>{p}</p>
+                  <a className="audience-link" href={href}>{link} <span className="arrow" aria-hidden="true">→</span></a>
+                </article>
+              ))}
+            </div>
+          </div></section>
+
+          <section className="section tight"><div className="wrap">
+            <div className="section-head reveal"><span className="eyebrow">Why Fatūra Pro</span><h2 className="section-title">Small details that prevent <em>expensive confusion.</em></h2></div>
+            <div className="features why">
+              {WHY.map(([h, p], i) => <article className="feature reveal" key={h} style={i % 2 ? { "--d":"80ms" } : undefined}><h3>{h}</h3><p>{p}</p></article>)}
+            </div>
+          </div></section>
+
+          <section id="pricing" className="section tight"><div className="wrap">
+            <div className="section-head reveal"><span className="eyebrow">Pricing</span><h2 className="section-title">Start free, <em>upgrade when you’re ready.</em></h2><p>Monthly plans, no contract, cancel anytime.</p></div>
+            <div className="plans">{plan("free", false, 0, "ghost")}{plan("pro", true, 100, "primary")}{plan("business", false, 200, "ghost")}</div>
+            <p className="pricing-note">Prices exclude VAT. Billed monthly through Stripe; cancel anytime.</p>
+          </div></section>
+
+          <section id="referrals" className="section tight"><div className="wrap"><div className="guide reveal">
+            <div>
+              <h2>Share good invoicing. Earn Essential together.</h2>
+              <p>Your friend receives 7 extra Essential days after their first real invoice, and every three activated friends earn you 30 Essential days. Find your link in Settings → Earn Essential.</p>
+              <p className="guide-link"><a href="/ambassadors" onClick={() => trackEvent("ambassador_program_clicked", { placement:"landing_referral_section" })}>Creator, consultant or community leader? Join the ambassador program →</a></p>
+            </div>
+            <a className="button ghost" href={signupHref("referral_program")} onClick={signup("referral_program")}>Start free &amp; get your link <span className="arrow" aria-hidden="true">→</span></a>
+          </div></div></section>
+
+          <section className="section tight"><div className="wrap"><div className="guide reveal">
+            <div>
+              <h2>Use Fatūra as a mobile app</h2>
+              <p>No app store needed. On iPhone, open Fatūra in Safari and tap Share → Add to Home Screen. On Android, open it in Chrome and tap ⋮ → Add to Home Screen.</p>
+            </div>
+            <div className="icon big" aria-hidden="true"><Icon name="mobile" /></div>
+          </div></div></section>
+
+          <section id="faq" className="section tight"><div className="wrap">
+            <div className="section-head reveal"><span className="eyebrow">FAQ</span><h2 className="section-title">Questions? <em>Clear answers.</em></h2></div>
+            <div className="faq reveal">
+              {FAQS.map(([q, a], i) => <details key={q} open={i === 0}><summary><h3>{q}</h3></summary><p>{a}</p></details>)}
+            </div>
+          </div></section>
+
+          <section className="section tight"><div className="wrap"><div className="cta reveal">
+            <h2 className="section-title">Your next invoice should take <em>minutes, not your evening.</em></h2>
+            <p>Create an account, add a client and preview your first invoice. Free plan available, no credit card required.</p>
+            <div className="actions">
+              <a className="button primary" href={signupHref("final_cta")} onClick={signup("final_cta")}>Create your first invoice, free <span className="arrow" aria-hidden="true">→</span></a>
+              <a className="button ghost" href={signupHref("final_advanced", "business")} onClick={signup("final_advanced", "business")}>Try Advanced free for 7 days</a>
+            </div>
+          </div></div></section>
+        </main>
+
+        <footer><div className="wrap">
+          <div className="foot-grid">
+            <div className="foot-brand">
+              <a className="brand" href="/"><img src="/fatura-mark.svg" alt="" width="30" height="30" /><span>Fatūra</span></a>
+              <p>Multi-currency invoicing software for freelancers, consultants and small service businesses working across borders.</p>
+              <p className="legal-note">Account data hosted in the EU (Ireland) · UBL XML export · Not a Peppol access point</p>
+            </div>
+            {FOOTER_COLUMNS.map(([title, links]) => (
+              <div className="foot-col" key={title}><h4>{title}</h4>
+                {links.map(([href, label]) => <a key={href} href={href} target={href.startsWith("http") ? "_blank" : undefined} rel={href.startsWith("http") ? "noreferrer" : undefined}>{label}</a>)}
+              </div>
+            ))}
+          </div>
+          <div className="legal-note foot-bottom">© 2026 Fatūra Pro · Invoicing software for business without borders</div>
+        </div></footer>
+      </div>
+      <style>{CHAT_CSS}</style>
       <Chatbot />
     </>
   );
