@@ -490,6 +490,19 @@ const logoColumns = (inv, previous) => {
   return cols;
 };
 
+// Saves an invoice row. If the database does not have the logo columns yet,
+// it saves again without them, so an invoice is never lost because of a logo.
+const isMissingColumn = (error) => !!error && (error.code === "42703" || error.code === "PGRST204");
+const saveInvoiceRow = async (row, existingId) => {
+  const run = (data) => existingId
+    ? supabase.from("invoices").update(data).eq("id", existingId)
+    : supabase.from("invoices").insert(data);
+  const result = await run(row);
+  if (!isMissingColumn(result.error) || !("seller_logo" in row || "buyer_logo" in row)) return result;
+  const { seller_logo, seller_logo_size, buyer_logo, buyer_logo_size, ...withoutLogos } = row;
+  return run(withoutLogos);
+};
+
 // Only money that is still owed can be chased: not drafts, paid invoices,
 // cancelled invoices or credit notes.
 const canRemind = (inv) => inv.docType !== "credit_note" && (inv.status === "pending" || inv.status === "overdue" || inv.status === "partial");
@@ -750,7 +763,7 @@ export default function InvoiceApp({ onGoHome }) {
     const { data: { user } } = await supabase.auth.getUser();
     if (!user) return;
     const row = { id: inv.id, user_id: ownerId || user.id, created_by: user.email, client: inv.client, email: inv.email, seller_name: inv.sellerName, seller_email: inv.sellerEmail, seller_phone: inv.sellerPhone, seller_vat: inv.sellerVat || null, seller_address: inv.sellerAddress, seller_country: inv.sellerCountry || null, buyer_phone: inv.buyerPhone, buyer_address: inv.buyerAddress, buyer_country: inv.buyerCountry || null, date: inv.date, due: inv.due, status: inv.status, amount: inv.amount, subtotal: inv.subtotal, discount_amt: inv.discountAmt, tax_amt: inv.taxAmt, total: inv.total, tax: inv.tax, discount: inv.discount, deposit_pct: Number(inv.depositPct) || null, notes: inv.notes, bank_info: inv.bankInfo, currency: inv.currency, document_language: normalizeDocumentLanguage(inv.documentLanguage), items: inv.items, ...logoColumns(inv) };
-    const { error } = await supabase.from("invoices").insert(row);
+    const { error } = await saveInvoiceRow(row);
     if (error && error.code === "23505") { window.alert(t("invoice_number_taken", "This invoice number is already in use. Choose another number, or leave the field empty to create one automatically.")); return null; }
     if (error) { window.alert(t("invoice_save_error", "Could not save this invoice.") + "\n\n" + error.message); return null; }
 
@@ -821,7 +834,7 @@ export default function InvoiceApp({ onGoHome }) {
   };
   const updateInvoice = async (inv) => {
     const row = { client: inv.client, email: inv.email, seller_name: inv.sellerName, seller_email: inv.sellerEmail, seller_phone: inv.sellerPhone, seller_vat: inv.sellerVat || null, seller_address: inv.sellerAddress, seller_country: inv.sellerCountry || null, buyer_phone: inv.buyerPhone, buyer_address: inv.buyerAddress, buyer_country: inv.buyerCountry || null, date: inv.date, due: inv.due, status: inv.status, amount: inv.amount, subtotal: inv.subtotal, discount_amt: inv.discountAmt, tax_amt: inv.taxAmt, total: inv.total, tax: inv.tax, discount: inv.discount, deposit_pct: Number(inv.depositPct) || null, notes: inv.notes, bank_info: inv.bankInfo, currency: inv.currency, document_language: normalizeDocumentLanguage(inv.documentLanguage), items: inv.items, ...logoColumns(inv, invoices.find(i => i.id === inv.id)) };
-    const { error } = await supabase.from("invoices").update(row).eq("id", inv.id);
+    const { error } = await saveInvoiceRow(row, inv.id);
     if (error) { window.alert(t("invoice_save_error", "Could not save this invoice.") + "\n\n" + error.message); return; }
     setInvoices(prev => prev.map(i => i.id === inv.id ? inv : i)); setEditDraft(null); setEditingInvoice(null);
   };
@@ -870,7 +883,7 @@ export default function InvoiceApp({ onGoHome }) {
     const { data: { user } } = await supabase.auth.getUser();
     if (!user) return;
     const row = { id: cn.id, user_id: ownerId || user.id, created_by: user.email, client: cn.client, email: cn.email, seller_name: cn.sellerName, seller_email: cn.sellerEmail, seller_phone: cn.sellerPhone, seller_vat: cn.sellerVat || null, seller_address: cn.sellerAddress, seller_country: cn.sellerCountry || null, buyer_phone: cn.buyerPhone, buyer_address: cn.buyerAddress, buyer_country: cn.buyerCountry || null, date: cn.date, due: cn.due, status: cn.status, amount: cn.amount, subtotal: cn.subtotal, discount_amt: cn.discountAmt, tax_amt: cn.taxAmt, total: cn.total, tax: cn.tax, discount: cn.discount, notes: cn.notes, bank_info: cn.bankInfo, currency: cn.currency, document_language: normalizeDocumentLanguage(cn.documentLanguage), doc_type: "credit_note", credit_of: cn.creditOf, items: cn.items, ...logoColumns(cn) };
-    const { error } = await supabase.from("invoices").insert(row);
+    const { error } = await saveInvoiceRow(row);
     if (error) { window.alert(t("credit_create_error", "Could not create the credit note.") + "\n\n" + error.message); return; }
     setInvoices((prev) => [cn, ...prev]);
     setPreviewInvoice(cn);

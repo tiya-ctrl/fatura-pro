@@ -95,7 +95,12 @@ export default async function handler(req, res) {
     if (t.sellerLogo) { row.seller_logo = t.sellerLogo; row.seller_logo_size = Number(t.sellerLogoSize) || null; }
     if (t.buyerLogo) { row.buyer_logo = t.buyerLogo; row.buyer_logo_size = Number(t.buyerLogoSize) || null; }
 
-    const { error: insErr } = await supabase.from("invoices").insert(row);
+    let { error: insErr } = await supabase.from("invoices").insert(row);
+    // Database without the logo columns yet: create the invoice without the logo.
+    if (insErr && (insErr.code === "42703" || insErr.code === "PGRST204") && ("seller_logo" in row || "buyer_logo" in row)) {
+      const { seller_logo, seller_logo_size, buyer_logo, buyer_logo_size, ...withoutLogos } = row;
+      ({ error: insErr } = await supabase.from("invoices").insert(withoutLogos));
+    }
     if (insErr) { console.error("insert failed for", rec.id, insErr.message); continue; }
 
     await supabase.from("recurring_invoices").update({
