@@ -119,7 +119,7 @@
   };
   var demo = document.querySelector('.demo'), body = document.querySelector('.inv-body'), buttons = document.querySelectorAll('.lang-switch button');
   if (!demo || !body) return;
-  var order = ['en', 'nl', 'fr', 'ar'], current = Math.max(0, order.indexOf(demo.getAttribute('data-start') || 'en')), timer = null;
+  var order = ['en', 'nl', 'fr', 'es', 'ar'], current = Math.max(0, order.indexOf(demo.getAttribute('data-start') || 'en')), timer = null;
   function paint(lang) {
     var t = T[lang];
     body.setAttribute('lang', lang); body.setAttribute('dir', t.dir);
