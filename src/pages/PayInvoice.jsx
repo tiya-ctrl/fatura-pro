@@ -7,6 +7,7 @@ const COPY = {
   en: { invoice:"Invoice", payment:"Invoice payment", to:"To", due:"Due", paid:"This invoice has been paid. Thank you!", disabled:"Online payment is not enabled for this invoice. Please pay via the details on the invoice.", redirecting:"Redirecting…", pay:"Pay securely 💳", powered:"Payments powered by Stripe · Fatūra Pro", contact:"Please contact the sender of this invoice.", loading:"Loading…", loadError:"Could not load invoice", startError:"Payment could not be started" },
   nl: { invoice:"Factuur", payment:"Factuur betalen", to:"Aan", due:"Vervaldatum", paid:"Deze factuur is betaald. Bedankt!", disabled:"Online betalen is niet ingeschakeld voor deze factuur. Betaal via de gegevens op de factuur.", redirecting:"Doorsturen…", pay:"Veilig betalen 💳", powered:"Betalingen via Stripe · Fatūra Pro", contact:"Neem contact op met de afzender van deze factuur.", loading:"Laden…", loadError:"Factuur kon niet worden geladen", startError:"Betaling kon niet worden gestart" },
   fr: { invoice:"Facture", payment:"Paiement de la facture", to:"À", due:"Échéance", paid:"Cette facture a été payée. Merci !", disabled:"Le paiement en ligne n’est pas activé pour cette facture. Utilisez les coordonnées indiquées sur la facture.", redirecting:"Redirection…", pay:"Payer en toute sécurité 💳", powered:"Paiements sécurisés par Stripe · Fatūra Pro", contact:"Veuillez contacter l’émetteur de cette facture.", loading:"Chargement…", loadError:"Impossible de charger la facture", startError:"Impossible de démarrer le paiement" },
+  es: { invoice:"Factura", payment:"Pago de la factura", to:"Para", due:"Vencimiento", paid:"Esta factura ya está pagada. ¡Gracias!", disabled:"El pago online no está activado para esta factura. Paga con los datos que aparecen en la factura.", redirecting:"Redirigiendo…", pay:"Pagar de forma segura 💳", powered:"Pagos gestionados por Stripe · Fatūra Pro", contact:"Ponte en contacto con quien emitió esta factura.", loading:"Cargando…", loadError:"No se ha podido cargar la factura", startError:"No se ha podido iniciar el pago" },
   ar: { invoice:"فاتورة", payment:"دفع الفاتورة", to:"إلى", due:"تاريخ الاستحقاق", paid:"تم دفع هذه الفاتورة. شكرًا لك!", disabled:"الدفع عبر الإنترنت غير مفعّل لهذه الفاتورة. يرجى الدفع باستخدام البيانات الموضحة في الفاتورة.", redirecting:"جارٍ التحويل…", pay:"ادفع بأمان 💳", powered:"المدفوعات عبر Stripe · Fatūra Pro", contact:"يرجى التواصل مع مُرسل هذه الفاتورة.", loading:"جارٍ التحميل…", loadError:"تعذّر تحميل الفاتورة", startError:"تعذّر بدء عملية الدفع" },
 };
 
@@ -17,7 +18,7 @@ export default function PayInvoice() {
   const [loading, setLoading] = useState(false);
   const paid = new URLSearchParams(window.location.search).get("paid") === "1";
   const language = normalizeDocumentLanguage(inv?.document_language);
-  const copy = COPY[language];
+  const copy = COPY[language] || COPY.en;
   const dir = documentDirection(language);
 
   useEffect(() => {
