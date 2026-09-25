@@ -99,6 +99,29 @@ export function initLandingMotion(root) {
     }
   }
 
+  // Sticky call to action on phones: shown after the hero button scrolls away,
+  // hidden again when the final call to action is on screen.
+  const sticky = root.querySelector(".sticky-cta");
+  const heroActions = root.querySelector(".hero .actions");
+  const finalCta = root.querySelector(".cta");
+  if (sticky && heroActions && "IntersectionObserver" in window) {
+    let heroVisible = true, finalVisible = false;
+    const updateSticky = () => {
+      const on = !heroVisible && !finalVisible;
+      sticky.classList.toggle("show", on);
+      sticky.setAttribute("aria-hidden", on ? "false" : "true");
+      const link = sticky.querySelector("a"); if (link) link.tabIndex = on ? 0 : -1;
+    };
+    const heroObs = new IntersectionObserver((en) => { heroVisible = en[0].isIntersecting; updateSticky(); });
+    heroObs.observe(heroActions);
+    cleanups.push(() => heroObs.disconnect());
+    if (finalCta) {
+      const finalObs = new IntersectionObserver((en) => { finalVisible = en[0].isIntersecting; updateSticky(); });
+      finalObs.observe(finalCta);
+      cleanups.push(() => finalObs.disconnect());
+    }
+  }
+
   // Spotlight that follows the pointer on feature cards.
   root.querySelectorAll(".feature").forEach((card) => {
     const move = (e) => {

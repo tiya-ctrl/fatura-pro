@@ -89,6 +89,10 @@ const CHAT_CSS = `
   .chat-window { right:14px; bottom:86px; width:calc(100vw - 28px); }
   .chat-btn { right:18px; bottom:20px; }
 }
+@media(max-width:720px){
+  body:has(.sticky-cta.show) .chat-btn { bottom:96px; }
+  body:has(.sticky-cta.show) .chat-window { bottom:162px; }
+}
 `;
 
 const timeStr = () => new Date().toLocaleTimeString("en", { hour:"2-digit", minute:"2-digit" });
@@ -197,7 +201,7 @@ function Chatbot() {
 }
 
 /* ─── CONTENT ────────────────────────────────────────────────── */
-const TRUST = ["Free plan, no credit card", "Essential from €9 per month", "Account data hosted in the EU"];
+const TRUST = ["Free plan, no credit card", "Essential from €9 per month", "Cancel anytime"];
 
 // Feature bubbles around the product shot (rotated by initLandingMotion).
 const HERO_CHIPS = [["✓", "Credit notes on every plan"], ["17", "currencies, kept separate"], ["PDF", "Branded PDF invoices"], ["↻", "Reminders by email & WhatsApp"], ["%", "Deposits & partial payments"], ["XML", "UBL export for EN 16931"], ["4", "invoice languages"], ["→", "Quotes become invoices"], ["€", "Card payments via Stripe"]];
@@ -207,7 +211,6 @@ const FACTS = [
   ["4", "languages for your invoices"],
   ["5", "languages for payment reminders"],
   ["UBL/XML", "export for EN 16931 workflows"],
-  ["5", "team seats included in Advanced"],
 ];
 
 const STEPS = [
@@ -287,6 +290,23 @@ const ICONS = {
 const Icon = ({ name }) => (
   <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">{ICONS[name]}</svg>
 );
+// Decorative visuals for the large ("bento") feature cards. No text content.
+const VIZ = {
+  globe: <div className="cloud">{["EUR", "USD", "GBP", "AED", "SAR", "MAD", "TRY"].map((c) => <span key={c}>{c}</span>)}</div>,
+  bell: <><div className="ring"><Icon name="bell" /></div><span className="bub b1" /><span className="bub b2" /></>,
+  code: (
+    <pre className="xml">
+      {"<"}<span className="t">Invoice</span>{">"}{"\n"}
+      {"  <"}<span className="t">cbc:ID</span>{">"}<span className="v">INV-014</span>{"</…>"}{"\n"}
+      {"  <"}<span className="t">cbc:InvoiceTypeCode</span>{">"}<span className="v">380</span>{"</…>"}{"\n"}
+      {"  <"}<span className="t">cac:LegalMonetaryTotal</span>{">"}{"\n"}
+      {"    "}<span className="v">1452.00 EUR</span>{"\n"}
+      {"</"}<span className="t">Invoice</span>{">"}
+    </pre>
+  ),
+};
+const WIDE = [0, 3, 4];
+
 const Check = () => <svg width="16" height="16" viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M5 10.5l3.2 3L15 7" /></svg>;
 const TAG = { free: ["tag", "Free"], essential: ["tag essential", "Essential"], advanced: ["tag advanced", "Advanced"] };
 
@@ -456,13 +476,15 @@ export default function LandingPage({ onOpenApp }) {
           <section id="features" className="section tight"><div className="wrap">
             <div className="section-head reveal"><span className="eyebrow">Features</span><h2 className="section-title">From “I should invoice them” <em>to paid and recorded.</em></h2><p>The everyday invoicing workflow, built around real clients, multiple currencies, deposits, reminders and repeat work.</p></div>
             <div className="features">
-              {FEATURES.map(([tag, icon, h, p], i) => (
-                <article className="feature reveal" key={h} style={i % 3 ? { "--d": (i % 3) * 80 + "ms" } : undefined}>
-                  <span className={TAG[tag][0]}>{TAG[tag][1]}</span>
-                  <div className="icon"><Icon name={icon} /></div>
-                  <h3>{h}</h3><p>{p}</p>
-                </article>
-              ))}
+              {FEATURES.map(([tag, icon, h, p], i) => {
+                const body = <><span className={TAG[tag][0]}>{TAG[tag][1]}</span><div className="icon"><Icon name={icon} /></div><h3>{h}</h3><p>{p}</p></>;
+                const wide = WIDE.includes(i) && VIZ[icon];
+                return (
+                  <article className={"feature reveal" + (wide ? " wide" : "")} key={h} style={i % 3 ? { "--d": (i % 3) * 80 + "ms" } : undefined}>
+                    {wide ? <><div className="copy">{body}</div><div className="viz" aria-hidden="true">{VIZ[icon]}</div></> : body}
+                  </article>
+                );
+              })}
             </div>
           </div></section>
 
@@ -540,6 +562,7 @@ export default function LandingPage({ onOpenApp }) {
           </div>
           <div className="legal-note foot-bottom">© 2026 Fatūra Pro · Invoicing software for business without borders</div>
         </div></footer>
+        <div className="sticky-cta" aria-hidden="true"><a className="button primary block" tabIndex={-1} href={signupHref("sticky")} onClick={signup("sticky")}>Create your first invoice, free <span className="arrow" aria-hidden="true">→</span></a></div>
       </div>
       <style>{CHAT_CSS}</style>
       <Chatbot />

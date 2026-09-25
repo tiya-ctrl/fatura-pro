@@ -83,6 +83,23 @@
     }
   }
 
+  // Sticky call to action on phones: shown after the hero button scrolls away,
+  // hidden again when the final call to action is on screen.
+  var sticky = document.querySelector('.sticky-cta');
+  var heroActions = document.querySelector('.hero .actions');
+  var finalCta = document.querySelector('.cta');
+  if (sticky && heroActions && 'IntersectionObserver' in window) {
+    var heroVisible = true, finalVisible = false;
+    var updateSticky = function () {
+      var on = !heroVisible && !finalVisible;
+      sticky.classList.toggle('show', on);
+      sticky.setAttribute('aria-hidden', on ? 'false' : 'true');
+      var link = sticky.querySelector('a'); if (link) link.tabIndex = on ? 0 : -1;
+    };
+    new IntersectionObserver(function (en) { heroVisible = en[0].isIntersecting; updateSticky(); }).observe(heroActions);
+    if (finalCta) new IntersectionObserver(function (en) { finalVisible = en[0].isIntersecting; updateSticky(); }).observe(finalCta);
+  }
+
   // Spotlight that follows the pointer on feature cards.
   document.querySelectorAll('.feature').forEach(function (card) {
     card.addEventListener('pointermove', function (e) {

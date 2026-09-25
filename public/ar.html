@@ -159,10 +159,12 @@
     .cur span{color:var(--brand-ink)}
 
     /* Facts */
-    .facts ul{list-style:none;margin:0;padding:42px 0 10px;display:grid;grid-template-columns:repeat(5,1fr);gap:14px;text-align:center}
-    .facts li{padding:18px 10px;border-radius:16px;background:linear-gradient(180deg,rgba(255,255,255,.03),transparent);border:1px solid var(--line)}
-    .facts strong{display:block;font-size:30px;line-height:1.2;font-weight:700;background:linear-gradient(120deg,#fff,var(--brand-ink));-webkit-background-clip:text;background-clip:text;color:transparent}
-    .facts span{color:var(--muted);font-size:13px}
+    .facts{padding-top:44px}
+    .facts ul{list-style:none;margin:0;padding:0;display:grid;grid-template-columns:repeat(4,1fr);text-align:center;border:1px solid var(--line);border-radius:24px;background:linear-gradient(180deg,rgba(255,255,255,.045),rgba(255,255,255,.012));box-shadow:inset 0 1px 0 rgba(255,255,255,.07),0 30px 80px rgba(0,0,0,.35);backdrop-filter:blur(10px);overflow:hidden}
+    .facts li{position:relative;padding:28px 16px 26px}
+    .facts li+li::before{content:"";position:absolute;inset-inline-start:0;top:22%;bottom:22%;width:1px;background:linear-gradient(transparent,var(--line-2),transparent)}
+    .facts strong{display:block;font-size:40px;line-height:1.15;font-weight:700;background:linear-gradient(120deg,#fff 20%,var(--brand-ink) 60%,var(--cyan));-webkit-background-clip:text;background-clip:text;color:transparent}
+    .facts span{display:block;margin-top:6px;color:var(--muted);font-size:13.5px}
 
     /* Sections */
     section{scroll-margin-top:84px}
@@ -283,7 +285,6 @@
       .hero{padding-top:40px}
       .stage{max-width:720px;margin:24px auto 0}
       .features,.plans{grid-template-columns:1fr 1fr}
-      .facts ul{grid-template-columns:repeat(3,1fr)}
     }
     @media (max-width:720px){
       .nav{position:static;background:rgba(7,7,13,.9)}
@@ -295,8 +296,12 @@
       .steps::before,.steps::after{display:none}
       .steps li{display:grid;grid-template-columns:44px 1fr;column-gap:14px;text-align:start;padding:20px}
       .steps li::before{grid-row:1 / span 2;margin:0}
-      .facts ul{grid-template-columns:1fr 1fr;padding-top:28px}
-      .facts li:last-child{grid-column:1 / -1}
+      .facts{padding-top:28px}
+      .facts ul{grid-template-columns:1fr 1fr}
+      .facts li{padding:20px 10px}
+      .facts li:nth-child(odd)::before{display:none}
+      .facts li:nth-child(-n+2){border-bottom:1px solid var(--line)}
+      .facts strong{font-size:32px}
       .chip{font-size:12px;padding:8px 11px}
       .chip .dot{min-width:22px;height:22px;font-size:11px}
       .chip.c3{display:none}
@@ -329,6 +334,56 @@
       .demo-ui{flex-direction:column;align-items:stretch;text-align:center}
       .lang-switch{justify-content:center}
     }
+    /* ---- Premium layer: grain, hairlines, bento cards, sticky mobile CTA ---- */
+    body::after{content:"";position:fixed;inset:0;z-index:80;pointer-events:none;opacity:.035;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E")}
+    .feature,.plan,.steps li,.faq details,.demo-ui,.guide{box-shadow:inset 0 1px 0 rgba(255,255,255,.055)}
+    .feature.wide{grid-column:span 2;display:grid;grid-template-columns:1fr 1fr;gap:24px;align-items:center}
+    .feature.wide .copy{min-width:0}
+    .viz{position:relative;height:170px;border-radius:16px;border:1px solid var(--line);background:radial-gradient(circle at 70% 20%,rgba(124,108,242,.22),transparent 60%),rgba(255,255,255,.02);overflow:hidden;display:flex;align-items:center;justify-content:center}
+    .viz *{pointer-events:none}
+    /* mini invoice */
+    .mini-doc{direction:ltr;width:120px;height:140px;border-radius:10px;background:#fbfaf7;padding:14px 12px;display:flex;flex-direction:column;gap:8px;box-shadow:0 18px 40px rgba(0,0,0,.45);transform:rotate(-4deg);transition:transform .6s var(--ease)}
+    .feature:hover .mini-doc{direction:ltr;transform:rotate(0) translateY(-4px)}
+    .mini-doc i{display:block;height:7px;border-radius:4px;background:#e2dfd8}
+    .mini-doc i.logo{width:26px;height:26px;border-radius:8px;background:linear-gradient(135deg,var(--brand-2),var(--brand))}
+    .mini-doc i.w80{width:80%}.mini-doc i.w60{width:60%}.mini-doc i.w40{width:40%}
+    .mini-doc i.tot{margin-top:auto;height:12px;width:55%;align-self:flex-end;background:#312e81}
+    /* deposit progress */
+    .dep{width:78%}
+    .dep-bar{height:14px;border-radius:999px;background:rgba(255,255,255,.08);overflow:hidden}
+    .dep-bar i{display:block;height:100%;width:50%;border-radius:inherit;background:linear-gradient(90deg,var(--ok),var(--cyan));transform-origin:left;animation:depfill 3.2s var(--ease) infinite}
+    @keyframes depfill{0%{transform:scaleX(0)}45%,100%{transform:scaleX(1)}}
+    .dep-row{display:flex;justify-content:space-between;margin-top:12px;font-weight:700;font-size:15px}
+    .dep-row b:first-child{color:var(--ok)}.dep-row b:last-child{color:var(--muted)}
+    /* xml */
+    .xml{direction:ltr;margin:0;font:600 12.5px/1.7 ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;color:var(--brand-ink);text-align:left;white-space:pre}
+    .xml .t{color:var(--cyan)}.xml .v{color:var(--gold)}
+    /* chart */
+    .bars{display:flex;align-items:flex-end;gap:10px;height:110px}
+    .bars i{width:18px;border-radius:6px 6px 3px 3px;background:linear-gradient(180deg,var(--brand-3),var(--brand));height:var(--h);transform-origin:bottom;animation:grow 2.8s var(--ease) infinite alternate}
+    .bars i:nth-child(2){animation-delay:.2s}.bars i:nth-child(3){animation-delay:.4s}.bars i:nth-child(4){animation-delay:.6s}.bars i:nth-child(5){animation-delay:.8s}
+    @keyframes grow{from{transform:scaleY(.35)}to{transform:scaleY(1)}}
+    /* currencies */
+    .cloud{display:flex;flex-wrap:wrap;gap:8px;justify-content:center;max-width:250px}
+    .cloud span{padding:6px 11px;border-radius:999px;border:1px solid var(--line-2);background:rgba(255,255,255,.04);font:700 12.5px/1 system-ui,sans-serif;letter-spacing:.04em;animation:floaty 5s ease-in-out infinite}
+    .cloud span:nth-child(2n){animation-delay:-1.5s}.cloud span:nth-child(3n){animation-delay:-3s}
+    @keyframes floaty{0%,100%{transform:translateY(0)}50%{transform:translateY(-6px)}}
+    /* reminder */
+    .ring{position:relative;width:64px;height:64px;border-radius:20px;display:flex;align-items:center;justify-content:center;background:linear-gradient(135deg,var(--brand-2),var(--brand));color:#fff;box-shadow:0 14px 34px rgba(99,102,241,.45)}
+    .ring::before,.ring::after{content:"";position:absolute;inset:-10px;border-radius:26px;border:2px solid rgba(124,108,242,.5);animation:ripple 2.4s var(--ease) infinite}
+    .ring::after{animation-delay:1.2s}
+    @keyframes ripple{from{transform:scale(.8);opacity:1}to{transform:scale(1.5);opacity:0}}
+    .bub{position:absolute;height:26px;border-radius:13px;background:rgba(111,211,166,.18);border:1px solid rgba(111,211,166,.35)}
+    .bub.b1{width:90px;top:26px;inset-inline-end:18%}.bub.b2{width:64px;bottom:28px;inset-inline-start:16%;background:rgba(124,108,242,.18);border-color:rgba(124,108,242,.4)}
+    /* sticky mobile CTA */
+    .sticky-cta{display:none}
+    @media (max-width:720px){
+      .sticky-cta{display:block;position:fixed;inset-inline:12px;bottom:12px;z-index:65;padding:8px;border-radius:18px;background:rgba(12,12,20,.82);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);border:1px solid var(--line-2);box-shadow:0 18px 50px rgba(0,0,0,.55);transform:translateY(140%);transition:transform .45s var(--ease)}
+      .sticky-cta.show{transform:none}
+      .feature.wide{grid-column:auto;grid-template-columns:1fr}
+      .viz{height:150px}
+    }
+    @media (max-width:1040px) and (min-width:721px){.feature.wide{grid-column:1 / -1}}
     @media (prefers-reduced-motion:reduce){
       *,*::before,*::after{animation:none!important;transition:none!important;scroll-behavior:auto!important}
       .js .reveal,.js h1 .line,.js .stage-in{opacity:1!important;transform:none!important;filter:none!important}
@@ -378,7 +433,7 @@
           <ul class="trust reveal" style="--d:420ms">
             <li><svg width="16" height="16" aria-hidden="true"><use href="#i-check"/></svg>خطة مجانية بدون بطاقة</li>
             <li><svg width="16" height="16" aria-hidden="true"><use href="#i-check"/></svg>Essential من 9€ شهريًا</li>
-            <li><svg width="16" height="16" aria-hidden="true"><use href="#i-check"/></svg>بيانات الحساب في الاتحاد الأوروبي</li>
+            <li><svg width="16" height="16" aria-hidden="true"><use href="#i-check"/></svg>إلغاء في أي وقت</li>
           </ul>
         </div>
         <div class="stage stage-in">
@@ -405,7 +460,6 @@
       <li class="reveal" style="--d:80ms"><strong class="ltr" data-count="4">4</strong><span>لغات لمستند الفاتورة</span></li>
       <li class="reveal" style="--d:160ms"><strong class="ltr" data-count="5">5</strong><span>لغات لرسائل التذكير</span></li>
       <li class="reveal" style="--d:240ms"><strong class="ltr">UBL/XML</strong><span>تصدير لمسارات EN 16931</span></li>
-      <li class="reveal" style="--d:320ms"><strong class="ltr">EU</strong><span>استضافة البيانات في أيرلندا</span></li>
     </ul></div></div>
 
     <section id="how" class="section"><div class="wrap">
@@ -451,11 +505,16 @@
     <section id="features" class="section" style="padding-top:0"><div class="wrap">
       <div class="section-head reveal"><span class="eyebrow">كل ما تحتاجه للفوترة اليومية</span><h2 class="section-title">أدوات واضحة <em>بدون تعقيد محاسبي.</em></h2></div>
       <div class="features">
-        <article class="feature reveal"><span class="tag">Free</span><div class="icon" aria-hidden="true"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8z"/><path d="M14 3v5h5M9 13h6M9 17h4"/></svg></div><h3>فواتير احترافية</h3><p>أضف شعارك وبيانات نشاطك والبنود والضريبة والخصم والدفعة المقدمة، ثم عاين المستند واحفظه PDF.</p></article>
+        <article class="feature wide reveal"><div class="copy"><span class="tag">Free</span><div class="icon" aria-hidden="true"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8z"/><path d="M14 3v5h5M9 13h6M9 17h4"/></svg></div><h3>فواتير احترافية</h3><p>أضف شعارك وبيانات نشاطك والبنود والضريبة والخصم والدفعة المقدمة، ثم عاين المستند واحفظه PDF.</p></div><div class="viz" aria-hidden="true"><div class="mini-doc"><i class="logo"></i><i class="w80"></i><i class="w60"></i><i class="w40"></i><i class="tot"></i></div></div></article>
         <article class="feature reveal" style="--d:80ms"><span class="tag essential">Essential</span><div class="icon" aria-hidden="true"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75"/></svg></div><h3>العملاء والمتابعة</h3><p>احفظ بيانات العملاء وأعد استخدامها. في Essential يمكنك إعداد تذكيرات بالعربية والإنجليزية والهولندية والفرنسية والإسبانية، ثم مراجعتها وفتح البريد أو WhatsApp لإرسالها بنفسك.</p></article>
         <article class="feature reveal" style="--d:160ms"><span class="tag advanced">Advanced</span><div class="icon" aria-hidden="true"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg></div><h3>عروض الأسعار</h3><p>في Advanced يمكنك إنشاء عرض سعر ومعاينته وحفظه PDF ثم تحويله إلى فاتورة من داخل التطبيق.</p></article>
-        <article class="feature reveal"><span class="tag advanced">Advanced</span><div class="icon" aria-hidden="true"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3v18h18"/><path d="M7 15l4-4 3 3 5-6"/></svg></div><h3>المصروفات وتقرير VAT</h3><p>في Advanced سجّل مصروفات النشاط واعرض ملخصًا ربع سنويًا لضريبة القيمة المضافة. التقرير للمراجعة ولا يقدّم الإقرار الضريبي نيابة عنك.</p></article>
-        <article class="feature reveal" style="--d:80ms"><span class="tag essential">Essential</span><div class="icon" aria-hidden="true"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M16 18l6-6-6-6M8 6l-6 6 6 6"/></svg></div><h3>UBL/XML</h3><p>تتيح خطة Essential تصدير UBL/XML لاستخدامه في مسارات EN 16931. FaturaPro لا يرسل عبر شبكة Peppol؛ تحقّق من متطلبات المستلم قبل التسليم.</p></article>
+        <article class="feature wide reveal"><div class="copy"><span class="tag advanced">Advanced</span><div class="icon" aria-hidden="true"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3v18h18"/><path d="M7 15l4-4 3 3 5-6"/></svg></div><h3>المصروفات وتقرير VAT</h3><p>في Advanced سجّل مصروفات النشاط واعرض ملخصًا ربع سنويًا لضريبة القيمة المضافة. التقرير للمراجعة ولا يقدّم الإقرار الضريبي نيابة عنك.</p></div><div class="viz" aria-hidden="true"><div class="bars"><i style="--h:45%"></i><i style="--h:70%"></i><i style="--h:55%"></i><i style="--h:90%"></i><i style="--h:75%"></i></div></div></article>
+        <article class="feature wide reveal" style="--d:80ms"><div class="copy"><span class="tag essential">Essential</span><div class="icon" aria-hidden="true"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M16 18l6-6-6-6M8 6l-6 6 6 6"/></svg></div><h3>UBL/XML</h3><p>تتيح خطة Essential تصدير UBL/XML لاستخدامه في مسارات EN 16931. FaturaPro لا يرسل عبر شبكة Peppol؛ تحقّق من متطلبات المستلم قبل التسليم.</p></div><div class="viz" aria-hidden="true"><pre class="xml">&lt;<span class="t">Invoice</span>&gt;
+  &lt;<span class="t">cbc:ID</span>&gt;<span class="v">INV-014</span>&lt;/…&gt;
+  &lt;<span class="t">cbc:InvoiceTypeCode</span>&gt;<span class="v">380</span>&lt;/…&gt;
+  &lt;<span class="t">cac:LegalMonetaryTotal</span>&gt;
+    <span class="v">1452.00 EUR</span>
+&lt;/<span class="t">Invoice</span>&gt;</pre></div></article>
         <article class="feature reveal" style="--d:160ms"><span class="tag">Free</span><div class="icon" aria-hidden="true"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3a14 14 0 0 1 0 18M12 3a14 14 0 0 0 0 18"/></svg></div><h3>17 عملة بلا تحويل مصطنع</h3><p>تظل إجماليات كل عملة منفصلة، فلا يغيّر سعر صرف لحظي أرقام فواتيرك أو تقاريرك.</p></article>
       </div>
     </div></section>
@@ -502,6 +561,7 @@
     </div>
     <nav aria-label="روابط التذييل"><a href="/ar/invoicing-netherlands-germany-belgium">دليل الفوترة في أوروبا</a><a href="/blog">المدونة</a><a href="/privacy">الخصوصية</a><a href="/terms">الشروط</a><a href="mailto:support@faturapro.app" class="ltr">support@faturapro.app</a></nav>
   </div></footer>
+  <div class="sticky-cta" aria-hidden="true"><a class="button primary block js-campaign-link" href="/login?signup=1&amp;lang=ar&amp;source=seo_ar_sticky" tabindex="-1" data-track="seo_cta_clicked" data-placement="sticky" data-destination="signup">أنشئ فاتورتك الأولى مجانًا <span class="arrow" aria-hidden="true">←</span></a></div>
   <script>
     (function(){
       // Campaign parameters are carried into the sign-up links.
@@ -565,6 +625,16 @@
             setTimeout(function(){ POS.forEach(function(p){chip.classList.remove(p);}); chip.classList.add(pos); chip.querySelector('.dot').textContent=f[0]; chip.querySelector('.lbl').textContent=f[1]; chip.classList.remove('out'); },380);
           },2400);
         }
+      }
+
+      // Sticky call to action on phones: shown after the hero button scrolls away,
+      // hidden again when the final call to action is on screen.
+      var sticky=document.querySelector('.sticky-cta'), heroActions=document.querySelector('.hero .actions'), finalCta=document.querySelector('.cta');
+      if(sticky && heroActions && 'IntersectionObserver' in window){
+        var heroVisible=true, finalVisible=false;
+        var updateSticky=function(){ var on=!heroVisible && !finalVisible; sticky.classList.toggle('show',on); sticky.setAttribute('aria-hidden',on?'false':'true'); var l=sticky.querySelector('a'); if(l) l.tabIndex=on?0:-1; };
+        new IntersectionObserver(function(en){heroVisible=en[0].isIntersecting;updateSticky();}).observe(heroActions);
+        if(finalCta) new IntersectionObserver(function(en){finalVisible=en[0].isIntersecting;updateSticky();}).observe(finalCta);
       }
 
       // Spotlight that follows the pointer on feature cards.
