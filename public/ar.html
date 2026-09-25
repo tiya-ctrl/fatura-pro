@@ -87,6 +87,16 @@
     .nav-links a:hover::after{transform:scaleX(1)}
     .nav-inner>.language-links{margin-inline-start:auto}
     .nav-end{display:flex;align-items:center;gap:12px}
+    /* Wide screens: the language switch shows only the current language; the others
+       open below it on hover or keyboard focus, so the header keeps one row. */
+    @media (min-width:1201px){
+    .nav-inner>.language-links{flex-direction:column;flex-wrap:nowrap;justify-content:flex-start;height:40px;gap:4px;position:relative;z-index:5}
+    .nav-inner>.language-links a{order:1}
+    .nav-inner>.language-links a[aria-current]{order:0}
+    .nav-inner>.language-links a:not([aria-current]){display:none!important}
+    .nav-inner>.language-links:hover a,.nav-inner>.language-links:focus-within a{display:inline-flex!important}
+    .nav-inner>.language-links a[aria-current]::after{content:"▾";margin-left:5px;font-size:10px;opacity:.8}
+    }
     .nav-login{padding-inline:12px}
     @media (max-width:1120px){.nav-end>.nav-login{display:none}}
     .menu{display:none;position:relative}
@@ -405,7 +415,7 @@
 
   <header class="nav"><div class="wrap nav-inner">
     <a class="brand" href="/ar" aria-label="FaturaPro – الصفحة الرئيسية"><img src="/fatura-mark.svg" alt="" width="34" height="34" /><span>Fatura<b>Pro</b></span></a>
-    <nav class="nav-links" aria-label="أقسام الصفحة"><a href="#how">كيف يعمل</a><a href="#features">المزايا</a><a href="#pricing">الأسعار</a><a href="#faq">الأسئلة الشائعة</a><a href="/ar/invoicing-netherlands-germany-belgium">دليل الفوترة في أوروبا</a></nav>
+    <nav class="nav-links" aria-label="أقسام الصفحة"><a href="#how">كيف يعمل</a><a href="#features">المزايا</a><a href="#pricing">الأسعار</a><a href="#faq">الأسئلة الشائعة</a><a href="/invoice-generator">مولّد الفواتير</a><a href="/ar/invoicing-netherlands-germany-belgium">دليل الفوترة في أوروبا</a></nav>
     <div class="language-links" role="group" aria-label="Website language"><a href="/" hreflang="en" lang="en" title="English" aria-label="English">EN</a><a href="/nl" hreflang="nl" lang="nl" title="Nederlands" aria-label="Nederlands">NL</a><a href="/fr" hreflang="fr" lang="fr" title="Français" aria-label="Français">FR</a><a href="/es" hreflang="es" lang="es" title="Español" aria-label="Español">ES</a><a href="/ar" hreflang="ar" lang="ar" title="العربية" aria-label="العربية" aria-current="page">AR</a></div>
     <div class="nav-end">
       <a class="button ghost small nav-login" href="/login?lang=ar">تسجيل الدخول</a>
