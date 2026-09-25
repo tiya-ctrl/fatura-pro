@@ -90,7 +90,8 @@ function InvoiceWrapper() {
 
   if (loading) return null;
 
-  if (!user) return <Login />;
+  // The auth listener above opens the app as soon as the sign-in completes.
+  if (!user) return <Login onLogin={() => {}} onBack={() => navigate("/")} returnTo="/app" />;
 
   return <InvoiceApp user={user} onGoHome={() => navigate("/")} />;
 }

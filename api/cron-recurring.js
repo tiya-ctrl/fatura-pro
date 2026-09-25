@@ -16,6 +16,19 @@ function nextDate(from, frequency) {
   return d;
 }
 
+// A new invoice gets the same payment term as the invoice it was copied from
+// (due date minus invoice date), or 30 days when that is unknown.
+function dueDateFor(template, today) {
+  let days = 30;
+  if (template.date && template.due) {
+    const diff = Math.round((new Date(template.due) - new Date(template.date)) / 86400000);
+    if (Number.isFinite(diff) && diff >= 0 && diff <= 365) days = diff;
+  }
+  const d = new Date(today + "T00:00:00Z");
+  d.setUTCDate(d.getUTCDate() + days);
+  return d.toISOString().split("T")[0];
+}
+
 export default async function handler(req, res) {
   // Vercel Cron sends "Authorization: Bearer <CRON_SECRET>" automatically when
   // CRON_SECRET is set (trial-reminder already relies on it). Outside callers are refused.
@@ -67,16 +80,20 @@ export default async function handler(req, res) {
     const row = {
       id: invoiceId,
       user_id: rec.user_id,
+      created_by: t.createdBy || null,
       client: t.client, email: t.email,
       seller_name: t.sellerName, seller_email: t.sellerEmail, seller_phone: t.sellerPhone, seller_address: t.sellerAddress,
-      buyer_phone: t.buyerPhone, buyer_address: t.buyerAddress,
+      seller_vat: t.sellerVat || null, seller_country: t.sellerCountry || null,
+      buyer_phone: t.buyerPhone, buyer_address: t.buyerAddress, buyer_country: t.buyerCountry || null,
       date: today,
-      due: null,
+      due: dueDateFor(t, today),
       status: "pending",
       amount: t.amount, subtotal: t.subtotal, discount_amt: t.discountAmt, tax_amt: t.taxAmt, total: t.total,
-      tax: t.tax, discount: t.discount, notes: t.notes, bank_info: t.bankInfo,
-      currency: t.currency, items: t.items || [],
+      tax: t.tax, discount: t.discount, deposit_pct: Number(t.depositPct) || null, notes: t.notes, bank_info: t.bankInfo,
+      currency: t.currency, document_language: t.documentLanguage || null, items: t.items || [],
     };
+    if (t.sellerLogo) { row.seller_logo = t.sellerLogo; row.seller_logo_size = Number(t.sellerLogoSize) || null; }
+    if (t.buyerLogo) { row.buyer_logo = t.buyerLogo; row.buyer_logo_size = Number(t.buyerLogoSize) || null; }
 
     const { error: insErr } = await supabase.from("invoices").insert(row);
     if (insErr) { console.error("insert failed for", rec.id, insErr.message); continue; }

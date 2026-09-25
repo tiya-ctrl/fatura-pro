@@ -447,6 +447,40 @@ const outstandingOf = (inv) => {
   return Math.max(0, totalOf - (Number(inv.paidAmount) || 0));
 };
 
+// Logos are stored with the invoice, so keep them small: at most 400px on the
+// longest side, WebP where the browser can write it (keeps transparency), PNG otherwise.
+const shrinkLogo = (dataUrl) => new Promise((resolve) => {
+  if (!dataUrl || !/^data:image\/(png|jpe?g|webp|gif)/i.test(dataUrl)) { resolve(dataUrl); return; }
+  const img = new Image();
+  img.onload = () => {
+    try {
+      const scale = Math.min(1, 400 / Math.max(img.width || 1, img.height || 1));
+      const canvas = document.createElement("canvas");
+      canvas.width = Math.max(1, Math.round(img.width * scale));
+      canvas.height = Math.max(1, Math.round(img.height * scale));
+      canvas.getContext("2d").drawImage(img, 0, 0, canvas.width, canvas.height);
+      const webp = canvas.toDataURL("image/webp", 0.9);
+      const small = webp.indexOf("data:image/webp") === 0 ? webp : canvas.toDataURL("image/png");
+      resolve(small.length < dataUrl.length ? small : dataUrl);
+    } catch (err) { resolve(dataUrl); }
+  };
+  img.onerror = () => resolve(dataUrl);
+  img.src = dataUrl;
+});
+
+// Logo columns are only sent when there is a logo (or one is being removed),
+// so saving never depends on them for invoices without a logo.
+const logoColumns = (inv, previous) => {
+  const cols = {};
+  if (inv.sellerLogo || (previous && previous.sellerLogo)) { cols.seller_logo = inv.sellerLogo || null; cols.seller_logo_size = inv.sellerLogo ? (Number(inv.sellerLogoSize) || null) : null; }
+  if (inv.buyerLogo || (previous && previous.buyerLogo)) { cols.buyer_logo = inv.buyerLogo || null; cols.buyer_logo_size = inv.buyerLogo ? (Number(inv.buyerLogoSize) || null) : null; }
+  return cols;
+};
+
+// Only money that is still owed can be chased: not drafts, paid invoices,
+// cancelled invoices or credit notes.
+const canRemind = (inv) => inv.docType !== "credit_note" && (inv.status === "pending" || inv.status === "overdue" || inv.status === "partial");
+
 const statusBadge = (s) => {
   const locale = getLocale();
   const map = {
@@ -510,7 +544,7 @@ export default function InvoiceApp({ onGoHome }) {
     (async () => {
       setDashboardDataLoaded(false);
       const { data: invData } = await supabase.from("invoices").select("*").eq("user_id", ownerId).order("created_at", { ascending: false });
-      if (invData) setInvoices(invData.map(r => ({ id: r.id, createdBy: r.created_by, client: r.client, email: r.email, sellerName: r.seller_name, sellerEmail: r.seller_email, sellerPhone: r.seller_phone, sellerVat: r.seller_vat, sellerAddress: r.seller_address, sellerCountry: r.seller_country, buyerPhone: r.buyer_phone, buyerAddress: r.buyer_address, buyerCountry: r.buyer_country, date: r.date, due: r.due, status: r.status, amount: r.amount, subtotal: r.subtotal, discountAmt: r.discount_amt, taxAmt: r.tax_amt, total: r.total, tax: r.tax, discount: r.discount, depositPct: r.deposit_pct, notes: r.notes, bankInfo: r.bank_info, currency: r.currency, documentLanguage: normalizeDocumentLanguage(r.document_language), docType: r.doc_type, creditOf: r.credit_of, paidAmount: Number(r.paid_amount) || 0, items: r.items || [] })));
+      if (invData) setInvoices(invData.map(r => ({ id: r.id, createdBy: r.created_by, client: r.client, email: r.email, sellerName: r.seller_name, sellerEmail: r.seller_email, sellerPhone: r.seller_phone, sellerVat: r.seller_vat, sellerAddress: r.seller_address, sellerCountry: r.seller_country, buyerPhone: r.buyer_phone, buyerAddress: r.buyer_address, buyerCountry: r.buyer_country, date: r.date, due: r.due, status: r.status, amount: r.amount, subtotal: r.subtotal, discountAmt: r.discount_amt, taxAmt: r.tax_amt, total: r.total, tax: r.tax, discount: r.discount, depositPct: r.deposit_pct, notes: r.notes, bankInfo: r.bank_info, currency: r.currency, documentLanguage: normalizeDocumentLanguage(r.document_language), docType: r.doc_type, creditOf: r.credit_of, paidAmount: Number(r.paid_amount) || 0, sellerLogo: r.seller_logo || null, sellerLogoSize: r.seller_logo_size || undefined, buyerLogo: r.buyer_logo || null, buyerLogoSize: r.buyer_logo_size || undefined, items: r.items || [] })));
       if (invData?.some(row => row.doc_type !== "credit_note" && Number(row.total ?? row.amount ?? 0) > 0)) activateReferral().catch(() => {});
       const { data: cliData } = await supabase.from("clients").select("*").eq("user_id", ownerId);
       if (cliData) setClients(cliData.map(c => ({ id: c.id, name: c.name, email: c.email, phone: c.phone, country: c.country })));
@@ -594,6 +628,10 @@ export default function InvoiceApp({ onGoHome }) {
 
   const isTeamMember = !!(ownerId && userId && ownerId !== userId);
   const isPro = plan === "pro" || plan === "business" || isTeamMember;
+  // Essential through the free trial (no subscription yet): show the days left
+  // and a way to subscribe, instead of "Manage subscription".
+  const isOnTrial = plan === "pro" && !!trialEnd && !isTeamMember;
+  const trialDaysLeft = isOnTrial ? Math.max(0, Math.ceil((new Date(trialEnd) - new Date()) / 86400000)) : 0;
   // The in-app assistant replaces Crisp: its AI agent is a paid add-on, and a
   // human chat nobody is free to answer is worse than none. Change the plan
   // test below to open it up to every plan.
@@ -690,15 +728,17 @@ export default function InvoiceApp({ onGoHome }) {
 
   const filteredInvoices = invoicesWithStatus.filter(inv => {
     const matchStatus = filterStatus === "all" ? true : filterStatus === "credit notes" ? inv.docType === "credit_note" : (inv.status === filterStatus && inv.docType !== "credit_note");
-    const matchSearch = inv.client.toLowerCase().includes(search.toLowerCase()) || inv.id.includes(search);
+    const q = search.trim().toLowerCase();
+    const matchSearch = !q || (inv.client || "").toLowerCase().includes(q) || String(inv.id || "").toLowerCase().includes(q);
     return matchStatus && matchSearch;
   });
 
   const addInvoice = async (inv, { source = "invoice_wizard", showSuccess = true } = {}) => {
     const { data: { user } } = await supabase.auth.getUser();
     if (!user) return;
-    const row = { id: inv.id, user_id: ownerId || user.id, created_by: user.email, client: inv.client, email: inv.email, seller_name: inv.sellerName, seller_email: inv.sellerEmail, seller_phone: inv.sellerPhone, seller_vat: inv.sellerVat || null, seller_address: inv.sellerAddress, seller_country: inv.sellerCountry || null, buyer_phone: inv.buyerPhone, buyer_address: inv.buyerAddress, buyer_country: inv.buyerCountry || null, date: inv.date, due: inv.due, status: inv.status, amount: inv.amount, subtotal: inv.subtotal, discount_amt: inv.discountAmt, tax_amt: inv.taxAmt, total: inv.total, tax: inv.tax, discount: inv.discount, deposit_pct: Number(inv.depositPct) || null, notes: inv.notes, bank_info: inv.bankInfo, currency: inv.currency, document_language: normalizeDocumentLanguage(inv.documentLanguage), items: inv.items };
+    const row = { id: inv.id, user_id: ownerId || user.id, created_by: user.email, client: inv.client, email: inv.email, seller_name: inv.sellerName, seller_email: inv.sellerEmail, seller_phone: inv.sellerPhone, seller_vat: inv.sellerVat || null, seller_address: inv.sellerAddress, seller_country: inv.sellerCountry || null, buyer_phone: inv.buyerPhone, buyer_address: inv.buyerAddress, buyer_country: inv.buyerCountry || null, date: inv.date, due: inv.due, status: inv.status, amount: inv.amount, subtotal: inv.subtotal, discount_amt: inv.discountAmt, tax_amt: inv.taxAmt, total: inv.total, tax: inv.tax, discount: inv.discount, deposit_pct: Number(inv.depositPct) || null, notes: inv.notes, bank_info: inv.bankInfo, currency: inv.currency, document_language: normalizeDocumentLanguage(inv.documentLanguage), items: inv.items, ...logoColumns(inv) };
     const { error } = await supabase.from("invoices").insert(row);
+    if (error && error.code === "23505") { window.alert(t("invoice_number_taken", "This invoice number is already in use. Choose another number, or leave the field empty to create one automatically.")); return null; }
     if (error) { window.alert(t("invoice_save_error", "Could not save this invoice.") + "\n\n" + error.message); return null; }
 
     // The first invoice should finish setup, not create more setup work. Reuse
@@ -743,6 +783,13 @@ export default function InvoiceApp({ onGoHome }) {
       trackEvent("onboarding_step_completed", { step:"first_client", source:"first_invoice" });
     }
 
+    // Remember the first uploaded logo on the business profile, so the next
+    // invoice starts with it. Best effort: the invoice is already saved.
+    if (inv.sellerLogo && !isTeamMember && !(businessProfile && businessProfile.logo)) {
+      supabase.from("business_profile").update({ logo:inv.sellerLogo }).eq("user_id", dataOwnerId)
+        .then(({ error: logoError }) => { if (!logoError) setBusinessProfile(current => ({ ...(current || {}), logo:inv.sellerLogo })); });
+    }
+
     const isFirstInvoice = invoiceOnlyCount === 0;
     trackEvent("invoice_created", { source, currency:inv.currency || currency, is_first_invoice:isFirstInvoice });
     recordActivationEvent("invoice_created", {
@@ -760,8 +807,9 @@ export default function InvoiceApp({ onGoHome }) {
     return inv;
   };
   const updateInvoice = async (inv) => {
-    const row = { client: inv.client, email: inv.email, seller_name: inv.sellerName, seller_email: inv.sellerEmail, seller_phone: inv.sellerPhone, seller_vat: inv.sellerVat || null, seller_address: inv.sellerAddress, seller_country: inv.sellerCountry || null, buyer_phone: inv.buyerPhone, buyer_address: inv.buyerAddress, buyer_country: inv.buyerCountry || null, date: inv.date, due: inv.due, status: inv.status, amount: inv.amount, subtotal: inv.subtotal, discount_amt: inv.discountAmt, tax_amt: inv.taxAmt, total: inv.total, tax: inv.tax, discount: inv.discount, deposit_pct: Number(inv.depositPct) || null, notes: inv.notes, bank_info: inv.bankInfo, currency: inv.currency, document_language: normalizeDocumentLanguage(inv.documentLanguage), items: inv.items };
-    await supabase.from("invoices").update(row).eq("id", inv.id);
+    const row = { client: inv.client, email: inv.email, seller_name: inv.sellerName, seller_email: inv.sellerEmail, seller_phone: inv.sellerPhone, seller_vat: inv.sellerVat || null, seller_address: inv.sellerAddress, seller_country: inv.sellerCountry || null, buyer_phone: inv.buyerPhone, buyer_address: inv.buyerAddress, buyer_country: inv.buyerCountry || null, date: inv.date, due: inv.due, status: inv.status, amount: inv.amount, subtotal: inv.subtotal, discount_amt: inv.discountAmt, tax_amt: inv.taxAmt, total: inv.total, tax: inv.tax, discount: inv.discount, deposit_pct: Number(inv.depositPct) || null, notes: inv.notes, bank_info: inv.bankInfo, currency: inv.currency, document_language: normalizeDocumentLanguage(inv.documentLanguage), items: inv.items, ...logoColumns(inv, invoices.find(i => i.id === inv.id)) };
+    const { error } = await supabase.from("invoices").update(row).eq("id", inv.id);
+    if (error) { window.alert(t("invoice_save_error", "Could not save this invoice.") + "\n\n" + error.message); return; }
     setInvoices(prev => prev.map(i => i.id === inv.id ? inv : i)); setEditDraft(null); setEditingInvoice(null);
   };
   // --- Credit notes -----------------------------------------------------
@@ -808,7 +856,7 @@ export default function InvoiceApp({ onGoHome }) {
     };
     const { data: { user } } = await supabase.auth.getUser();
     if (!user) return;
-    const row = { id: cn.id, user_id: ownerId || user.id, created_by: user.email, client: cn.client, email: cn.email, seller_name: cn.sellerName, seller_email: cn.sellerEmail, seller_phone: cn.sellerPhone, seller_vat: cn.sellerVat || null, seller_address: cn.sellerAddress, seller_country: cn.sellerCountry || null, buyer_phone: cn.buyerPhone, buyer_address: cn.buyerAddress, buyer_country: cn.buyerCountry || null, date: cn.date, due: cn.due, status: cn.status, amount: cn.amount, subtotal: cn.subtotal, discount_amt: cn.discountAmt, tax_amt: cn.taxAmt, total: cn.total, tax: cn.tax, discount: cn.discount, notes: cn.notes, bank_info: cn.bankInfo, currency: cn.currency, document_language: normalizeDocumentLanguage(cn.documentLanguage), doc_type: "credit_note", credit_of: cn.creditOf, items: cn.items };
+    const row = { id: cn.id, user_id: ownerId || user.id, created_by: user.email, client: cn.client, email: cn.email, seller_name: cn.sellerName, seller_email: cn.sellerEmail, seller_phone: cn.sellerPhone, seller_vat: cn.sellerVat || null, seller_address: cn.sellerAddress, seller_country: cn.sellerCountry || null, buyer_phone: cn.buyerPhone, buyer_address: cn.buyerAddress, buyer_country: cn.buyerCountry || null, date: cn.date, due: cn.due, status: cn.status, amount: cn.amount, subtotal: cn.subtotal, discount_amt: cn.discountAmt, tax_amt: cn.taxAmt, total: cn.total, tax: cn.tax, discount: cn.discount, notes: cn.notes, bank_info: cn.bankInfo, currency: cn.currency, document_language: normalizeDocumentLanguage(cn.documentLanguage), doc_type: "credit_note", credit_of: cn.creditOf, items: cn.items, ...logoColumns(cn) };
     const { error } = await supabase.from("invoices").insert(row);
     if (error) { window.alert(t("credit_create_error", "Could not create the credit note.") + "\n\n" + error.message); return; }
     setInvoices((prev) => [cn, ...prev]);
@@ -853,7 +901,8 @@ export default function InvoiceApp({ onGoHome }) {
   };
 
   const markAsPaid = async (id) => {
-    await supabase.from("invoices").update({ status: "paid" }).eq("id", id);
+    const { error } = await supabase.from("invoices").update({ status: "paid" }).eq("id", id);
+    if (error) { window.alert(t("payment_save_error", "Could not save the payment.") + "\n\n" + error.message); return; }
     setInvoices(prev => prev.map(i => i.id === id ? { ...i, status: "paid" } : i));
   };
   const addClient = async (c) => {
@@ -871,11 +920,20 @@ export default function InvoiceApp({ onGoHome }) {
     setClients(prev => [c, ...prev]); setShowNewClient(false);
   };
   const deleteClient = async (id) => {
-    await supabase.from("clients").delete().eq("id", id);
+    const { error } = await supabase.from("clients").delete().eq("id", id);
+    if (error) { window.alert(t("delete_error", "Could not delete this. Please try again.") + "\n\n" + error.message); return; }
     setClients(prev => prev.filter(c => c.id !== id));
   };
+  // Deleting is permanent, so always ask first. An issued invoice is normally
+  // cancelled with a credit note instead - say so in the same question.
   const deleteInvoice = async (id) => {
-    await supabase.from("invoices").delete().eq("id", id);
+    const inv = invoices.find(i => i.id === id);
+    const issued = inv && inv.status !== "draft" && inv.docType !== "credit_note";
+    const question = t("delete_invoice_confirm", "Delete this document permanently? This cannot be undone.") + "\n\n" + id
+      + (issued ? "\n\n" + t("delete_issued_hint", "Already sent this invoice? Create a credit note instead: tax rules usually require you to keep issued invoices.") : "");
+    if (!window.confirm(question)) return;
+    const { error } = await supabase.from("invoices").delete().eq("id", id);
+    if (error) { window.alert(t("delete_error", "Could not delete this. Please try again.") + "\n\n" + error.message); return; }
     setInvoices(prev => prev.filter(i => i.id !== id));
   };
 
@@ -887,7 +945,7 @@ export default function InvoiceApp({ onGoHome }) {
       const owner = (await myTeamOwner(user.id)) || user.id;
       const { data: invData } = await supabase.from("invoices").select("*").eq("user_id", owner).order("created_at", { ascending: false });
       const { data: cliData } = await supabase.from("clients").select("*").eq("user_id", owner);
-      if (invData) setInvoices(invData.map(r => ({ id: r.id, createdBy: r.created_by, client: r.client, email: r.email, sellerName: r.seller_name, sellerEmail: r.seller_email, sellerPhone: r.seller_phone, sellerVat: r.seller_vat, sellerAddress: r.seller_address, sellerCountry: r.seller_country, buyerPhone: r.buyer_phone, buyerAddress: r.buyer_address, buyerCountry: r.buyer_country, date: r.date, due: r.due, status: r.status, amount: r.amount, subtotal: r.subtotal, discountAmt: r.discount_amt, taxAmt: r.tax_amt, total: r.total, tax: r.tax, discount: r.discount, depositPct: r.deposit_pct, notes: r.notes, bankInfo: r.bank_info, currency: r.currency, documentLanguage: normalizeDocumentLanguage(r.document_language), docType: r.doc_type, creditOf: r.credit_of, paidAmount: Number(r.paid_amount) || 0, items: r.items || [] })));
+      if (invData) setInvoices(invData.map(r => ({ id: r.id, createdBy: r.created_by, client: r.client, email: r.email, sellerName: r.seller_name, sellerEmail: r.seller_email, sellerPhone: r.seller_phone, sellerVat: r.seller_vat, sellerAddress: r.seller_address, sellerCountry: r.seller_country, buyerPhone: r.buyer_phone, buyerAddress: r.buyer_address, buyerCountry: r.buyer_country, date: r.date, due: r.due, status: r.status, amount: r.amount, subtotal: r.subtotal, discountAmt: r.discount_amt, taxAmt: r.tax_amt, total: r.total, tax: r.tax, discount: r.discount, depositPct: r.deposit_pct, notes: r.notes, bankInfo: r.bank_info, currency: r.currency, documentLanguage: normalizeDocumentLanguage(r.document_language), docType: r.doc_type, creditOf: r.credit_of, paidAmount: Number(r.paid_amount) || 0, sellerLogo: r.seller_logo || null, sellerLogoSize: r.seller_logo_size || undefined, buyerLogo: r.buyer_logo || null, buyerLogoSize: r.buyer_logo_size || undefined, items: r.items || [] })));
       if (cliData) setClients(cliData);
     };
     loadData();
@@ -907,7 +965,7 @@ export default function InvoiceApp({ onGoHome }) {
           const owner = (await myTeamOwner(session.user.id)) || session.user.id;
           const { data: invData } = await supabase.from("invoices").select("*").eq("user_id", owner).order("created_at", { ascending: false });
           const { data: cliData } = await supabase.from("clients").select("*").eq("user_id", owner);
-          if (invData) setInvoices(invData.map(r => ({ id: r.id, createdBy: r.created_by, client: r.client, email: r.email, sellerName: r.seller_name, sellerEmail: r.seller_email, sellerPhone: r.seller_phone, sellerVat: r.seller_vat, sellerAddress: r.seller_address, sellerCountry: r.seller_country, buyerPhone: r.buyer_phone, buyerAddress: r.buyer_address, buyerCountry: r.buyer_country, date: r.date, due: r.due, status: r.status, amount: r.amount, subtotal: r.subtotal, discountAmt: r.discount_amt, taxAmt: r.tax_amt, total: r.total, tax: r.tax, discount: r.discount, depositPct: r.deposit_pct, notes: r.notes, bankInfo: r.bank_info, currency: r.currency, documentLanguage: normalizeDocumentLanguage(r.document_language), docType: r.doc_type, creditOf: r.credit_of, paidAmount: Number(r.paid_amount) || 0, items: r.items || [] })));
+          if (invData) setInvoices(invData.map(r => ({ id: r.id, createdBy: r.created_by, client: r.client, email: r.email, sellerName: r.seller_name, sellerEmail: r.seller_email, sellerPhone: r.seller_phone, sellerVat: r.seller_vat, sellerAddress: r.seller_address, sellerCountry: r.seller_country, buyerPhone: r.buyer_phone, buyerAddress: r.buyer_address, buyerCountry: r.buyer_country, date: r.date, due: r.due, status: r.status, amount: r.amount, subtotal: r.subtotal, discountAmt: r.discount_amt, taxAmt: r.tax_amt, total: r.total, tax: r.tax, discount: r.discount, depositPct: r.deposit_pct, notes: r.notes, bankInfo: r.bank_info, currency: r.currency, documentLanguage: normalizeDocumentLanguage(r.document_language), docType: r.doc_type, creditOf: r.credit_of, paidAmount: Number(r.paid_amount) || 0, sellerLogo: r.seller_logo || null, sellerLogoSize: r.seller_logo_size || undefined, buyerLogo: r.buyer_logo || null, buyerLogoSize: r.buyer_logo_size || undefined, items: r.items || [] })));
           if (cliData) setClients(cliData);
         };
         reload();
@@ -967,7 +1025,7 @@ export default function InvoiceApp({ onGoHome }) {
           </div>
           <div className="sidebar-footer">
             <button className="referral-nav-card" onClick={() => { trackEvent("referral_program_opened", { placement:"sidebar" }); setPage("settings"); }}>
-              <span>✦ {locale === "ar" ? "اكسب 30 يومًا من Essential" : "Earn 30 Essential days"}</span><span className="directional-icon" style={{ color:"var(--gold)" }}>→</span>
+              <span>✦ {t("earn_essential_days", "Earn 30 Essential days")}</span><span className="directional-icon" style={{ color:"var(--gold)" }}>→</span>
             </button>
             {userEmail && (
               <div style={{ marginBottom:12, padding:"8px 12px", background:"var(--bg3)", borderRadius:8, border:"1px solid var(--border)" }}>
@@ -979,7 +1037,17 @@ export default function InvoiceApp({ onGoHome }) {
                 </button>
               </div>
             )}
-            {isPro ? (
+            {isOnTrial ? (
+              <div>
+                <div className="plan-badge" style={{ marginBottom:10 }}>
+                  <div className="plan-name">✦ {t("essential_trial", "ESSENTIAL TRIAL")}</div>
+                  <div className="plan-info">{trialDaysLeft} {t("trial_days_left", "days left in your free trial")}</div>
+                </div>
+                <button className="btn btn-primary" style={{ width:"100%", justifyContent:"center", fontSize:13, padding:"10px 14px" }} onClick={() => { setUpgradeIntent("pro"); setUpgradeFeature(""); setShowUpgrade(true); }}>
+                  {t("subscribe_now", "Subscribe")}
+                </button>
+              </div>
+            ) : isPro ? (
               <div className="plan-badge">
                 <div className="plan-name">✦ {plan === "business" ? t("business_plan", "ADVANCED PLAN") : isTeamMember ? t("team_member", "TEAM MEMBER") : t("pro_plan", "ESSENTIAL PLAN")}</div>
                 <div className="plan-info">{plan === "business" ? t("team_quotes_info", "Team, quotes, VAT & more") : isTeamMember ? t("team_shared_info", "Shared team workspace") : t("unlimited_info", "Unlimited invoices & clients")}</div>
@@ -988,9 +1056,9 @@ export default function InvoiceApp({ onGoHome }) {
               <div>
                 <div style={{ background:"var(--bg3)", border:"1px solid var(--border)", borderRadius:8, padding:"10px 14px", marginBottom:10 }}>
                   <div style={{ fontSize:11, color:"var(--text2)", fontWeight:600 }}>{t("free_plan", "FREE PLAN")}</div>
-                  <div style={{ fontSize:11, color:"var(--text2)", marginTop:2 }}>{invoiceOnlyCount}/20 invoices · {clients.length}/5 clients</div>
+                  <div style={{ fontSize:11, color:"var(--text2)", marginTop:2 }}>{invoiceOnlyCount}/20 {t("invoices_lower", "invoices")} · {clients.length}/5 {t("clients_lower", "clients")}</div>
                   <div style={{ marginTop:8, background:"var(--bg4)", borderRadius:4, height:4, overflow:"hidden" }}>
-                    <div style={{ height:"100%", width:(Math.min(100,(invoices.length/20)*100)) + "%", background:invoices.length>=20?"var(--red)":"var(--gold)", borderRadius:4 }} />
+                    <div style={{ height:"100%", width:(Math.min(100,(invoiceOnlyCount/20)*100)) + "%", background:invoiceOnlyCount>=20?"var(--red)":"var(--gold)", borderRadius:4 }} />
                   </div>
                 </div>
                 <button className="btn btn-primary" style={{ width:"100%", justifyContent:"center", fontSize:13, padding:"10px 14px" }} onClick={() => setShowUpgrade(true)}>
@@ -1026,7 +1094,7 @@ export default function InvoiceApp({ onGoHome }) {
       <button className="btn btn-primary" onClick={() => openNewInvoice(page === "dashboard" ? "dashboard_topbar" : "invoice_list_topbar")}>
         <span className="btn-label">
           {!isPro && invoiceOnlyCount >= 20
-            ? "🔒 New Invoice"
+            ? "🔒 " + t("new_invoice", "New Invoice")
             : t("new_invoice", "New Invoice")}
         </span>
       </button>
@@ -1045,7 +1113,7 @@ export default function InvoiceApp({ onGoHome }) {
 
           <div className="content">
             {page === "dashboard" && <Dashboard clients={clients} businessProfileReady={businessProfileReady} userEmail={userEmail} onCreateInvoice={() => openNewInvoice("onboarding_dashboard")} onCreditNote={createCreditNote} onRecordPayment={recordPaymentGated} invoices={invoicesWithStatus} totalRevenue={totalRevenue} totalPending={totalPending} totalOverdue={totalOverdue} totalCredited={totalCredited} setPage={setPage} setPreviewInvoice={(inv) => openInvoicePreview(inv, "dashboard")} onEdit={setEditingInvoice} onRemind={(inv) => requirePro("reminders", () => setReminderInvoice(inv))} f={f} />}
-            {page === "invoices" && <Invoices invoices={filteredInvoices} filterStatus={filterStatus} setFilterStatus={setFilterStatus} search={search} setSearch={setSearch} onPreview={(inv) => openInvoicePreview(inv, "invoice_list")} onDelete={deleteInvoice} onNew={() => openNewInvoice("invoice_list_empty")} onEdit={setEditingInvoice} onRemind={(inv) => requirePro("reminders", () => setReminderInvoice(inv))} remindersLog={remindersLog} f={f} isPro={isPro} onUpgrade={(feat) => { setUpgradeFeature(feat); setShowUpgrade(true); }} hasDraft={!!invoiceDraft} onOpenDraft={() => openNewInvoice("invoice_draft")} onDiscardDraft={discardDraft} onMarkPaid={markAsPaid} onCreditNote={createCreditNote} onRecordPayment={recordPaymentGated} onMakeRecurring={hasBusinessAccess(plan) ? async (inv) => { const choice = window.prompt(t("recurring_prompt", "Repeat this invoice:\n\n1 = Weekly\n2 = Every 2 weeks\n3 = Monthly\n4 = Yearly\n\nType a number:"), "3"); const freqMap = { "1": "weekly", "2": "biweekly", "3": "monthly", "4": "yearly" }; const freq = freqMap[(choice || "").trim()]; if (!freq) return; const ok = await createRecurring(inv, freq, userId); if (ok) { loadRecurring(userId).then(setRecurring); const { nextDate } = require("../lib/recurring"); alert("✓ " + t("recurring_active", "Recurring activated") + " (" + freq + ")\n" + t("next_invoice", "Next invoice") + ": " + nextDate(new Date(), freq).toISOString().split("T")[0] + "\n" + t("recurring_manage", "Manage it in Settings → Recurring invoices.")); } } : () => { setUpgradeIntent("business"); setUpgradeFeature("recurring"); setShowUpgrade(true); }} />}
+            {page === "invoices" && <Invoices viewerEmail={userEmail} invoices={filteredInvoices} filterStatus={filterStatus} setFilterStatus={setFilterStatus} search={search} setSearch={setSearch} onPreview={(inv) => openInvoicePreview(inv, "invoice_list")} onDelete={deleteInvoice} onNew={() => openNewInvoice("invoice_list_empty")} onEdit={setEditingInvoice} onRemind={(inv) => requirePro("reminders", () => setReminderInvoice(inv))} remindersLog={remindersLog} f={f} isPro={isPro} onUpgrade={(feat) => { setUpgradeFeature(feat); setShowUpgrade(true); }} hasDraft={!!invoiceDraft} onOpenDraft={() => openNewInvoice("invoice_draft")} onDiscardDraft={discardDraft} onMarkPaid={markAsPaid} onCreditNote={createCreditNote} onRecordPayment={recordPaymentGated} onMakeRecurring={hasBusinessAccess(plan) ? async (inv) => { const choice = window.prompt(t("recurring_prompt", "Repeat this invoice:\n\n1 = Weekly\n2 = Every 2 weeks\n3 = Monthly\n4 = Yearly\n\nType a number:"), "3"); const freqMap = { "1": "weekly", "2": "biweekly", "3": "monthly", "4": "yearly" }; const freq = freqMap[(choice || "").trim()]; if (!freq) return; const ok = await createRecurring(inv, freq, userId); if (ok) { loadRecurring(userId).then(setRecurring); const { nextDate } = require("../lib/recurring"); alert("✓ " + t("recurring_active", "Recurring activated") + " (" + freq + ")\n" + t("next_invoice", "Next invoice") + ": " + nextDate(new Date(), freq).toISOString().split("T")[0] + "\n" + t("recurring_manage", "Manage it in Settings → Recurring invoices.")); } } : () => { setUpgradeIntent("business"); setUpgradeFeature("recurring"); setShowUpgrade(true); }} />}
               {page === "quotes" && (hasBusinessAccess(plan) || isTeamMember) && <Quotes
                 quotes={quotes}
                 setQuotes={setQuotes}
@@ -1075,7 +1143,7 @@ export default function InvoiceApp({ onGoHome }) {
             {page === "expenses" && (hasBusinessAccess(plan) || isTeamMember) && <Expenses expenses={expenses} setExpenses={setExpenses} invoices={invoicesWithStatus} userId={ownerId || userId} f={f} />}
             {page === "analytics" && hasBusinessAccess(plan) && <Analytics invoices={invoicesWithStatus} f={f} fc={fmtCurrency} defaultCurrency={currency} />}
             {page === "clients" && <Clients clients={clients} invoices={invoicesWithStatus} f={f} onAdd={() => setShowNewClient(true)} onDeleteClient={deleteClient} onEditClient={(c) => setEditingClient(c)} />}
-            {page === "settings" && <><ReferralProgram userId={userId} plan={plan} /><Settings currency={currency} setCurrency={setCurrency} userEmail={userEmail} invoices={invoicesWithStatus} onProfileSaved={(ready, profile) => { setBusinessProfileReady(ready); setBusinessProfile(profile); }} />{hasBusinessAccess(plan) && <BusinessProfiles profiles={bizProfiles} setProfiles={setBizProfiles} userId={userId} />}{hasBusinessAccess(plan) && <RecurringList recurring={recurring} setRecurring={setRecurring} userId={userId} f={f} />}{hasBusinessAccess(plan) && <div className="card" style={{ marginTop: 20 }}><div className="card-title" style={{ marginBottom: 10 }}>{t("online_payments", "Online payments")}</div><div style={{ fontSize: 13, color: "#999", marginBottom: 12 }}>{t("connect_stripe_help", "Connect your Stripe account so clients can pay invoices online. Money goes directly to your bank.")}</div><button className="btn btn-primary btn-sm" onClick={async () => { const { data: { session } } = await supabase.auth.getSession(); const r = await fetch("/api/connect-stripe", { method: "POST", headers: { Authorization: "Bearer " + (session?.access_token || "") } }); const d = await r.json(); if (d.url) window.location.href = d.url; else alert(d.error || t("stripe_start_error", "Could not start Stripe onboarding")); }}>{t("connect_stripe", "Connect Stripe →")}</button></div>}{hasBusinessAccess(plan) && <TeamMembers team={team} setTeam={setTeam} userId={userId} />}{hasBusinessAccess(plan) && <ApiKeys keys={apiKeys} setKeys={setApiKeys} userId={userId} />}{(plan === "pro" || plan === "business") && <div className="card" style={{ marginTop: 20 }}><div className="card-title" style={{ marginBottom: 10 }}>{t("subscription", "Subscription")}</div><div style={{ fontSize: 13, color: "#999", marginBottom: 12 }}>{t("subscription_help", "Switch between Essential and Advanced, update your card, view invoices, or cancel anytime.")}</div><a className="btn btn-primary btn-sm" href="https://billing.stripe.com/p/login/fZu4gzepGdT05Gx48j5ZC00" target="_blank" rel="noreferrer">{t("manage_subscription", "Manage subscription →")}</a></div>}{plan === "free" && <div className="card" style={{ marginTop: 20 }}><div className="card-title" style={{ marginBottom: 10 }}>{t("plan", "Plan")}</div><div style={{ fontSize: 13, color:"#999", marginBottom:12 }}>{t("free_plan_help", "You are on the Free plan. Upgrade for unlimited invoices, reminders, and more.")}</div><button className="btn btn-primary btn-sm" onClick={() => { setUpgradeIntent(null); setShowUpgrade(true); }}>{t("upgrade", "Upgrade →")}</button></div>}</>}
+            {page === "settings" && <><ReferralProgram userId={userId} plan={plan} /><Settings currency={currency} setCurrency={setCurrency} userEmail={userEmail} invoices={invoicesWithStatus} onProfileSaved={(ready, profile) => { setBusinessProfileReady(ready); setBusinessProfile(profile); }} />{hasBusinessAccess(plan) && <BusinessProfiles profiles={bizProfiles} setProfiles={setBizProfiles} userId={userId} />}{hasBusinessAccess(plan) && <RecurringList recurring={recurring} setRecurring={setRecurring} userId={userId} f={f} />}{hasBusinessAccess(plan) && <div className="card" style={{ marginTop: 20 }}><div className="card-title" style={{ marginBottom: 10 }}>{t("online_payments", "Online payments")}</div><div style={{ fontSize: 13, color: "#999", marginBottom: 12 }}>{t("connect_stripe_help", "Connect your Stripe account so clients can pay invoices online. Money goes directly to your bank.")}</div><button className="btn btn-primary btn-sm" onClick={async () => { const { data: { session } } = await supabase.auth.getSession(); const r = await fetch("/api/connect-stripe", { method: "POST", headers: { Authorization: "Bearer " + (session?.access_token || "") } }); const d = await r.json(); if (d.url) window.location.href = d.url; else alert(d.error || t("stripe_start_error", "Could not start Stripe onboarding")); }}>{t("connect_stripe", "Connect Stripe →")}</button></div>}{hasBusinessAccess(plan) && <TeamMembers team={team} setTeam={setTeam} userId={userId} />}{hasBusinessAccess(plan) && <ApiKeys keys={apiKeys} setKeys={setApiKeys} userId={userId} />}{((plan === "pro" && !isOnTrial) || plan === "business") && <div className="card" style={{ marginTop: 20 }}><div className="card-title" style={{ marginBottom: 10 }}>{t("subscription", "Subscription")}</div><div style={{ fontSize: 13, color: "#999", marginBottom: 12 }}>{t("subscription_help", "Switch between Essential and Advanced, update your card, view invoices, or cancel anytime.")}</div><a className="btn btn-primary btn-sm" href="https://billing.stripe.com/p/login/fZu4gzepGdT05Gx48j5ZC00" target="_blank" rel="noreferrer">{t("manage_subscription", "Manage subscription →")}</a></div>}{(plan === "free" || isOnTrial) && <div className="card" style={{ marginTop: 20 }}><div className="card-title" style={{ marginBottom: 10 }}>{t("plan", "Plan")}</div><div style={{ fontSize: 13, color:"#999", marginBottom:12 }}>{isOnTrial ? trialDaysLeft + " " + t("trial_days_left", "days left in your free trial") + ". " + t("trial_keep_data", "Subscribe to keep reminders, deposits and UBL export. Your data stays either way.") : t("free_plan_help", "You are on the Free plan. Upgrade for unlimited invoices, reminders, and more.")}</div><button className="btn btn-primary btn-sm" onClick={() => { setUpgradeIntent(null); setShowUpgrade(true); }}>{t("upgrade", "Upgrade →")}</button></div>}</>}
           </div>
         </div>
 
@@ -1102,7 +1170,7 @@ export default function InvoiceApp({ onGoHome }) {
         {showNewInvoice && <NewInvoiceModal bizProfiles={hasBusinessAccess(plan) ? bizProfiles : []} clients={clients} onSave={addInvoice} onClose={handleNewInvoiceClose} invoiceCount={invoices.length} currency={currency} f={f} defaultInvoiceLanguage={normalizeDocumentLanguage(businessProfile?.default_invoice_language)} draftData={invoiceDraft} onDiscardDraft={discardDraft} />}
         {editingInvoice && <NewInvoiceModal bizProfiles={hasBusinessAccess(plan) ? bizProfiles : []} clients={clients} onSave={updateInvoice} onClose={(draftData) => { if (draftData) setEditDraft(draftData); setEditingInvoice(null); }} invoiceCount={invoices.length} currency={currency} f={f} defaultInvoiceLanguage={normalizeDocumentLanguage(businessProfile?.default_invoice_language)} editData={editingInvoice} editDraft={editDraft} onDiscardEditDraft={() => setEditDraft(null)} />}
         {showNewClient && <NewClientModal onSave={addClient} onClose={() => setShowNewClient(false)} />}
-        {editingClient && <NewClientModal onSave={async (updated) => { await supabase.from("clients").update({ name:updated.name, email:updated.email, phone:updated.phone, country:updated.country }).eq("id", editingClient.id); setClients(prev => prev.map(c => c.id === editingClient.id ? { ...c, ...updated } : c)); setEditingClient(null); }} onClose={() => setEditingClient(null)} editData={editingClient} />}
+        {editingClient && <NewClientModal onSave={async (updated) => { const { error } = await supabase.from("clients").update({ name:updated.name, email:updated.email, phone:updated.phone, country:updated.country }).eq("id", editingClient.id); if (error) { window.alert(t("client_save_error", "Could not save this client.") + "\n\n" + error.message); return; } setClients(prev => prev.map(c => c.id === editingClient.id ? { ...c, ...updated } : c)); setEditingClient(null); }} onClose={() => setEditingClient(null)} editData={editingClient} />}
         {firstInvoiceSuccess && <FirstInvoiceSuccess
           invoice={firstInvoiceSuccess}
           onPreview={() => { const invoice = firstInvoiceSuccess; setFirstInvoiceSuccess(null); openInvoicePreview(invoice, "first_invoice_success"); }}
@@ -1217,9 +1285,9 @@ function Dashboard({ invoices, clients, businessProfileReady, userEmail, totalRe
   );
 
   const commandCopy = overdue.length > 0
-    ? (locale === "ar" ? `${overdue.length} ${t("overdue_attention", "overdue invoices need your attention today.")}` : `${overdue.length} overdue invoice${overdue.length === 1 ? " needs" : "s need"} your attention today.`)
+    ? (locale !== "en" ? `${overdue.length} ${t("overdue_attention", "overdue invoices need your attention today.")}` : `${overdue.length} overdue invoice${overdue.length === 1 ? " needs" : "s need"} your attention today.`)
     : pendingCount > 0
-      ? (locale === "ar" ? `${pendingCount} ${t("awaiting_attention", "invoices are awaiting payment.")}` : `${pendingCount} invoice${pendingCount === 1 ? " is" : "s are"} awaiting payment. Keep the next one moving.`)
+      ? (locale !== "en" ? `${pendingCount} ${t("awaiting_attention", "invoices are awaiting payment.")}` : `${pendingCount} invoice${pendingCount === 1 ? " is" : "s are"} awaiting payment. Keep the next one moving.`)
       : t("all_current", "Everything is up to date. Create the next invoice while the work is fresh.");
 
   return (
@@ -1274,7 +1342,7 @@ function Dashboard({ invoices, clients, businessProfileReady, userEmail, totalRe
                     <div className="action-btns">
                       <button className="btn btn-ghost btn-sm" onClick={() => setPreviewInvoice(inv)}>{t("preview", "Preview")}</button>
                       <button className="btn btn-ghost btn-sm" style={{ color:"var(--gold)" }} onClick={() => onEdit(inv)}>{t("edit", "Edit")}</button>{onCreditNote && inv.docType !== "credit_note" && inv.status !== "draft" && <button className="btn btn-ghost btn-sm" title={t("create_credit", "Create a credit note for this invoice")} onClick={() => onCreditNote(inv)}>{t("credit_note", "Credit")}</button>}{onRecordPayment && inv.docType !== "credit_note" && inv.status !== "paid" && inv.status !== "draft" && <button className="btn btn-ghost btn-sm" title={t("record_payment", "Record a payment received")} onClick={() => onRecordPayment(inv)}>{t("payment", "Payment")}</button>}
-                      {(inv.status === "overdue" || inv.status === "pending") && (
+                      {canRemind(inv) && (
                         <button className="btn btn-sm" style={{ background:"rgba(224,85,85,0.15)", color:"var(--red)", border:"1px solid rgba(224,85,85,0.3)" }} onClick={() => onRemind(inv)}>{t("remind", "Remind")}</button>
                       )}
                     </div>
@@ -1332,7 +1400,7 @@ function Invoices({ invoices, filterStatus, setFilterStatus, search, setSearch, 
                     <td style={{ fontWeight:700, color:"var(--gold)" }}><bdi dir="ltr">{inv.id}</bdi>{inv.docType === "credit_note" && <span style={{ marginInlineStart:6, fontSize:9, fontWeight:800, letterSpacing:0.5, padding:"2px 6px", borderRadius:20, background:"rgba(224,85,85,0.15)", color:"var(--red)", verticalAlign:"middle" }}>{t("credit_note", "CREDIT NOTE")}</span>}</td>
                     <td>
                       <div style={{ fontWeight:500 }}>{inv.client}</div>
-                      <div style={{ fontSize:11, color:"var(--text2)" }}>{inv.email}</div>{inv.createdBy && inv.createdBy !== viewerEmail && <div style={{ fontSize:10, color:"var(--gold)", marginTop:2 }}>by {inv.createdBy}</div>}
+                      <div style={{ fontSize:11, color:"var(--text2)" }}>{inv.email}</div>{inv.createdBy && inv.createdBy !== viewerEmail && <div style={{ fontSize:10, color:"var(--gold)", marginTop:2 }}>{t("created_by", "by")} {inv.createdBy}</div>}
                       {remindersLog[inv.id] && remindersLog[inv.id].length > 0 && (
                         <div style={{ fontSize:10, color:"var(--orange)", marginTop:2 }}>{remindersLog[inv.id].length} {t("reminders_sent", `reminder${remindersLog[inv.id].length > 1 ? "s" : ""} sent`)}</div>
                       )}
@@ -1351,9 +1419,11 @@ function Invoices({ invoices, filterStatus, setFilterStatus, search, setSearch, 
                         {(inv.status === "overdue" || inv.status === "pending") && (
                           <button className="btn btn-ghost btn-sm" style={{ color:"var(--green)" }} onClick={() => onMarkPaid(inv.id)}>✓ {t("marked_paid", "Paid")}</button>
                         )}
+                        {canRemind(inv) && (
                           <button className="btn btn-sm" style={{ background:"rgba(224,85,85,0.15)", color:"var(--red)", border:"1px solid rgba(224,85,85,0.3)", whiteSpace:"nowrap" }} onClick={() => onRemind(inv)}>{t("remind", "Remind")}</button>
+                        )}
 
-                        <button className="btn btn-danger btn-sm" onClick={() => onDelete(inv.id)}>✕</button>
+                        <button className="btn btn-danger btn-sm" aria-label={t("delete", "Delete")} title={t("delete", "Delete")} onClick={() => onDelete(inv.id)}>✕</button>
                       </div>
                     </td>
                   </tr>
@@ -1398,9 +1468,11 @@ function Invoices({ invoices, filterStatus, setFilterStatus, search, setSearch, 
                 {(inv.status === "overdue" || inv.status === "pending") && (
                   <button className="btn btn-ghost btn-sm" style={{ color:"var(--green)" }} onClick={() => onMarkPaid(inv.id)}>✓ {t("marked_paid", "Paid")}</button>
                 )}
+                {canRemind(inv) && (
                   <button className="btn btn-sm" style={{ background:"rgba(224,85,85,0.15)", color:"var(--red)", border:"1px solid rgba(224,85,85,0.3)" }} onClick={() => onRemind(inv)}>{t("remind", "Remind")}</button>
+                )}
 
-                <button className="btn btn-danger btn-sm" onClick={() => onDelete(inv.id)}>✕</button>
+                <button className="btn btn-danger btn-sm" aria-label={t("delete", "Delete")} title={t("delete", "Delete")} onClick={() => onDelete(inv.id)}>✕</button>
               </div>
             </div>
           ))}
@@ -1423,20 +1495,23 @@ function Clients({ clients, invoices, f, onAdd, onDeleteClient, onEditClient }) 
     </div>
   )}
   {clients.map(c => {
-    const clientInvoices = invoices.filter(i => i.client === c.name);
+    const clientName = c.name || "";
+    const clientInvoices = invoices.filter(i => i.client === clientName && i.docType !== "credit_note");
     const invoiceCount = clientInvoices.length;
-    const totalBilled = clientInvoices.filter(i => i.status === "paid").reduce((a, b) => a + (b.amount || 0), 0);
-    const overdueAmt = clientInvoices.filter(i => i.status === "overdue").reduce((a, b) => a + (b.amount || 0), 0);
+    // Totals stay per currency, exactly like the dashboard - never added across currencies.
+    const paidParts = sumByCurrency(clientInvoices.filter(i => i.status === "paid"));
+    const overdueParts = sumByCurrency(clientInvoices.filter(i => i.status === "overdue").map(i => ({ ...i, amount: outstandingOf(i) })));
+    const contact = [c.phone, c.country].filter(Boolean).join(" · ");
     return (
         <div className="client-card" key={c.id}>
-          <div className="client-avatar">{c.name[0]}</div>
-          <div className="client-name">{c.name}</div>
+          <div className="client-avatar">{(clientName.trim()[0] || "?").toUpperCase()}</div>
+          <div className="client-name">{clientName || "—"}</div>
           <div className="client-email">{c.email}</div>
-          <div className="client-email">{c.phone} · {c.country}</div>
+          {contact && <div className="client-email">{contact}</div>}
           <div className="client-stats" style={{ marginTop:14 }}>
             <div className="client-stat"><span>{invoiceCount}</span>{t("invoice_count", "Invoices")}</div>
-            <div className="client-stat"><span dir="ltr" style={{ color:"var(--gold)" }}>{f(totalBilled)}</span>{t("total_billed", "Total Billed")}</div>
-            {overdueAmt > 0 && <div className="client-stat"><span dir="ltr" style={{ color:"var(--red)" }}>{f(overdueAmt)}</span>{t("overdue", "Overdue")}</div>}
+            <div className="client-stat"><span dir="ltr" style={{ color:"var(--gold)" }}>{paidParts.length ? fmtMulti(paidParts) : f(0)}</span>{t("total_billed", "Total Billed")}</div>
+            {overdueParts.length > 0 && <div className="client-stat"><span dir="ltr" style={{ color:"var(--red)" }}>{fmtMulti(overdueParts)}</span>{t("overdue", "Overdue")}</div>}
           </div>
           <div style={{ display:"flex", gap:8, marginTop:12 }}>
             <button className="btn btn-ghost btn-sm" onClick={() => onEditClient(c)}>{t("edit", "Edit")}</button>
@@ -1547,7 +1622,7 @@ function Settings({ currency, setCurrency, userEmail, invoices, onProfileSaved }
           {t("download_invoices", "Download my invoices (CSV)")}
         </button>
         <div style={{ fontSize:12, color:"var(--text2)", marginTop:12 }}>
-          {(invoices || []).length} {locale === "ar" ? t("documents_included", "documents will be included.") : `document${(invoices || []).length === 1 ? "" : "s"} will be included.`}
+          {(invoices || []).length} {locale !== "en" ? t("documents_included", "documents will be included.") : `document${(invoices || []).length === 1 ? "" : "s"} will be included.`}
         </div>
       </div>
       <div className="card" style={{ padding:28 }}>
@@ -1636,6 +1711,7 @@ React.useEffect(() => {
           sellerAddress: f.sellerAddress || data.address || "",
           sellerCountry: f.sellerCountry || data.country || "",
           notes: f.notes || data.notes || "", bankInfo: f.bankInfo || data.bank_info || "",
+          sellerLogo: f.sellerLogo || data.logo || null,
           tax: f.tax !== 20 ? f.tax : (data.default_tax ?? 20),
           documentLanguage: normalizeDocumentLanguage(f.documentLanguage || data.default_invoice_language || defaultInvoiceLanguage),
         }));
@@ -1702,7 +1778,7 @@ React.useEffect(() => {
     const file = e.target.files[0];
     if (!file) return;
     const reader = new FileReader();
-    reader.onload = ev => set(key, ev.target.result);
+    reader.onload = ev => { shrinkLogo(ev.target.result).then(small => set(key, small)); };
     reader.readAsDataURL(file);
   };
 
@@ -1880,7 +1956,9 @@ React.useEffect(() => {
             <div className="form-grid" style={{ marginBottom:16 }}>
               <div className="form-group full">
                 <label>{t("invoice_number", "Invoice Number")}</label>
-                <input value={form.invoiceNumber || ""} onChange={e => set("invoiceNumber", e.target.value)} placeholder="e.g. INV-001 (leave blank to auto-generate)" />
+                {isEdit
+                  ? <input dir="ltr" value={editData.id} disabled readOnly style={{ opacity:0.7 }} />
+                  : <input value={form.invoiceNumber || ""} onChange={e => set("invoiceNumber", e.target.value)} placeholder={t("invoice_number_placeholder", "Leave empty to create a number automatically")} />}
               </div>
             </div>
             <LogoUploader logoKey="sellerLogo" sizeVal={sellerLogoSize} onSizeChange={setSellerLogoSize} inputId="sellerLogoInput" label={t("seller_logo", "Company / Seller Logo")} />
@@ -2058,22 +2136,24 @@ React.useEffect(() => {
   );
 }
 
-function NewClientModal({ onSave, onClose }) {
+function NewClientModal({ onSave, onClose, editData }) {
   const locale = getLocale();
   const t = (key, fallback) => tr(key, fallback, locale);
-  const [form, setForm] = useState({ name:"", email:"", phone:"", country:"" });
-  const [customCountry, setCustomCountry] = useState("");
+  const isEdit = !!editData;
+  // When editing, start from the client's saved details instead of an empty form.
+  const [form, setForm] = useState({ name:(editData && editData.name) || "", email:(editData && editData.email) || "", phone:(editData && editData.phone) || "", country:(editData && editData.country) || "" });
   const handleSave = () => {
     // Only the name is required. Plenty of clients are dealt with by phone or
     // WhatsApp and have no direct email address - that should not block saving them.
-    if (!form.name) return alert(t("client_name_required", "Please enter a client or business name"));
-    const country = form.country === "Other" ? customCountry : form.country;
-    onSave({ ...form, country, id:Date.now(), invoices:0, total:0 });
+    if (!form.name.trim()) return alert(t("client_name_required", "Please enter a client or business name"));
+    const country = form.country === "Other" ? "" : form.country;
+    if (isEdit) { onSave({ name:form.name.trim(), email:form.email, phone:form.phone, country }); return; }
+    onSave({ ...form, name:form.name.trim(), country, id:Date.now(), invoices:0, total:0 });
   };
   return (
     <div className="modal-overlay" onClick={e => e.target === e.currentTarget && onClose()}>
       <div className="modal">
-        <div className="modal-title">{t("new_client", "New Client")}</div>
+        <div className="modal-title">{isEdit ? t("edit_client", "Edit client") : t("new_client", "New Client")}</div>
         <div className="form-grid" style={{ gridTemplateColumns:"1fr" }}>
           {[["name",t("client_business_name", "Client / Business Name *")],["email",t("email_optional", "Email Address (optional)")],["phone",t("phone_optional", "Phone Number (optional)")]].map(([k,l]) => (
             <div className="form-group" key={k}>
@@ -2088,13 +2168,13 @@ function NewClientModal({ onSave, onClose }) {
               {["Netherlands","Belgium","France","Germany","United Kingdom","United States","Spain","Italy","Switzerland","Sweden","Ireland","Austria","Luxembourg","Canada","Australia","UAE","Saudi Arabia","Qatar","Kuwait","Bahrain","Oman","Jordan","Lebanon","Turkey","Egypt","Morocco","Tunisia","Algeria","Libya","Iraq","Yemen","Other"].map(c => <option key={c}>{c}</option>)}
              </select>
             {!["Netherlands","Belgium","France","Germany","United Kingdom","United States","Spain","Italy","Switzerland","Sweden","Ireland","Austria","Luxembourg","Canada","Australia","UAE","Saudi Arabia","Qatar","Kuwait","Bahrain","Oman","Jordan","Lebanon","Turkey","Egypt","Morocco","Tunisia","Algeria","Libya","Iraq","Yemen"].includes(form.country) && form.country !== "" && (
-              <input placeholder={t("type_country", "Type your country")} autoFocus value={form.country.trim() === "" ? "" : form.country} onChange={e => setForm(f => ({ ...f, country: e.target.value }))} style={{ marginTop: 6 }} />
+              <input placeholder={t("type_country", "Type your country")} autoFocus={!isEdit} value={form.country === "Other" ? "" : form.country} onChange={e => setForm(f => ({ ...f, country: e.target.value || "Other" }))} style={{ marginTop: 6 }} />
             )}
           </div>
         </div>
         <div style={{ display:"flex", gap:10, justifyContent:"flex-end", marginTop:8 }}>
           <button className="btn btn-ghost" onClick={onClose}>{t("cancel", "Cancel")}</button>
-          <button className="btn btn-primary" onClick={handleSave}>{t("add_client_action", "Save Client")}</button>
+          <button className="btn btn-primary" onClick={handleSave}>{isEdit ? t("save_changes", "Save Changes") : t("add_client_action", "Save Client")}</button>
         </div>
       </div>
     </div>
@@ -2198,7 +2278,6 @@ function InvoicePreview({ invoice, onExportUBL, onClose, currency, plan, isFirst
               <div style={{ fontSize:10, fontWeight:800, color:"#6366F1", letterSpacing:1.5, textTransform:"uppercase", marginBottom:10, display:"flex", alignItems:"center", gap:6 }}>
                 <span style={{ background:"#6366F1", color:"#fff", borderRadius:4, padding:"2px 7px", fontSize:9 }}>{copy.from}</span>{copy.seller}
               </div>
-              {invoice.buyerLogo && <img src={invoice.buyerLogo} style={{ height: (invoice.buyerLogoSize || 60) * 1.5, maxWidth: 180, width: "auto", objectFit:"contain", marginBottom:8, display:"block" }} alt="" />}
               <div style={{ fontWeight:700, fontSize:14, color:"#1a1a2e", marginBottom:4 }}>{invoice.sellerName || "—"}</div>
               {invoice.sellerEmail && <div data-direction="ltr" style={{ fontSize:12, color:"#555" }}>{invoice.sellerEmail}</div>}
               {invoice.sellerPhone && <div data-direction="ltr" style={{ fontSize:12, color:"#555" }}>{invoice.sellerPhone}</div>}
@@ -2374,15 +2453,33 @@ function ReminderModal({ invoice: reminderTarget, onClose, onLog }) { const loca
     },
   };
   const getBody = (t, c) => {
-    const tmpl = TEMPLATES[lang];
+    const tmpl = TEMPLATES[lang] || TEMPLATES.en;
     return c === "email" ? tmpl.bodies[t] : tmpl.wa[t];
   };
+  // Before the due date there is nothing overdue yet: the polite text talks about
+  // the coming due date, and the firm / final tones are not offered.
+  const notDueYet = daysOverdue <= 0;
+  if (notDueYet) {
+    const who = invoice.client, num = invoice.id, amt = f(invoice.amount), when = formatDate(invoice.due);
+    const upcoming = {
+      en: ["Dear " + who + ",\n\nThis is a friendly reminder that Invoice " + num + " for " + amt + " is due on " + when + ".\n\nThank you for arranging payment on time.\n\nWarm regards,\n" + (invoice.sellerName || "Your Company"), "Hi " + who + ", friendly reminder that Invoice " + num + " for " + amt + " is due on " + when + ". Thank you!"],
+      nl: ["Beste " + who + ",\n\nEen vriendelijke herinnering dat factuur " + num + " van " + amt + " vervalt op " + when + ".\n\nAlvast bedankt voor de tijdige betaling.\n\nMet vriendelijke groet,\n" + (invoice.sellerName || "Uw bedrijf"), "Hoi " + who + ", vriendelijke herinnering: factuur " + num + " van " + amt + " vervalt op " + when + ". Bedankt!"],
+      fr: ["Bonjour " + who + ",\n\nPetit rappel : la facture " + num + " de " + amt + " arrive à échéance le " + when + ".\n\nMerci d'effectuer le paiement dans les délais.\n\nCordialement,\n" + (invoice.sellerName || "Votre entreprise"), "Bonjour " + who + ", petit rappel : la facture " + num + " de " + amt + " arrive à échéance le " + when + ". Merci !"],
+      es: ["Hola " + who + ",\n\nTe recordamos que la factura " + num + " por " + amt + " vence el " + when + ".\n\nGracias por realizar el pago a tiempo.\n\nUn saludo,\n" + (invoice.sellerName || "Tu empresa"), "Hola " + who + ", te recordamos que la factura " + num + " por " + amt + " vence el " + when + ". ¡Gracias!"],
+      ar: ["عزيزي " + who + "،\n\nنذكّرك بأن الفاتورة " + num + " بمبلغ " + amt + " تستحق بتاريخ " + when + ".\n\nشكرًا لترتيب الدفع في الموعد.\n\nمع التحية،\n" + (invoice.sellerName || "شركتك"), "مرحباً " + who + "، تذكير ودي بأن الفاتورة " + num + " بمبلغ " + amt + " تستحق بتاريخ " + when + ". شكراً لك!"],
+    };
+    Object.keys(upcoming).forEach((code) => {
+      if (!TEMPLATES[code]) return;
+      TEMPLATES[code].bodies.polite = upcoming[code][0];
+      TEMPLATES[code].wa.polite = upcoming[code][1];
+    });
+  }
   const [editedText, setEditedText] = useState(getBody("polite","email"));
   const tones = [
     { id:"polite", label:t("polite", "Polite"), desc:t("polite_help", "Friendly first reminder"), color:"var(--green)" },
     { id:"firm", label:t("firm", "Firm"), desc:t("firm_help", "Professional follow-up"), color:"var(--orange)" },
     { id:"final", label:t("final", "Final"), desc:t("final_help", "Last notice before action"), color:"var(--red)" },
-  ];
+  ].filter((tone) => !notDueYet || tone.id === "polite");
   const handleSend = () => {
     if (channel === "email" && !invoice.email) {
       window.alert(t("missing_client_email", "This client has no email address on file. Add one on the invoice, or send the reminder by WhatsApp instead."));
@@ -2467,34 +2564,113 @@ function ReminderModal({ invoice: reminderTarget, onClose, onLog }) { const loca
   );
 }
 
+// Plan cards and "why upgrade" texts for the upgrade window, per app language.
+const UPGRADE_COPY = {
+  en: {
+    tax: "excl. VAT",
+    pro: ["Unlimited invoices","Unlimited clients","UBL/XML export (EN 16931)","Deposits & partial payments","Payment reminders (Email + WhatsApp)","PDF export","Custom logo & branding"],
+    business: ["Everything in Essential","Quotes that convert to invoices","Expenses & VAT/BTW report","Advanced analytics","Team members (up to 5)","Multi-business profiles","Stripe payment integration","API access"],
+    general: ["Essential Feature", "Unlock all Essential features"],
+    feats: {
+      reminders: ["Payment Reminders", "Prepare and review overdue reminders, then open them in Email or WhatsApp"],
+      unlimited_invoices: ["Unlimited Invoices", "You've hit the 20 invoice limit on the Free plan"],
+      deposits: ["Deposits & Partial Payments", "Ask for a deposit up front and track what is still owed"],
+      ubl: ["UBL/XML Export", "Download structured XML for EN 16931 workflows, then validate and deliver it as your client requests"],
+      recurring: ["Recurring Invoices", "Create new pending invoices weekly, biweekly, monthly or yearly for you to review and send"],
+      quotes: ["Quotes", "Send quotes and turn an accepted one into an invoice in a click"],
+      expenses: ["Expenses & VAT/BTW Summary", "Track expenses and review a quarterly summary per currency for your bookkeeping"],
+      analytics: ["Advanced Analytics", "Revenue per month, top clients, collection rate and payment terms"],
+      unlimited_clients: ["Unlimited Clients", "You've hit the 5 client limit on the Free plan"],
+    },
+  },
+  nl: {
+    tax: "excl. btw",
+    pro: ["Onbeperkt facturen","Onbeperkt klanten","UBL/XML-export (EN 16931)","Aanbetalingen en deelbetalingen","Betalingsherinneringen (e-mail + WhatsApp)","PDF-export","Eigen logo en huisstijl"],
+    business: ["Alles uit Essential","Offertes die je omzet in facturen","Uitgaven en btw-overzicht","Uitgebreide analyses","Teamleden (tot 5)","Meerdere bedrijfsprofielen","Online betalingen via Stripe","API-toegang"],
+    general: ["Essential-functie", "Ontgrendel alle functies van Essential"],
+    feats: {
+      reminders: ["Betalingsherinneringen", "Stel herinneringen voor te late facturen op, controleer ze en open ze in je e-mail of WhatsApp"],
+      unlimited_invoices: ["Onbeperkt facturen", "Je hebt de limiet van 20 facturen van het gratis plan bereikt"],
+      deposits: ["Aanbetalingen en deelbetalingen", "Vraag vooraf een aanbetaling en houd bij wat er nog openstaat"],
+      ubl: ["UBL/XML-export", "Download gestructureerde XML voor EN 16931-workflows, controleer het bestand en lever het aan zoals je klant vraagt"],
+      recurring: ["Terugkerende facturen", "Maak wekelijks, tweewekelijks, maandelijks of jaarlijks nieuwe openstaande facturen om te controleren en te versturen"],
+      quotes: ["Offertes", "Verstuur offertes en zet een geaccepteerde offerte met één klik om in een factuur"],
+      expenses: ["Uitgaven en btw-overzicht", "Houd uitgaven bij en bekijk per kwartaal een overzicht per valuta voor je administratie"],
+      analytics: ["Uitgebreide analyses", "Omzet per maand, beste klanten, incassopercentage en betaaltermijnen"],
+      unlimited_clients: ["Onbeperkt klanten", "Je hebt de limiet van 5 klanten van het gratis plan bereikt"],
+    },
+  },
+  fr: {
+    tax: "HT",
+    pro: ["Factures illimitées","Clients illimités","Export UBL/XML (EN 16931)","Acomptes et paiements partiels","Relances de paiement (e-mail + WhatsApp)","Export PDF","Logo et identité personnalisés"],
+    business: ["Tout Essential","Devis convertibles en factures","Dépenses et synthèse de TVA","Analyses avancées","Membres d'équipe (jusqu'à 5)","Plusieurs profils d'entreprise","Paiements en ligne via Stripe","Accès API"],
+    general: ["Fonction Essential", "Débloquez toutes les fonctions d'Essential"],
+    feats: {
+      reminders: ["Relances de paiement", "Préparez et vérifiez vos relances de factures en retard, puis ouvrez-les dans votre e-mail ou WhatsApp"],
+      unlimited_invoices: ["Factures illimitées", "Vous avez atteint la limite de 20 factures du plan gratuit"],
+      deposits: ["Acomptes et paiements partiels", "Demandez un acompte et suivez le solde restant dû"],
+      ubl: ["Export UBL/XML", "Téléchargez un XML structuré pour les flux EN 16931, puis vérifiez-le et transmettez-le comme votre client le demande"],
+      recurring: ["Factures récurrentes", "Créez de nouvelles factures en attente chaque semaine, toutes les deux semaines, chaque mois ou chaque année, à vérifier puis envoyer"],
+      quotes: ["Devis", "Envoyez des devis et transformez un devis accepté en facture en un clic"],
+      expenses: ["Dépenses et synthèse de TVA", "Suivez vos dépenses et consultez une synthèse trimestrielle par devise pour votre comptabilité"],
+      analytics: ["Analyses avancées", "Chiffre d'affaires mensuel, meilleurs clients, taux d'encaissement et délais de paiement"],
+      unlimited_clients: ["Clients illimités", "Vous avez atteint la limite de 5 clients du plan gratuit"],
+    },
+  },
+  es: {
+    tax: "IVA no incluido",
+    pro: ["Facturas ilimitadas","Clientes ilimitados","Exportación UBL/XML (EN 16931)","Anticipos y pagos parciales","Recordatorios de pago (email + WhatsApp)","Exportación a PDF","Logo e imagen propios"],
+    business: ["Todo lo de Essential","Presupuestos que se convierten en facturas","Gastos y resumen de IVA","Análisis avanzados","Miembros del equipo (hasta 5)","Varios perfiles de empresa","Pagos online con Stripe","Acceso a la API"],
+    general: ["Función de Essential", "Desbloquea todas las funciones de Essential"],
+    feats: {
+      reminders: ["Recordatorios de pago", "Prepara y revisa recordatorios de facturas vencidas y ábrelos en tu email o WhatsApp"],
+      unlimited_invoices: ["Facturas ilimitadas", "Has alcanzado el límite de 20 facturas del plan gratuito"],
+      deposits: ["Anticipos y pagos parciales", "Pide un anticipo y controla lo que queda pendiente"],
+      ubl: ["Exportación UBL/XML", "Descarga XML estructurado para flujos EN 16931, valídalo y entrégalo como te pida tu cliente"],
+      recurring: ["Facturas recurrentes", "Crea nuevas facturas pendientes cada semana, cada dos semanas, cada mes o cada año para revisarlas y enviarlas"],
+      quotes: ["Presupuestos", "Envía presupuestos y convierte uno aceptado en factura con un clic"],
+      expenses: ["Gastos y resumen de IVA", "Registra gastos y revisa un resumen trimestral por moneda para tu contabilidad"],
+      analytics: ["Análisis avanzados", "Ingresos por mes, mejores clientes, tasa de cobro y plazos de pago"],
+      unlimited_clients: ["Clientes ilimitados", "Has alcanzado el límite de 5 clientes del plan gratuito"],
+    },
+  },
+  ar: {
+    tax: "غير شامل الضريبة",
+    pro: ["فواتير غير محدودة","عملاء غير محدودين","تصدير UBL/XML وفق EN 16931","دفعات مقدّمة وجزئية","تذكيرات دفع عبر البريد وWhatsApp","تصدير PDF","شعار وهوية مخصصان"],
+    business: ["كل مزايا Essential","عروض أسعار تتحول إلى فواتير","المصروفات وملخص VAT/BTW","تحليلات متقدمة","حتى 5 أعضاء فريق","ملفات أنشطة تجارية متعددة","مدفوعات بطاقات عبر Stripe","الوصول إلى API"],
+    general: ["ميزة Essential", "افتح جميع مزايا Essential"],
+    feats: {
+      reminders: ["تذكيرات الدفع", "حضّر وراجع تذكيرات الفواتير المتأخرة ثم افتحها في البريد أو WhatsApp"],
+      unlimited_invoices: ["فواتير غير محدودة", "وصلت إلى حد 20 فاتورة في الخطة المجانية"],
+      deposits: ["دفعات مقدّمة وجزئية", "اطلب دفعة مقدّمة وتابع الرصيد المتبقي"],
+      ubl: ["تصدير UBL/XML", "نزّل ملف XML منظمًا لعمليات EN 16931، ثم تحقّق منه وسلّمه بالطريقة التي يطلبها عميلك"],
+      recurring: ["الفواتير المتكررة", "أنشئ فواتير معلقة أسبوعيًا أو كل أسبوعين أو شهريًا أو سنويًا لمراجعتها وإرسالها"],
+      quotes: ["عروض الأسعار", "أرسل عروض أسعار وحوّل العرض المقبول إلى فاتورة بنقرة"],
+      expenses: ["المصروفات وملخص VAT/BTW", "تابع المصروفات وراجع ملخصًا فصليًا لكل عملة لمحاسبتك"],
+      analytics: ["تحليلات متقدمة", "الإيرادات الشهرية وأفضل العملاء ونسبة التحصيل ومهل الدفع"],
+      unlimited_clients: ["عملاء غير محدودين", "وصلت إلى حد 5 عملاء في الخطة المجانية"],
+    },
+  },
+};
+
 function UpgradeModal({ feature, onClose, onActivate, initialPlan, userEmail, userId }) {
   const locale = getLocale();
   const t = (key, fallback) => tr(key, fallback, locale);
   const ar = locale === "ar";
+  const copy = UPGRADE_COPY[locale] || UPGRADE_COPY.en;
   const [loading, setLoading] = useState(false);
   const [step, setStep] = useState("plans");
   const [selectedPlan, setSelectedPlan] = useState(initialPlan || "pro");
 
   const PLANS_INFO = {
     pro: { name:"Essential", price:"\u20ac9", period:t("per_month", "/month"), color:"var(--gold)", stripe_link:"https://buy.stripe.com/fZu4gzepGdT05Gx48j5ZC00",
-      features:ar ? ["فواتير غير محدودة","عملاء غير محدودين","تصدير UBL/XML وفق EN 16931","دفعات مقدّمة وجزئية","تذكيرات دفع عبر البريد وWhatsApp","تصدير PDF","شعار وهوية مخصصان"] : ["Unlimited invoices","Unlimited clients","UBL/XML export (EN 16931)","Deposits & partial payments","Payment reminders (Email + WhatsApp)","PDF export","Custom logo & branding"] },
+      features:copy.pro },
     business: { name:"Advanced", price:"\u20ac19", period:t("per_month", "/month"), color:"#a78bfa", badge: BUSINESS_ENABLED ? null : (ar ? "قريبًا" : "Coming Soon"), stripe_link: BUSINESS_ENABLED ? "https://buy.stripe.com/6oU28repG8yG9WNfR15ZC01" : null,
-      features:ar ? ["كل مزايا Essential","عروض أسعار تتحول إلى فواتير","المصروفات وملخص VAT/BTW","تحليلات متقدمة","حتى 5 أعضاء فريق","ملفات أنشطة تجارية متعددة","مدفوعات بطاقات عبر Stripe","الوصول إلى API"] : ["Everything in Essential","Quotes that convert to invoices","Expenses & VAT/BTW report","Advanced analytics","Team members (up to 5)","Multi-business profiles","Stripe payment integration","API access"] },
+      features:copy.business },
   };
 
-  const featureLabels = {
-    reminders: { icon:"!", label:ar?"تذكيرات الدفع":"Payment Reminders", desc:ar?"حضّر وراجع تذكيرات الفواتير المتأخرة ثم افتحها في البريد أو WhatsApp":"Prepare and review overdue reminders, then open them in Email or WhatsApp" },
-    unlimited_invoices: { icon:"!", label:ar?"فواتير غير محدودة":"Unlimited Invoices", desc:ar?"وصلت إلى حد 20 فاتورة في الخطة المجانية":"You've hit the 20 invoice limit on the Free plan" },
-    deposits: { icon:"!", label:ar?"دفعات مقدّمة وجزئية":"Deposits & Partial Payments", desc:ar?"اطلب دفعة مقدّمة وتابع الرصيد المتبقي":"Ask for a deposit up front and track what is still owed" },
-    ubl: { icon:"!", label:ar?"تصدير UBL/XML":"UBL/XML Export", desc:ar?"نزّل ملف XML منظمًا لعمليات EN 16931، ثم تحقّق منه وسلّمه بالطريقة التي يطلبها عميلك":"Download structured XML for EN 16931 workflows, then validate and deliver it as your client requests" },
-    recurring: { icon:"!", label:ar?"الفواتير المتكررة":"Recurring Invoices", desc:ar?"أنشئ فواتير معلقة أسبوعيًا أو كل أسبوعين أو شهريًا أو سنويًا لمراجعتها وإرسالها":"Create new pending invoices weekly, biweekly, monthly or yearly for you to review and send" },
-    quotes: { icon:"!", label:ar?"عروض الأسعار":"Quotes", desc:ar?"أرسل عروض أسعار وحوّل العرض المقبول إلى فاتورة بنقرة":"Send quotes and turn an accepted one into an invoice in a click" },
-    expenses: { icon:"!", label:ar?"المصروفات وملخص VAT/BTW":"Expenses & VAT/BTW Summary", desc:ar?"تابع المصروفات وراجع ملخصًا فصليًا لكل عملة لمحاسبتك":"Track expenses and review a quarterly summary per currency for your bookkeeping" },
-    analytics: { icon:"!", label:ar?"تحليلات متقدمة":"Advanced Analytics", desc:ar?"الإيرادات الشهرية وأفضل العملاء ونسبة التحصيل ومهل الدفع":"Revenue per month, top clients, collection rate and payment terms" },
-    unlimited_clients: { icon:"!", label:ar?"عملاء غير محدودين":"Unlimited Clients", desc:ar?"وصلت إلى حد 5 عملاء في الخطة المجانية":"You've hit the 5 client limit on the Free plan" },
-  };
-
-  const feat = featureLabels[feature] || { icon:"✦", label:ar?"ميزة Essential":"Essential Feature", desc:ar?"افتح جميع مزايا Essential":"Unlock all Essential features" };
+  const featEntry = copy.feats[feature];
+  const feat = featEntry ? { icon:"!", label:featEntry[0], desc:featEntry[1] } : { icon:"✦", label:copy.general[0], desc:copy.general[1] };
 
   const handleStripe = () => {
     const link = PLANS_INFO[selectedPlan]?.stripe_link;
@@ -2549,7 +2725,7 @@ function UpgradeModal({ feature, onClose, onActivate, initialPlan, userEmail, us
                 <span style={{ fontSize:26, fontWeight:800, color:p.color, fontFamily:"'Playfair Display', serif" }}>{p.price}</span>
                 <span style={{ fontSize:12, color:"var(--text2)" }}>{p.period}</span>
               </div>
-              <div style={{ fontSize:11, fontWeight:600, color:"var(--text2)", marginTop:-7, marginBottom:10 }}>excl. btw</div>
+              <div style={{ fontSize:11, fontWeight:600, color:"var(--text2)", marginTop:-7, marginBottom:10 }}>{copy.tax}</div>
               {p.features.slice(0,3).map((feat3, i) => (
                 <div key={i} style={{ fontSize:11, color:"var(--text2)", marginBottom:4, display:"flex", gap:6 }}>
                   <span style={{ color:"var(--green)" }}>✓</span>{feat3}

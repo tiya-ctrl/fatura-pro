@@ -54,7 +54,7 @@ const CHAT_CSS = `
 .chat-msg.user { align-self:flex-end; align-items:flex-end; }
 .chat-msg.bot  { align-self:flex-start; }
 .chat-bubble {
-  padding:10px 14px; border-radius:14px; font-size:13px; line-height:1.6;
+  padding:10px 14px; border-radius:14px; font-size:13px; line-height:1.6; white-space:pre-wrap; overflow-wrap:anywhere;
 }
 .chat-msg.user .chat-bubble { background:var(--gold); color:#000; border-radius:14px 14px 4px 14px; }
 .chat-msg.bot  .chat-bubble { background:var(--bg3); color:var(--text); border:1px solid var(--border2); border-radius:14px 14px 14px 4px; }
@@ -67,7 +67,7 @@ const CHAT_CSS = `
 .chat-suggestions { padding:8px 16px 4px; display:flex; gap:6px; flex-wrap:wrap; }
 .chat-sug { font-size:11px; background:var(--bg3); border:1px solid var(--border2);
   border-radius:20px; padding:5px 12px; cursor:pointer; color:var(--text2);
-  transition:all 0.15s; white-space:nowrap; }
+  transition:all 0.15s; white-space:nowrap; font-family:inherit; }
 .chat-sug:hover { border-color:var(--gold); color:var(--gold); }
 .chat-input-row { padding:12px 14px; border-top:1px solid var(--border2); display:flex; gap:8px; align-items:flex-end; }
 .chat-input {
@@ -96,6 +96,9 @@ const CHAT_CSS = `
 `;
 
 const timeStr = () => new Date().toLocaleTimeString("en", { hour:"2-digit", minute:"2-digit" });
+// The assistant writes **bold** markdown. Show it as bold instead of printing the asterisks.
+const richText = (text) => String(text).split(/(\*\*[^*]+\*\*)/g).map((part, i) =>
+  part.startsWith("**") && part.endsWith("**") && part.length > 4 ? <strong key={i}>{part.slice(2, -2)}</strong> : part);
 
 /* ─── CHATBOT ────────────────────────────────────────────────── */
 const SUGGESTIONS = ["What's in the Essential plan?", "كيف تشتغل؟", "Do I need a company?", "How does the trial work?"];
@@ -127,6 +130,7 @@ function Chatbot() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           bot: "landing",
+          lang: "en",
           messages: history,
         }),
       });
@@ -154,12 +158,12 @@ function Chatbot() {
               <div className="chat-head-name">Fatūra Assistant</div>
               <div className="chat-head-status"><span className="chat-head-dot" />Online · Replies instantly</div>
             </div>
-            <button className="chat-close" onClick={() => setOpen(false)}>✕</button>
+            <button className="chat-close" aria-label="Close chat" onClick={() => setOpen(false)}>✕</button>
           </div>
           <div className="chat-messages">
             {msgs.map((m, i) => (
               <div key={i} className={`chat-msg ${m.role}`}>
-                <div className="chat-bubble" style={{ direction: /[؀-ۿ]/.test(m.text) ? "rtl" : "ltr", textAlign: /[؀-ۿ]/.test(m.text) ? "right" : "left" }}>{m.text}</div>
+                <div className="chat-bubble" style={{ direction: /[؀-ۿ]/.test(m.text) ? "rtl" : "ltr", textAlign: /[؀-ۿ]/.test(m.text) ? "right" : "left" }}>{richText(m.text)}</div>
                 <div className="chat-time">{m.time}</div>
               </div>
             ))}
@@ -173,7 +177,7 @@ function Chatbot() {
           {msgs.length <= 2 && (
             <div className="chat-suggestions">
               {SUGGESTIONS.map((s, i) => (
-                <div key={i} className="chat-sug" onClick={() => send(s)}>{s}</div>
+                <button type="button" key={i} className="chat-sug" onClick={() => send(s)}>{s}</button>
               ))}
             </div>
           )}
@@ -193,7 +197,7 @@ function Chatbot() {
           </div>
         </div>
       )}
-      <button className="chat-btn" onClick={() => setOpen(o => !o)} title="Chat with us">
+      <button className="chat-btn" onClick={() => setOpen(o => !o)} title="Chat with us" aria-label={open ? "Close chat" : "Chat with the AI assistant"}>
         {open ? "✕" : "💬"}
       </button>
     </>

@@ -50,7 +50,7 @@ export default async function handler(req, res) {
     return res.status(429).json({ error: "Too many messages. Please try again in a few minutes." });
   }
 
-  const { messages, system, bot: requestedBot, plan } = req.body || {};
+  const { messages, system, bot: requestedBot, plan, lang } = req.body || {};
 
   // 3) تحقق من الشكل والحجم
   if (!Array.isArray(messages) || messages.length === 0 || messages.length > 25) {
@@ -71,7 +71,7 @@ export default async function handler(req, res) {
   const bot = requestedBot === "support" || requestedBot === "landing"
     ? requestedBot
     : (typeof system === "string" && system.indexOf("Edy") >= 0 ? "support" : "landing");
-  const serverSystem = chatSystemPrompt(bot, plan);
+  const serverSystem = chatSystemPrompt(bot, plan, lang);
 
   // 5) تاريخ اليوم حتى يقدر يجاوب عنه
   const today = new Date().toISOString().slice(0, 10);
@@ -96,7 +96,9 @@ export default async function handler(req, res) {
     const data = await response.json();
 
     if (!response.ok) {
-      return res.status(response.status).json(data);
+      // Keep provider details in the server log, not in the visitor's browser.
+      console.error("chat upstream error", response.status, data && data.error && data.error.type);
+      return res.status(502).json({ error: "The assistant is unavailable right now. Please try again, or email support@faturapro.app." });
     }
 
     // تسجيل المحادثة (لا يوقف الرد لو فشل)
@@ -131,6 +133,7 @@ export default async function handler(req, res) {
 
     res.status(200).json(data);
   } catch (err) {
-    res.status(500).json({ error: err.message });
+    console.error("chat error", err && err.message);
+    res.status(500).json({ error: "The assistant is unavailable right now. Please try again, or email support@faturapro.app." });
   }
 }

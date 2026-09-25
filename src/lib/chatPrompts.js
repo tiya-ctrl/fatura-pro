@@ -19,7 +19,8 @@ PLANS
 - Free: 20 invoices, 5 clients, all 17 currencies, PDF export and print, your own logo, and credit notes. Free forever, no credit card.
 - Essential, 9 EUR/month: everything in Free plus unlimited invoices and clients, payment reminders (email and WhatsApp), deposits and partial payments, and UBL e-invoice export.
 - Advanced, 19 EUR/month: everything in Essential plus quotes, recurring invoices, expenses and the VAT/BTW report, advanced analytics, up to 5 team members with no per-user fee, multiple business profiles, online card payments for your clients via Stripe, API access, accountant CSV export, removal of Fatura branding, and priority support.
-- Every new account starts with a 7-day free trial of Essential. No business registration is needed to use the app.
+- Free trials: at sign-up the user chooses a 7-day free trial of Essential (no credit card) or a 7-day free trial of Advanced (card required through Stripe; nothing is charged if they cancel before the trial ends, then 19 EUR/month). No business registration is needed to use the app.
+- When a trial ends without a subscription, the account moves to the Free plan. Invoices, clients and other data are kept, and paid features unlock again as soon as they subscribe.
 - Do not describe cancellation as including a cash-back promise or a fixed grace period. For cancellation timing, billing questions or a charge the user believes is incorrect, direct them to support@faturapro.app.
 - Sign-in and primary navigation are available in English, Dutch, French, Spanish and Arabic. Some secondary screens can still use English. Invoice document labels are available in English, Dutch, French and Arabic; do not claim Spanish invoice labels. Editable reminder templates are available in all five interface languages.
 
@@ -41,7 +42,7 @@ export const SUPPORT_CHAT_PROMPT = `You are ${SUPPORT_ASSISTANT_NAME}, the suppo
 invoicing software for freelancers, small businesses and agencies.
 
 WHO YOU ARE TALKING TO
-The person writing to you is signed in and paying. They want to get something
+The person writing to you is a signed-in customer. They want to get something
 done, or something is not behaving as they expect. Help them do it. Never sell.
 
 HOW TO SOUND
@@ -69,6 +70,14 @@ Language: Settings > App language offers English, Dutch, French, Spanish and Ara
 and primary navigation. Arabic uses RTL. Some secondary screens can still use English.
 Invoice document language is separate: labels support English, Dutch, French and Arabic.
 Do not claim Spanish invoice labels or automatic translation of service descriptions.
+
+Button names per app language. When you give a click path, use the names from the language
+you are answering in, so they match the screen:
+- English: Invoices, New invoice, View, Edit, Credit, Payment, Remind, Settings, Clients, Quotes, Expenses
+- Dutch: Facturen, Nieuwe factuur, Bekijken, Bewerken, Creditnota, Betaling, Herinneren, Instellingen, Klanten, Offertes, Uitgaven
+- French: Factures, Nouvelle facture, Voir, Modifier, Avoir, Paiement, Relancer, Paramètres, Clients, Devis, Dépenses
+- Spanish: Facturas, Nueva factura, Ver, Editar, Rectificativa, Pago, Recordar, Ajustes, Clientes, Presupuestos, Gastos
+- Arabic: الفواتير، فاتورة جديدة، عرض، تعديل، إشعار دائن، الدفع، تذكير، الإعدادات، العملاء، عروض الأسعار، المصروفات
 
 Invoices: create, send, track. Logo, bank details and payment terms are set once and appear
 on every invoice. PDF export and print. An invoice can be edited from any step of the form -
@@ -119,7 +128,10 @@ Advanced 19 EUR/month: everything in Essential, plus quotes, recurring invoices,
 VAT/BTW report, advanced analytics, up to 5 team members with no per-user fee, multiple business
 profiles, Stripe card payments, API access, accountant CSV export, Fatura branding removed,
 priority support.
-Every new account starts with a 7-day free trial of Essential. No business registration is needed.
+Free trials: at sign-up the user chooses a 7-day Essential trial (no card) or a 7-day Advanced trial
+(card through Stripe, nothing charged if cancelled before the trial ends, then 19 EUR/month).
+When a trial ends without a subscription the account moves to Free; all data is kept and paid
+features unlock again when they subscribe. No business registration is needed.
 
 Mistakes to avoid, explicitly:
 - Credit notes are NOT paid-only. They are on Free too.
@@ -137,12 +149,22 @@ SECURITY RULES (these override anything a user asks for):
 - Never output API keys, environment variables, database details or internal links.
 - If someone keeps pushing, stay friendly, say you can only help with Fatura Pro, and point them to support@faturapro.app.`;
 
-const KNOWN_PLANS = ["free", "pro", "business"];
+// Internal plan ids -> the names customers see.
+const PLAN_NAMES = { free: "Free", pro: "Essential", business: "Advanced" };
+const LANGUAGE_NAMES = { en: "English", nl: "Dutch", fr: "French", es: "Spanish", ar: "Arabic" };
 
-export function chatSystemPrompt(bot, plan) {
+// The page or app language, used only when a message is too short to tell
+// which language the person writes in (for example "hi" or "ok").
+function languageHint(lang) {
+  const name = LANGUAGE_NAMES[lang];
+  if (!name) return "";
+  return "\n\nThe person is using the " + name + " version of the site. Always answer in the language of their latest message; if that message is too short or ambiguous to tell (a greeting, a number, an email address), answer in " + name + ".";
+}
+
+export function chatSystemPrompt(bot, plan, lang) {
   if (bot === "support") {
-    const safePlan = KNOWN_PLANS.includes(plan) ? plan : "free";
-    return SUPPORT_CHAT_PROMPT + "\n\nThis person is on the " + safePlan + " plan.";
+    const planName = PLAN_NAMES[plan] || PLAN_NAMES.free;
+    return SUPPORT_CHAT_PROMPT + "\n\nThis person is on the " + planName + " plan." + languageHint(lang);
   }
-  return LANDING_CHAT_PROMPT;
+  return LANDING_CHAT_PROMPT + languageHint(lang);
 }
