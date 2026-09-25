@@ -85,6 +85,7 @@ html:has(.lv2){scroll-behavior:smooth;-webkit-text-size-adjust:100%}
 .lv2 h1 .line{display:block}
 .lv2.js h1 .line{opacity:0;transform:translateY(30px);filter:blur(8px);animation:lv2-rise 1s var(--ease) forwards}
 .lv2.js h1 .line:nth-child(2){animation-delay:.15s}
+.lv2.js .stage-in{opacity:0;transform:translateY(30px);filter:blur(8px);animation:lv2-rise 1s var(--ease) .3s forwards}
 @keyframes lv2-rise{to{opacity:1;transform:none;filter:none}}
 .lv2 .grad{background:linear-gradient(100deg,#b9bbff 0%,var(--brand-3) 30%,var(--cyan) 55%,var(--brand-3) 80%,#b9bbff 100%);background-size:220% auto;-webkit-background-clip:text;background-clip:text;color:transparent;animation:lv2-shimmer 7s linear infinite;padding-right:.08em}
 @keyframes lv2-shimmer{to{background-position:220% center}}
@@ -106,9 +107,15 @@ html:has(.lv2){scroll-behavior:smooth;-webkit-text-size-adjust:100%}
 .lv2 .shot figcaption{margin-top:14px;color:var(--faint);font-size:12.5px;text-align:center}
 .lv2 .chip{position:absolute;display:flex;align-items:center;gap:9px;padding:10px 14px;background:rgba(17,17,26,.88);border:1px solid var(--line-2);border-radius:14px;font-size:13px;font-weight:600;box-shadow:0 18px 40px rgba(0,0,0,.45);backdrop-filter:blur(10px);animation:lv2-bob 6s ease-in-out infinite;transform:translateZ(60px);white-space:nowrap}
 .lv2 .chip .dot{display:flex;align-items:center;justify-content:center;min-width:26px;height:26px;padding:0 6px;border-radius:8px;background:rgba(111,211,166,.15);color:var(--ok);font-weight:700}
-.lv2 .chip.one{left:-26px;bottom:70px}
-.lv2 .chip.two{right:-18px;top:-18px;animation-delay:-2s}
-.lv2 .chip.three{right:-22px;bottom:96px;animation-delay:-4s}
+.lv2 .chip{transition:opacity .35s var(--ease),transform .45s var(--ease),top .6s var(--ease),bottom .6s var(--ease),left .6s var(--ease),right .6s var(--ease)}
+.lv2 .chip.out{opacity:0;transform:translateZ(60px) scale(.9)}
+.lv2 .chip.p1{top:-18px;right:-18px;bottom:auto;left:auto}
+.lv2 .chip.p2{bottom:70px;left:-26px;top:auto;right:auto}
+.lv2 .chip.p3{bottom:96px;right:-22px;top:auto;left:auto}
+.lv2 .chip.p4{top:22%;left:-30px;bottom:auto;right:auto}
+.lv2 .chip.p5{bottom:-16px;left:32%;top:auto;right:auto}
+.lv2 .chip:nth-of-type(2){animation-delay:-2s}
+.lv2 .chip:nth-of-type(3){animation-delay:-4s}
 @keyframes lv2-bob{0%,100%{translate:0 0}50%{translate:0 -10px}}
 
 
@@ -258,8 +265,15 @@ html:has(.lv2){scroll-behavior:smooth;-webkit-text-size-adjust:100%}
   .lv2 .nav-inner{flex-wrap:wrap;gap:10px 12px;padding-block:10px}
   .lv2 .nav-inner>.language-links{order:5;flex-basis:100%;margin-left:0}
   .lv2 .nav-end{margin-left:auto}
-  .lv2 h1{font-size:clamp(32px,8.8vw,42px);line-height:1.16;margin:16px 0 14px}
-  .lv2 .lead{font-size:16px;line-height:1.7}
+  .lv2 h1{font-size:clamp(30px,8.4vw,40px);line-height:1.14;margin:14px 0 12px}
+  .lv2 .lead{font-size:15.5px;line-height:1.65}
+  .lv2 .hero{padding:22px 0 28px}
+  .lv2 .hero-grid{gap:18px}
+  .lv2 .kicker{margin-bottom:0}
+  .lv2 .actions{margin:20px 0 14px;gap:10px}
+  .lv2 .actions .button.ghost{min-height:auto;padding:4px 0;background:none;border:0;box-shadow:none;color:var(--brand-ink);font-weight:600;text-decoration:underline;text-underline-offset:4px;backdrop-filter:none}
+  .lv2 .trust{font-size:13px;gap:6px 14px}
+  .lv2 .stage{margin-top:8px}
   .lv2 .kicker{font-size:12px;padding:6px 12px}
   .lv2 .section{padding:68px 0}
   .lv2 .section-head{margin-bottom:32px}
@@ -270,8 +284,13 @@ html:has(.lv2){scroll-behavior:smooth;-webkit-text-size-adjust:100%}
   .lv2 .steps li::before{grid-row:1 / span 2;margin:0}
   .lv2 .facts ul{grid-template-columns:1fr 1fr;padding-top:28px}
   .lv2 .facts li:last-child{grid-column:1 / -1}
-  .lv2 .chip.one,.lv2 .chip.three{display:none}
-  .lv2 .chip.two{right:8px;top:-14px}
+  .lv2 .chip{font-size:12px;padding:8px 11px}
+  .lv2 .chip .dot{min-width:22px;height:22px;font-size:11px}
+  .lv2 .chip.c3{display:none}
+  .lv2 .chip.p1{top:-14px;right:6px;left:auto;bottom:auto}
+  .lv2 .chip.p2{bottom:34px;left:6px;right:auto;top:auto}
+  .lv2 .chip.p3{bottom:34px;right:6px;left:auto;top:auto}
+  .lv2 .chip.p4{top:-14px;left:6px;right:auto;bottom:auto}
   .lv2 .actions .button{flex:1 1 100%}
   .lv2 .guide{flex-direction:column;align-items:flex-start;padding:26px}
   .lv2 .feature,.lv2 .plan{padding:22px 20px}
@@ -301,7 +320,7 @@ html:has(.lv2){scroll-behavior:smooth;-webkit-text-size-adjust:100%}
 @media (max-width:720px){.lv2 .features.why{grid-template-columns:1fr}.lv2 .foot-grid{grid-template-columns:1fr 1fr}.lv2 .icon.big{display:none}}
 @media (prefers-reduced-motion:reduce){
   .lv2 *,.lv2 *::before,.lv2 *::after{animation:none!important;transition:none!important;scroll-behavior:auto!important}
-  .lv2.js .reveal,.lv2.js h1 .line{opacity:1!important;transform:none!important;filter:none!important}
+  .lv2.js .reveal,.lv2.js h1 .line,.lv2.js .stage-in{opacity:1!important;transform:none!important;filter:none!important}
   .lv2 .shot{transform:none!important}
 }
 

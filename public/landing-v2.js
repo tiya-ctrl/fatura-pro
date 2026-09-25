@@ -51,6 +51,38 @@
   window.addEventListener('scroll', function () { if (!ticking) { ticking = true; requestAnimationFrame(onScroll); } }, { passive: true });
   onScroll();
 
+  // Feature bubbles around the product shot: one at a time moves to a free spot
+  // and shows the next feature from the app.
+  var shotEl = document.querySelector('.shot[data-chips]');
+  if (shotEl && !reduce) {
+    var feats = [];
+    try { feats = JSON.parse(shotEl.getAttribute('data-chips') || '[]'); } catch (err) { feats = []; }
+    var chipEls = [].slice.call(shotEl.querySelectorAll('.chip'));
+    var POS = ['p1', 'p2', 'p3', 'p4', 'p5'], nextFeat = chipEls.length, turn = 0;
+    var posOf = function (el) { var m = el.className.match(/\bp\d\b/); return m ? m[0] : 'p1'; };
+    if (feats.length > chipEls.length) {
+      setInterval(function () {
+        if (document.hidden) return;
+        var mobile = window.innerWidth <= 720;
+        var active = mobile ? chipEls.slice(0, 2) : chipEls;
+        var slots = mobile ? ['p1', 'p2', 'p3', 'p4'] : POS;
+        var chip = active[turn % active.length]; turn++;
+        var used = active.filter(function (x) { return x !== chip; }).map(posOf);
+        var free = slots.filter(function (p) { return used.indexOf(p) < 0 && p !== posOf(chip); });
+        var pos = free.length ? free[Math.floor(Math.random() * free.length)] : posOf(chip);
+        var f = feats[nextFeat % feats.length]; nextFeat++;
+        chip.classList.add('out');
+        setTimeout(function () {
+          POS.forEach(function (p) { chip.classList.remove(p); });
+          chip.classList.add(pos);
+          chip.querySelector('.dot').textContent = f[0];
+          chip.querySelector('.lbl').textContent = f[1];
+          chip.classList.remove('out');
+        }, 380);
+      }, 2400);
+    }
+  }
+
   // Spotlight that follows the pointer on feature cards.
   document.querySelectorAll('.feature').forEach(function (card) {
     card.addEventListener('pointermove', function (e) {

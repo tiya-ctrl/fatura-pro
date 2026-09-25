@@ -197,7 +197,10 @@ function Chatbot() {
 }
 
 /* ─── CONTENT ────────────────────────────────────────────────── */
-const TRUST = ["No credit card needed", "Free plan available", "Account data hosted in the EU"];
+const TRUST = ["Free plan, no credit card", "Essential from €9 per month", "Account data hosted in the EU"];
+
+// Feature bubbles around the product shot (rotated by initLandingMotion).
+const HERO_CHIPS = [["✓", "Credit notes on every plan"], ["17", "currencies, kept separate"], ["PDF", "Branded PDF invoices"], ["↻", "Reminders by email & WhatsApp"], ["%", "Deposits & partial payments"], ["XML", "UBL export for EN 16931"], ["4", "invoice languages"], ["→", "Quotes become invoices"], ["€", "Card payments via Stripe"]];
 
 const FACTS = [
   ["17", "currencies, balances kept separate"],
@@ -387,9 +390,9 @@ export default function LandingPage({ onOpenApp }) {
             <div className="gridlines" aria-hidden="true" />
             <div className="wrap hero-grid">
               <div>
-                <span className="kicker reveal"><span className="pulse" aria-hidden="true" />Invoicing for freelancers &amp; businesses working across borders</span>
-                <h1><span className="line">Invoice clients anywhere.</span> <span className="line"><em className="accent grad">Run your business in one place.</em></span></h1>
-                <p className="lead reveal" style={{ "--d":"200ms" }}>Multi-currency invoicing software for freelancers and small service businesses. Create invoices and quotes, track expenses and payments, and manage clients, without complicated accounting software.</p>
+                <span className="kicker reveal"><span className="pulse" aria-hidden="true" />Invoicing software for freelancers &amp; small businesses</span>
+                <h1><span className="line">Send professional invoices in minutes.</span> <span className="line"><em className="accent grad">Then follow up until you’re paid.</em></span></h1>
+                <p className="lead reveal" style={{ "--d":"200ms" }}>Multi-currency invoicing software for freelancers: branded invoices, quotes, credit notes and payment reminders by email or WhatsApp, in 17 currencies.</p>
                 <div className="actions reveal" style={{ "--d":"320ms" }}>
                   <a className="button primary" href={signupHref("hero_primary")} onClick={signup("hero_primary")}>Create your first invoice, free <span className="arrow" aria-hidden="true">→</span></a>
                   <a className="button ghost" href="#how">See how it works</a>
@@ -397,12 +400,12 @@ export default function LandingPage({ onOpenApp }) {
                 <ul className="trust reveal" style={{ "--d":"420ms" }}>{TRUST.map((t) => <li key={t}><Check />{t}</li>)}</ul>
                 <p className="hero-links reveal" style={{ "--d":"480ms" }}>Invoicing <a href="/for-freelancers">for freelancers</a> · <a href="/for-agencies">for agencies &amp; small business</a></p>
               </div>
-              <div className="stage reveal" style={{ "--d":"250ms" }}>
-                <figure className="shot" aria-label="Real screenshot of the Fatūra Pro dashboard">
+              <div className="stage stage-in">
+                <figure className="shot" aria-label="Real screenshot of the Fatūra Pro dashboard" data-chips={JSON.stringify(HERO_CHIPS)}>
                   <div className="shot-frame"><div className="shot-inner"><img src="/hero-dashboard.png" width="1362" height="596" alt="Fatura Pro dashboard showing invoices, revenue, pending and overdue payments" fetchpriority="high" decoding="async" /></div></div>
-                  <div className="chip two" aria-hidden="true"><span className="dot">✓</span>Credit notes on every plan</div>
-                  <div className="chip one" aria-hidden="true"><span className="dot">17</span>currencies, kept separate</div>
-                  <div className="chip three" aria-hidden="true"><span className="dot">4</span>invoice languages</div>
+                  {HERO_CHIPS.slice(0, 3).map(([dot, label], i) => (
+                    <div key={i} className={"chip c" + (i + 1) + " p" + (i + 1)} aria-hidden="true"><span className="dot">{dot}</span><span className="lbl">{label}</span></div>
+                  ))}
                   <figcaption>Real screenshot of the dashboard</figcaption>
                 </figure>
               </div>

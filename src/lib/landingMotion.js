@@ -62,6 +62,43 @@ export function initLandingMotion(root) {
   cleanups.push(() => window.removeEventListener("scroll", scrollHandler));
   onScroll();
 
+  // Feature bubbles around the product shot: one at a time moves to a free spot
+  // and shows the next feature from the app.
+  const shotEl = root.querySelector(".shot[data-chips]");
+  if (shotEl && !reduce) {
+    let feats = [];
+    try { feats = JSON.parse(shotEl.getAttribute("data-chips") || "[]"); } catch { feats = []; }
+    const chipEls = Array.from(shotEl.querySelectorAll(".chip"));
+    const POS = ["p1", "p2", "p3", "p4", "p5"];
+    const posOf = (el) => (el.className.match(/\bp\d\b/) || ["p1"])[0];
+    let nextFeat = chipEls.length, turn = 0;
+    const chipTimeouts = new Set();
+    if (feats.length > chipEls.length) {
+      const chipTimer = setInterval(() => {
+        if (document.hidden) return;
+        const mobile = window.innerWidth <= 720;
+        const active = mobile ? chipEls.slice(0, 2) : chipEls;
+        const slots = mobile ? ["p1", "p2", "p3", "p4"] : POS;
+        const chip = active[turn % active.length]; turn += 1;
+        const used = active.filter((x) => x !== chip).map(posOf);
+        const free = slots.filter((p) => !used.includes(p) && p !== posOf(chip));
+        const pos = free.length ? free[Math.floor(Math.random() * free.length)] : posOf(chip);
+        const f = feats[nextFeat % feats.length]; nextFeat += 1;
+        chip.classList.add("out");
+        const id = setTimeout(() => {
+          chipTimeouts.delete(id);
+          POS.forEach((p) => chip.classList.remove(p));
+          chip.classList.add(pos);
+          chip.querySelector(".dot").textContent = f[0];
+          chip.querySelector(".lbl").textContent = f[1];
+          chip.classList.remove("out");
+        }, 380);
+        chipTimeouts.add(id);
+      }, 2400);
+      cleanups.push(() => { clearInterval(chipTimer); chipTimeouts.forEach(clearTimeout); });
+    }
+  }
+
   // Spotlight that follows the pointer on feature cards.
   root.querySelectorAll(".feature").forEach((card) => {
     const move = (e) => {

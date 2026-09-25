@@ -84,6 +84,7 @@ h1{font-size:clamp(38px,4.2vw,56px);line-height:1.1;font-weight:600;margin:22px 
 h1 .line{display:block}
 .js h1 .line{opacity:0;transform:translateY(30px);filter:blur(8px);animation:rise 1s var(--ease) forwards}
 .js h1 .line:nth-child(2){animation-delay:.15s}
+.js .stage-in{opacity:0;transform:translateY(30px);filter:blur(8px);animation:rise 1s var(--ease) .3s forwards}
 @keyframes rise{to{opacity:1;transform:none;filter:none}}
 .grad{background:linear-gradient(100deg,#b9bbff 0%,var(--brand-3) 30%,var(--cyan) 55%,var(--brand-3) 80%,#b9bbff 100%);background-size:220% auto;-webkit-background-clip:text;background-clip:text;color:transparent;animation:shimmer 7s linear infinite;padding-right:.08em}
 @keyframes shimmer{to{background-position:220% center}}
@@ -105,9 +106,15 @@ h1 em.accent{font-size:1em}
 .shot figcaption{margin-top:14px;color:var(--faint);font-size:12.5px;text-align:center}
 .chip{position:absolute;display:flex;align-items:center;gap:9px;padding:10px 14px;background:rgba(17,17,26,.88);border:1px solid var(--line-2);border-radius:14px;font-size:13px;font-weight:600;box-shadow:0 18px 40px rgba(0,0,0,.45);backdrop-filter:blur(10px);animation:bob 6s ease-in-out infinite;transform:translateZ(60px);white-space:nowrap}
 .chip .dot{display:flex;align-items:center;justify-content:center;min-width:26px;height:26px;padding:0 6px;border-radius:8px;background:rgba(111,211,166,.15);color:var(--ok);font-weight:700}
-.chip.one{left:-26px;bottom:70px}
-.chip.two{right:-18px;top:-18px;animation-delay:-2s}
-.chip.three{right:-22px;bottom:96px;animation-delay:-4s}
+.chip{transition:opacity .35s var(--ease),transform .45s var(--ease),top .6s var(--ease),bottom .6s var(--ease),left .6s var(--ease),right .6s var(--ease)}
+.chip.out{opacity:0;transform:translateZ(60px) scale(.9)}
+.chip.p1{top:-18px;right:-18px;bottom:auto;left:auto}
+.chip.p2{bottom:70px;left:-26px;top:auto;right:auto}
+.chip.p3{bottom:96px;right:-22px;top:auto;left:auto}
+.chip.p4{top:22%;left:-30px;bottom:auto;right:auto}
+.chip.p5{bottom:-16px;left:32%;top:auto;right:auto}
+.chip:nth-of-type(2){animation-delay:-2s}
+.chip:nth-of-type(3){animation-delay:-4s}
 @keyframes bob{0%,100%{translate:0 0}50%{translate:0 -10px}}
 
 /* Currency marquee */
@@ -257,8 +264,15 @@ footer a:hover{color:var(--text)}
   .nav-inner{flex-wrap:wrap;gap:10px 12px;padding-block:10px}
   .nav-inner>.language-links{order:5;flex-basis:100%;margin-left:0}
   .nav-end{margin-left:auto}
-  h1{font-size:clamp(32px,8.8vw,42px);line-height:1.16;margin:16px 0 14px}
-  .lead{font-size:16px;line-height:1.7}
+  h1{font-size:clamp(30px,8.4vw,40px);line-height:1.14;margin:14px 0 12px}
+  .lead{font-size:15.5px;line-height:1.65}
+  .hero{padding:22px 0 28px}
+  .hero-grid{gap:18px}
+  .kicker{margin-bottom:0}
+  .actions{margin:20px 0 14px;gap:10px}
+  .actions .button.ghost{min-height:auto;padding:4px 0;background:none;border:0;box-shadow:none;color:var(--brand-ink);font-weight:600;text-decoration:underline;text-underline-offset:4px;backdrop-filter:none}
+  .trust{font-size:13px;gap:6px 14px}
+  .stage{margin-top:8px}
   .kicker{font-size:12px;padding:6px 12px}
   .section{padding:68px 0}
   .section-head{margin-bottom:32px}
@@ -269,8 +283,13 @@ footer a:hover{color:var(--text)}
   .steps li::before{grid-row:1 / span 2;margin:0}
   .facts ul{grid-template-columns:1fr 1fr;padding-top:28px}
   .facts li:last-child{grid-column:1 / -1}
-  .chip.one,.chip.three{display:none}
-  .chip.two{right:8px;top:-14px}
+  .chip{font-size:12px;padding:8px 11px}
+  .chip .dot{min-width:22px;height:22px;font-size:11px}
+  .chip.c3{display:none}
+  .chip.p1{top:-14px;right:6px;left:auto;bottom:auto}
+  .chip.p2{bottom:34px;left:6px;right:auto;top:auto}
+  .chip.p3{bottom:34px;right:6px;left:auto;top:auto}
+  .chip.p4{top:-14px;left:6px;right:auto;bottom:auto}
   .actions .button{flex:1 1 100%}
   .guide{flex-direction:column;align-items:flex-start;padding:26px}
   .feature,.plan{padding:22px 20px}
@@ -300,6 +319,6 @@ footer a:hover{color:var(--text)}
 @media (max-width:720px){.features.why{grid-template-columns:1fr}.foot-grid{grid-template-columns:1fr 1fr}.icon.big{display:none}}
 @media (prefers-reduced-motion:reduce){
   *,*::before,*::after{animation:none!important;transition:none!important;scroll-behavior:auto!important}
-  .js .reveal,.js h1 .line{opacity:1!important;transform:none!important;filter:none!important}
+  .js .reveal,.js h1 .line,.js .stage-in{opacity:1!important;transform:none!important;filter:none!important}
   .shot{transform:none!important}
 }
