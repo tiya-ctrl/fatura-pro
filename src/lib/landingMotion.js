@@ -138,7 +138,7 @@ export function initLandingMotion(root) {
   const demo = root.querySelector(".demo"), body = root.querySelector(".inv-body");
   if (demo && body) {
     const buttons = demo.querySelectorAll(".lang-switch button");
-    const order = ["en", "nl", "fr", "ar"];
+    const order = ["en", "nl", "fr", "es", "ar"];
     let current = Math.max(0, order.indexOf(demo.getAttribute("data-start") || "en"));
     let timer = null, swapTimeout = null, touched = false;
     const paint = (lang) => {
