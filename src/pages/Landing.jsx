@@ -211,11 +211,11 @@ function Chatbot() {
 const TRUST = ["Free plan, no credit card", "Essential from €9 per month", "Cancel anytime"];
 
 // Feature bubbles around the product shot (rotated by initLandingMotion).
-const HERO_CHIPS = [["✓", "Credit notes on every plan"], ["18", "currencies, kept separate"], ["PDF", "Branded PDF invoices"], ["↻", "Reminders by email & WhatsApp"], ["%", "Deposits & partial payments"], ["XML", "UBL export for EN 16931"], ["5", "invoice languages"], ["→", "Quotes become invoices"], ["€", "Card payments via Stripe"]];
+const HERO_CHIPS = [["✓", "Credit notes on every plan"], ["18", "currencies, kept separate"], ["PDF", "Branded PDF invoices"], ["↻", "Reminders by email & WhatsApp"], ["%", "Deposits & partial payments"], ["XML", "UBL export for EN 16931"], ["4", "invoice languages"], ["→", "Quotes become invoices"], ["€", "Card payments via Stripe"]];
 
 const FACTS = [
   ["18", "currencies, balances kept separate"],
-  ["5", "languages for your invoices"],
+  ["4", "languages for your invoices"],
   ["5", "languages for payment reminders"],
   ["UBL/XML", "export for EN 16931 workflows"],
 ];
@@ -263,7 +263,7 @@ const PLANS = {
 const FAQS = [
   ["Is Fatūra Pro free to use?", "Yes. The Free plan lets you create up to 20 invoices for 5 clients, with PDF export, your logo and credit notes, and no credit card. For unlimited invoicing, Essential costs €9 per month excluding VAT."],
   ["Can I invoice in different currencies?", "Yes, in 18 currencies. Amounts are never converted between them: each currency keeps its own total, so you always see exactly what you were paid in the currency you were paid in."],
-  ["Can I create an invoice in another language?", "Yes. The invoice document language is set per invoice: English, Dutch, French, Spanish or Arabic, and the printable document supports right-to-left text. The app itself is available in English, Dutch, French, Spanish and Arabic."],
+  ["Can I create an invoice in another language?", "Yes. The invoice document language is set per invoice: English, Dutch, French or Arabic, and the printable document supports right-to-left text. The app itself is available in English, Dutch, French, Spanish and Arabic."],
   ["Can I create a UBL invoice with Fatūra Pro?", "Yes. Invoices and credit notes can be exported as UBL/XML files intended for EN 16931 workflows. Receiving systems can apply extra rules, so confirm the required profile and validate the file before delivery."],
   ["Does Fatūra Pro send invoices through Peppol?", "No. Fatūra Pro exports a downloadable UBL/XML file, but it is not connected to the Peppol network and is not an approved platform under national e-invoicing schemes. You deliver the file using the method your customer requests."],
   ["How do I make a credit note?", "Open the invoice and press Credit. Fatūra Pro creates a separate document with its own number, a negative amount and a reference to the original invoice. Credit notes are included on every plan, including Free."],
@@ -464,7 +464,7 @@ export default function LandingPage({ onOpenApp }) {
               <div className="demo-ui">
                 <small>Choose the invoice language:</small>
                 <div className="lang-switch" role="group" aria-label="Language of the example invoice">
-                  {["en", "nl", "fr", "es", "ar"].map((l) => <button type="button" key={l} data-lang={l} aria-pressed={l === "en" ? "true" : "false"}>{l.toUpperCase()}</button>)}
+                  {["en", "nl", "fr", "ar"].map((l) => <button type="button" key={l} data-lang={l} aria-pressed={l === "en" ? "true" : "false"}>{l.toUpperCase()}</button>)}
                 </div>
               </div>
               <div className="invoice" aria-live="polite">

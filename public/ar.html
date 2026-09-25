@@ -437,7 +437,7 @@
           </ul>
         </div>
         <div class="stage stage-in">
-          <figure class="shot" aria-label="معاينة حقيقية للوحة تحكم FaturaPro Advanced بالعربية" data-chips='[["✓","واجهة عربية كاملة"],["18","عملة بإجماليات منفصلة"],["PDF","فاتورة PDF بشعارك"],["↻","تذكيرات عبر البريد وWhatsApp"],["%","دفعات مقدمة وجزئية"],["XML","تصدير UBL لمسارات EN 16931"],["5","لغات لمستند الفاتورة"],["→","عرض السعر يتحول إلى فاتورة"],["€","دفع إلكتروني عبر Stripe"]]'>
+          <figure class="shot" aria-label="معاينة حقيقية للوحة تحكم FaturaPro Advanced بالعربية" data-chips='[["✓","واجهة عربية كاملة"],["18","عملة بإجماليات منفصلة"],["PDF","فاتورة PDF بشعارك"],["↻","تذكيرات عبر البريد وWhatsApp"],["%","دفعات مقدمة وجزئية"],["XML","تصدير UBL لمسارات EN 16931"],["4","لغات لمستند الفاتورة"],["→","عرض السعر يتحول إلى فاتورة"],["€","دفع إلكتروني عبر Stripe"]]'>
             <div class="shot-frame"><div class="shot-inner"><img src="/ar-dashboard-preview.jpg" width="1742" height="903" alt="لوحة تحكم FaturaPro Advanced بالعربية تعرض ملخص الفواتير والمدفوعات والعملاء" fetchpriority="high" decoding="async" /></div></div>
             <div class="chip c1 p1" aria-hidden="true"><span class="dot">✓</span><span class="lbl">واجهة عربية كاملة</span></div>
             <div class="chip c2 p2" aria-hidden="true"><span class="dot">18</span><span class="lbl">عملة بإجماليات منفصلة</span></div>
@@ -457,7 +457,7 @@
 
     <div class="facts" aria-label="حقائق سريعة"><div class="wrap"><ul>
       <li class="reveal"><strong class="ltr" data-count="18">18</strong><span>عملة بلا تحويل مصطنع</span></li>
-      <li class="reveal" style="--d:80ms"><strong class="ltr" data-count="5">5</strong><span>لغات لمستند الفاتورة</span></li>
+      <li class="reveal" style="--d:80ms"><strong class="ltr" data-count="4">4</strong><span>لغات لمستند الفاتورة</span></li>
       <li class="reveal" style="--d:160ms"><strong class="ltr" data-count="5">5</strong><span>لغات لرسائل التذكير</span></li>
       <li class="reveal" style="--d:240ms"><strong class="ltr">UBL/XML</strong><span>تصدير لمسارات EN 16931</span></li>
     </ul></div></div>
@@ -486,7 +486,7 @@
         <div class="demo-ui">
           <small>واجهتك بالعربية. اختر لغة فاتورة العميل:</small>
           <div class="lang-switch" role="group" aria-label="لغة الفاتورة في المثال">
-            <button type="button" data-lang="nl" aria-pressed="true">NL</button><button type="button" data-lang="en" aria-pressed="false">EN</button><button type="button" data-lang="fr" aria-pressed="false">FR</button><button type="button" data-lang="es" aria-pressed="false">ES</button><button type="button" data-lang="ar" aria-pressed="false">AR</button>
+            <button type="button" data-lang="nl" aria-pressed="true">NL</button><button type="button" data-lang="en" aria-pressed="false">EN</button><button type="button" data-lang="fr" aria-pressed="false">FR</button><button type="button" data-lang="ar" aria-pressed="false">AR</button>
           </div>
         </div>
         <div class="invoice" aria-live="polite">
@@ -650,7 +650,7 @@
         es:{dir:'ltr',invoice:'Factura',paid:'Pagada',description:'Descripción',service:'Diseño de sitio web',subtotal:'Base imponible',sub:'1.200,00 €',vat:'IVA 21 %',vatv:'252,00 €',total:'Total a pagar',totalv:'1.452,00 €'},
         ar:{dir:'rtl',invoice:'فاتورة',paid:'مدفوعة',description:'الوصف',service:'تصميم موقع إلكتروني',subtotal:'المجموع الفرعي',sub:'1,200.00 €',vat:'ضريبة القيمة المضافة 21%',vatv:'252.00 €',total:'المبلغ المستحق',totalv:'1,452.00 €'}
       };
-      var order=['nl','en','fr','es','ar'], body=document.querySelector('.inv-body'), buttons=document.querySelectorAll('.lang-switch button'), current=0, timer=null;
+      var order=['nl','en','fr','ar'], body=document.querySelector('.inv-body'), buttons=document.querySelectorAll('.lang-switch button'), current=0, timer=null;
       function show(lang){
         var t=T[lang]; if(!t||!body) return;
         body.classList.add('swap');

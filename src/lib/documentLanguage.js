@@ -6,6 +6,13 @@ export const DOCUMENT_LANGUAGES = [
   { value:"ar", label:"العربية" },
 ];
 
+// Spanish invoices need migration 202609250002 (the database only accepted
+// nl/en/fr/ar for invoices). Quotes already accept Spanish.
+export const SPANISH_INVOICES_READY = false;
+
+// Languages offered for invoices and the default invoice language.
+export const INVOICE_LANGUAGES = DOCUMENT_LANGUAGES.filter(item => item.value !== "es" || SPANISH_INVOICES_READY);
+
 export function normalizeDocumentLanguage(value, fallback = "en") {
   return DOCUMENT_LANGUAGES.some(item => item.value === value) ? value : fallback;
 }

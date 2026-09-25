@@ -22,7 +22,7 @@ import { recordActivationEvent } from "../lib/activationEvents";
 import { activateReferral, claimStoredReferral } from "../lib/referrals";
 import { fetchAmbassadorAdminAccess } from "../lib/ambassadors";
 import { getLocale, setLocale, tr } from "../lib/locale";
-import { DOCUMENT_LANGUAGES, documentDirection, invoiceCopy, normalizeDocumentLanguage } from "../lib/documentLanguage";
+import { INVOICE_LANGUAGES, documentDirection, invoiceCopy, normalizeDocumentLanguage } from "../lib/documentLanguage";
 
 const FONTS = `@import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600;700&family=DM+Sans:wght@300;400;500;600&display=swap');`;
 const INVOICE_ATTRIBUTION_URL = "https://faturapro.app/?utm_source=invoice&utm_medium=footer&utm_campaign=made_with_fatura_pro";
@@ -1676,7 +1676,7 @@ function Settings({ currency, setCurrency, userEmail, invoices, onProfileSaved }
               {t("preview_label", "Preview")}: <bdi dir="ltr">{fmtCurrency(1234.5, currency)} · {cur.label}</bdi>
             </div>
           </div>
-          <div className="form-group full"><label>{t("default_invoice_language", "Default invoice language")}</label><select value={normalizeDocumentLanguage(profile.default_invoice_language)} onChange={e => setProfile(p => ({ ...p, default_invoice_language:e.target.value }))}>{DOCUMENT_LANGUAGES.map(language => <option key={language.value} value={language.value}>{language.label}</option>)}</select><div style={{ fontSize:11, color:"var(--text2)", marginTop:6 }}>{t("invoice_language_help", "This controls PDF language only. You can override it on each invoice.")}</div></div>
+          <div className="form-group full"><label>{t("default_invoice_language", "Default invoice language")}</label><select value={normalizeDocumentLanguage(profile.default_invoice_language)} onChange={e => setProfile(p => ({ ...p, default_invoice_language:e.target.value }))}>{INVOICE_LANGUAGES.map(language => <option key={language.value} value={language.value}>{language.label}</option>)}</select><div style={{ fontSize:11, color:"var(--text2)", marginTop:6 }}>{t("invoice_language_help", "This controls PDF language only. You can override it on each invoice.")}</div></div>
           <div className="form-group"><label>{t("default_tax", "Default Tax (%)")}</label><input type="number" value={profile.default_tax ?? 20} onChange={e => setProfile(p => ({ ...p, default_tax: +e.target.value }))} /></div>
           <div className="form-group"><label>{t("payment_terms", "Payment Terms (days)")}</label><input type="number" value={profile.payment_terms ?? 30} onChange={e => setProfile(p => ({ ...p, payment_terms: +e.target.value }))} /></div>
           <div className="form-group"><label>{t("invoice_prefix", "Invoice Prefix")}</label><input value={profile.invoice_prefix || "INV-"} onChange={e => setProfile(p => ({ ...p, invoice_prefix: e.target.value }))} /></div>
@@ -1947,7 +1947,7 @@ React.useEffect(() => {
             <div style={{ display:"flex", flexDirection:"column", alignItems:"stretch", gap:4 }}>
               <label style={{ fontSize:10, fontWeight:700, color:"var(--text2)", letterSpacing:1, textTransform:"uppercase" }}>{t("invoice_language", "Invoice language")}</label>
               <select value={normalizeDocumentLanguage(form.documentLanguage || defaultInvoiceLanguage)} onChange={e => set("documentLanguage", e.target.value)} style={{ background:"var(--gold-dim)", border:"1.5px solid var(--gold)", color:"var(--gold)", fontWeight:700, fontSize:13, borderRadius:8, padding:"7px 12px", cursor:"pointer" }}>
-                {DOCUMENT_LANGUAGES.map(language => <option key={language.value} value={language.value}>{language.label}</option>)}
+                {INVOICE_LANGUAGES.map(language => <option key={language.value} value={language.value}>{language.label}</option>)}
               </select>
             </div>
             <div style={{ display:"flex", flexDirection:"column", alignItems:"stretch", gap:4 }}>
