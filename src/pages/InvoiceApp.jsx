@@ -53,7 +53,8 @@ const STYLES = `
   .content { padding: 28px; }
   .logo { padding: 0 24px 32px; display: flex; align-items: center; gap: 10px; }
   .logo-icon { width: 38px; height: 38px; object-fit: contain; }
-  .logo-text { font-family: 'Playfair Display', serif; font-size: 18px; color: var(--gold); letter-spacing: 0.5px; }
+  .logo-text { font-family: 'Plus Jakarta Sans', system-ui, sans-serif; font-weight: 800; font-size: 19px; color: #EEF1F6; letter-spacing: -0.02em; direction: ltr; }
+  .logo-text b { font-weight: 800; color: #01C4B6; }
   .nav-section { padding: 0 12px; margin-bottom: 4px; }
   .nav-label { font-size: 10px; font-weight: 600; color: var(--text2); letter-spacing: 1.5px; text-transform: uppercase; padding: 8px 12px; }
   .nav-item { display: flex; align-items: center; gap: 12px; padding: 11px 12px;
@@ -258,6 +259,12 @@ const STYLES = `
     .content { padding: 20px; }
     .activation-shell { grid-template-columns: 1fr; max-width: 760px; }
     .activation-hero { min-height: 330px; }
+    /* Tablets and half-width windows: the sidebar leaves little room, so stack the
+       welcome card and show invoices as cards instead of a cramped table. */
+    .dashboard-command { grid-template-columns: 1fr; gap: 18px; }
+    .dashboard-command-actions { justify-content: flex-start; }
+    .table-wrap:has(+ .inv-cards) { display: none; }
+    .inv-cards { display: flex; }
   }
  /* ── MOBILE (≤640px) ── */
 @media (max-width: 640px) {
@@ -413,11 +420,14 @@ const fmtCurrency = (n, currencyCode) => {
   const cur = getCurrency(currencyCode);
   const isRTL = ["AED","SAR","QAR","KWD","YER","MAD","DZD","TND","EGP"].includes(currencyCode);
   const noDecimals = ["JPY","KRW","IDR"].includes(currencyCode);
-  const num = Number(n).toLocaleString(cur.locale, {
+  const value = Number(n) || 0;
+  const num = Math.abs(value).toLocaleString(cur.locale, {
     minimumFractionDigits: noDecimals ? 0 : 2,
     maximumFractionDigits: noDecimals ? 0 : 2
   });
-  return isRTL ? (num + " " + cur.symbol) : (cur.symbol + num);
+  // The minus sign goes in front of the symbol: -$1,440.00, not $-1,440.00.
+  const sign = value < 0 ? "-" : "";
+  return isRTL ? (sign + num + " " + cur.symbol) : (sign + cur.symbol + num);
 };
 
 // --- Per-currency totals. Amounts are NEVER converted between currencies. ---
@@ -1002,6 +1012,13 @@ export default function InvoiceApp({ onGoHome }) {
     return () => window.removeEventListener("resize", check);
   }, []);
 
+  // Browser tab title follows the open page, in the app language.
+  const currentNav = navItems.find(n => n.id === page);
+  const pageTitle = currentNav ? currentNav.label : "";
+  useEffect(() => {
+    document.title = (pageTitle ? pageTitle + " · " : "") + "FaturaPro";
+  }, [pageTitle]);
+
   return (
     <>
       <style>{FONTS + STYLES}</style>
@@ -1013,7 +1030,7 @@ export default function InvoiceApp({ onGoHome }) {
         <aside className={"sidebar" + (sidebarOpen ? " open" : "")}>
           <div className="logo" onClick={onGoHome} style={{ cursor: onGoHome ? "pointer" : "default" }}>
             <img className="logo-icon" src="/fatura-mark.svg" alt="" width="38" height="38" />
-            <div className="logo-text">Fatūra</div>
+            <div className="logo-text">Fatura<b>Pro</b></div>
           </div>
           <div className="nav-section">
             <div className="nav-label">{t("main", "Main")}</div>
@@ -1346,7 +1363,7 @@ function Dashboard({ invoices, clients, businessProfileReady, userEmail, totalRe
                   <td>
                     <div className="action-btns">
                       <button className="btn btn-ghost btn-sm" onClick={() => setPreviewInvoice(inv)}>{t("preview", "Preview")}</button>
-                      <button className="btn btn-ghost btn-sm" style={{ color:"var(--gold)" }} onClick={() => onEdit(inv)}>{t("edit", "Edit")}</button>{onCreditNote && inv.docType !== "credit_note" && inv.status !== "draft" && <button className="btn btn-ghost btn-sm" title={t("create_credit", "Create a credit note for this invoice")} onClick={() => onCreditNote(inv)}>{t("credit_note", "Credit")}</button>}{onRecordPayment && inv.docType !== "credit_note" && inv.status !== "paid" && inv.status !== "draft" && <button className="btn btn-ghost btn-sm" title={t("record_payment", "Record a payment received")} onClick={() => onRecordPayment(inv)}>{t("payment", "Payment")}</button>}
+                      {inv.docType !== "credit_note" && <button className="btn btn-ghost btn-sm" style={{ color:"var(--gold)" }} onClick={() => onEdit(inv)}>{t("edit", "Edit")}</button>}{onCreditNote && inv.docType !== "credit_note" && inv.status !== "draft" && <button className="btn btn-ghost btn-sm" title={t("create_credit", "Create a credit note for this invoice")} onClick={() => onCreditNote(inv)}>{t("credit_note", "Credit")}</button>}{onRecordPayment && inv.docType !== "credit_note" && inv.status !== "paid" && inv.status !== "draft" && <button className="btn btn-ghost btn-sm" title={t("record_payment", "Record a payment received")} onClick={() => onRecordPayment(inv)}>{t("payment", "Payment")}</button>}
                       {canRemind(inv) && (
                         <button className="btn btn-sm" style={{ background:"rgba(224,85,85,0.15)", color:"var(--red)", border:"1px solid rgba(224,85,85,0.3)" }} onClick={() => onRemind(inv)}>{t("remind", "Remind")}</button>
                       )}
@@ -1382,8 +1399,8 @@ function Invoices({ invoices, filterStatus, setFilterStatus, search, setSearch, 
           </div>
         </div>
       )}
-      <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center", marginBottom:20 }}>
-        <div className="tabs">
+      <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center", marginBottom:20, flexWrap:"wrap", gap:10 }}>
+        <div className="tabs" style={{ maxWidth:"100%", overflowX:"auto" }}>
           {statuses.map(s => (
             <div key={s} className={"tab" + (filterStatus === s ? " active" : "")} onClick={() => setFilterStatus(s)}>
               {t(s === "credit notes" ? "credit_notes" : s, s.charAt(0).toUpperCase() + s.slice(1))}
@@ -1420,7 +1437,7 @@ function Invoices({ invoices, filterStatus, setFilterStatus, search, setSearch, 
                     <td>
                       <div className="action-btns">
                         <button className="btn btn-ghost btn-sm" onClick={() => onPreview(inv)}>{t("view", "View")}</button>{onMakeRecurring && <button className="btn btn-ghost btn-sm" title={t("make_recurring", "Make recurring")} onClick={() => onMakeRecurring(inv)}>🔄</button>}
-                        <button className="btn btn-ghost btn-sm" style={{ color:"var(--gold)" }} onClick={() => onEdit(inv)}>{t("edit", "Edit")}</button>{onCreditNote && inv.docType !== "credit_note" && inv.status !== "draft" && <button className="btn btn-ghost btn-sm" title={t("create_credit", "Create a credit note for this invoice")} onClick={() => onCreditNote(inv)}>{t("credit_note", "Credit")}</button>}{onRecordPayment && inv.docType !== "credit_note" && inv.status !== "paid" && inv.status !== "draft" && <button className="btn btn-ghost btn-sm" title={t("record_payment", "Record a payment received")} onClick={() => onRecordPayment(inv)}>{t("payment", "Payment")}</button>}
+                        {inv.docType !== "credit_note" && <button className="btn btn-ghost btn-sm" style={{ color:"var(--gold)" }} onClick={() => onEdit(inv)}>{t("edit", "Edit")}</button>}{onCreditNote && inv.docType !== "credit_note" && inv.status !== "draft" && <button className="btn btn-ghost btn-sm" title={t("create_credit", "Create a credit note for this invoice")} onClick={() => onCreditNote(inv)}>{t("credit_note", "Credit")}</button>}{onRecordPayment && inv.docType !== "credit_note" && inv.status !== "paid" && inv.status !== "draft" && <button className="btn btn-ghost btn-sm" title={t("record_payment", "Record a payment received")} onClick={() => onRecordPayment(inv)}>{t("payment", "Payment")}</button>}
                         {(inv.status === "overdue" || inv.status === "pending") && (
                           <button className="btn btn-ghost btn-sm" style={{ color:"var(--green)" }} onClick={() => onMarkPaid(inv.id)}>✓ {t("marked_paid", "Paid")}</button>
                         )}
@@ -1469,7 +1486,7 @@ function Invoices({ invoices, filterStatus, setFilterStatus, search, setSearch, 
               </div>
               <div className="inv-card-actions">
                 <button className="btn btn-ghost btn-sm" onClick={() => onPreview(inv)}>{t("view", "View")}</button>{onMakeRecurring && <button className="btn btn-ghost btn-sm" title={t("make_recurring", "Make recurring")} onClick={() => onMakeRecurring(inv)}>🔄</button>}
-                <button className="btn btn-ghost btn-sm" style={{ color:"var(--gold)" }} onClick={() => onEdit(inv)}>{t("edit", "Edit")}</button>{onCreditNote && inv.docType !== "credit_note" && inv.status !== "draft" && <button className="btn btn-ghost btn-sm" title={t("create_credit", "Create a credit note for this invoice")} onClick={() => onCreditNote(inv)}>{t("credit_note", "Credit")}</button>}{onRecordPayment && inv.docType !== "credit_note" && inv.status !== "paid" && inv.status !== "draft" && <button className="btn btn-ghost btn-sm" title={t("record_payment", "Record a payment received")} onClick={() => onRecordPayment(inv)}>{t("payment", "Payment")}</button>}
+                {inv.docType !== "credit_note" && <button className="btn btn-ghost btn-sm" style={{ color:"var(--gold)" }} onClick={() => onEdit(inv)}>{t("edit", "Edit")}</button>}{onCreditNote && inv.docType !== "credit_note" && inv.status !== "draft" && <button className="btn btn-ghost btn-sm" title={t("create_credit", "Create a credit note for this invoice")} onClick={() => onCreditNote(inv)}>{t("credit_note", "Credit")}</button>}{onRecordPayment && inv.docType !== "credit_note" && inv.status !== "paid" && inv.status !== "draft" && <button className="btn btn-ghost btn-sm" title={t("record_payment", "Record a payment received")} onClick={() => onRecordPayment(inv)}>{t("payment", "Payment")}</button>}
                 {(inv.status === "overdue" || inv.status === "pending") && (
                   <button className="btn btn-ghost btn-sm" style={{ color:"var(--green)" }} onClick={() => onMarkPaid(inv.id)}>✓ {t("marked_paid", "Paid")}</button>
                 )}
@@ -1694,7 +1711,8 @@ React.useEffect(() => {
   const emptyForm = {
     invoiceNumber:"",
     sellerName:"", sellerEmail:"", sellerPhone:"", sellerVat:"", sellerAddress:"", sellerCountry:"", sellerLogo:null,
-    client:(clients[0] && clients[0].name) || "", email:(clients[0] && clients[0].email) || "",
+    // No client is picked in advance: an invoice must never go to the wrong client by default.
+    client:"", email:"",
     buyerPhone:"", buyerAddress:"", buyerCountry:"", buyerLogo:null,
     date:new Date().toISOString().split("T")[0], due:"",
     tax:20, discount:0, depositPct:0, notes:"", bankInfo:"", documentLanguage:normalizeDocumentLanguage(defaultInvoiceLanguage),
@@ -2007,11 +2025,11 @@ React.useEffect(() => {
 
         {step === 2 && (
           <div>
-            <div style={{ display:"grid", gridTemplateColumns:"minmax(140px, 2fr) 90px 120px 100px 28px", gap:8, padding:"6px 12px", background:"var(--bg3)", borderRadius:8, border:"1px solid var(--border)", marginBottom:6, className:"items-grid-header" }}>
+            {!isMobile && <div style={{ display:"grid", gridTemplateColumns:"minmax(140px, 2fr) 90px 120px 100px 28px", gap:8, padding:"6px 12px", background:"var(--bg3)", borderRadius:8, border:"1px solid var(--border)", marginBottom:6, className:"items-grid-header" }}>
               {[t("description", "Description"), t("quantity", "Qty"), t("price", "Price") + " (" + curInfo.symbol + ")", t("total", "Total"), ""].map((h, i) => (
                 <div key={i} style={{ fontSize:10, fontWeight:700, color:"var(--text2)", letterSpacing:0.5, textTransform:"uppercase" }}>{h}</div>
               ))}
-            </div>
+            </div>}
             <div style={{ display:"flex", flexDirection:"column", gap:6, marginBottom:12 }}>
               {items.map((it, idx) => (
                 <div key={idx} style={{ display:"flex", flexDirection:"column", background:"var(--bg4)", borderRadius:8, border:"1px solid var(--border)", overflow:"hidden" }}>
@@ -2263,7 +2281,7 @@ function InvoicePreview({ invoice, onExportUBL, onClose, currency, plan, isFirst
             </div>
             <div style={{ textAlign:documentDir === "rtl" ? "left" : "right" }}>
               <div style={{ fontSize:11, color:"#aaa", fontWeight:600, letterSpacing:1, textTransform:documentLanguage === "ar" ? "none" : "uppercase", marginBottom:4 }}>{invoice.docType === "credit_note" ? copy.creditNote : copy.invoice}</div>
-              <div className="document-number" style={{ fontSize:22, fontWeight:800, color:"#1a1a2e" }}>{invoice.id}</div>
+              <div className="document-number" style={{ fontSize:"clamp(15px, 4.6vw, 22px)", fontWeight:800, color:"#1a1a2e", whiteSpace:"nowrap" }}>{invoice.id}</div>
               <div style={{ fontSize:12, color:"#777", marginTop:6 }}>
                 <div><span style={{ fontWeight:600 }}>{copy.date}:</span> <span data-direction="ltr">{formatDate(invoice.date)}</span></div>
                 {invoice.docType === "credit_note" ? <div><span style={{ fontWeight:600 }}>{copy.creditFor}:</span> <span data-direction="ltr">{invoice.creditOf}</span></div> : <div><span style={{ fontWeight:600 }}>{copy.due}:</span> <span data-direction="ltr">{formatDate(invoice.due)}</span></div>}

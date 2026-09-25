@@ -98,14 +98,14 @@ export default function SupportChat({ userEmail, plan }) {
         onClick={() => setOpen((o) => !o)}
         title={copy.ask}
         aria-label={copy.ask}
-        style={{ position:"fixed", bottom:20, right:ar ? "auto" : 20, left:ar ? 20 : "auto", zIndex:9998, width:56, height:56, borderRadius:"50%",
+        style={{ position:"fixed", bottom:20, right:ar ? "auto" : 20, left:ar ? 20 : "auto", zIndex:60, width:56, height:56, borderRadius:"50%",
           background:"var(--gold)", color:"#000", border:"none", cursor:"pointer", fontSize:22, fontWeight:700,
           boxShadow:"0 6px 22px rgba(0,0,0,0.45)" }}>
         {open ? "\u00d7" : "\u2709"}
       </button>
 
       {open && (
-        <div className="edy-panel" dir={ar ? "rtl" : "ltr"} lang={ar ? "ar" : undefined} style={{ position:"fixed", bottom:86, right:ar ? "auto" : 20, left:ar ? 20 : "auto", zIndex:9998, width:"min(370px, calc(100vw - 40px))",
+        <div className="edy-panel" dir={ar ? "rtl" : "ltr"} lang={ar ? "ar" : undefined} style={{ position:"fixed", bottom:86, right:ar ? "auto" : 20, left:ar ? 20 : "auto", zIndex:60, width:"min(370px, calc(100vw - 40px))",
           height:"min(520px, calc(100vh - 130px))", background:"var(--bg2)", border:"1px solid var(--border)",
           borderRadius:16, display:"flex", flexDirection:"column", overflow:"hidden",
           boxShadow:"0 18px 50px rgba(0,0,0,0.55)" }}>

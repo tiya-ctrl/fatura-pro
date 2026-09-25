@@ -59,11 +59,12 @@ body { font-family:'DM Sans',sans-serif; background:#08080e; color:#e8e4dc; }
 }
 .login-logo { display:flex; align-items:center; gap:10px; justify-content:center; margin-bottom:32px; }
 .login-logo-icon {
-  width:36px; height:36px; background:var(--gold); border-radius:9px;
+  width:36px; height:36px; object-fit:contain;
   display:flex; align-items:center; justify-content:center;
   font-size:17px; font-weight:800; color:#000;
 }
-.login-logo-text { font-family:'Playfair Display',serif; font-size:22px; color:var(--gold); }
+.login-logo-text { font-family:'Plus Jakarta Sans',system-ui,sans-serif; font-weight:800; font-size:23px; letter-spacing:-0.02em; color:#EEF1F6; direction:ltr; }
+.login-logo-text b { font-weight:800; color:#01C4B6; }
 .login-badge {
   display:inline-flex; align-items:center; gap:6px; background:var(--gold-dim);
   border:1px solid var(--border); border-radius:100px; padding:5px 14px;
@@ -125,6 +126,10 @@ export default function LoginPage({ onLogin, onBack, returnTo = "/app" }) {
   const [mode,     setMode]     = useState("login"); // "login" | "signup"
   const signupStartTracked = useRef(false);
   const signupSource = new URLSearchParams(window.location.search).get("source") || "login_tab";
+  // Browser tab title in the visitor's language, instead of the landing page title.
+  useEffect(() => {
+    document.title = (mode === "signup" ? tr("sign_up", "Sign up", locale) : tr("sign_in", "Sign in", locale)) + " · FaturaPro";
+  }, [mode, locale]);
   useEffect(() => {
     setLocale(locale);
     const sp = new URLSearchParams(window.location.search);
@@ -312,11 +317,11 @@ export default function LoginPage({ onLogin, onBack, returnTo = "/app" }) {
         {/* Logo */}
         <div className="login-logo">
           <img className="login-logo-icon" src="/fatura-mark.svg" alt="" width="36" height="36" />
-          <div className="login-logo-text">Fatūra</div>
+          <div className="login-logo-text">Fatura<b>Pro</b></div>
         </div>
 
         <div style={{ display:"flex", justifyContent:"center", gap:12, marginTop:-20, marginBottom:18, fontSize:12 }}>
-          {["en","nl","fr","es","ar"].map(code => <button key={code} onClick={() => { setLocale(code); const params = new URLSearchParams(window.location.search); params.set("lang", code); window.location.search = params.toString(); }} title={{en:"English",nl:"Nederlands",fr:"Français",es:"Español",ar:"العربية"}[code]} style={{ border:0, background:"none", color:locale===code?"var(--gold)":"var(--text3)", fontWeight:locale===code?700:500, cursor:"pointer", minWidth:40, minHeight:40 }}>{code.toUpperCase()}</button>)}
+          {["en","nl","fr","es","ar"].map(code => <button key={code} onClick={() => { setLocale(code); const params = new URLSearchParams(window.location.search); params.set("lang", code); if (mode === "signup") params.set("signup", "1"); else params.delete("signup"); window.location.search = params.toString(); }} title={{en:"English",nl:"Nederlands",fr:"Français",es:"Español",ar:"العربية"}[code]} style={{ border:0, background:"none", color:locale===code?"var(--gold)":"var(--text3)", fontWeight:locale===code?700:500, cursor:"pointer", minWidth:40, minHeight:40 }}>{code.toUpperCase()}</button>)}
         </div>
 
         {/* Badge */}

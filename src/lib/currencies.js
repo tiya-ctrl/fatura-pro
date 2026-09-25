@@ -39,11 +39,14 @@ export const fmtCurrency = (n, currencyCode) => {
   const cur = getCurrency(currencyCode);
   const isRTL = ["AED","SAR","QAR","KWD","YER","MAD","DZD","TND","EGP"].includes(currencyCode);
   const noDecimals = ["JPY","KRW","IDR"].includes(currencyCode);
-  const num = Number(n).toLocaleString(cur.locale, {
+  const value = Number(n) || 0;
+  const num = Math.abs(value).toLocaleString(cur.locale, {
     minimumFractionDigits: noDecimals ? 0 : 2,
     maximumFractionDigits: noDecimals ? 0 : 2
   });
-  return isRTL ? (num + " " + cur.symbol) : (cur.symbol + num);
+  // The minus sign goes in front of the symbol: -$1,440.00, not $-1,440.00.
+  const sign = value < 0 ? "-" : "";
+  return isRTL ? (sign + num + " " + cur.symbol) : (sign + cur.symbol + num);
 };
 
 // Currency codes actually used in a list of documents, most-used first.
