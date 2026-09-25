@@ -49,12 +49,15 @@ const CHAT_CSS = `
 .chat-head-status { font-size:11px; color:var(--green); display:flex; align-items:center; gap:5px; }
 .chat-head-dot { width:6px;height:6px;border-radius:50%;background:var(--green);animation:pulse 2s infinite; }
 .chat-close { background:none;border:none;color:var(--text2);cursor:pointer;font-size:18px;padding:4px; }
-.chat-messages { flex:1; overflow-y:auto; padding:16px; display:flex; flex-direction:column; gap:12px; max-height:360px; min-height:200px; }
+.chat-messages { flex:1; overflow-y:auto; padding:16px; display:flex; flex-direction:column; gap:12px; max-height:360px; min-height:120px; }
+/* Never taller than the screen above the chat button (short laptop and phone screens). */
+.chat-window { max-height:calc(100vh - 130px); max-height:calc(100dvh - 130px); }
+body:has(.sticky-cta.show) .chat-window { max-height:calc(100dvh - 190px); }
 .chat-msg { max-width:85%; display:flex; flex-direction:column; gap:3px; }
 .chat-msg.user { align-self:flex-end; align-items:flex-end; }
 .chat-msg.bot  { align-self:flex-start; }
 .chat-bubble {
-  padding:10px 14px; border-radius:14px; font-size:13px; line-height:1.6;
+  padding:10px 14px; border-radius:14px; font-size:13px; line-height:1.6; white-space:pre-wrap; overflow-wrap:anywhere;
 }
 .chat-msg.user .chat-bubble { background:var(--gold); color:#000; border-radius:14px 14px 4px 14px; }
 .chat-msg.bot  .chat-bubble { background:var(--bg3); color:var(--text); border:1px solid var(--border2); border-radius:14px 14px 14px 4px; }
@@ -67,7 +70,7 @@ const CHAT_CSS = `
 .chat-suggestions { padding:8px 16px 4px; display:flex; gap:6px; flex-wrap:wrap; }
 .chat-sug { font-size:11px; background:var(--bg3); border:1px solid var(--border2);
   border-radius:20px; padding:5px 12px; cursor:pointer; color:var(--text2);
-  transition:all 0.15s; white-space:nowrap; }
+  transition:all 0.15s; white-space:nowrap; font-family:inherit; }
 .chat-sug:hover { border-color:var(--gold); color:var(--gold); }
 .chat-input-row { padding:12px 14px; border-top:1px solid var(--border2); display:flex; gap:8px; align-items:flex-end; }
 .chat-input {
@@ -96,6 +99,9 @@ const CHAT_CSS = `
 `;
 
 const timeStr = () => new Date().toLocaleTimeString("en", { hour:"2-digit", minute:"2-digit" });
+// The assistant writes **bold** markdown. Show it as bold instead of printing the asterisks.
+const richText = (text) => String(text).split(/(\*\*[^*]+\*\*)/g).map((part, i) =>
+  part.startsWith("**") && part.endsWith("**") && part.length > 4 ? <strong key={i}>{part.slice(2, -2)}</strong> : part);
 
 /* ─── CHATBOT ────────────────────────────────────────────────── */
 const SUGGESTIONS = ["What's in the Essential plan?", "كيف تشتغل؟", "Do I need a company?", "How does the trial work?"];
@@ -127,6 +133,7 @@ function Chatbot() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           bot: "landing",
+          lang: "en",
           messages: history,
         }),
       });
@@ -154,12 +161,12 @@ function Chatbot() {
               <div className="chat-head-name">Fatūra Assistant</div>
               <div className="chat-head-status"><span className="chat-head-dot" />Online · Replies instantly</div>
             </div>
-            <button className="chat-close" onClick={() => setOpen(false)}>✕</button>
+            <button className="chat-close" aria-label="Close chat" onClick={() => setOpen(false)}>✕</button>
           </div>
           <div className="chat-messages">
             {msgs.map((m, i) => (
               <div key={i} className={`chat-msg ${m.role}`}>
-                <div className="chat-bubble" style={{ direction: /[؀-ۿ]/.test(m.text) ? "rtl" : "ltr", textAlign: /[؀-ۿ]/.test(m.text) ? "right" : "left" }}>{m.text}</div>
+                <div className="chat-bubble" style={{ direction: /[؀-ۿ]/.test(m.text) ? "rtl" : "ltr", textAlign: /[؀-ۿ]/.test(m.text) ? "right" : "left" }}>{richText(m.text)}</div>
                 <div className="chat-time">{m.time}</div>
               </div>
             ))}
@@ -173,7 +180,7 @@ function Chatbot() {
           {msgs.length <= 2 && (
             <div className="chat-suggestions">
               {SUGGESTIONS.map((s, i) => (
-                <div key={i} className="chat-sug" onClick={() => send(s)}>{s}</div>
+                <button type="button" key={i} className="chat-sug" onClick={() => send(s)}>{s}</button>
               ))}
             </div>
           )}
@@ -193,7 +200,7 @@ function Chatbot() {
           </div>
         </div>
       )}
-      <button className="chat-btn" onClick={() => setOpen(o => !o)} title="Chat with us">
+      <button className="chat-btn" onClick={() => setOpen(o => !o)} title="Chat with us" aria-label={open ? "Close chat" : "Chat with the AI assistant"}>
         {open ? "✕" : "💬"}
       </button>
     </>
@@ -204,10 +211,10 @@ function Chatbot() {
 const TRUST = ["Free plan, no credit card", "Essential from €9 per month", "Cancel anytime"];
 
 // Feature bubbles around the product shot (rotated by initLandingMotion).
-const HERO_CHIPS = [["✓", "Credit notes on every plan"], ["17", "currencies, kept separate"], ["PDF", "Branded PDF invoices"], ["↻", "Reminders by email & WhatsApp"], ["%", "Deposits & partial payments"], ["XML", "UBL export for EN 16931"], ["4", "invoice languages"], ["→", "Quotes become invoices"], ["€", "Card payments via Stripe"]];
+const HERO_CHIPS = [["✓", "Credit notes on every plan"], ["18", "currencies, kept separate"], ["PDF", "Branded PDF invoices"], ["↻", "Reminders by email & WhatsApp"], ["%", "Deposits & partial payments"], ["XML", "UBL export for EN 16931"], ["4", "invoice languages"], ["→", "Quotes become invoices"], ["€", "Card payments via Stripe"]];
 
 const FACTS = [
-  ["17", "currencies, balances kept separate"],
+  ["18", "currencies, balances kept separate"],
   ["4", "languages for your invoices"],
   ["5", "languages for payment reminders"],
   ["UBL/XML", "export for EN 16931 workflows"],
@@ -232,7 +239,7 @@ const AUDIENCES = [
 ];
 
 const FEATURES = [
-  ["free", "globe", "Multi-currency invoicing that stays honest", "Invoice international clients in 17 currencies. EUR, USD, GBP, AED and every other balance stays separate, with no conversion hiding what you were actually paid."],
+  ["free", "globe", "Multi-currency invoicing that stays honest", "Invoice international clients in 18 currencies. EUR, USD, GBP, AED and every other balance stays separate, with no conversion hiding what you were actually paid."],
   ["free", "users", "Enter client details once", "Save clients and business details, then reuse them on every invoice. Less retyping, fewer mistakes, faster billing."],
   ["free", "undo", "Credit notes on every plan", "Correct an issued invoice with a credit note that has its own number, a negative amount and a reference to the original. Included on every plan, including Free."],
   ["essential", "bell", "Know what is paid, and what is late", "Track pending, partial, paid and overdue invoices. Record deposits, prepare a clear reminder, review it, then open it in email or WhatsApp to send."],
@@ -242,20 +249,20 @@ const FEATURES = [
 
 const WHY = [
   ["A structured e-invoice, not just a PDF", "Export invoices as UBL XML built for EN 16931 workflows. Credit notes export too, as document type 381."],
-  ["Currencies are never converted", "Bill in 17 currencies and each keeps its own total. You see EUR 5,410 and USD 1,440 side by side, never one invented figure based on yesterday’s rate."],
+  ["Currencies are never converted", "Bill in 18 currencies and each keeps its own total. You see EUR 5,410 and USD 1,440 side by side, never one invented figure based on yesterday’s rate."],
   ["Corrections leave a clear trail", "Instead of silently rewriting an issued invoice, create a credit note with its own number and a reference to the original."],
   ["Deposits that actually add up", "Take 50% up front and the invoice shows a real balance. Revenue counts what arrived, and reminders chase what is still owed."],
 ];
 
 const PLANS = {
-  free: { name: "Free", price: 0, desc: "For freelancers who are just getting started.", items: ["20 invoices and 5 clients", "All 17 currencies", "Dashboard totals and invoice overview", "PDF export and print", "Your own logo and branding", "Credit notes"], cta: "Start free" },
+  free: { name: "Free", price: 0, desc: "For freelancers who are just getting started.", items: ["20 invoices and 5 clients", "All 18 currencies", "Dashboard totals and invoice overview", "PDF export and print", "Your own logo and branding", "Credit notes"], cta: "Start free" },
   pro: { name: "Essential", price: 9, desc: "Unlimited invoicing, with payment reminders.", items: ["Everything in Free", "Unlimited invoices and clients", "Editable payment reminders in 5 languages by email and WhatsApp (you send them)", "Deposits and partial payments", "UBL/XML export for EN 16931 workflows (no Peppol delivery)"], cta: "Try Essential free", foot: "7-day free trial, automatic · no card needed" },
   business: { name: "Advanced", price: 19, desc: "For agencies and teams managing many clients.", items: ["Everything in Essential", "Quotes that convert to invoices", "Expenses and quarterly VAT/BTW summary", "Recurring invoices created for your review", "Up to 5 team members and multiple business profiles", "Online card payments via Stripe", "API access and accountant CSV export", "Remove Fatūra branding", "Priority support"], cta: "Try Advanced free for 7 days", foot: "7-day free trial · card via Stripe · cancel anytime" },
 };
 
 const FAQS = [
   ["Is Fatūra Pro free to use?", "Yes. The Free plan lets you create up to 20 invoices for 5 clients, with PDF export, your logo and credit notes, and no credit card. For unlimited invoicing, Essential costs €9 per month excluding VAT."],
-  ["Can I invoice in different currencies?", "Yes, in 17 currencies. Amounts are never converted between them: each currency keeps its own total, so you always see exactly what you were paid in the currency you were paid in."],
+  ["Can I invoice in different currencies?", "Yes, in 18 currencies. Amounts are never converted between them: each currency keeps its own total, so you always see exactly what you were paid in the currency you were paid in."],
   ["Can I create an invoice in another language?", "Yes. The invoice document language is set per invoice: English, Dutch, French or Arabic, and the printable document supports right-to-left text. The app itself is available in English, Dutch, French, Spanish and Arabic."],
   ["Can I create a UBL invoice with Fatūra Pro?", "Yes. Invoices and credit notes can be exported as UBL/XML files intended for EN 16931 workflows. Receiving systems can apply extra rules, so confirm the required profile and validate the file before delivery."],
   ["Does Fatūra Pro send invoices through Peppol?", "No. Fatūra Pro exports a downloadable UBL/XML file, but it is not connected to the Peppol network and is not an approved platform under national e-invoicing schemes. You deliver the file using the method your customer requests."],
@@ -412,7 +419,7 @@ export default function LandingPage({ onOpenApp }) {
               <div>
                 <span className="kicker reveal"><span className="pulse" aria-hidden="true" />Invoicing software for freelancers &amp; small businesses</span>
                 <h1><span className="line">Send professional invoices in minutes.</span> <span className="line"><em className="accent grad">Then follow up until you’re paid.</em></span></h1>
-                <p className="lead reveal" style={{ "--d":"200ms" }}>Multi-currency invoicing software for freelancers: branded invoices, quotes, credit notes and payment reminders by email or WhatsApp, in 17 currencies.</p>
+                <p className="lead reveal" style={{ "--d":"200ms" }}>Multi-currency invoicing software for freelancers: branded invoices, quotes, credit notes and payment reminders by email or WhatsApp, in 18 currencies.</p>
                 <div className="actions reveal" style={{ "--d":"320ms" }}>
                   <a className="button primary" href={signupHref("hero_primary")} onClick={signup("hero_primary")}>Create your first invoice, free <span className="arrow" aria-hidden="true">→</span></a>
                   <a className="button ghost" href="#how">See how it works</a>

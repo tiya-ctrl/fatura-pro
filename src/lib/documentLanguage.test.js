@@ -11,5 +11,8 @@ describe("document language", () => {
     expect(documentDirection("nl")).toBe("ltr");
     expect(invoiceCopy("ar")).toMatchObject({ invoice:"فاتورة", totalDue:"المبلغ المستحق" });
     expect(invoiceCopy("nl").invoice).toBe("Factuur");
+    expect(normalizeDocumentLanguage("es")).toBe("es");
+    expect(invoiceCopy("es")).toMatchObject({ invoice:"Factura", creditNote:"Factura rectificativa", tax:"IVA" });
+    expect(documentDirection("es")).toBe("ltr");
   });
 });

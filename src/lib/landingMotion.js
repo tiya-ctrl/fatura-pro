@@ -5,6 +5,7 @@ const INVOICE_TEXT = {
   en: { dir: "ltr", invoice: "Invoice", paid: "Paid", description: "Description", service: "Website design", subtotal: "Subtotal", sub: "€1,200.00", vat: "VAT 21%", vatv: "€252.00", total: "Total due", totalv: "€1,452.00" },
   nl: { dir: "ltr", invoice: "Factuur", paid: "Betaald", description: "Omschrijving", service: "Websiteontwerp", subtotal: "Subtotaal", sub: "€ 1.200,00", vat: "Btw 21%", vatv: "€ 252,00", total: "Te betalen", totalv: "€ 1.452,00" },
   fr: { dir: "ltr", invoice: "Facture", paid: "Payée", description: "Description", service: "Conception de site web", subtotal: "Sous-total", sub: "1 200,00 €", vat: "TVA 21 %", vatv: "252,00 €", total: "Total dû", totalv: "1 452,00 €" },
+  es: { dir: "ltr", invoice: "Factura", paid: "Pagada", description: "Descripción", service: "Diseño de sitio web", subtotal: "Base imponible", sub: "1.200,00 €", vat: "IVA 21 %", vatv: "252,00 €", total: "Total a pagar", totalv: "1.452,00 €" },
   ar: { dir: "rtl", invoice: "فاتورة", paid: "مدفوعة", description: "الوصف", service: "تصميم موقع إلكتروني", subtotal: "المجموع الفرعي", sub: "1,200.00 €", vat: "ضريبة القيمة المضافة 21%", vatv: "252.00 €", total: "المبلغ المستحق", totalv: "1,452.00 €" },
 };
 
