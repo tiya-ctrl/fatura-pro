@@ -60,7 +60,7 @@ html:has(.lv2){scroll-behavior:smooth;-webkit-text-size-adjust:100%}
 .lv2 .nav-end{display:flex;align-items:center;gap:12px}
 
 @media (min-width:1201px){
-.lv2 .nav-inner>.language-links{flex-direction:column;flex-wrap:nowrap;justify-content:flex-start;height:40px;gap:4px;position:relative;z-index:5}
+.lv2 .nav-inner>.language-links{flex-direction:column;flex-wrap:nowrap;justify-content:flex-start;height:40px;gap:0;position:relative;z-index:5}.lv2 .nav-inner>.language-links a:not([aria-current]){margin-top:-1px}
 .lv2 .nav-inner>.language-links a{order:1}
 .lv2 .nav-inner>.language-links a[aria-current]{order:0}
 .lv2 .nav-inner>.language-links a:not([aria-current]){display:none!important}

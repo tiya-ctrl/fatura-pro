@@ -60,7 +60,7 @@ em.accent,.section-title em{font-family:var(--serif);font-style:italic;font-weig
 /* Wide screens: the language switch shows only the current language; the others
    open below it on hover or keyboard focus, so the header keeps one row. */
 @media (min-width:1201px){
-.nav-inner>.language-links{flex-direction:column;flex-wrap:nowrap;justify-content:flex-start;height:40px;gap:4px;position:relative;z-index:5}
+.nav-inner>.language-links{flex-direction:column;flex-wrap:nowrap;justify-content:flex-start;height:40px;gap:0;position:relative;z-index:5}.nav-inner>.language-links a:not([aria-current]){margin-top:-1px}
 .nav-inner>.language-links a{order:1}
 .nav-inner>.language-links a[aria-current]{order:0}
 .nav-inner>.language-links a:not([aria-current]){display:none!important}
