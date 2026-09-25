@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { trackEvent } from "../lib/tracking";
 import { applyPageSeo, suspendBaseSiteSchema } from "../lib/pageSeo";
+import { printOnlyCss, printWithTitle } from "../lib/printDocument";
 
 const INVOICE_ATTRIBUTION_URL = "https://faturapro.app/?utm_source=invoice&utm_medium=footer&utm_campaign=free_invoice_generator";
 
@@ -58,21 +59,8 @@ export default function InvoiceGenerator() {
         <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:28, alignItems:"start" }} className="gen-grid">
           <style>{`
             @media (max-width: 800px) { .gen-grid { grid-template-columns: 1fr !important; } }
-            @media print {
-              html, body { background: #fff !important; margin: 0 !important; padding: 0 !important; }
-              body * { visibility: hidden !important; }
-              .gen-invoice, .gen-invoice * { visibility: visible !important; }
-              .gen-invoice {
-                position: absolute !important; left: 0 !important; top: 0 !important;
-                width: 100% !important; max-width: 100% !important;
-                box-shadow: none !important; border-radius: 0 !important;
-                padding: 0 !important; background: #fff !important;
-              }
-              .gen-noprint { display: none !important; }
-              * { -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; }
-            }
-            @page { size: A4 portrait; margin: 14mm; }
-          `}</style>
+            @media print { .gen-noprint { display: none !important; } }
+          ` + printOnlyCss(".gen-invoice")}</style>
 
           {/* FORM */}
           <div style={{ background:"#111118", border:"1px solid rgba(99,102,241,0.15)", borderRadius:16, padding:28 }}>
@@ -152,7 +140,7 @@ export default function InvoiceGenerator() {
               </div>
             </div>
 
-            <button className="gen-noprint" onClick={() => { trackEvent("free_generator_pdf_downloaded", { has_items:items.some(item => item.desc || Number(item.price) > 0) }); window.print(); }} style={{ width:"100%", marginTop:16, padding:"14px 20px", borderRadius:11, background:"linear-gradient(135deg,#7C6CF2,#6366F1)", color:"#0a0a0f", fontWeight:700, fontSize:15, border:"none", cursor:"pointer", fontFamily:"DM Sans, sans-serif" }}>
+            <button className="gen-noprint" onClick={() => { trackEvent("free_generator_pdf_downloaded", { has_items:items.some(item => item.desc || Number(item.price) > 0) }); printWithTitle("Invoice-" + (form.invoiceNumber || "")); }} style={{ width:"100%", marginTop:16, padding:"14px 20px", borderRadius:11, background:"linear-gradient(135deg,#7C6CF2,#6366F1)", color:"#0a0a0f", fontWeight:700, fontSize:15, border:"none", cursor:"pointer", fontFamily:"DM Sans, sans-serif" }}>
               Download PDF
             </button>
             <div className="gen-noprint" style={{ fontSize:11.5, color:"#5a5750", textAlign:"center", marginTop:8, lineHeight:1.7 }}>

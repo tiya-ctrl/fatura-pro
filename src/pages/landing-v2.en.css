@@ -58,6 +58,8 @@ html:has(.lv2){scroll-behavior:smooth;-webkit-text-size-adjust:100%}
 .lv2 .nav-links a:hover::after{transform:scaleX(1)}
 .lv2 .nav-inner>.language-links{margin-left:auto}
 .lv2 .nav-end{display:flex;align-items:center;gap:12px}
+.lv2 .nav-login{padding-inline:12px}
+@media (max-width:1120px){.lv2 .nav-end>.nav-login{display:none}}
 .lv2 .menu{display:none;position:relative}
 .lv2 .menu summary{list-style:none;display:flex;align-items:center;justify-content:center;width:44px;height:44px;border:1px solid var(--line-2);border-radius:12px;cursor:pointer;color:var(--text);background:rgba(255,255,255,.03)}
 .lv2 .menu summary::-webkit-details-marker{display:none}

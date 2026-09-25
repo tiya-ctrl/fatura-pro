@@ -6,6 +6,7 @@ import { getLocale } from "../lib/locale";
 import { DOCUMENT_LANGUAGES, documentDirection, normalizeDocumentLanguage } from "../lib/documentLanguage";
 import { trackEvent } from "../lib/tracking";
 import { recordActivationEvent } from "../lib/activationEvents";
+import { printOnlyCss } from "../lib/printDocument";
 import { loadQuotes, saveQuote, deleteQuote, nextQuoteId } from "../lib/quotes";
 
 export { loadQuotes };
@@ -269,7 +270,7 @@ export function QuotePreview({ quote, onClose, onConvert }) {
     window.open(`mailto:${encodeURIComponent(quote.email)}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`, "_blank", "noopener,noreferrer");
   };
 
-  const preview = <div className="modal-overlay"><style>{QUOTE_CSS}</style><div className="invoice-preview-wrapper quote-preview-wrapper" style={{ width:"100%", maxWidth:760, maxHeight:"95vh", overflow:"auto", borderRadius:16, margin:"0 auto" }}>
+  const preview = <div className="modal-overlay"><style>{QUOTE_CSS + printOnlyCss(".invoice-preview")}</style><div className="invoice-preview-wrapper quote-preview-wrapper" style={{ width:"100%", maxWidth:760, maxHeight:"95vh", overflow:"auto", borderRadius:16, margin:"0 auto" }}>
     <div className="quote-preview-actions print-hide"><div><button className="btn btn-primary btn-sm" onClick={printQuote}>{ui("Print / Save PDF", "طباعة / حفظ PDF")}</button><button className="btn btn-ghost btn-sm" onClick={emailQuote}>{ui("Open email", "فتح البريد")}</button>{onConvert && <button className="btn btn-ghost btn-sm" onClick={onConvert}>{ui("Convert to invoice", "تحويل إلى فاتورة")}</button>}</div><button className="btn btn-ghost btn-sm" onClick={onClose}>{ui("Close", "إغلاق")}</button></div>
     <p className="quote-email-help print-hide">{ui("Email opens in your own mail app. Save the PDF here first, then attach it before sending.", "يفتح البريد في تطبيقك. احفظ ملف PDF هنا أولًا ثم أرفقه قبل الإرسال.")}</p>
     <article className="invoice-preview" aria-label={`${copy.document} ${quote.id}`} lang={language} dir={direction} style={{ fontFamily:language === "ar" ? "'Noto Sans Arabic','Segoe UI',Tahoma,Arial,sans-serif" : undefined, textAlign:direction === "rtl" ? "right" : "left" }}>

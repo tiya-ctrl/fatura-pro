@@ -87,6 +87,8 @@
     .nav-links a:hover::after{transform:scaleX(1)}
     .nav-inner>.language-links{margin-inline-start:auto}
     .nav-end{display:flex;align-items:center;gap:12px}
+    .nav-login{padding-inline:12px}
+    @media (max-width:1120px){.nav-end>.nav-login{display:none}}
     .menu{display:none;position:relative}
     .menu summary{list-style:none;display:flex;align-items:center;justify-content:center;width:44px;height:44px;border:1px solid var(--line-2);border-radius:12px;cursor:pointer;color:var(--text);background:rgba(255,255,255,.03)}
     .menu summary::-webkit-details-marker{display:none}
@@ -406,11 +408,12 @@
     <nav class="nav-links" aria-label="أقسام الصفحة"><a href="#how">كيف يعمل</a><a href="#features">المزايا</a><a href="#pricing">الأسعار</a><a href="#faq">الأسئلة الشائعة</a><a href="/ar/invoicing-netherlands-germany-belgium">دليل الفوترة في أوروبا</a></nav>
     <div class="language-links" role="group" aria-label="Website language"><a href="/" hreflang="en" lang="en" title="English" aria-label="English">EN</a><a href="/nl" hreflang="nl" lang="nl" title="Nederlands" aria-label="Nederlands">NL</a><a href="/fr" hreflang="fr" lang="fr" title="Français" aria-label="Français">FR</a><a href="/es" hreflang="es" lang="es" title="Español" aria-label="Español">ES</a><a href="/ar" hreflang="ar" lang="ar" title="العربية" aria-label="العربية" aria-current="page">AR</a></div>
     <div class="nav-end">
+      <a class="button ghost small nav-login" href="/login?lang=ar">تسجيل الدخول</a>
       <a class="button primary small js-campaign-link" href="/login?signup=1&amp;lang=ar" data-track="seo_cta_clicked" data-placement="nav" data-destination="signup">ابدأ مجانًا</a>
       <details class="menu">
         <summary aria-label="القائمة"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M4 7h16M4 12h16M4 17h16"/></svg></summary>
         <div class="menu-panel">
-          <a href="#how">كيف يعمل</a><a href="#features">المزايا</a><a href="#pricing">الأسعار</a><a href="#faq">الأسئلة الشائعة</a><a href="/ar/invoicing-netherlands-germany-belgium">دليل الفوترة في أوروبا</a><a href="/login?lang=ar">تسجيل الدخول</a>
+          <a href="#how">كيف يعمل</a><a href="#features">المزايا</a><a href="#pricing">الأسعار</a><a href="#faq">الأسئلة الشائعة</a><a href="/invoice-generator">مولّد فواتير مجاني</a><a href="/ar/invoicing-netherlands-germany-belgium">دليل الفوترة في أوروبا</a><a href="/login?lang=ar">تسجيل الدخول</a>
           <a class="button primary block js-campaign-link" href="/login?signup=1&amp;lang=ar" data-track="seo_cta_clicked" data-placement="menu" data-destination="signup">ابدأ مجانًا</a>
         </div>
       </details>
@@ -559,7 +562,7 @@
       <div>FaturaPro · فواتير وعروض أسعار وإدارة عملاء ومصروفات لأصحاب المشاريع</div>
       <div class="legal-note">© 2026 FaturaPro · بيانات الحساب مستضافة في الاتحاد الأوروبي (أيرلندا)</div>
     </div>
-    <nav aria-label="روابط التذييل"><a href="/ar/invoicing-netherlands-germany-belgium">دليل الفوترة في أوروبا</a><a href="/blog">المدونة</a><a href="/privacy">الخصوصية</a><a href="/terms">الشروط</a><a href="mailto:support@faturapro.app" class="ltr">support@faturapro.app</a></nav>
+    <nav aria-label="روابط التذييل"><a href="/ar/invoicing-netherlands-germany-belgium">دليل الفوترة في أوروبا</a><a href="/invoice-generator">مولّد فواتير مجاني</a><a href="/blog">المدونة</a><a href="/privacy">الخصوصية</a><a href="/terms">الشروط</a><a href="mailto:support@faturapro.app" class="ltr">support@faturapro.app</a></nav>
   </div></footer>
   <div class="sticky-cta" aria-hidden="true"><a class="button primary block js-campaign-link" href="/login?signup=1&amp;lang=ar&amp;source=seo_ar_sticky" tabindex="-1" data-track="seo_cta_clicked" data-placement="sticky" data-destination="signup">أنشئ فاتورتك الأولى مجانًا <span class="arrow" aria-hidden="true">←</span></a></div>
   <script>

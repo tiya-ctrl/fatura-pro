@@ -22,6 +22,7 @@ import { recordActivationEvent } from "../lib/activationEvents";
 import { activateReferral, claimStoredReferral } from "../lib/referrals";
 import { fetchAmbassadorAdminAccess } from "../lib/ambassadors";
 import { getLocale, setLocale, tr } from "../lib/locale";
+import { printOnlyCss, printWithTitle } from "../lib/printDocument";
 import { INVOICE_LANGUAGES, documentDirection, invoiceCopy, normalizeDocumentLanguage } from "../lib/documentLanguage";
 
 const FONTS = `@import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600;700&family=DM+Sans:wght@300;400;500;600&display=swap');`;
@@ -1036,7 +1037,7 @@ export default function InvoiceApp({ onGoHome }) {
     <>
       <style>{FONTS + STYLES}</style>
       {previewInvoice && (
-        <style>{`@media print { .main { display: none !important; } }`}</style>
+        <style>{printOnlyCss(".invoice-preview")}</style>
       )}
       <div className="app">
         <div className={"sidebar-overlay" + (sidebarOpen ? " open" : "")} onClick={() => setSidebarOpen(false)} />
@@ -2281,7 +2282,7 @@ function InvoicePreview({ invoice, onExportUBL, onClose, currency, plan, isFirst
     <div className="modal-overlay"> {/* إزالة خاصية الإغلاق بالنقر هنا */}
       <div className="invoice-preview-wrapper" style={{ width:"100%", maxWidth:760, maxHeight:"95vh", overflow:"auto", borderRadius:16, margin:"0 auto" }}>
         <div className="print-hide" style={{ display:"flex", justifyContent:"space-between", padding:"12px 0 16px" }}>
-          <div style={{ display:"flex", gap:8 }}><button className="btn btn-ghost btn-sm" onClick={() => { trackDownload("pdf"); window.print(); }}>{copy.printPdf}</button><button className="btn btn-ghost btn-sm" title={documentLanguage === "ar" ? "تنزيل UBL/XML لمسار EN 16931؛ تحقّق من الملف والمتطلبات التي يطلبها المستلم" : "Download UBL/XML for an EN 16931 workflow; validate the receiver's required profile"} onClick={() => { const canExport = plan === "pro" || plan === "business"; trackDownload("ubl", canExport); onExportUBL && onExportUBL(invoice); }}>UBL (XML)</button></div>
+          <div style={{ display:"flex", gap:8 }}><button className="btn btn-ghost btn-sm" onClick={() => { trackDownload("pdf"); printWithTitle((invoice.docType === "credit_note" ? copy.creditNote : copy.invoice) + "-" + invoice.id); }}>{copy.printPdf}</button><button className="btn btn-ghost btn-sm" title={documentLanguage === "ar" ? "تنزيل UBL/XML لمسار EN 16931؛ تحقّق من الملف والمتطلبات التي يطلبها المستلم" : "Download UBL/XML for an EN 16931 workflow; validate the receiver's required profile"} onClick={() => { const canExport = plan === "pro" || plan === "business"; trackDownload("ubl", canExport); onExportUBL && onExportUBL(invoice); }}>UBL (XML)</button></div>
           <button className="btn btn-ghost btn-sm" onClick={onClose}>{copy.close}</button>
         </div>
         <div className="invoice-preview" lang={documentLanguage} dir={documentDir} style={{ fontFamily:documentLanguage === "ar" ? "'Noto Sans Arabic','Segoe UI',Tahoma,Arial,sans-serif" : undefined, textAlign:documentDir === "rtl" ? "right" : "left" }}>
