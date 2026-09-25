@@ -267,6 +267,9 @@ const STYLES = `
   .main { margin-left: 0; padding-bottom: 70px; }
   .hamburger { display: flex; }
   .mobile-nav { display: block; }
+  /* Every menu item shares the width, so none falls off the screen on small phones. */
+  .mobile-nav-item { flex: 1 1 0; min-width: 0; padding: 6px 2px; }
+  .mobile-nav-item .m-label { max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: 9.5px; letter-spacing: 0; }
   .mobile-fab { display: flex !important; }
   .topbar {
   padding: 12px;
@@ -1149,8 +1152,10 @@ export default function InvoiceApp({ onGoHome }) {
 
         <nav className="mobile-nav">
           <div className="mobile-nav-inner">
-            {navItems.map(n => (
-              <div key={n.id} className={"mobile-nav-item" + (page === n.id ? " active" : "")} onClick={() => openNav(n)} style={n.locked ? { opacity:0.45 } : undefined}>
+            {/* Locked (Advanced) items stay in the desktop sidebar; on a phone there is
+                no room for them next to the upgrade button. */}
+            {navItems.filter(n => !n.locked).map(n => (
+              <div key={n.id} className={"mobile-nav-item" + (page === n.id ? " active" : "")} onClick={() => openNav(n)} title={n.label}>
                 <span className="m-icon">{n.icon}</span>
                 <span className="m-label">{n.label}</span>
                 {n.badge > 0 && <span className="mobile-nav-dot" />}

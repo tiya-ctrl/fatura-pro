@@ -91,7 +91,10 @@ export default function SupportChat({ userEmail, plan }) {
 
   return (
     <>
+      {/* On phones the app has a bottom menu and a "+" button: sit above both. */}
+      <style>{`@media (max-width: 640px) { .edy-btn { bottom: 144px !important; width: 50px !important; height: 50px !important; } .edy-panel { bottom: 204px !important; height: min(460px, calc(100dvh - 224px)) !important; } }`}</style>
       <button
+        className="edy-btn"
         onClick={() => setOpen((o) => !o)}
         title={copy.ask}
         aria-label={copy.ask}
@@ -102,7 +105,7 @@ export default function SupportChat({ userEmail, plan }) {
       </button>
 
       {open && (
-        <div dir={ar ? "rtl" : "ltr"} lang={ar ? "ar" : undefined} style={{ position:"fixed", bottom:86, right:ar ? "auto" : 20, left:ar ? 20 : "auto", zIndex:9998, width:"min(370px, calc(100vw - 40px))",
+        <div className="edy-panel" dir={ar ? "rtl" : "ltr"} lang={ar ? "ar" : undefined} style={{ position:"fixed", bottom:86, right:ar ? "auto" : 20, left:ar ? 20 : "auto", zIndex:9998, width:"min(370px, calc(100vw - 40px))",
           height:"min(520px, calc(100vh - 130px))", background:"var(--bg2)", border:"1px solid var(--border)",
           borderRadius:16, display:"flex", flexDirection:"column", overflow:"hidden",
           boxShadow:"0 18px 50px rgba(0,0,0,0.55)" }}>

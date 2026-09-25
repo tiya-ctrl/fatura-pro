@@ -49,7 +49,10 @@ const CHAT_CSS = `
 .chat-head-status { font-size:11px; color:var(--green); display:flex; align-items:center; gap:5px; }
 .chat-head-dot { width:6px;height:6px;border-radius:50%;background:var(--green);animation:pulse 2s infinite; }
 .chat-close { background:none;border:none;color:var(--text2);cursor:pointer;font-size:18px;padding:4px; }
-.chat-messages { flex:1; overflow-y:auto; padding:16px; display:flex; flex-direction:column; gap:12px; max-height:360px; min-height:200px; }
+.chat-messages { flex:1; overflow-y:auto; padding:16px; display:flex; flex-direction:column; gap:12px; max-height:360px; min-height:120px; }
+/* Never taller than the screen above the chat button (short laptop and phone screens). */
+.chat-window { max-height:calc(100vh - 130px); max-height:calc(100dvh - 130px); }
+body:has(.sticky-cta.show) .chat-window { max-height:calc(100dvh - 190px); }
 .chat-msg { max-width:85%; display:flex; flex-direction:column; gap:3px; }
 .chat-msg.user { align-self:flex-end; align-items:flex-end; }
 .chat-msg.bot  { align-self:flex-start; }
