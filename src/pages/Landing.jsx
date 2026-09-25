@@ -385,7 +385,7 @@ export default function LandingPage({ onOpenApp }) {
         <a className="skip" href="#main">Skip to content</a>
 
         <header className="nav"><div className="wrap nav-inner">
-          <a className="brand" href="/" aria-label="Fatūra Pro"><img src="/fatura-mark.svg" alt="" width="34" height="34" /><span>Fatūra</span></a>
+          <a className="brand" href="/" aria-label="Fatūra Pro"><img src="/fatura-mark.svg" alt="" width="34" height="34" /><span>Fatura<b>Pro</b></span></a>
           <nav className="nav-links" aria-label="Page sections">
             <a href="#how">How it works</a><a href="#features">Features</a><a href="#pricing">Pricing</a><a href="/invoice-generator">Free generator</a><a href="/blog">Guides</a>
           </nav>
@@ -550,7 +550,7 @@ export default function LandingPage({ onOpenApp }) {
         <footer><div className="wrap">
           <div className="foot-grid">
             <div className="foot-brand">
-              <a className="brand" href="/"><img src="/fatura-mark.svg" alt="" width="30" height="30" /><span>Fatūra</span></a>
+              <a className="brand" href="/"><img src="/fatura-mark.svg" alt="" width="30" height="30" /><span>Fatura<b>Pro</b></span></a>
               <p>Multi-currency invoicing software for freelancers, consultants and small service businesses working across borders.</p>
               <p className="legal-note">Account data hosted in the EU (Ireland) · UBL XML export · Not a Peppol access point</p>
             </div>
