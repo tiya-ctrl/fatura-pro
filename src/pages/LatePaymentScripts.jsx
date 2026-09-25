@@ -460,7 +460,7 @@ export default function LatePaymentScripts() {
           dateModified:"2026-09-08",
           mainEntityOfPage:canonical,
           author:{ "@type":"Organization", name:"FaturaPro", url:"https://faturapro.app/" },
-          publisher:{ "@type":"Organization", name:"FaturaPro", url:"https://faturapro.app/", logo:{ "@type":"ImageObject", url:"https://faturapro.app/fatura-mark.svg" } },
+          publisher:{ "@type":"Organization", name:"FaturaPro", url:"https://faturapro.app/", logo:{ "@type":"ImageObject", url:"https://faturapro.app/fatura-logo.png" } },
         },
         {
           "@type":"BreadcrumbList",

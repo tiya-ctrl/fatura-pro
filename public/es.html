@@ -1,68 +1,164 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="es">
 <head>
   <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>Programa de facturación para autónomos y pequeños negocios | Fatūra Pro</title>
-  <meta name="description" content="Crea facturas y presupuestos profesionales, controla gastos y pagos y trabaja en 17 monedas. Facturación sencilla para autónomos y pequeños negocios." />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <title>Programa de facturas gratis para freelancers | Fatūra Pro</title>
+  <meta name="description" content="Facturas en inglés, francés o neerlandés y en 17 monedas para clientes internacionales. Notas de crédito, anticipos, recordatorios y UBL/XML. Empieza gratis." />
   <meta name="robots" content="index,follow,max-image-preview:large,max-snippet:-1,max-video-preview:-1" />
   <link rel="canonical" href="https://faturapro.app/es" />
   <link rel="alternate" hreflang="en" href="https://faturapro.app/" />
   <link rel="alternate" hreflang="nl" href="https://faturapro.app/nl" />
-  <link rel="alternate" hreflang="es" href="https://faturapro.app/es" />
   <link rel="alternate" hreflang="fr" href="https://faturapro.app/fr" />
+  <link rel="alternate" hreflang="es" href="https://faturapro.app/es" />
   <link rel="alternate" hreflang="ar" href="https://faturapro.app/ar" />
   <link rel="alternate" hreflang="x-default" href="https://faturapro.app/" />
-  <meta property="og:title" content="Facturación simple para autónomos y pequeños negocios" />
-  <meta property="og:description" content="Facturas, presupuestos, gastos, pagos y 17 monedas en un solo lugar." />
   <meta property="og:type" content="website" />
-  <meta property="og:url" content="https://faturapro.app/es" />
-  <meta property="og:image" content="https://faturapro.app/hero-dashboard.png" />
-  <meta property="og:image:alt" content="Panel de facturación de Fatūra Pro" />
   <meta property="og:site_name" content="Fatūra Pro" />
   <meta property="og:locale" content="es_ES" />
+  <meta property="og:url" content="https://faturapro.app/es" />
+  <meta property="og:title" content="Factura a clientes de todo el mundo – Fatūra Pro" />
+  <meta property="og:description" content="Facturas en el idioma y la moneda de tus clientes, notas de crédito, anticipos, recordatorios y UBL/XML. Empieza gratis." />
+  <meta property="og:image" content="https://faturapro.app/hero-dashboard.png" />
+  <meta property="og:image:alt" content="Panel de Fatūra Pro con facturas, ingresos y pagos pendientes" />
   <meta name="twitter:card" content="summary_large_image" />
-  <meta name="twitter:title" content="Facturación simple para autónomos y pequeños negocios" />
-  <meta name="twitter:description" content="Crea facturas, controla gastos y trabaja en 17 monedas desde un solo lugar." />
+  <meta name="twitter:title" content="Factura a clientes de todo el mundo – Fatūra Pro" />
+  <meta name="twitter:description" content="Facturas en el idioma y la moneda de tus clientes, notas de crédito, anticipos, recordatorios y UBL/XML. Empieza gratis." />
   <meta name="twitter:image" content="https://faturapro.app/hero-dashboard.png" />
+  <meta name="theme-color" content="#07070d" />
   <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+  <link rel="icon" href="/favicon-32x32.png" sizes="32x32" type="image/png" />
+  <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
+  <link rel="manifest" href="/manifest.json" />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&amp;family=Playfair+Display:ital,wght@0,500;1,500&amp;display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="/localized-landing.css" />
-  <script type="application/ld+json">{"@context":"https://schema.org","@graph":[{"@type":"SoftwareApplication","name":"Fatūra Pro","applicationCategory":"BusinessApplication","operatingSystem":"Web","url":"https://faturapro.app/es","description":"Programa de facturación para autónomos y pequeños negocios con 17 monedas, presupuestos, gastos, recordatorios editables y exportación UBL/XML.","offers":[{"@type":"Offer","name":"Gratis","price":"0","priceCurrency":"EUR"},{"@type":"Offer","name":"Essential","price":"9","priceCurrency":"EUR"},{"@type":"Offer","name":"Advanced","price":"19","priceCurrency":"EUR"}]},{"@type":"FAQPage","mainEntity":[{"@type":"Question","name":"¿Puedo usar Fatūra Pro gratis?","acceptedAnswer":{"@type":"Answer","text":"Sí. El plan gratuito permite crear hasta 20 facturas y guardar 5 clientes sin tarjeta de crédito."}},{"@type":"Question","name":"¿Puedo facturar en varias monedas?","acceptedAnswer":{"@type":"Answer","text":"Sí. Fatūra Pro admite 17 monedas y mantiene los totales separados sin aplicar conversiones ficticias."}},{"@type":"Question","name":"¿Dónde se guardan mis datos?","acceptedAnswer":{"@type":"Answer","text":"Los datos de cuenta, clientes y facturas gestionados por Supabase se alojan en la Unión Europea, en Irlanda, y las conexiones están cifradas."}}]}]}</script>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,600;0,700;1,500&amp;family=Plus+Jakarta+Sans:wght@400;500;600;700;800&amp;display=swap" />
+  <link rel="preload" as="image" href="/hero-dashboard.png" fetchpriority="high" />
+  <link rel="stylesheet" href="/landing-v2.css" />
   <link rel="stylesheet" href="/language-links.css" />
+  <script type="application/ld+json">{"@context":"https://schema.org","@graph":[{"@type":"SoftwareApplication","name":"Fatūra Pro","applicationCategory":"BusinessApplication","operatingSystem":"Web","url":"https://faturapro.app/es","inLanguage":"es","description":"Programa de facturación para freelancers y pequeñas empresas con clientes internacionales: facturas en varios idiomas, 17 monedas, notas de crédito, anticipos, recordatorios y exportación UBL/XML.","publisher":{"@id":"https://faturapro.app/#organization"},"offers":[{"@type":"Offer","name":"Free","price":"0","priceCurrency":"EUR"},{"@type":"Offer","name":"Essential","price":"9","priceCurrency":"EUR"},{"@type":"Offer","name":"Advanced","price":"19","priceCurrency":"EUR"}]},{"@type":"FAQPage","mainEntity":[{"@type":"Question","name":"¿Fatūra Pro es gratis?","acceptedAnswer":{"@type":"Answer","text":"Sí. El plan Free permite crear hasta 20 facturas para 5 clientes, con PDF, tu logo y notas de crédito, sin tarjeta de crédito. Para facturar sin límites, Essential cuesta 9 € al mes sin IVA."}},{"@type":"Question","name":"¿Puedo hacer una factura en inglés?","acceptedAnswer":{"@type":"Answer","text":"Sí. El idioma del documento se elige en cada factura: inglés, francés, neerlandés o árabe. Tu panel sigue en español. Las etiquetas de factura en español no están disponibles."}},{"@type":"Question","name":"¿Puedo facturar en dólares, libras o dírhams?","acceptedAnswer":{"@type":"Answer","text":"Sí, hay 17 monedas y los importes nunca se convierten: cada moneda mantiene su propio total."}},{"@type":"Question","name":"¿Fatūra Pro cumple con VERI*FACTU?","acceptedAnswer":{"@type":"Answer","text":"No. Fatūra Pro no es un sistema VERI*FACTU ni está certificado para la normativa española de facturación. Si facturas desde España, consulta con tu asesor qué software necesitas."}},{"@type":"Question","name":"¿Cómo hago una nota de crédito?","acceptedAnswer":{"@type":"Answer","text":"Abre la factura que quieres corregir y crea una nota de crédito desde ella. Se genera un documento separado con su propio número, importe negativo y referencia a la factura original. Incluido en todos los planes."}},{"@type":"Question","name":"¿Dónde se guardan mis datos?","acceptedAnswer":{"@type":"Answer","text":"Los datos de la cuenta, los clientes y las facturas se alojan en la Unión Europea (Irlanda) y las conexiones están cifradas. Los pagos de suscripción se procesan con Stripe; Fatūra Pro no guarda números de tarjeta completos."}}]}]}</script>
 </head>
 <body data-seo-page="es_home" data-seo-language="es">
+  <script>document.documentElement.classList.add('js')</script>
+  <div class="progress" aria-hidden="true"></div>
+  <a class="skip" href="#main">Ir al contenido</a>
+  <svg width="0" height="0" style="position:absolute" aria-hidden="true"><symbol id="i-check" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M5 10.5l3.2 3L15 7"/></symbol></svg>
+
   <header class="nav"><div class="wrap nav-inner">
-    <a class="brand" href="/es"><img src="/fatura-mark.svg" alt="" /><span>Fatūra</span></a>
-    <nav class="nav-links"><a href="#funciones">Funciones</a><a href="#precios">Precios</a><a href="#preguntas">Preguntas</a></nav>
+    <a class="brand" href="/es" aria-label="Fatūra Pro"><img src="/fatura-mark.svg" alt="" width="34" height="34" /><span>Fatura<b>Pro</b></span></a>
+    <nav class="nav-links" aria-label="Secciones de la página"><a href="#how">Cómo funciona</a><a href="#features">Funciones</a><a href="#pricing">Precios</a><a href="#faq">Preguntas</a></nav>
     <div class="language-links" role="group" aria-label="Website language"><a href="/" hreflang="en" lang="en" title="English" aria-label="English">EN</a><a href="/nl" hreflang="nl" lang="nl" title="Nederlands" aria-label="Nederlands">NL</a><a href="/fr" hreflang="fr" lang="fr" title="Français" aria-label="Français">FR</a><a href="/es" hreflang="es" lang="es" title="Español" aria-label="Español" aria-current="page">ES</a><a href="/ar" hreflang="ar" lang="ar" title="العربية" aria-label="العربية">AR</a></div>
-    <a class="button" href="/login?signup=1&amp;lang=es&amp;source=seo_es_nav" data-track="seo_cta_clicked" data-placement="nav" data-destination="signup">Empezar gratis</a>
+    <div class="nav-end">
+      <a class="button primary small js-campaign-link" href="/login?signup=1&amp;lang=es&amp;source=seo_es_nav" data-track="seo_cta_clicked" data-placement="nav" data-destination="signup">Empezar gratis</a>
+      <details class="menu">
+        <summary aria-label="Menú"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M4 7h16M4 12h16M4 17h16"/></svg></summary>
+        <div class="menu-panel"><a href="#how">Cómo funciona</a><a href="#features">Funciones</a><a href="#pricing">Precios</a><a href="#faq">Preguntas</a><a href="/login?lang=es">Iniciar sesión</a>
+          <a class="button primary block js-campaign-link" href="/login?signup=1&amp;lang=es&amp;source=seo_es_menu" data-track="seo_cta_clicked" data-placement="menu" data-destination="signup">Empezar gratis</a>
+        </div>
+      </details>
+    </div>
   </div></header>
-  <main>
-    <section class="hero"><div class="wrap hero-grid">
-      <div><span class="kicker">Para autónomos y pequeños negocios</span><h1>Facturación simple para <em>trabajar sin fronteras.</em></h1><p class="lead">Crea facturas y presupuestos profesionales, trabaja con múltiples monedas, controla gastos y pagos y gestiona tus clientes desde un solo lugar.</p><div class="actions"><a class="button" href="/login?signup=1&amp;lang=es&amp;source=seo_es_hero" data-track="seo_cta_clicked" data-placement="hero" data-destination="signup">Crear mi primera factura gratis →</a><a class="button secondary" href="#funciones">Ver cómo funciona</a></div><p class="micro">Sin tarjeta de crédito · Plan gratuito disponible · 17 monedas</p></div>
-      <div class="visual" aria-label="Vista previa del panel"><div class="visual-head"><strong>Resumen del negocio</strong><span class="status">● Actualizado</span></div><div class="metric-grid"><div class="metric"><span>Cobrado</span><strong>€4.820</strong></div><div class="metric"><span>Pendiente</span><strong>€1.340</strong></div></div><div class="invoice-line"><span>Estudio Norte · Factura 1042</span><strong>€850</strong></div><div class="invoice-line"><span>Cliente internacional · USD</span><strong>$1,200</strong></div><div class="invoice-line"><span>Próxima factura recurrente</span><strong>3 sep.</strong></div></div>
+
+  <main id="main">
+    <section class="hero">
+      <div class="aurora" aria-hidden="true"><i></i><i></i><i></i></div>
+      <div class="gridlines" aria-hidden="true"></div>
+      <div class="wrap hero-grid">
+        <div>
+          <span class="kicker reveal"><span class="pulse" aria-hidden="true"></span>Programa de facturación para freelancers</span>
+          <h1><span class="line">Facturas profesionales en minutos.</span> <span class="line"><em class="accent grad">Y un seguimiento claro de cada cobro.</em></span></h1>
+          <p class="lead reveal" style="--d:200ms">Facturas con tu marca, notas de crédito, anticipos y recordatorios por email o WhatsApp. Para tus clientes internacionales: facturas en inglés o francés, en 17 monedas.</p>
+          <div class="actions reveal" style="--d:320ms">
+            <a class="button primary js-campaign-link" href="/login?signup=1&amp;lang=es&amp;source=seo_es_hero" data-track="seo_cta_clicked" data-placement="hero" data-destination="signup">Crear mi primera factura gratis <span class="arrow" aria-hidden="true">→</span></a>
+            <a class="button ghost" href="#how">Ver cómo funciona</a>
+          </div>
+          <ul class="trust reveal" style="--d:420ms"><li><svg width="16" height="16" aria-hidden="true"><use href="#i-check"/></svg>Plan gratis, sin tarjeta</li><li><svg width="16" height="16" aria-hidden="true"><use href="#i-check"/></svg>Essential desde 9 € al mes</li><li><svg width="16" height="16" aria-hidden="true"><use href="#i-check"/></svg>Sin permanencia</li></ul>
+        </div>
+        <div class="stage stage-in">
+          <figure class="shot" aria-label="Captura real del panel de Fatūra Pro" data-chips="[[&quot;✓&quot;, &quot;Notas de crédito incluidas&quot;], [&quot;17&quot;, &quot;monedas, totales separados&quot;], [&quot;PDF&quot;, &quot;Facturas con tu marca&quot;], [&quot;↻&quot;, &quot;Recordatorios por email y WhatsApp&quot;], [&quot;%&quot;, &quot;Anticipos y pagos parciales&quot;], [&quot;XML&quot;, &quot;Exportación UBL para EN 16931&quot;], [&quot;4&quot;, &quot;idiomas para tus facturas&quot;], [&quot;→&quot;, &quot;Presupuestos que pasan a factura&quot;], [&quot;€&quot;, &quot;Cobro online con Stripe&quot;]]">
+            <div class="shot-frame"><div class="shot-inner"><img src="/hero-dashboard.png" width="1362" height="596" alt="Panel de Fatūra Pro con facturas, ingresos, pagos pendientes y vencidos" fetchpriority="high" decoding="async" /></div></div>
+            <div class="chip c1 p1" aria-hidden="true"><span class="dot">✓</span><span class="lbl">Notas de crédito incluidas</span></div>
+            <div class="chip c2 p2" aria-hidden="true"><span class="dot">17</span><span class="lbl">monedas, totales separados</span></div>
+            <div class="chip c3 p3" aria-hidden="true"><span class="dot">PDF</span><span class="lbl">Facturas con tu marca</span></div>
+            <figcaption>Captura real del panel</figcaption>
+          </figure>
+        </div>
+      </div>
+    </section>
+
+    <div class="marquee" aria-label="Ejemplos de monedas disponibles"><div class="marquee-track"><span class="cur"><b>EUR</b><span>€</span></span><span class="cur"><b>USD</b><span>$</span></span><span class="cur"><b>GBP</b><span>£</span></span><span class="cur"><b>AED</b><span>د.إ</span></span><span class="cur"><b>SAR</b><span>﷼</span></span><span class="cur"><b>QAR</b><span>ر.ق</span></span><span class="cur"><b>KWD</b><span>د.ك</span></span><span class="cur"><b>MAD</b><span>د.م</span></span><span class="cur"><b>DZD</b><span>دج</span></span><span class="cur"><b>TND</b><span>د.ت</span></span><span class="cur"><b>EGP</b><span>ج.م</span></span><span class="cur"><b>TRY</b><span>₺</span></span><span class="cur"><b>JPY</b><span>¥</span></span><span class="cur"><b>MYR</b><span>RM</span></span><span class="cur"><b>IDR</b><span>Rp</span></span><span class="cur" aria-hidden="true"><b>EUR</b><span>€</span></span><span class="cur" aria-hidden="true"><b>USD</b><span>$</span></span><span class="cur" aria-hidden="true"><b>GBP</b><span>£</span></span><span class="cur" aria-hidden="true"><b>AED</b><span>د.إ</span></span><span class="cur" aria-hidden="true"><b>SAR</b><span>﷼</span></span><span class="cur" aria-hidden="true"><b>QAR</b><span>ر.ق</span></span><span class="cur" aria-hidden="true"><b>KWD</b><span>د.ك</span></span><span class="cur" aria-hidden="true"><b>MAD</b><span>د.م</span></span><span class="cur" aria-hidden="true"><b>DZD</b><span>دج</span></span><span class="cur" aria-hidden="true"><b>TND</b><span>د.ت</span></span><span class="cur" aria-hidden="true"><b>EGP</b><span>ج.م</span></span><span class="cur" aria-hidden="true"><b>TRY</b><span>₺</span></span><span class="cur" aria-hidden="true"><b>JPY</b><span>¥</span></span><span class="cur" aria-hidden="true"><b>MYR</b><span>RM</span></span><span class="cur" aria-hidden="true"><b>IDR</b><span>Rp</span></span></div></div>
+
+    <div class="facts" aria-label="En resumen"><div class="wrap"><ul><li class="reveal"><strong data-count="17">17</strong><span>monedas sin conversión</span></li><li class="reveal" style="--d:80ms"><strong data-count="4">4</strong><span>idiomas para tus facturas</span></li><li class="reveal" style="--d:160ms"><strong data-count="5">5</strong><span>idiomas para recordatorios</span></li><li class="reveal" style="--d:240ms"><strong>UBL/XML</strong><span>exportación para EN 16931</span></li></ul></div></div>
+
+    <section id="how" class="section"><div class="wrap">
+      <div class="section-head reveal"><span class="eyebrow">Cómo funciona</span><h2 class="section-title">De la cuenta a la factura <em>en tres pasos.</em></h2><p>No necesitas conocimientos contables. Tú rellenas, Fatūra calcula y maqueta el documento.</p></div>
+      <ol class="steps reveal"><li><h3>Crea tu cuenta gratis</h3><p>Añade una sola vez tu nombre comercial, logo, IBAN y número fiscal.</p></li><li><h3>Añade a tu cliente</h3><p>Elige el idioma de la factura para cada cliente: inglés, francés, neerlandés o árabe.</p></li><li><h3>Descarga el PDF y sigue el cobro</h3><p>Guarda la factura en PDF y mira de un vistazo qué está pagado, pendiente o vencido.</p></li></ol>
     </div></section>
-    <div class="trust"><div class="wrap"><span>✓ Derechos RGPD explicados</span><span>✓ Datos de cuenta alojados en la UE (Irlanda)</span><span>✓ Exportación UBL/XML para flujos EN 16931</span><span>✓ Pagos procesados por Stripe</span></div></div>
-    <section class="section" id="funciones"><div class="wrap"><div class="section-head"><div class="eyebrow">Todo en un solo lugar</div><h2 class="section-title">Menos administración. <em>Más control.</em></h2><p class="section-sub">Herramientas prácticas para cobrar, organizar el negocio y entregar información clara a tu contable.</p></div><div class="cards">
-      <article class="card"><h3>Facturas y presupuestos</h3><p>Crea documentos profesionales con tu marca y convierte un presupuesto aceptado en factura sin volver a escribir nada.</p></article>
-      <article class="card"><h3>17 monedas, sin mezclar totales</h3><p>Factura a clientes internacionales y conserva cada moneda por separado para que tus cifras sigan siendo correctas.</p></article>
-      <article class="card"><h3>Gastos e IVA</h3><p>Registra gastos y consulta el IVA cobrado y pagado por trimestre desde el plan Advanced.</p></article>
-      <article class="card"><h3>Seguimiento de pagos</h3><p>Ve qué está pagado, pendiente o vencido y prepara recordatorios por email o WhatsApp.</p></article>
-      <article class="card"><h3>Facturación recurrente</h3><p>Programa la creación de nuevas facturas pendientes para servicios periódicos, revísalas antes de enviarlas y pausa o reanuda cada calendario cuando quieras.</p></article>
-      <article class="card"><h3>Exportación UBL/XML</h3><p>Descarga UBL/XML pensado para flujos EN 16931. Confirma y valida el perfil que acepta tu cliente; el envío por Peppol no está incluido.</p></article>
+
+    <section class="section tight"><div class="wrap showcase">
+      <div class="showcase-copy reveal">
+        <span class="eyebrow">Para clientes internacionales</span>
+        <h2 class="section-title">Tu panel en español, <em>la factura en el idioma del cliente.</em></h2>
+        <p class="lead">¿Facturas a un cliente en Estados Unidos, Reino Unido, Países Bajos o el Golfo? Elige el idioma y la moneda de cada factura; tu panel sigue en español.</p>
+        <ul><li><svg width="16" height="16" aria-hidden="true"><use href="#i-check"/></svg>El idioma del panel y el de la factura son ajustes independientes.</li><li><svg width="16" height="16" aria-hidden="true"><use href="#i-check"/></svg>Cada moneda mantiene su propio total, sin tipos de cambio.</li><li><svg width="16" height="16" aria-hidden="true"><use href="#i-check"/></svg>Impuestos, descuento y anticipo se calculan automáticamente.</li></ul>
+      </div>
+      <div class="demo reveal" style="--d:150ms" data-start="en">
+        <div class="demo-ui">
+          <small>Elige el idioma de la factura:</small>
+          <div class="lang-switch" role="group" aria-label="Idioma de la factura de ejemplo">
+            <button type="button" data-lang="en" aria-pressed="false">EN</button><button type="button" data-lang="nl" aria-pressed="false">NL</button><button type="button" data-lang="fr" aria-pressed="false">FR</button><button type="button" data-lang="ar" aria-pressed="false">AR</button>
+          </div>
+        </div>
+        <div class="invoice" aria-live="polite">
+          <div class="inv-body" lang="en" dir="ltr">
+            <div class="inv-head"><div><div class="inv-title" data-k="invoice">Invoice</div><div class="inv-no">INV-2026-014</div></div><span class="inv-badge" data-k="paid">Paid</span></div>
+            <div class="inv-row"><span data-k="description">Description</span><span data-k="service">Website design</span></div>
+            <div class="inv-row"><span data-k="subtotal">Subtotal</span><span data-k="sub">€1,200.00</span></div>
+            <div class="inv-row"><span data-k="vat">VAT 21%</span><span data-k="vatv">€252.00</span></div>
+            <div class="inv-row total"><span data-k="total">Total due</span><span data-k="totalv">€1,452.00</span></div>
+          </div>
+        </div>
+        <p class="demo-note">Ejemplo: los mismos datos de factura, en el idioma de tu cliente</p>
+      </div>
+    </div></section>
+
+    <section id="features" class="section tight"><div class="wrap">
+      <div class="section-head reveal"><span class="eyebrow">Funciones</span><h2 class="section-title">Todo para facturar <em>sin complicaciones.</em></h2></div>
+      <div class="features"><article class="feature wide reveal"><div class="copy"><span class="tag">Free</span><div class="icon" aria-hidden="true"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8z"/><path d="M14 3v5h5M9 13h6M9 17h4"/></svg></div><h3>Facturas profesionales</h3><p>Logo, datos del cliente, líneas, impuestos y descuento: todo se calcula automáticamente. Descarga en PDF o imprime.</p></div><div class="viz" aria-hidden="true"><div class="mini-doc"><i class="logo"></i><i class="w80"></i><i class="w60"></i><i class="w40"></i><i class="tot"></i></div></div></article><article class="feature reveal" style="--d:80ms"><span class="tag">Free</span><div class="icon" aria-hidden="true"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M9 14L4 9l5-5"/><path d="M4 9h11a5 5 0 0 1 0 10h-3"/></svg></div><h3>Notas de crédito</h3><p>Corrige una factura emitida con una nota de crédito numerada, con importe negativo y referencia a la original. Incluidas en todos los planes.</p></article><article class="feature reveal" style="--d:160ms"><span class="tag essential">Essential</span><div class="icon" aria-hidden="true"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8a6 6 0 0 0-12 0c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.7 21a2 2 0 0 1-3.4 0"/></svg></div><h3>Recordatorios de pago</h3><p>Cuando pasa la fecha de vencimiento, la factura se marca como vencida. Elige un recordatorio amable, firme o final y envíalo por email o WhatsApp.</p></article><article class="feature wide reveal"><div class="copy"><span class="tag essential">Essential</span><div class="icon" aria-hidden="true"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 3v9l6 6"/></svg></div><h3>Anticipos y pagos parciales</h3><p>Pide un 50 % por adelantado, registra cada pago y ve exactamente lo que queda pendiente.</p></div><div class="viz" aria-hidden="true"><div class="dep"><div class="dep-bar"><i></i></div><div class="dep-row"><b>50%</b><b>50%</b></div></div></div></article><article class="feature wide reveal" style="--d:80ms"><div class="copy"><span class="tag essential">Essential</span><div class="icon" aria-hidden="true"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M16 18l6-6-6-6M8 6l-6 6 6 6"/></svg></div><h3>Exportación UBL/XML</h3><p>Descarga facturas y notas de crédito en UBL/XML para flujos EN 16931. No incluye envío por Peppol.</p></div><div class="viz" aria-hidden="true"><pre class="xml">&lt;<span class="t">Invoice</span>&gt;
+  &lt;<span class="t">cbc:ID</span>&gt;<span class="v">INV-014</span>&lt;/…&gt;
+  &lt;<span class="t">cbc:InvoiceTypeCode</span>&gt;<span class="v">380</span>&lt;/…&gt;
+  &lt;<span class="t">cac:LegalMonetaryTotal</span>&gt;
+    <span class="v">1452.00 EUR</span>
+&lt;/<span class="t">Invoice</span>&gt;</pre></div></article><article class="feature reveal" style="--d:160ms"><span class="tag advanced">Advanced</span><div class="icon" aria-hidden="true"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3v18h18"/><path d="M7 15l4-4 3 3 5-6"/></svg></div><h3>Presupuestos, gastos e IVA</h3><p>Convierte un presupuesto aceptado en factura, registra gastos y consulta un resumen trimestral de IVA por moneda.</p></article></div>
+    </div></section>
+
+    <section id="pricing" class="section tight"><div class="wrap">
+      <div class="section-head reveal"><span class="eyebrow">Precios</span><h2 class="section-title">Empieza gratis, <em>crece cuando quieras.</em></h2><p>Sin permanencia: cancelas cuando quieras.</p></div>
+      <div class="plans"><article class="plan reveal"><div class="plan-name">Free</div><p class="plan-desc">Para empezar y emitir tus primeras facturas.</p><div class="price">€0</div><ul><li>20 facturas y 5 clientes</li><li>Las 17 monedas</li><li>Panel y seguimiento</li><li>Exportación PDF e impresión</li><li>Tu logo y tu marca</li><li>Notas de crédito</li></ul><a class="button ghost block js-campaign-link" href="/login?signup=1&amp;lang=es&amp;source=seo_es_pricing_free" data-track="seo_cta_clicked" data-placement="pricing_free" data-destination="signup">Empezar gratis</a></article><article class="plan featured reveal" style="--d:100ms"><span class="plan-badge">Ideal para freelancers</span><div class="plan-name">Essential</div><p class="plan-desc">Facturación ilimitada, con recordatorios.</p><div class="price">€9 <small>/ mes</small></div><div class="tax-note">excl. btw</div><ul><li>Todo lo del plan Free</li><li>Facturas y clientes ilimitados</li><li>Recordatorios editables en 5 idiomas por email y WhatsApp (los envías tú)</li><li>Anticipos y pagos parciales</li><li>Exportación UBL/XML (sin envío Peppol)</li></ul><p class="plan-foot">7 días gratis automáticamente · sin tarjeta</p><a class="button primary block js-campaign-link" href="/login?signup=1&amp;lang=es&amp;plan=pro&amp;source=seo_es_pricing_essential" data-track="seo_cta_clicked" data-placement="pricing_essential" data-destination="signup">Prueba Essential gratis</a></article><article class="plan reveal" style="--d:200ms"><div class="plan-name">Advanced</div><p class="plan-desc">Para agencias y equipos: presupuestos, gastos y equipo.</p><div class="price">€19 <small>/ mes</small></div><div class="tax-note">excl. btw</div><ul><li>Todo lo de Essential</li><li>Presupuestos convertibles en facturas</li><li>Gastos y resumen trimestral de IVA</li><li>Facturas recurrentes para revisar</li><li>Hasta 5 miembros y varios perfiles de empresa</li><li>Cobro online con Stripe</li><li>Acceso API y exportación CSV para tu gestor</li><li>Sin la marca Fatūra</li><li>Soporte prioritario</li></ul><p class="plan-foot">7 días gratis · tarjeta vía Stripe · cancela cuando quieras</p><a class="button ghost block js-campaign-link" href="/login?signup=1&amp;lang=es&amp;plan=business&amp;source=seo_es_pricing_advanced" data-track="seo_cta_clicked" data-placement="pricing_advanced" data-destination="signup">Prueba Advanced gratis durante 7 días</a></article></div>
+      <p class="pricing-note">Precios sin IVA. Sin permanencia.</p>
+    </div></section>
+    <section class="section tight"><div class="wrap"><div class="guide note reveal"><h2>Importante si facturas desde España</h2><p>Fatūra Pro no es un sistema VERI*FACTU ni un software de facturación certificado para la normativa española. Si eres autónomo o empresa en España, consulta con tu asesor qué obligaciones te aplican. Fatūra Pro está pensado para facturar a clientes internacionales.</p></div></div></section>
+    <section id="faq" class="section tight"><div class="wrap">
+      <div class="section-head reveal"><span class="eyebrow">Preguntas frecuentes</span><h2 class="section-title">Respuestas <em>claras y honestas.</em></h2></div>
+      <div class="faq reveal"><details open><summary><h3>¿Fatūra Pro es gratis?</h3></summary><p>Sí. El plan Free permite crear hasta 20 facturas para 5 clientes, con PDF, tu logo y notas de crédito, sin tarjeta de crédito. Para facturar sin límites, Essential cuesta 9 € al mes sin IVA.</p></details><details><summary><h3>¿Puedo hacer una factura en inglés?</h3></summary><p>Sí. El idioma del documento se elige en cada factura: inglés, francés, neerlandés o árabe. Tu panel sigue en español. Las etiquetas de factura en español no están disponibles.</p></details><details><summary><h3>¿Puedo facturar en dólares, libras o dírhams?</h3></summary><p>Sí, hay 17 monedas y los importes nunca se convierten: cada moneda mantiene su propio total.</p></details><details><summary><h3>¿Fatūra Pro cumple con VERI*FACTU?</h3></summary><p>No. Fatūra Pro no es un sistema VERI*FACTU ni está certificado para la normativa española de facturación. Si facturas desde España, consulta con tu asesor qué software necesitas.</p></details><details><summary><h3>¿Cómo hago una nota de crédito?</h3></summary><p>Abre la factura que quieres corregir y crea una nota de crédito desde ella. Se genera un documento separado con su propio número, importe negativo y referencia a la factura original. Incluido en todos los planes.</p></details><details><summary><h3>¿Dónde se guardan mis datos?</h3></summary><p>Los datos de la cuenta, los clientes y las facturas se alojan en la Unión Europea (Irlanda) y las conexiones están cifradas. Los pagos de suscripción se procesan con Stripe; Fatūra Pro no guarda números de tarjeta completos.</p></details></div>
+    </div></section>
+
+    <section class="section tight"><div class="wrap"><div class="cta reveal">
+      <h2 class="section-title">¿Listo para facturar a tu <em>primer cliente internacional?</em></h2>
+      <p>Empieza gratis, sin tarjeta. Añade un cliente, elige su idioma y su moneda, y descarga el PDF.</p>
+      <div class="actions">
+        <a class="button primary js-campaign-link" href="/login?signup=1&amp;lang=es&amp;source=seo_es_final" data-track="seo_cta_clicked" data-placement="final" data-destination="signup">Crear cuenta gratis <span class="arrow" aria-hidden="true">→</span></a>
+        <a class="button ghost js-campaign-link" href="/login?signup=1&amp;lang=es&amp;plan=business&amp;source=seo_es_final_advanced" data-track="seo_cta_clicked" data-placement="final_advanced" data-destination="signup">Prueba Advanced gratis durante 7 días</a>
+      </div>
     </div></div></section>
-    <section class="section" id="precios"><div class="wrap"><div class="section-head"><div class="eyebrow">Precios claros</div><h2 class="section-title">Empieza gratis. <em>Crece cuando lo necesites.</em></h2></div><div class="plans">
-      <article class="plan"><div class="plan-name">Gratis</div><div class="price">€0 <small>/ mes</small></div><ul><li>20 facturas y 5 clientes</li><li>17 divisas con totales separados</li><li>Panel de facturas y pagos</li><li>Exportación PDF e impresión</li><li>Tu propio logotipo</li><li>Notas de crédito</li></ul><a class="button secondary" href="/login?signup=1&amp;lang=es&amp;source=seo_es_pricing_free" data-track="seo_cta_clicked" data-placement="pricing_free" data-destination="signup">Empezar gratis</a></article>
-      <article class="plan featured"><div class="plan-name">Essential</div><div class="price">€9 <small>/ mes</small></div><div class="tax-note">excl. btw</div><ul><li>Todo el plan Gratis</li><li>Facturas y clientes ilimitados</li><li>Recordatorios editables en 5 idiomas por correo y WhatsApp; tú los envías</li><li>Anticipos y registro de pagos parciales</li><li>Exportación UBL/XML, sin envío Peppol</li></ul><a class="button" href="/login?signup=1&amp;lang=es&amp;source=seo_es_pricing_pro" data-track="seo_cta_clicked" data-placement="pricing_pro" data-destination="signup">Probar Essential gratis</a></article>
-      <article class="plan"><div class="plan-name">Advanced</div><div class="price">€19 <small>/ mes</small></div><div class="tax-note">excl. btw</div><ul><li>Todo el plan Essential</li><li>Presupuestos convertibles en facturas</li><li>Gastos y resumen trimestral de IVA por divisa</li><li>Creación de facturas recurrentes para revisar y enviar</li><li>Análisis avanzados</li><li>Hasta 5 miembros y varios perfiles de empresa</li><li>Pagos de clientes con tarjeta mediante Stripe, según disponibilidad</li><li>API y exportación CSV para el contable</li><li>Elimina la marca Fatūra</li><li>Asistencia prioritaria</li></ul><p style="font-size:12px;color:var(--text2, #9a9690);margin:0 0 10px">7 días gratis · tarjeta vía Stripe · cancela cuando quieras</p><a class="button secondary" href="/login?signup=1&amp;lang=es&amp;plan=business&amp;source=seo_es_pricing_business" data-track="seo_cta_clicked" data-placement="pricing_business" data-destination="signup">Probar Advanced 7 días gratis</a></article>
-    </div><p class="micro" style="text-align:center;margin-top:20px">Los nuevos registros incluyen 7 días de Essential. Cancela o cambia de plan cuando quieras.</p></div></section>
-    <section class="section" id="preguntas"><div class="wrap"><div class="section-head"><div class="eyebrow">Preguntas frecuentes</div><h2 class="section-title">Respuestas <em>directas.</em></h2></div><div class="faq"><details><summary>¿Puedo usar Fatūra Pro gratis?</summary><p>Sí. Puedes crear hasta 20 facturas y guardar 5 clientes sin tarjeta de crédito.</p></details><details><summary>¿Funciona para clientes de otros países?</summary><p>Sí. Puedes trabajar en 17 monedas y guardar los datos de cada cliente y país. Las monedas nunca se suman como si fueran la misma.</p></details><details><summary>¿UBL y Peppol son lo mismo?</summary><p>No. UBL es el formato estructurado de la factura; Peppol es una red para enviarla. Fatūra Pro exporta un archivo UBL/XML pensado para flujos EN 16931, pero no lo envía por Peppol. Confirma y valida el perfil que solicita tu cliente.</p></details><details><summary>¿Mis datos están protegidos?</summary><p>Los datos de cuenta gestionados por Supabase se alojan en la Unión Europea (Irlanda), las conexiones están cifradas y los pagos de suscripción se procesan con Stripe.</p></details></div></div></section>
-    <section class="section"><div class="wrap final"><h2 class="section-title">Tu primera factura puede estar lista <em>en minutos.</em></h2><p class="section-sub">Empieza sin tarjeta y decide más adelante si necesitas Essential o Advanced.</p><div class="actions" style="justify-content:center"><a class="button" href="/login?signup=1&amp;lang=es&amp;source=seo_es_final" data-track="seo_cta_clicked" data-placement="final" data-destination="signup">Crear una cuenta gratis →</a></div></div></section>
   </main>
-  <footer><div class="wrap"><span>© 2026 Fatūra Pro · GDPR · Datos en la UE (Irlanda)</span><span><a href="/privacy">Privacidad</a> · <a href="/terms">Términos</a> · <a href="/blog">Guías</a></span></div></footer>
+
+  <footer><div class="wrap foot">
+    <div><div>Fatūra Pro · programa de facturación para freelancers y pequeñas empresas con clientes internacionales</div><div class="legal-note">© 2026 Fatūra Pro · Datos alojados en la UE (Irlanda)</div></div>
+    <nav aria-label="Enlaces del pie de página"><a href="/blog">Blog</a><a href="/privacy">Privacidad</a><a href="/terms">Términos</a><a href="mailto:support@faturapro.app">support@faturapro.app</a></nav>
+  </div></footer>
+  <div class="sticky-cta" aria-hidden="true"><a class="button primary block js-campaign-link" href="/login?signup=1&amp;lang=es&amp;source=seo_es_sticky" tabindex="-1" data-track="seo_cta_clicked" data-placement="sticky" data-destination="signup">Crear mi primera factura gratis <span class="arrow" aria-hidden="true">→</span></a></div>
+  <script src="/landing-v2.js" defer></script>
   <script src="/seo-tracking.js" defer></script>
 </body>
 </html>
