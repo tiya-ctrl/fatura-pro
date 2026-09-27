@@ -21,6 +21,7 @@ import { trackEvent } from "../lib/tracking";
 import { recordActivationEvent } from "../lib/activationEvents";
 import { activateReferral, claimStoredReferral } from "../lib/referrals";
 import { fetchAmbassadorAdminAccess } from "../lib/ambassadors";
+import { markOwnBrowser } from "../lib/ownVisits";
 import { getLocale, setLocale, tr } from "../lib/locale";
 import { printOnlyCss, printWithTitle } from "../lib/printDocument";
 import { INVOICE_LANGUAGES, documentDirection, invoiceCopy, normalizeDocumentLanguage } from "../lib/documentLanguage";
@@ -981,7 +982,7 @@ export default function InvoiceApp({ onGoHome }) {
   useEffect(() => {
     if (!userId) return;
     fetchAmbassadorAdminAccess()
-      .then(result => setAmbassadorAdminAccess(result.allowed === true))
+      .then(result => { setAmbassadorAdminAccess(result.allowed === true); if (result.allowed === true) markOwnBrowser(); })
       .catch(() => setAmbassadorAdminAccess(false));
   }, [userId]);
 

@@ -25,6 +25,10 @@ import TopBar from "./TopBar";
 import { supabase } from "./supabase";
 import { captureAttribution, copyCampaignParams } from "./lib/attribution";
 import { getLocale, syncDocumentLocale } from "./lib/locale";
+import { dropOwnVisits, readAnalyticsSwitch } from "./lib/ownVisits";
+
+// Read ?analytics=off|on before the first page view is sent.
+readAnalyticsSwitch();
 
 /* ───────── Landing ───────── */
 function LandingWrapper() {
@@ -150,7 +154,7 @@ export default function App() {
       <TopBar />
       <InstallPrompt />
       <CookieConsent />
-      <Analytics />
+      <Analytics beforeSend={dropOwnVisits} />
     </BrowserRouter>
   );
 }
