@@ -14,8 +14,8 @@
   },
   "scripts": {
     "start": "react-scripts start",
-    "build": "DISABLE_ESLINT_PLUGIN=true react-scripts build && node scripts/prerender-home.mjs",
-    "prerender": "node scripts/prerender-home.mjs",
+    "build": "DISABLE_ESLINT_PLUGIN=true react-scripts build && node scripts/prerender-home.mjs && node scripts/prerender-routes.mjs",
+    "prerender": "node scripts/prerender-home.mjs && node scripts/prerender-routes.mjs",
     "indexnow": "node scripts/submit-indexnow.mjs",
     "test:ambassadors": "node scripts/verify-ambassador-workflow.mjs",
     "test": "react-scripts test",
