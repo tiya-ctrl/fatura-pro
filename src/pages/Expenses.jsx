@@ -1,11 +1,12 @@
 // Fatura Pro - Expenses + VAT/BTW report (Business plan)
-import { useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { loadExpenses, saveExpense, deleteExpense, vatReport } from "../lib/expenses";
 import { CURRENCIES, fmtCurrency, codesUsed } from "../lib/currencies";
 import { exportExpensesCSV } from "../lib/accountantExport";
 import { trackEvent } from "../lib/tracking";
 import { recordActivationEvent } from "../lib/activationEvents";
 import { getLocale, tr } from "../lib/locale";
+import { uploadReceipt, openReceipt, deleteReceipt } from "../lib/receipts";
 
 const CATEGORIES = ["software", "hardware", "office", "travel", "marketing", "services", "other"];
 
@@ -40,7 +41,47 @@ export default function Expenses({ expenses, setExpenses, invoices, userId }) {
 
   const handleDelete = async (e) => {
     if (!window.confirm(locale === "ar" ? "حذف المصروف «" + e.description + "»؟" : "Delete expense \"" + e.description + "\"?")) return;
-    await deleteExpense(e.id, userId);
+    const deleted = await deleteExpense(e.id, userId);
+    if (deleted && e.receipt_path) deleteReceipt(e.receipt_path);
+    refresh();
+  };
+
+  const showReceipt = async (e) => {
+    if (!(await openReceipt(e.receipt_path))) window.alert(t("receipt_open_failed", "Could not open this receipt. Please try again."));
+  };
+
+  // Upload a new receipt first, then save the expense; only then remove a replaced receipt,
+  // so a failed save never leaves an expense pointing at a missing file.
+  const handleSave = async ({ expense, receiptFile, removeReceipt }) => {
+    const creating = editing === "new";
+    const oldPath = creating ? null : editing.receipt_path || null;
+    let newPath = null;
+    if (receiptFile) {
+      const up = await uploadReceipt(receiptFile, userId);
+      if (up.error) {
+        window.alert(up.error === "too_big" ? t("receipt_too_big", "This file is larger than 5 MB.") : t("receipt_upload_failed", "Could not upload the receipt. Please try again."));
+        return;
+      }
+      newPath = up.path;
+    }
+    const finalPath = newPath || (removeReceipt ? null : oldPath);
+    const row = { ...expense };
+    delete row.receipt_path;
+    // Only send the column when a receipt is involved, so saving works before the migration runs.
+    if (finalPath || oldPath) row.receipt_path = finalPath;
+
+    const saved = await saveExpense(row, userId);
+    if (!saved) {
+      if (newPath) deleteReceipt(newPath);
+      window.alert(locale === "ar" ? "تعذر حفظ المصروف. حاول مرة أخرى." : "Could not save this expense. Please try again.");
+      return;
+    }
+    if (oldPath && oldPath !== finalPath) deleteReceipt(oldPath);
+    trackEvent(creating ? "expense_created" : "expense_updated", { currency:expense.currency || "EUR", category:expense.category || "other", vat_rate:Number(expense.vat_rate) || 0, has_receipt:!!finalPath });
+    if (creating) recordActivationEvent("expense_created", {
+      metadata:{ currency:expense.currency || "EUR", is_first_expense:expenses.length === 0 },
+    }).catch(() => {});
+    setEditing(null);
     refresh();
   };
 
@@ -101,6 +142,7 @@ export default function Expenses({ expenses, setExpenses, invoices, userId }) {
           </div>
           <div style={{ display:"flex", alignItems:"center", gap:10 }}>
             <span style={{ fontWeight:700 }}>{fmtCurrency(e.amount_incl, e.currency || "EUR")}</span>
+            {e.receipt_path && <button className="btn btn-ghost btn-sm" title={t("view_receipt", "View receipt")} aria-label={t("view_receipt", "View receipt")} onClick={() => showReceipt(e)}>📎</button>}
             <button className="btn btn-ghost btn-sm" onClick={() => setEditing(e)}>{t("edit", "Edit")}</button>
             <button className="btn btn-ghost btn-sm" style={{ color:"#e05555" }} onClick={() => handleDelete(e)}>✕</button>
           </div>
@@ -113,26 +155,33 @@ export default function Expenses({ expenses, setExpenses, invoices, userId }) {
           onClose={() => setEditing(null)}
           defaultCurrency={activeCur}
           locale={locale}
-          onSave={async (e) => {
-            const creating = editing === "new";
-            const saved = await saveExpense(e, userId);
-            if (!saved) { window.alert(locale === "ar" ? "تعذر حفظ المصروف. حاول مرة أخرى." : "Could not save this expense. Please try again."); return; }
-            trackEvent(creating ? "expense_created" : "expense_updated", { currency:e.currency || "EUR", category:e.category || "other", vat_rate:Number(e.vat_rate) || 0 });
-            if (creating) recordActivationEvent("expense_created", {
-              metadata:{ currency:e.currency || "EUR", is_first_expense:expenses.length === 0 },
-            }).catch(() => {});
-            setEditing(null);
-            refresh();
-          }}
+          onSave={handleSave}
+          onViewReceipt={showReceipt}
         />
       )}
     </div>
   );
 }
 
-function ExpenseModal({ expense, onClose, onSave, defaultCurrency, locale }) {
+function ExpenseModal({ expense, onClose, onSave, onViewReceipt, defaultCurrency, locale }) {
   const t = (key, fallback) => tr(key, fallback, locale);
   const isEdit = !!expense;
+  const [receiptFile, setReceiptFile] = useState(null);
+  const [removeReceipt, setRemoveReceipt] = useState(false);
+  const [saving, setSaving] = useState(false);
+  const receiptInput = useRef(null);
+  const previewUrl = useMemo(() => (receiptFile && receiptFile.type.startsWith("image/") ? URL.createObjectURL(receiptFile) : null), [receiptFile]);
+  useEffect(() => () => { if (previewUrl) URL.revokeObjectURL(previewUrl); }, [previewUrl]);
+  const hasStoredReceipt = !!expense?.receipt_path && !removeReceipt && !receiptFile;
+
+  const pickReceipt = (e) => {
+    const file = e.target.files && e.target.files[0];
+    e.target.value = "";
+    if (!file) return;
+    setReceiptFile(file);
+    setRemoveReceipt(false);
+  };
+  const clearReceipt = () => { setReceiptFile(null); setRemoveReceipt(true); };
   const [form, setForm] = useState(expense || {
     date: new Date().toISOString().split("T")[0],
     description:"", category:"other", supplier:"",
@@ -144,10 +193,16 @@ function ExpenseModal({ expense, onClose, onSave, defaultCurrency, locale }) {
   const vatAmount = excl * (Number(form.vat_rate) / 100);
   const incl = excl + vatAmount;
 
-  const save = () => {
+  const save = async () => {
+    if (saving) return;
     if (!form.description.trim()) { alert(locale === "ar" ? "الوصف مطلوب" : "Description is required"); return; }
     if (!excl) { alert(locale === "ar" ? "المبلغ مطلوب" : "Amount is required"); return; }
-    onSave({ ...form, amount_excl: excl, vat_amount: vatAmount, amount_incl: incl });
+    setSaving(true);
+    try {
+      await onSave({ expense: { ...form, amount_excl: excl, vat_amount: vatAmount, amount_incl: incl }, receiptFile, removeReceipt });
+    } finally {
+      setSaving(false);
+    }
   };
 
   return (
@@ -184,6 +239,22 @@ function ExpenseModal({ expense, onClose, onSave, defaultCurrency, locale }) {
               )}
             </label>
           </div>
+
+          <div style={{ border:"1px dashed rgba(128,128,128,0.45)", borderRadius:10, padding:12, display:"flex", alignItems:"center", gap:12, flexWrap:"wrap" }}>
+            <input ref={receiptInput} type="file" accept="image/*,application/pdf" onChange={pickReceipt} style={{ display:"none" }} />
+            {previewUrl && <img src={previewUrl} alt="" style={{ width:56, height:56, objectFit:"cover", borderRadius:8 }} />}
+            <div style={{ flex:1, minWidth:160, fontSize:13 }}>
+              <div style={{ fontWeight:700 }}>{t("receipt", "Receipt")}</div>
+              <div style={{ color:"#999", fontSize:12, overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap" }}>
+                {receiptFile ? receiptFile.name : hasStoredReceipt ? t("receipt_attached", "Receipt attached") : t("receipt_hint", "Add a photo or PDF. Keep receipts for 7 years.")}
+              </div>
+            </div>
+            {hasStoredReceipt && <button type="button" className="btn btn-ghost btn-sm" onClick={() => onViewReceipt(expense)}>📎 {t("view_receipt", "View receipt")}</button>}
+            <button type="button" className="btn btn-ghost btn-sm" onClick={() => receiptInput.current && receiptInput.current.click()}>
+              📷 {receiptFile || hasStoredReceipt ? t("change_receipt", "Change") : t("add_receipt", "Add receipt")}
+            </button>
+            {(receiptFile || hasStoredReceipt) && <button type="button" className="btn btn-ghost btn-sm" style={{ color:"#e05555" }} aria-label={t("remove_receipt", "Remove receipt")} title={t("remove_receipt", "Remove receipt")} onClick={clearReceipt}>✕</button>}
+          </div>
         </div>
 
         <div style={{ textAlign:"right", margin:"14px 0", fontSize:14 }}>
@@ -192,7 +263,7 @@ function ExpenseModal({ expense, onClose, onSave, defaultCurrency, locale }) {
 
         <div style={{ display:"flex", justifyContent:"flex-end", gap:10 }}>
           <button className="btn btn-ghost" onClick={onClose}>{t("cancel", "Cancel")}</button>
-          <button className="btn btn-primary" onClick={save}>{isEdit ? t("save", "Save changes") : t("add", "Add expense")}</button>
+          <button className="btn btn-primary" disabled={saving} onClick={save}>{saving ? "…" : isEdit ? t("save", "Save changes") : t("add", "Add expense")}</button>
         </div>
       </div>
     </div>
