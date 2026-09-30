@@ -1,15 +1,19 @@
 // Fatura Pro - Read a receipt photo/PDF and suggest the expense fields (Advanced plan)
-// POST /api/scan-receipt  { path: "<owner id>/<file>" }  with the user's Supabase access token.
+// Served through POST /api/chat?action=scan-receipt  { path: "<owner id>/<file>" } with the user's Supabase access token
+// (the Vercel plan allows 12 functions, so this shares the AI chat function).
 // The file must already be in the private "receipts" bucket, in the caller's own or team owner's folder.
 import Anthropic from "@anthropic-ai/sdk";
 import { createClient } from "@supabase/supabase-js";
-import { hasAdvancedAccess } from "../server/plan-access.js";
+import { hasAdvancedAccess } from "./plan-access.js";
 
-const supabaseAdmin = createClient(
-  process.env.REACT_APP_SUPABASE_URL,
-  process.env.SUPABASE_SERVICE_ROLE_KEY
-);
-const anthropic = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
+// Created on first use, so importing this file from the chat function can never break the chat.
+let supabaseAdmin = null;
+let anthropic = null;
+function clients() {
+  if (!supabaseAdmin) supabaseAdmin = createClient(process.env.REACT_APP_SUPABASE_URL, process.env.SUPABASE_SERVICE_ROLE_KEY);
+  if (!anthropic) anthropic = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
+  return { supabaseAdmin, anthropic };
+}
 
 const CATEGORIES = ["software", "hardware", "office", "travel", "marketing", "services", "other"];
 const MEDIA_TYPES = { jpg: "image/jpeg", jpeg: "image/jpeg", png: "image/png", webp: "image/webp", pdf: "application/pdf" };
@@ -55,8 +59,9 @@ Return the fields exactly as printed on the document; do not guess numbers that 
 - amount_excl, vat_amount, amount_incl: totals for the whole document. If only two are printed, leave the third null.
 - vat_rate: the VAT percentage when a single rate applies (e.g. 21, 9, 0). If several rates are mixed, or none is shown, null.`;
 
-export default async function handler(req, res) {
+export async function scanReceiptHandler(req, res) {
   if (req.method !== "POST") return res.status(405).end();
+  const { supabaseAdmin, anthropic } = clients();
 
   const token = (req.headers.authorization || "").replace("Bearer ", "");
   if (!token) return res.status(401).json({ error: "Not authenticated" });

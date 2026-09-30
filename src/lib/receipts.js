@@ -56,7 +56,7 @@ export async function scanReceipt(path) {
   try {
     const { data: { session } } = await supabase.auth.getSession();
     if (!session?.access_token) return null;
-    const r = await fetch("/api/scan-receipt", {
+    const r = await fetch("/api/chat?action=scan-receipt", {
       method: "POST",
       headers: { Authorization: "Bearer " + session.access_token, "Content-Type": "application/json" },
       body: JSON.stringify({ path }),

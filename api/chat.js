@@ -1,4 +1,5 @@
 import { chatSystemPrompt } from "../src/lib/chatPrompts.js";
+import { scanReceiptHandler } from "../server/scan-receipt.js";
 
 const RATE_LIMIT = 25;                // أقصى عدد رسائل
 const RATE_WINDOW_MS = 10 * 60 * 1000; // خلال 10 دقائق
@@ -42,6 +43,9 @@ export default async function handler(req, res) {
   if (!allowedHost(origin)) {
     return res.status(403).json({ error: "Forbidden" });
   }
+
+  // Receipt reading shares this function (Vercel function limit); it has its own auth and limits.
+  if (req.query?.action === "scan-receipt") return scanReceiptHandler(req, res);
 
   // 2) حد للطلبات لكل زائر
   const fwd = req.headers["x-forwarded-for"] || "";
