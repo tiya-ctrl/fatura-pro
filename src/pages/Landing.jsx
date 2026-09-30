@@ -244,7 +244,7 @@ const FEATURES = [
   ["free", "undo", "Credit notes on every plan", "Correct an issued invoice with a credit note that has its own number, a negative amount and a reference to the original. Included on every plan, including Free."],
   ["essential", "bell", "Know what is paid, and what is late", "Track pending, partial, paid and overdue invoices. Record deposits, prepare a clear reminder, review it, then open it in email or WhatsApp to send."],
   ["essential", "code", "PDF for people. UBL XML for systems.", "Create branded PDF invoices and export UBL XML for EN 16931 workflows. Validate the profile your customer requires; UBL export is not Peppol delivery."],
-  ["advanced", "chart", "Quotes, expenses and VAT summaries", "Turn an accepted quote into an invoice, schedule recurring invoices for review, log expenses and see quarterly VAT/BTW summaries per currency."],
+  ["advanced", "chart", "Receipt scanning, quotes and VAT summaries", "Photograph a receipt and the date, supplier, amount and VAT fill themselves in, with the receipt kept on the expense. Turn quotes into invoices, schedule recurring invoices and see quarterly VAT/BTW summaries per currency."],
 ];
 
 const WHY = [
@@ -257,7 +257,7 @@ const WHY = [
 const PLANS = {
   free: { name: "Free", price: 0, desc: "For freelancers who are just getting started.", items: ["20 invoices and 5 clients", "All 18 currencies", "Dashboard totals and invoice overview", "PDF export and print", "Your own logo and branding", "Credit notes"], cta: "Start free" },
   pro: { name: "Essential", price: 9, desc: "Unlimited invoicing, with payment reminders.", items: ["Everything in Free", "Unlimited invoices and clients", "Editable payment reminders in 5 languages by email and WhatsApp (you send them)", "Deposits and partial payments", "UBL/XML export for EN 16931 workflows (no Peppol delivery)"], cta: "Try Essential free", foot: "7-day free trial, automatic · no card needed" },
-  business: { name: "Advanced", price: 19, desc: "For agencies and teams managing many clients.", items: ["Everything in Essential", "Quotes that convert to invoices", "Expenses with receipt scanning and a quarterly VAT/BTW summary", "Recurring invoices created for your review", "Up to 5 team members and multiple business profiles", "Online card payments via Stripe", "API access and accountant CSV export", "Remove Fatūra branding", "Priority support"], cta: "Try Advanced free for 7 days", foot: "7-day free trial · card via Stripe · cancel anytime" },
+  business: { name: "Advanced", price: 19, desc: "For agencies and teams managing many clients.", items: ["Everything in Essential", "Quotes that convert to invoices", "Receipt scanning: expenses fill themselves in", "Expenses and quarterly VAT/BTW summary", "Recurring invoices created for your review", "Up to 5 team members and multiple business profiles", "Online card payments via Stripe", "API access and accountant CSV export", "Remove Fatūra branding", "Priority support"], cta: "Try Advanced free for 7 days", foot: "7-day free trial · card via Stripe · cancel anytime" },
 };
 
 const FAQS = [

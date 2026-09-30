@@ -3,8 +3,19 @@ import { useEffect } from "react";
 import { applyPageSeo, suspendBaseSiteSchema } from "../lib/pageSeo";
 import { trackEvent } from "../lib/tracking";
 import NotFound from "./NotFound";
+import RECEIPT_POSTS from "../lib/blogReceiptPosts";
+
+// Interface text around a post, in the post's own language (posts are en, nl or ar).
+const BLOG_UI = {
+  en: { published:"Published", updated:"Updated", quick:"Quick answer", glance:"At a glance", faq:"Frequently asked questions", sources:"Official sources", sourcesNote:"Use the official guidance for the rules or technical profile that applies to your transaction.", next:"Useful next steps", back:"← Blog", copy:"Copy Link", copied:"Link copied!", ctaTitle:"Ready to create your first invoice?", ctaSub:"Create your first invoice free — no credit card required", ctaButton:"Start Free →" },
+  nl: { published:"Gepubliceerd", updated:"Bijgewerkt", quick:"Kort antwoord", glance:"In het kort", faq:"Veelgestelde vragen", sources:"Officiële bronnen", sourcesNote:"Controleer de officiële regels die voor jouw situatie gelden.", next:"Handige vervolgstappen", back:"← Blog", copy:"Link kopiëren", copied:"Link gekopieerd!", ctaTitle:"Klaar voor je eerste factuur?", ctaSub:"Maak gratis je eerste factuur, zonder creditcard", ctaButton:"Gratis starten →" },
+  ar: { published:"نُشر", updated:"حُدّث", quick:"الإجابة المختصرة", glance:"باختصار", faq:"أسئلة شائعة", sources:"مصادر رسمية", sourcesNote:"راجع القواعد الرسمية التي تنطبق على حالتك.", next:"خطوات مفيدة بعد ذلك", back:"→ المدونة", copy:"نسخ الرابط", copied:"تم نسخ الرابط!", ctaTitle:"جاهز تنشئ فاتورتك الأولى؟", ctaSub:"أنشئ فاتورتك الأولى مجاناً وبدون بطاقة ائتمانية", ctaButton:"ابدأ مجاناً ←" },
+};
+const BLOG_LOCALES = { en:"en_US", nl:"nl_NL", ar:"ar_SA" };
+const postLanguage = (post) => (post.lang === "ar" || post.lang === "nl" ? post.lang : "en");
 
 const POSTS = [
+  ...RECEIPT_POSTS,
   {
     slug: "how-to-create-ubl-invoice-en16931",
     lang: "en",
@@ -285,7 +296,7 @@ const POSTS = [
   },
 ];
 
-function ShareButtons({ title }) {
+function ShareButtons({ title, ui = BLOG_UI.en }) {
   const url = typeof window !== "undefined" ? window.location.href : "";
   const enc = encodeURIComponent;
   return (
@@ -293,26 +304,28 @@ function ShareButtons({ title }) {
       <a href={"https://wa.me/?text=" + enc(title + " " + url)} target="_blank" rel="noreferrer" style={{ padding:"8px 18px", borderRadius:8, background:"rgba(37,211,102,0.12)", border:"1px solid rgba(37,211,102,0.3)", color:"#25d366", fontSize:13, textDecoration:"none", fontWeight:600 }}>WhatsApp</a>
       <a href={"https://twitter.com/intent/tweet?text=" + enc(title) + "&url=" + enc(url)} target="_blank" rel="noreferrer" style={{ padding:"8px 18px", borderRadius:8, background:"rgba(255,255,255,0.06)", border:"1px solid rgba(255,255,255,0.15)", color:"#e8e4dc", fontSize:13, textDecoration:"none", fontWeight:600 }}>X / Twitter</a>
       <a href={"https://www.linkedin.com/sharing/share-offsite/?url=" + enc(url)} target="_blank" rel="noreferrer" style={{ padding:"8px 18px", borderRadius:8, background:"rgba(10,102,194,0.12)", border:"1px solid rgba(10,102,194,0.35)", color:"#4a9eda", fontSize:13, textDecoration:"none", fontWeight:600 }}>LinkedIn</a>
-      <button onClick={() => { navigator.clipboard.writeText(url); alert("Link copied!"); }} style={{ padding:"8px 18px", borderRadius:8, background:"rgba(99,102,241,0.1)", border:"1px solid rgba(99,102,241,0.3)", color:"#6366F1", fontSize:13, cursor:"pointer", fontWeight:600, fontFamily:"inherit" }}>Copy Link</button>
+      <button onClick={() => { navigator.clipboard.writeText(url); alert(ui.copied); }} style={{ padding:"8px 18px", borderRadius:8, background:"rgba(99,102,241,0.1)", border:"1px solid rgba(99,102,241,0.3)", color:"#6366F1", fontSize:13, cursor:"pointer", fontWeight:600, fontFamily:"inherit" }}>{ui.copy}</button>
     </div>
   );
 }
 
-function CTABox({ ar, source, placement }) {
+// cta (optional, per post): { title, sub, button, plan } — plan "business" starts the Advanced trial sign-up.
+function CTABox({ ui = BLOG_UI.en, cta, source, placement }) {
+  const plan = cta && (cta.plan === "business" || cta.plan === "pro") ? "&plan=" + cta.plan : "";
   return (
     <div style={{ background:"rgba(99,102,241,0.07)", border:"1px solid rgba(99,102,241,0.25)", borderRadius:14, padding:"28px 26px", margin:"36px 0", textAlign:"center" }}>
-      <div style={{ fontFamily:"Playfair Display, Georgia, serif", fontSize:22, color:"#e8e4dc", marginBottom:8 }}>{ar ? "جاهز تنشئ فاتورتك الأولى؟" : "Ready to create your first invoice?"}</div>
-      <div style={{ fontSize:14, color:"#9a9690", marginBottom:18, lineHeight:1.7 }}>{ar ? "أنشئ فاتورتك الأولى مجاناً وبدون بطاقة ائتمانية" : "Create your first invoice free — no credit card required"}</div>
-      <a href={"/login?signup=1&source=seo_" + encodeURIComponent(source || "blog")} onClick={() => trackEvent("seo_cta_clicked", { page:source || "blog", placement:placement || "article", destination:"signup" })} style={{ display:"inline-block", padding:"12px 32px", borderRadius:10, background:"linear-gradient(135deg,#7C6CF2,#6366F1)", color:"#0a0a0f", fontWeight:700, fontSize:15, textDecoration:"none" }}>{ar ? "ابدأ مجاناً ←" : "Start Free →"}</a>
+      <div style={{ fontFamily:"Playfair Display, Georgia, serif", fontSize:22, color:"#e8e4dc", marginBottom:8 }}>{cta?.title || ui.ctaTitle}</div>
+      <div style={{ fontSize:14, color:"#9a9690", marginBottom:18, lineHeight:1.7 }}>{cta?.sub || ui.ctaSub}</div>
+      <a href={"/login?signup=1" + plan + "&source=seo_" + encodeURIComponent(source || "blog")} onClick={() => trackEvent("seo_cta_clicked", { page:source || "blog", placement:placement || "article", destination:"signup" })} style={{ display:"inline-block", padding:"12px 32px", borderRadius:10, background:"linear-gradient(135deg,#7C6CF2,#6366F1)", color:"#0a0a0f", fontWeight:700, fontSize:15, textDecoration:"none" }}>{cta?.button || ui.ctaButton}</a>
     </div>
   );
 }
 
-function RelatedLinks({ links }) {
+function RelatedLinks({ links, ui = BLOG_UI.en }) {
   if (!links?.length) return null;
   return (
     <nav aria-label="Related invoicing guides" style={{ margin:"42px 0", padding:"24px", background:"#111118", border:"1px solid rgba(99,102,241,0.18)", borderRadius:14 }}>
-      <h2 style={{ fontFamily:"Playfair Display, Georgia, serif", fontSize:22, color:"#e8e4dc", margin:"0 0 14px" }}>Useful next steps</h2>
+      <h2 style={{ fontFamily:"Playfair Display, Georgia, serif", fontSize:22, color:"#e8e4dc", margin:"0 0 14px" }}>{ui.next}</h2>
       <div style={{ display:"grid", gridTemplateColumns:"repeat(auto-fit,minmax(210px,1fr))", gap:10 }}>
         {links.map((link) => (
           <a key={link.href} href={link.href} style={{ color:"#7C6CF2", fontSize:14, lineHeight:1.5, textDecoration:"none", borderBottom:"1px solid rgba(99,102,241,0.25)", padding:"7px 0" }}>{link.label} →</a>
@@ -322,12 +335,12 @@ function RelatedLinks({ links }) {
   );
 }
 
-function Sources({ sources }) {
+function Sources({ sources, ui = BLOG_UI.en }) {
   if (!sources?.length) return null;
   return (
     <section style={{ margin:"42px 0" }} aria-labelledby="official-sources-heading">
-      <h2 id="official-sources-heading" style={{ fontFamily:"Playfair Display, Georgia, serif", fontSize:22, color:"#6366F1", margin:"0 0 12px" }}>Official sources</h2>
-      <p style={{ fontSize:13.5, color:"#9a9690", lineHeight:1.7, margin:"0 0 10px" }}>Use the official guidance for the rules or technical profile that applies to your transaction.</p>
+      <h2 id="official-sources-heading" style={{ fontFamily:"Playfair Display, Georgia, serif", fontSize:22, color:"#6366F1", margin:"0 0 12px" }}>{ui.sources}</h2>
+      <p style={{ fontSize:13.5, color:"#9a9690", lineHeight:1.7, margin:"0 0 10px" }}>{ui.sourcesNote}</p>
       <ul style={{ margin:0, paddingLeft:20, color:"#9a9690" }}>
         {sources.map((source) => <li key={source.href} style={{ margin:"7px 0" }}><a href={source.href} target="_blank" rel="noreferrer" style={{ color:"#7C6CF2" }}>{source.label}</a></li>)}
       </ul>
@@ -368,7 +381,7 @@ export function BlogIndex() {
       <div style={{ maxWidth:760, margin:"0 auto", padding:"60px 24px" }}>
         <a href="/" style={{ color:"#6366F1", fontSize:13, textDecoration:"none", display:"inline-block", marginBottom:32 }}>← Fatūra Pro</a>
         <h1 style={{ fontFamily:"Playfair Display, Georgia, serif", fontSize:38, marginBottom:8 }}>Blog</h1>
-        <p style={{ color:"#9a9690", marginBottom:44, fontSize:15 }}>Invoicing tips, guides and best practices — in English and Arabic.</p>
+        <p style={{ color:"#9a9690", marginBottom:44, fontSize:15 }}>Invoicing tips, guides and best practices — in English, Dutch and Arabic.</p>
         <a href="/ar/invoicing-netherlands-germany-belgium" lang="ar" dir="rtl" style={{display:"block",background:"#111118",border:"1px solid #444253",borderRadius:14,padding:"26px 28px",marginBottom:18,color:"#e8e4dc",textDecoration:"none"}}><h2 style={{fontSize:22,marginBottom:10}}>الفوترة بالعربية في هولندا وألمانيا وبلجيكا: دليل عملي</h2><p style={{color:"#b5b1c0",lineHeight:1.8}}>بيانات الفاتورة ولغة العميل، الفرق بين PDF وUBL وPeppol، ومتابعة الدفع.</p></a>
         {POSTS.map(p => (
           <Link key={p.slug} to={"/blog/" + p.slug} style={{ display:"block", background:"#111118", border:"1px solid rgba(99,102,241,0.15)", borderRadius:14, padding:"26px 28px", marginBottom:18, textDecoration:"none", direction: p.lang === "ar" ? "rtl" : "ltr" }}>
@@ -388,13 +401,13 @@ export function BlogPost() {
   useEffect(() => {
     if (post) {
       const purl = "https://faturapro.app/blog/" + post.slug;
-      const language = post.lang === "ar" ? "ar" : "en";
+      const language = postLanguage(post);
       const cleanupSeo = applyPageSeo({
         title: post.seoTitle || post.title,
         description: post.description,
         canonical: purl,
         language,
-        locale: post.lang === "ar" ? "ar_SA" : "en_US",
+        locale: BLOG_LOCALES[language],
         type: "article",
         imageAlt: post.title,
         alternates: post.alternates || { [language]: purl, "x-default": purl },
@@ -422,23 +435,24 @@ export function BlogPost() {
   }, [post]);
   if (!post) return <NotFound />;
   const ar = post.lang === "ar";
+  const ui = BLOG_UI[postLanguage(post)];
   return (
     <div style={{ minHeight:"100vh", background:"#08080e", color:"#e8e4dc", fontFamily:"DM Sans, sans-serif" }}>
       <div style={{ maxWidth:760, margin:"0 auto", padding:"60px 24px", direction: ar ? "rtl" : "ltr" }}>
-        <a href="/blog" style={{ color:"#6366F1", fontSize:13, textDecoration:"none", display:"inline-block", marginBottom:32 }}>{ar ? "→ المدونة" : "← Blog"}</a>
-        <div style={{ fontSize:12, color:"#6366F1", marginBottom:12, letterSpacing:1 }}>Published {post.date}{post.dateModified ? ` · Updated ${post.dateModified}` : ""} · {post.readTime}</div>
+        <a href="/blog" style={{ color:"#6366F1", fontSize:13, textDecoration:"none", display:"inline-block", marginBottom:32 }}>{ui.back}</a>
+        <div style={{ fontSize:12, color:"#6366F1", marginBottom:12, letterSpacing:1 }}>{ui.published} {post.date}{post.dateModified ? ` · ${ui.updated} ${post.dateModified}` : ""} · {post.readTime}</div>
         <h1 style={{ fontFamily:"Playfair Display, Georgia, serif", fontSize:34, lineHeight:1.35, marginBottom:16 }}>{post.title}</h1>
         <p style={{ fontSize:16, color:"#9a9690", lineHeight:1.8, marginBottom:12 }}>{post.description}</p>
-        <ShareButtons title={post.title} />
+        <ShareButtons title={post.title} ui={ui} />
         {post.quickAnswer && (
           <aside style={{ background:"linear-gradient(135deg,rgba(99,102,241,0.13),rgba(99,102,241,0.03))", border:"1px solid rgba(99,102,241,0.3)", borderRadius:14, padding:"22px 24px", margin:"28px 0 34px" }}>
-            <div style={{ fontSize:13, color:"#7C6CF2", fontWeight:700, letterSpacing:.4, textTransform:"uppercase", marginBottom:8 }}>Quick answer</div>
+            <div style={{ fontSize:13, color:"#7C6CF2", fontWeight:700, letterSpacing:.4, textTransform:"uppercase", marginBottom:8 }}>{ui.quick}</div>
             <p style={{ margin:0, fontSize:15, lineHeight:1.85, color:"rgba(232,228,220,0.9)" }}>{post.quickAnswer}</p>
           </aside>
         )}
         {post.checklist?.length > 0 && (
           <section style={{ background:"#111118", border:"1px solid rgba(255,255,255,0.08)", borderRadius:14, padding:"22px 24px", margin:"0 0 38px" }}>
-            <h2 style={{ fontFamily:"Playfair Display, Georgia, serif", fontSize:22, color:"#e8e4dc", margin:"0 0 12px" }}>At a glance</h2>
+            <h2 style={{ fontFamily:"Playfair Display, Georgia, serif", fontSize:22, color:"#e8e4dc", margin:"0 0 12px" }}>{ui.glance}</h2>
             <ul style={{ margin:0, paddingLeft:20, color:"rgba(232,228,220,0.82)", fontSize:14.5, lineHeight:1.8 }}>
               {post.checklist.map((item) => <li key={item} style={{ margin:"5px 0" }}>{item}</li>)}
             </ul>
@@ -448,12 +462,12 @@ export function BlogPost() {
           <div key={i}>
             <h2 style={{ fontFamily:"Playfair Display, Georgia, serif", fontSize:23, color:"#6366F1", margin:"36px 0 14px" }}>{s.h}</h2>
             <p style={{ fontSize:15.5, lineHeight:1.9, color:"rgba(232,228,220,0.85)" }}>{s.p}</p>
-            {i === 3 && <CTABox ar={ar} source={post.slug} placement="mid_article" />}
+            {i === 3 && <CTABox ui={ui} cta={post.cta} source={post.slug} placement="mid_article" />}
           </div>
         ))}
         {post.faqs?.length > 0 && (
           <section style={{ margin:"50px 0" }}>
-            <h2 style={{ fontFamily:"Playfair Display, Georgia, serif", fontSize:26, color:"#6366F1", margin:"0 0 18px" }}>Frequently asked questions</h2>
+            <h2 style={{ fontFamily:"Playfair Display, Georgia, serif", fontSize:26, color:"#6366F1", margin:"0 0 18px" }}>{ui.faq}</h2>
             {post.faqs.map((faq) => (
               <div key={faq.q} style={{ padding:"18px 0", borderBottom:"1px solid rgba(255,255,255,0.08)" }}>
                 <h3 style={{ margin:"0 0 7px", fontSize:16, color:"#e8e4dc" }}>{faq.q}</h3>
@@ -462,10 +476,10 @@ export function BlogPost() {
             ))}
           </section>
         )}
-        <Sources sources={post.sources} />
-        <RelatedLinks links={post.relatedLinks} />
-        <CTABox ar={ar} source={post.slug} placement="article_end" />
-        <ShareButtons title={post.title} />
+        <Sources sources={post.sources} ui={ui} />
+        <RelatedLinks links={post.relatedLinks} ui={ui} />
+        <CTABox ui={ui} cta={post.cta} source={post.slug} placement="article_end" />
+        <ShareButtons title={post.title} ui={ui} />
       </div>
     </div>
   );

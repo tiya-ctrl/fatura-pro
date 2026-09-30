@@ -2612,7 +2612,7 @@ const UPGRADE_COPY = {
   en: {
     tax: "excl. VAT",
     pro: ["Unlimited invoices","Unlimited clients","UBL/XML export (EN 16931)","Deposits & partial payments","Payment reminders (Email + WhatsApp)","PDF export","Custom logo & branding"],
-    business: ["Everything in Essential","Quotes that convert to invoices","Expenses & VAT/BTW report","Advanced analytics","Team members (up to 5)","Multi-business profiles","Stripe payment integration","API access"],
+    business: ["Everything in Essential","Receipt scanning: expenses fill themselves in","Quotes that convert to invoices","Expenses & VAT/BTW report","Advanced analytics","Team members (up to 5)","Multi-business profiles","Stripe payment integration","API access"],
     general: ["Essential Feature", "Unlock all Essential features"],
     feats: {
       reminders: ["Payment Reminders", "Prepare and review overdue reminders, then open them in Email or WhatsApp"],
@@ -2629,7 +2629,7 @@ const UPGRADE_COPY = {
   nl: {
     tax: "excl. btw",
     pro: ["Onbeperkt facturen","Onbeperkt klanten","UBL/XML-export (EN 16931)","Aanbetalingen en deelbetalingen","Betalingsherinneringen (e-mail + WhatsApp)","PDF-export","Eigen logo en huisstijl"],
-    business: ["Alles uit Essential","Offertes die je omzet in facturen","Uitgaven en btw-overzicht","Uitgebreide analyses","Teamleden (tot 5)","Meerdere bedrijfsprofielen","Online betalingen via Stripe","API-toegang"],
+    business: ["Alles uit Essential","Bon scannen: uitgave vult zichzelf in","Offertes die je omzet in facturen","Uitgaven en btw-overzicht","Uitgebreide analyses","Teamleden (tot 5)","Meerdere bedrijfsprofielen","Online betalingen via Stripe","API-toegang"],
     general: ["Essential-functie", "Ontgrendel alle functies van Essential"],
     feats: {
       reminders: ["Betalingsherinneringen", "Stel herinneringen voor te late facturen op, controleer ze en open ze in je e-mail of WhatsApp"],
@@ -2646,7 +2646,7 @@ const UPGRADE_COPY = {
   fr: {
     tax: "HT",
     pro: ["Factures illimitées","Clients illimités","Export UBL/XML (EN 16931)","Acomptes et paiements partiels","Relances de paiement (e-mail + WhatsApp)","Export PDF","Logo et identité personnalisés"],
-    business: ["Tout Essential","Devis convertibles en factures","Dépenses et synthèse de TVA","Analyses avancées","Membres d'équipe (jusqu'à 5)","Plusieurs profils d'entreprise","Paiements en ligne via Stripe","Accès API"],
+    business: ["Tout Essential","Scan des justificatifs : la dépense se remplit seule","Devis convertibles en factures","Dépenses et synthèse de TVA","Analyses avancées","Membres d'équipe (jusqu'à 5)","Plusieurs profils d'entreprise","Paiements en ligne via Stripe","Accès API"],
     general: ["Fonction Essential", "Débloquez toutes les fonctions d'Essential"],
     feats: {
       reminders: ["Relances de paiement", "Préparez et vérifiez vos relances de factures en retard, puis ouvrez-les dans votre e-mail ou WhatsApp"],
@@ -2663,7 +2663,7 @@ const UPGRADE_COPY = {
   es: {
     tax: "IVA no incluido",
     pro: ["Facturas ilimitadas","Clientes ilimitados","Exportación UBL/XML (EN 16931)","Anticipos y pagos parciales","Recordatorios de pago (email + WhatsApp)","Exportación a PDF","Logo e imagen propios"],
-    business: ["Todo lo de Essential","Presupuestos que se convierten en facturas","Gastos y resumen de IVA","Análisis avanzados","Miembros del equipo (hasta 5)","Varios perfiles de empresa","Pagos online con Stripe","Acceso a la API"],
+    business: ["Todo lo de Essential","Escaneo de recibos: el gasto se rellena solo","Presupuestos que se convierten en facturas","Gastos y resumen de IVA","Análisis avanzados","Miembros del equipo (hasta 5)","Varios perfiles de empresa","Pagos online con Stripe","Acceso a la API"],
     general: ["Función de Essential", "Desbloquea todas las funciones de Essential"],
     feats: {
       reminders: ["Recordatorios de pago", "Prepara y revisa recordatorios de facturas vencidas y ábrelos en tu email o WhatsApp"],
@@ -2680,7 +2680,7 @@ const UPGRADE_COPY = {
   ar: {
     tax: "غير شامل الضريبة",
     pro: ["فواتير غير محدودة","عملاء غير محدودين","تصدير UBL/XML وفق EN 16931","دفعات مقدّمة وجزئية","تذكيرات دفع عبر البريد وWhatsApp","تصدير PDF","شعار وهوية مخصصان"],
-    business: ["كل مزايا Essential","عروض أسعار تتحول إلى فواتير","المصروفات وملخص VAT/BTW","تحليلات متقدمة","حتى 5 أعضاء فريق","ملفات أنشطة تجارية متعددة","مدفوعات بطاقات عبر Stripe","الوصول إلى API"],
+    business: ["كل مزايا Essential","صوّر الإيصال فتُملأ بيانات المصروف تلقائيًا","عروض أسعار تتحول إلى فواتير","المصروفات وملخص VAT/BTW","تحليلات متقدمة","حتى 5 أعضاء فريق","ملفات أنشطة تجارية متعددة","مدفوعات بطاقات عبر Stripe","الوصول إلى API"],
     general: ["ميزة Essential", "افتح جميع مزايا Essential"],
     feats: {
       reminders: ["تذكيرات الدفع", "حضّر وراجع تذكيرات الفواتير المتأخرة ثم افتحها في البريد أو WhatsApp"],
