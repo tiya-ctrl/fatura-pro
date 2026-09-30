@@ -1222,7 +1222,7 @@ export default function InvoiceApp({ onGoHome }) {
         {previewInvoice && <InvoicePreview invoice={previewInvoice} onExportUBL={exportUBLGated} onClose={() => setPreviewInvoice(null)} currency={currency} plan={plan} isFirstInvoice={invoiceOnlyCount === 1 && previewInvoice.docType !== "credit_note"} />}
         {reminderInvoice && <ReminderModal invoice={reminderInvoice} onClose={() => setReminderInvoice(null)} onLog={logReminder} f={f} />}
         {hasBusinessAccess(plan) && <SupportChat userEmail={userEmail} plan={plan} />}
-        {showUpgrade && <UpgradeModal feature={upgradeFeature} initialPlan={upgradeIntent} userEmail={userEmail} userId={userId} onClose={() => setShowUpgrade(false)} onActivate={() => { setPlan("pro"); setShowUpgrade(false); }} />}
+        {showUpgrade && <UpgradeModal feature={upgradeFeature} initialPlan={upgradeIntent} userEmail={userEmail} userId={userId} trialEnd={isOnTrial ? trialEnd : null} onClose={() => setShowUpgrade(false)} onActivate={() => { setPlan("pro"); setShowUpgrade(false); }} />}
       </div>
     </>
   );
@@ -2696,7 +2696,7 @@ const UPGRADE_COPY = {
   },
 };
 
-function UpgradeModal({ feature, onClose, onActivate, initialPlan, userEmail, userId }) {
+function UpgradeModal({ feature, onClose, onActivate, initialPlan, userEmail, userId, trialEnd }) {
   const locale = getLocale();
   const t = (key, fallback) => tr(key, fallback, locale);
   const ar = locale === "ar";
@@ -2824,6 +2824,12 @@ function UpgradeModal({ feature, onClose, onActivate, initialPlan, userEmail, us
           </button>
         )}
         {/* The Advanced Stripe payment link includes a 7-day free trial. */}
+        {/* Subscribing during the free Essential trial starts billing today; say so before Stripe. */}
+        {trialEnd && selectedPlan === "pro" && (
+          <div style={{ textAlign:"center", fontSize:12, color:"var(--text2)", marginBottom:10, lineHeight:1.5 }}>
+            {t("trial_subscribe_note", "Your free trial runs until {date}. Subscribing now starts billing today; you can also wait until the trial ends.").replace("{date}", new Date(trialEnd).toLocaleDateString(getLocale() === "ar" ? "ar" : getLocale() === "nl" ? "nl-NL" : getLocale() === "fr" ? "fr-FR" : getLocale() === "es" ? "es-ES" : "en-GB", { day:"numeric", month:"long" }))}
+          </div>
+        )}
         {selectedPlan === "business" && BUSINESS_ENABLED && (
           <div style={{ textAlign:"center", fontSize:12, color:"var(--text2)", marginBottom:10, lineHeight:1.5 }}>
             {advancedTrial
