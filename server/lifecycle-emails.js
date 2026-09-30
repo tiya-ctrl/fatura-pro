@@ -24,12 +24,14 @@ export function validUnsubscribe(userId, token) {
   return expected.length === given.length && crypto.timingSafeEqual(expected, given);
 }
 
-const langFor = (country) => (/netherlands|nederland|belgi/i.test(String(country || "")) ? "nl" : "en");
+// Dutch only for people who write their invoices in Dutch; a Dutch address says little
+// (many users are expats who work in English). Everyone else gets English.
+const langFor = (invoiceLang) => (invoiceLang === "nl" ? "nl" : "en");
 
 // Pure selection, so it can be tested without a database.
 // users: [{ id, email, created_at, last_sign_in_at, email_confirmed_at }]
-// invoiceCount: Map userId -> number; onboarding: Map userId -> row; teamMembers: Set userId; countries: Map userId -> country
-export function selectLifecycleEmails({ users, invoiceCount, onboarding, teamMembers, countries, now = Date.now(), skip = excluded() }) {
+// invoiceCount: Map userId -> number; onboarding: Map userId -> row; teamMembers: Set userId; invoiceLangs: Map userId -> most used invoice language
+export function selectLifecycleEmails({ users, invoiceCount, onboarding, teamMembers, invoiceLangs = new Map(), now = Date.now(), skip = excluded() }) {
   const picks = [];
   for (const u of users) {
     if (!u.email || !u.email_confirmed_at) continue;
@@ -40,7 +42,7 @@ export function selectLifecycleEmails({ users, invoiceCount, onboarding, teamMem
     const invoices = invoiceCount.get(u.id) || 0;
     const age = now - new Date(u.created_at).getTime();
     const lastIn = u.last_sign_in_at ? new Date(u.last_sign_in_at).getTime() : new Date(u.created_at).getTime();
-    const lang = langFor(countries.get(u.id));
+    const lang = langFor(invoiceLangs.get(u.id));
     let key = null;
     if (invoices === 0) {
       if (!row.email_1_sent_at && age >= 2 * DAY) key = "email_1";
@@ -127,23 +129,30 @@ export async function runLifecycleEmails(supabaseAdmin) {
     users.push(...data.users);
     if (data.users.length < 1000) break;
   }
-  const [inv, onb, team, plans] = await Promise.all([
-    supabaseAdmin.from("invoices").select("user_id"),
+  const [inv, onb, team] = await Promise.all([
+    supabaseAdmin.from("invoices").select("user_id, document_language"),
     supabaseAdmin.from("user_onboarding").select("user_id, email_1_sent_at, email_2_sent_at, winback_sent_at, emails_unsubscribed_at"),
     supabaseAdmin.from("team_members").select("member_user_id").eq("status", "active"),
-    supabaseAdmin.from("user_plans").select("user_id, country"),
   ]);
-  const firstError = inv.error || onb.error || team.error || plans.error;
+  const firstError = inv.error || onb.error || team.error;
   if (firstError) throw firstError;
 
   const invoiceCount = new Map();
-  for (const row of inv.data || []) invoiceCount.set(row.user_id, (invoiceCount.get(row.user_id) || 0) + 1);
+  const langCounts = new Map();
+  for (const row of inv.data || []) {
+    invoiceCount.set(row.user_id, (invoiceCount.get(row.user_id) || 0) + 1);
+    const counts = langCounts.get(row.user_id) || {};
+    const lang = row.document_language || "en";
+    counts[lang] = (counts[lang] || 0) + 1;
+    langCounts.set(row.user_id, counts);
+  }
+  const invoiceLangs = new Map([...langCounts].map(([id, counts]) => [id, Object.entries(counts).sort((a, b) => b[1] - a[1])[0][0]]));
   const picks = selectLifecycleEmails({
     users,
     invoiceCount,
     onboarding: new Map((onb.data || []).map((r) => [r.user_id, r])),
     teamMembers: new Set((team.data || []).map((r) => r.member_user_id).filter(Boolean)),
-    countries: new Map((plans.data || []).map((r) => [r.user_id, r.country])),
+    invoiceLangs,
   });
 
   const sent = [];
