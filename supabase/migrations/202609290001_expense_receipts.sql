@@ -2,8 +2,8 @@
 -- Adds one optional column and a private storage bucket. Existing expenses and
 -- policies are unchanged.
 --
--- Files live at receipts/<owner user id>/<file>. The owner and their active team
--- members can read and write that folder; nobody else can.
+-- Files live at receipts/<owner user id>/<file>. Access mirrors the expenses
+-- table policies: the owner, or a user whose team_owner_of() is that owner.
 
 alter table public.expenses
   add column if not exists receipt_path text;
@@ -22,12 +22,7 @@ set search_path = public
 as $$
   select auth.uid() is not null and (
     folder = auth.uid()::text
-    or exists (
-      select 1 from public.team_members tm
-      where tm.owner_id::text = folder
-        and tm.member_user_id = auth.uid()
-        and tm.status = 'active'
-    )
+    or folder = public.team_owner_of(auth.uid())::text
   );
 $$;
 
