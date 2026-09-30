@@ -6,7 +6,7 @@ import { exportExpensesCSV } from "../lib/accountantExport";
 import { trackEvent } from "../lib/tracking";
 import { recordActivationEvent } from "../lib/activationEvents";
 import { getLocale, tr } from "../lib/locale";
-import { uploadReceipt, openReceipt, deleteReceipt } from "../lib/receipts";
+import { uploadReceipt, openReceipt, deleteReceipt, scanReceipt, receiptToForm } from "../lib/receipts";
 
 const CATEGORIES = ["software", "hardware", "office", "travel", "marketing", "services", "other"];
 
@@ -50,20 +50,12 @@ export default function Expenses({ expenses, setExpenses, invoices, userId }) {
     if (!(await openReceipt(e.receipt_path))) window.alert(t("receipt_open_failed", "Could not open this receipt. Please try again."));
   };
 
-  // Upload a new receipt first, then save the expense; only then remove a replaced receipt,
-  // so a failed save never leaves an expense pointing at a missing file.
-  const handleSave = async ({ expense, receiptFile, removeReceipt }) => {
+  // The modal uploads a new receipt as soon as it is picked (so it can be read). Save the expense,
+  // then remove a replaced receipt, so a failed save never leaves an expense pointing at a missing file.
+  // Returns true when saved; the modal deletes its unsaved upload otherwise.
+  const handleSave = async ({ expense, newPath, removeReceipt }) => {
     const creating = editing === "new";
     const oldPath = creating ? null : editing.receipt_path || null;
-    let newPath = null;
-    if (receiptFile) {
-      const up = await uploadReceipt(receiptFile, userId);
-      if (up.error) {
-        window.alert(up.error === "too_big" ? t("receipt_too_big", "This file is larger than 5 MB.") : t("receipt_upload_failed", "Could not upload the receipt. Please try again."));
-        return;
-      }
-      newPath = up.path;
-    }
     const finalPath = newPath || (removeReceipt ? null : oldPath);
     const row = { ...expense };
     delete row.receipt_path;
@@ -72,9 +64,8 @@ export default function Expenses({ expenses, setExpenses, invoices, userId }) {
 
     const saved = await saveExpense(row, userId);
     if (!saved) {
-      if (newPath) deleteReceipt(newPath);
       window.alert(locale === "ar" ? "تعذر حفظ المصروف. حاول مرة أخرى." : "Could not save this expense. Please try again.");
-      return;
+      return false;
     }
     if (oldPath && oldPath !== finalPath) deleteReceipt(oldPath);
     trackEvent(creating ? "expense_created" : "expense_updated", { currency:expense.currency || "EUR", category:expense.category || "other", vat_rate:Number(expense.vat_rate) || 0, has_receipt:!!finalPath });
@@ -83,6 +74,7 @@ export default function Expenses({ expenses, setExpenses, invoices, userId }) {
     }).catch(() => {});
     setEditing(null);
     refresh();
+    return true;
   };
 
   return (
@@ -157,31 +149,30 @@ export default function Expenses({ expenses, setExpenses, invoices, userId }) {
           locale={locale}
           onSave={handleSave}
           onViewReceipt={showReceipt}
+          ownerId={userId}
         />
       )}
     </div>
   );
 }
 
-function ExpenseModal({ expense, onClose, onSave, onViewReceipt, defaultCurrency, locale }) {
+function ExpenseModal({ expense, onClose, onSave, onViewReceipt, ownerId, defaultCurrency, locale }) {
   const t = (key, fallback) => tr(key, fallback, locale);
   const isEdit = !!expense;
   const [receiptFile, setReceiptFile] = useState(null);
+  // A receipt picked in this dialog is uploaded straight away so it can be read;
+  // it stays "unsaved" until the expense is saved, and is deleted if the dialog is closed.
+  const [newPath, setNewPath] = useState(null);
   const [removeReceipt, setRemoveReceipt] = useState(false);
+  const [scanState, setScanState] = useState(""); // "", "reading", "filled", "failed"
   const [saving, setSaving] = useState(false);
   const receiptInput = useRef(null);
+  const pickCount = useRef(0);
   const previewUrl = useMemo(() => (receiptFile && receiptFile.type.startsWith("image/") ? URL.createObjectURL(receiptFile) : null), [receiptFile]);
   useEffect(() => () => { if (previewUrl) URL.revokeObjectURL(previewUrl); }, [previewUrl]);
   const hasStoredReceipt = !!expense?.receipt_path && !removeReceipt && !receiptFile;
+  const busy = scanState === "reading";
 
-  const pickReceipt = (e) => {
-    const file = e.target.files && e.target.files[0];
-    e.target.value = "";
-    if (!file) return;
-    setReceiptFile(file);
-    setRemoveReceipt(false);
-  };
-  const clearReceipt = () => { setReceiptFile(null); setRemoveReceipt(true); };
   const [form, setForm] = useState(expense || {
     date: new Date().toISOString().split("T")[0],
     description:"", category:"other", supplier:"",
@@ -189,31 +180,94 @@ function ExpenseModal({ expense, onClose, onSave, onViewReceipt, defaultCurrency
   });
   const set = (k, v) => setForm((p) => ({ ...p, [k]: v }));
 
+  const pickReceipt = async (e) => {
+    const file = e.target.files && e.target.files[0];
+    e.target.value = "";
+    if (!file) return;
+    const pick = ++pickCount.current;
+    if (newPath) deleteReceipt(newPath);
+    setNewPath(null);
+    setReceiptFile(file);
+    setRemoveReceipt(false);
+    setScanState("reading");
+    const up = await uploadReceipt(file, ownerId);
+    if (pick !== pickCount.current) { if (up.path) deleteReceipt(up.path); return; }
+    if (up.error) {
+      setReceiptFile(null);
+      setScanState("");
+      window.alert(up.error === "too_big" ? t("receipt_too_big", "This file is larger than 5 MB.") : t("receipt_upload_failed", "Could not upload the receipt. Please try again."));
+      return;
+    }
+    setNewPath(up.path);
+    const fields = await scanReceipt(up.path);
+    if (pick !== pickCount.current) return;
+    const values = receiptToForm(fields);
+    if (Object.keys(values).length) {
+      setForm((p) => ({ ...p, ...values }));
+      setScanState("filled");
+    } else {
+      setScanState("failed");
+    }
+  };
+  const clearReceipt = () => {
+    pickCount.current++;
+    if (newPath) deleteReceipt(newPath);
+    setNewPath(null);
+    setReceiptFile(null);
+    setRemoveReceipt(true);
+    setScanState("");
+  };
+  const close = () => {
+    pickCount.current++;
+    if (newPath) deleteReceipt(newPath);
+    onClose();
+  };
+
   const excl = Number(form.amount_excl) || 0;
   const vatAmount = excl * (Number(form.vat_rate) / 100);
   const incl = excl + vatAmount;
 
   const save = async () => {
-    if (saving) return;
+    if (saving || busy) return;
     if (!form.description.trim()) { alert(locale === "ar" ? "الوصف مطلوب" : "Description is required"); return; }
     if (!excl) { alert(locale === "ar" ? "المبلغ مطلوب" : "Amount is required"); return; }
     setSaving(true);
     try {
-      await onSave({ expense: { ...form, amount_excl: excl, vat_amount: vatAmount, amount_incl: incl }, receiptFile, removeReceipt });
+      await onSave({ expense: { ...form, amount_excl: excl, vat_amount: vatAmount, amount_incl: incl }, newPath, removeReceipt });
     } finally {
       setSaving(false);
     }
   };
 
   return (
-    <div className="modal-overlay" onClick={onClose}>
+    <div className="modal-overlay" onClick={close}>
       <div className="modal" style={{ maxWidth:520 }} onClick={(e) => e.stopPropagation()}>
         <div style={{ display:"flex", justifyContent:"space-between", marginBottom:16 }}>
           <div className="card-title">{isEdit ? t("edit_expense", "Edit expense") : t("new_expense", "New expense")}</div>
-          <button className="btn btn-ghost btn-sm" onClick={onClose}>✕</button>
+          <button className="btn btn-ghost btn-sm" onClick={close}>✕</button>
         </div>
 
         <div style={{ display:"grid", gap:10 }}>
+          <div style={{ border:"1px dashed rgba(128,128,128,0.45)", borderRadius:10, padding:12, display:"flex", alignItems:"center", gap:12, flexWrap:"wrap" }}>
+            <input ref={receiptInput} type="file" accept="image/*,application/pdf" onChange={pickReceipt} style={{ display:"none" }} />
+            {previewUrl && <img src={previewUrl} alt="" style={{ width:56, height:56, objectFit:"cover", borderRadius:8 }} />}
+            <div style={{ flex:1, minWidth:160, fontSize:13 }}>
+              <div style={{ fontWeight:700 }}>{t("receipt", "Receipt")}</div>
+              <div aria-live="polite" style={{ color: scanState === "filled" ? "#2d8c65" : "#999", fontSize:12 }}>
+                {scanState === "reading" ? t("receipt_reading", "Reading the receipt…")
+                  : scanState === "filled" ? t("receipt_filled", "Filled in from the receipt. Please check the details.")
+                  : scanState === "failed" ? t("receipt_scan_failed", "Could not read the receipt. Please fill in the details.")
+                  : receiptFile ? receiptFile.name
+                  : hasStoredReceipt ? t("receipt_attached", "Receipt attached")
+                  : t("receipt_hint", "Add a photo or PDF and we fill in the details. Keep receipts for 7 years.")}
+              </div>
+            </div>
+            {hasStoredReceipt && <button type="button" className="btn btn-ghost btn-sm" onClick={() => onViewReceipt(expense)}>📎 {t("view_receipt", "View receipt")}</button>}
+            <button type="button" className="btn btn-ghost btn-sm" disabled={busy} onClick={() => receiptInput.current && receiptInput.current.click()}>
+              📷 {receiptFile || hasStoredReceipt ? t("change_receipt", "Change") : t("add_receipt", "Add receipt")}
+            </button>
+            {(receiptFile || hasStoredReceipt) && <button type="button" className="btn btn-ghost btn-sm" style={{ color:"#e05555" }} aria-label={t("remove_receipt", "Remove receipt")} title={t("remove_receipt", "Remove receipt")} onClick={clearReceipt}>✕</button>}
+          </div>
           <input placeholder={t("description", "Description") + " * (e.g. Adobe subscription)"} value={form.description} onChange={(e) => set("description", e.target.value)} />
           <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:10 }}>
             <label style={{ fontSize:12 }}>{t("date", "Date")}<input type="date" value={form.date} onChange={(e) => set("date", e.target.value)} /></label>
@@ -239,22 +293,6 @@ function ExpenseModal({ expense, onClose, onSave, onViewReceipt, defaultCurrency
               )}
             </label>
           </div>
-
-          <div style={{ border:"1px dashed rgba(128,128,128,0.45)", borderRadius:10, padding:12, display:"flex", alignItems:"center", gap:12, flexWrap:"wrap" }}>
-            <input ref={receiptInput} type="file" accept="image/*,application/pdf" onChange={pickReceipt} style={{ display:"none" }} />
-            {previewUrl && <img src={previewUrl} alt="" style={{ width:56, height:56, objectFit:"cover", borderRadius:8 }} />}
-            <div style={{ flex:1, minWidth:160, fontSize:13 }}>
-              <div style={{ fontWeight:700 }}>{t("receipt", "Receipt")}</div>
-              <div style={{ color:"#999", fontSize:12, overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap" }}>
-                {receiptFile ? receiptFile.name : hasStoredReceipt ? t("receipt_attached", "Receipt attached") : t("receipt_hint", "Add a photo or PDF. Keep receipts for 7 years.")}
-              </div>
-            </div>
-            {hasStoredReceipt && <button type="button" className="btn btn-ghost btn-sm" onClick={() => onViewReceipt(expense)}>📎 {t("view_receipt", "View receipt")}</button>}
-            <button type="button" className="btn btn-ghost btn-sm" onClick={() => receiptInput.current && receiptInput.current.click()}>
-              📷 {receiptFile || hasStoredReceipt ? t("change_receipt", "Change") : t("add_receipt", "Add receipt")}
-            </button>
-            {(receiptFile || hasStoredReceipt) && <button type="button" className="btn btn-ghost btn-sm" style={{ color:"#e05555" }} aria-label={t("remove_receipt", "Remove receipt")} title={t("remove_receipt", "Remove receipt")} onClick={clearReceipt}>✕</button>}
-          </div>
         </div>
 
         <div style={{ textAlign:"right", margin:"14px 0", fontSize:14 }}>
@@ -262,8 +300,8 @@ function ExpenseModal({ expense, onClose, onSave, onViewReceipt, defaultCurrency
         </div>
 
         <div style={{ display:"flex", justifyContent:"flex-end", gap:10 }}>
-          <button className="btn btn-ghost" onClick={onClose}>{t("cancel", "Cancel")}</button>
-          <button className="btn btn-primary" disabled={saving} onClick={save}>{saving ? "…" : isEdit ? t("save", "Save changes") : t("add", "Add expense")}</button>
+          <button className="btn btn-ghost" onClick={close}>{t("cancel", "Cancel")}</button>
+          <button className="btn btn-primary" disabled={saving || busy} onClick={save}>{saving ? "…" : isEdit ? t("save", "Save changes") : t("add", "Add expense")}</button>
         </div>
       </div>
     </div>

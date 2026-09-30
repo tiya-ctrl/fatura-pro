@@ -51,6 +51,52 @@ export async function openReceipt(path) {
   return true;
 }
 
+// Ask the server to read an uploaded receipt. Returns the suggested fields, or null.
+export async function scanReceipt(path) {
+  try {
+    const { data: { session } } = await supabase.auth.getSession();
+    if (!session?.access_token) return null;
+    const r = await fetch("/api/scan-receipt", {
+      method: "POST",
+      headers: { Authorization: "Bearer " + session.access_token, "Content-Type": "application/json" },
+      body: JSON.stringify({ path }),
+    });
+    if (!r.ok) return null;
+    const { fields } = await r.json();
+    return fields || null;
+  } catch {
+    return null;
+  }
+}
+
+const round2 = (n) => Math.round(n * 100) / 100;
+
+// Turn the scanned fields into form values. The form stores the amount excl. VAT and one rate;
+// a receipt with mixed rates becomes the effective rate so the VAT total still matches.
+export function receiptToForm(fields) {
+  const out = {};
+  if (!fields) return out;
+  if (/^\d{4}-\d{2}-\d{2}$/.test(fields.date || "")) out.date = fields.date;
+  if (fields.supplier) out.supplier = fields.supplier;
+  if (fields.description) out.description = fields.description;
+  if (fields.category) out.category = fields.category;
+  if (/^[A-Z]{3}$/.test(fields.currency || "")) out.currency = fields.currency;
+
+  const incl = Number(fields.amount_incl);
+  const vat = Number(fields.vat_amount);
+  let excl = Number(fields.amount_excl);
+  let rate = fields.vat_rate === null || fields.vat_rate === undefined ? NaN : Number(fields.vat_rate);
+  if (!(excl > 0) && incl > 0 && vat >= 0 && fields.vat_amount !== null) excl = incl - vat;
+  if (!(excl > 0) && incl > 0 && rate >= 0) excl = incl / (1 + rate / 100);
+  if (!(rate >= 0) && excl > 0 && vat >= 0 && fields.vat_amount !== null) {
+    rate = round2((vat / excl) * 100);
+    [21, 9, 0].forEach((r) => { if (Math.abs(rate - r) < 0.15) rate = r; });
+  }
+  if (excl > 0) out.amount_excl = round2(excl);
+  if (rate >= 0) out.vat_rate = rate;
+  return out;
+}
+
 export async function deleteReceipt(path) {
   if (!path) return;
   const { error } = await supabase.storage.from(BUCKET).remove([path]);
