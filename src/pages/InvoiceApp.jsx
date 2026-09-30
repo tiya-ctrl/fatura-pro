@@ -551,6 +551,8 @@ export default function InvoiceApp({ onGoHome }) {
   }, [currency]);
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [plan, setPlan] = useState("free");
+  // "free" above is only a placeholder until the account's plan is read.
+  const [planLoaded, setPlanLoaded] = useState(false);
   const [userEmail, setUserEmail] = useState("");
   const [userId, setUserId] = useState(null);
   const [ambassadorAdminAccess, setAmbassadorAdminAccess] = useState(false);
@@ -622,6 +624,7 @@ export default function InvoiceApp({ onGoHome }) {
       } else {
         setPlan("free");
       }
+      setPlanLoaded(true);
     };
     loadPlan();
   }, []);
@@ -638,7 +641,9 @@ export default function InvoiceApp({ onGoHome }) {
     const urlParams = new URLSearchParams(window.location.search);
     const urlPlan = urlParams.get("plan");
     const intent = (urlPlan === "business" || urlPlan === "pro") ? urlPlan : localStorage.getItem("fatura_intent_plan");
-    if (!intent || !plan) return;
+    // Wait for the real plan: deciding on the placeholder "free" sent new users who
+    // chose the free Essential trial (no card) to the paid Essential checkout.
+    if (!intent || !planLoaded) return;
     localStorage.removeItem("fatura_intent_plan");
     if (urlPlan) {
       urlParams.delete("plan");
@@ -648,7 +653,7 @@ export default function InvoiceApp({ onGoHome }) {
     if (intent === "pro" && plan === "pro") return;
     setUpgradeIntent(intent);
     setShowUpgrade(true);
-  }, [plan]);
+  }, [plan, planLoaded]);
   const [invoiceDraft, setInvoiceDraft] = useState(null);
   const [editDraft, setEditDraft] = useState(null); // unsaved edits for existing invoice
   const [reminderInvoice, setReminderInvoice] = useState(null);

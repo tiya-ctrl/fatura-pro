@@ -31,7 +31,10 @@ export async function ensureUserPlan(user, knownCountry = null) {
   const country = current?.country || knownCountry || await getVisitorCountry();
 
   if (!current) {
-    const trialEnd = new Date();
+    // Count the trial from sign-up, like the database trigger does, so a missing
+    // plan row never restarts the 7 days.
+    const signedUp = new Date(user.created_at);
+    const trialEnd = Number.isNaN(signedUp.getTime()) ? new Date() : signedUp;
     trialEnd.setDate(trialEnd.getDate() + TRIAL_DAYS);
     const row = {
       user_id: user.id,
