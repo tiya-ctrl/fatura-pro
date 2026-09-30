@@ -2704,6 +2704,12 @@ function UpgradeModal({ feature, onClose, onActivate, initialPlan, userEmail, us
   const [loading, setLoading] = useState(false);
   const [step, setStep] = useState("plans");
   const [selectedPlan, setSelectedPlan] = useState(initialPlan || "pro");
+  // The Advanced trial is once per email; the webhook charges a repeat trial at once,
+  // so the button must not promise free days to someone who already had them.
+  const [advancedTrial, setAdvancedTrial] = useState(true);
+  useEffect(() => {
+    supabase.rpc("advanced_trial_available").then(({ data, error }) => { if (!error && data === false) setAdvancedTrial(false); });
+  }, []);
 
   const PLANS_INFO = {
     pro: { name:"Essential", price:"\u20ac9", period:t("per_month", "/month"), color:"var(--gold)", stripe_link:"https://buy.stripe.com/fZu4gzepGdT05Gx48j5ZC00",
@@ -2811,7 +2817,7 @@ function UpgradeModal({ feature, onClose, onActivate, initialPlan, userEmail, us
                   <span style={{ width:16, height:16, border:"2px solid #000", borderTopColor:"transparent", borderRadius:"50%", display:"inline-block", animation:"spin 0.7s linear infinite" }} />
                   {t("connecting_stripe", "Connecting to Stripe...")}
                 </span>
-              : selectedPlan === "business"
+              : selectedPlan === "business" && advancedTrial
                 ? t("start_advanced_trial", "Start 7-day free trial of Advanced")
                 : (t("upgrade_to", "Upgrade to") + " " + PLANS_INFO[selectedPlan].name + " — " + PLANS_INFO[selectedPlan].price + t("per_month", "/mo"))
             }
@@ -2820,7 +2826,9 @@ function UpgradeModal({ feature, onClose, onActivate, initialPlan, userEmail, us
         {/* The Advanced Stripe payment link includes a 7-day free trial. */}
         {selectedPlan === "business" && BUSINESS_ENABLED && (
           <div style={{ textAlign:"center", fontSize:12, color:"var(--text2)", marginBottom:10, lineHeight:1.5 }}>
-            {t("advanced_trial_note", "7 days free, then €19/month. Cancel before the trial ends and you won't be charged.")}
+            {advancedTrial
+              ? t("advanced_trial_note", "7 days free, then €19/month. Cancel before the trial ends and you won't be charged.")
+              : t("advanced_trial_used", "You have already used the free trial, so €19/month starts today. The checkout may still mention a trial.")}
           </div>
         )}
 

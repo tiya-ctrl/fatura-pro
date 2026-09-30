@@ -1,6 +1,7 @@
 import Stripe from "stripe";
 import { createClient } from "@supabase/supabase-js";
 import { recordAmbassadorCommission, reverseAmbassadorCommission } from "../server/ambassador-commissions.js";
+import { enforceOneTrial } from "../server/trial-claims.js";
 
 export const config = {
   api: {
@@ -71,6 +72,14 @@ export default async function handler(req, res) {
           plan: newPlan,
           updated_at: new Date().toISOString(),
         });
+
+        // The Advanced trial is once per email; a repeat is charged now instead.
+        try {
+          const trial = await enforceOneTrial(stripe, supabaseAdmin, { email: user.email || email, subscriptionId: session.subscription, plan: newPlan });
+          console.log("TRIAL CHECK:", session.id, trial);
+        } catch (error) {
+          console.error("TRIAL CHECK ERROR:", error?.message || error);
+        }
       }
     }
   }
@@ -138,7 +147,9 @@ export default async function handler(req, res) {
     }
     if (target) {
       let newPlan = "free";
-      if (event.type === "customer.subscription.updated" && sub.status !== "canceled" && sub.status !== "unpaid") {
+      // Only these statuses keep access; incomplete, incomplete_expired, paused,
+      // unpaid and canceled all fall back to Free (data is never deleted).
+      if (event.type === "customer.subscription.updated" && ["active", "trialing", "past_due"].includes(sub.status)) {
         const it = sub.items && sub.items.data && sub.items.data[0];
         const pid = it && it.price ? it.price.id : null;
         const amt = it && it.price ? it.price.unit_amount : null;
