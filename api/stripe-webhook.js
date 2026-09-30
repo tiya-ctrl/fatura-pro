@@ -2,6 +2,7 @@ import Stripe from "stripe";
 import { createClient } from "@supabase/supabase-js";
 import { recordAmbassadorCommission, reverseAmbassadorCommission } from "../server/ambassador-commissions.js";
 import { enforceOneTrial } from "../server/trial-claims.js";
+import { sendSubscriptionStarted } from "../server/subscription-emails.js";
 
 export const config = {
   api: {
@@ -79,6 +80,17 @@ export default async function handler(req, res) {
           console.log("TRIAL CHECK:", session.id, trial);
         } catch (error) {
           console.error("TRIAL CHECK ERROR:", error?.message || error);
+        }
+
+        // Confirmation to the customer and a notice to the FaturaPro team.
+        if (session.mode === "subscription" && session.subscription) {
+          try {
+            const sub = await stripe.subscriptions.retrieve(session.subscription);
+            const emails = await sendSubscriptionStarted({ to: user.email || email, plan: newPlan, sub });
+            console.log("SUBSCRIPTION EMAILS:", session.id, emails.join(", "));
+          } catch (error) {
+            console.error("SUBSCRIPTION EMAIL ERROR:", error?.message || error);
+          }
         }
       }
     }

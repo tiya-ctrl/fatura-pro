@@ -1,6 +1,7 @@
 import { createClient } from "@supabase/supabase-js";
 import Stripe from "stripe";
 import { runAutomaticAmbassadorPayouts } from "../server/ambassador-commissions.js";
+import { sendTrialEndingReminders } from "../server/subscription-emails.js";
 
 const supabase = createClient(
   process.env.REACT_APP_SUPABASE_URL,
@@ -68,6 +69,14 @@ export default async function handler(req, res) {
     sent++;
   }
 
+  // Paid Stripe trials (card entered): remind the day before the first charge.
+  let stripeTrialReminders = 0;
+  try {
+    if (stripe) stripeTrialReminders = await sendTrialEndingReminders(stripe);
+  } catch (error) {
+    console.error("Stripe trial reminders:", error?.message || error);
+  }
+
   let payouts = [];
   try {
     if (!stripe) throw new Error("Stripe is not configured");
@@ -76,5 +85,5 @@ export default async function handler(req, res) {
     console.error("Automatic ambassador payouts:", error?.message || error);
   }
 
-  res.status(200).json({ sent, ambassadorPayouts: payouts.filter(item => item.paid).length });
+  res.status(200).json({ sent, stripeTrialReminders, ambassadorPayouts: payouts.filter(item => item.paid).length });
 }
