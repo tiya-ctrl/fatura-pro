@@ -96,10 +96,10 @@ export function lifecycleEmail({ key, lang, user }) {
       subject: nl ? "Kunnen we je ergens mee helpen?" : "Can we help you get started?",
       html: layout(lang, nl ? "Kunnen we je ergens mee helpen?" : "Can we help you get started?", nl ? [
         "We zagen dat je nog geen factuur hebt gemaakt in FaturaPro. Misschien had je geen tijd, of liep je ergens tegenaan. Laat het ons weten: beantwoord deze e-mail met één zin en we denken met je mee.",
-        "Handig om te weten: je kunt klanten een herinnering sturen via WhatsApp of mail, factureren in 18 valuta en een creditnota maken, allemaal ook in het gratis plan.",
+        "Handig om te weten: in het gratis plan factureer je in 18 valuta, met je eigen logo en creditnota's. Met Essential stuur je ook herinneringen via WhatsApp of mail.",
       ] : [
         "We noticed you haven't created an invoice in FaturaPro yet. Maybe there was no time, or something got in the way. Let us know: reply to this email with one sentence and we'll help.",
-        "Good to know: you can send payment reminders by WhatsApp or email, invoice in 18 currencies and make credit notes, all included in the free plan.",
+        "Good to know: the free plan lets you invoice in 18 currencies, with your own logo and credit notes. Essential adds payment reminders by WhatsApp or email.",
       ], { href: APP("help_start"), label: nl ? "Open FaturaPro" : "Open FaturaPro" }, user.id),
     };
   }

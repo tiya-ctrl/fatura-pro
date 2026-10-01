@@ -1,6 +1,6 @@
 import { createClient } from "@supabase/supabase-js";
 import { createHmac } from "node:crypto";
-import { htmlEscape, sendAmbassadorAdminEmail, sendEmail } from "../server/email.js";
+import { brandedEmail, emailButton, htmlEscape, sendAmbassadorAdminEmail, sendEmail } from "../server/email.js";
 
 const CHANNELS = new Set(["YouTube", "TikTok", "Instagram", "LinkedIn", "Newsletter", "Community", "Consulting", "Other"]);
 const AUDIENCE_SIZES = new Set(["under_1k", "1k_5k", "5k_25k", "25k_plus"]);
@@ -105,7 +105,15 @@ async function handleAmbassadorApplication(req, res, supabaseAdmin) {
     sendEmail({
       to:application.email,
       subject:"We received your Fatūra Pro ambassador application",
-      html:`<div style="font-family:Arial,sans-serif;max-width:560px;margin:0 auto;padding:32px;color:#222"><div style="color:#6366F1;font-size:13px;font-weight:700;letter-spacing:1px;text-transform:uppercase">Founding Ambassador Circle</div><h1 style="font-size:26px;margin:12px 0">Thank you, ${htmlEscape(application.name)}.</h1><p style="line-height:1.7">We received your application and will review it alongside the next founding-circle batch. If there is a strong fit, we will contact you by email before you publish anything.</p><p style="line-height:1.7">The program uses fixed terms: 25% on Essential and 35% on Advanced subscription revenue for the first 12 paid months of each qualified customer.</p><p style="margin:28px 0"><a href="https://faturapro.app/ambassador" style="background:#6366F1;color:#000;padding:12px 22px;border-radius:8px;text-decoration:none;font-weight:700">Check application status →</a></p><p style="color:#888;font-size:12px">Fatūra Pro · Business without borders</p></div>`,
+      html:brandedEmail({
+        kicker:"Founding Ambassador Circle",
+        title:`Thank you, ${htmlEscape(application.name)}.`,
+        paragraphs:[
+          "We received your application and will review it alongside the next founding-circle batch. If there is a strong fit, we will contact you by email before you publish anything.",
+          "The program uses fixed terms: 25% on Essential and 35% on Advanced subscription revenue for the first 12 paid months of each qualified customer.",
+        ],
+        buttons:[emailButton("https://faturapro.app/ambassador", "Check application status →")],
+      }),
     }),
     sendAmbassadorAdminEmail({
       subject:`New ambassador application — ${application.name}`,
@@ -126,8 +134,12 @@ async function handleWaitlistConfirmation(req, res, supabaseAdmin) {
 
   await sendEmail({
     to:email,
-    subject:"You're on the Fatūra Advanced Plan waitlist! 🎉",
-    html:`<div style="font-family:sans-serif;max-width:500px;margin:0 auto;padding:32px"><h2 style="color:#6366F1">You're on the list! ✦</h2><p>Hi there,</p><p>Thank you for joining the <strong>Fatūra Advanced Plan</strong> waitlist. You'll be among the first to know when we launch.</p><p>While you wait, you can enjoy <strong>Fatūra Pro</strong> — our full-featured invoicing plan for freelancers and entrepreneurs.</p><p style="margin:24px 0"><a href="https://faturapro.app" style="background:#6366F1;color:#000;padding:12px 24px;border-radius:8px;text-decoration:none;font-weight:600">Try Essential Free for 7 Days →</a></p><p style="color:#999;font-size:12px">Fatūra Pro · Professional Invoicing · faturapro.app</p></div>`,
+    subject:"Fatūra Pro Advanced is live",
+    html:brandedEmail({
+      title:"Advanced is live",
+      paragraphs:["Thank you for your interest in the Fatūra Pro Advanced plan. It is available now: quotes that become invoices, expenses with receipt scanning, a quarterly VAT summary, team members and more."],
+      buttons:[emailButton("https://faturapro.app/login?signup=1&plan=business", "Try Advanced free for 7 days →")],
+    }),
   });
 
   return res.status(200).json({ ok:true });

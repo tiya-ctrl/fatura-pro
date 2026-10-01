@@ -1,5 +1,5 @@
 import { AMBASSADOR_POLICY, ambassadorAccountPolicy, publicAmbassadorPolicy } from "../src/lib/ambassadorPolicy.js";
-import { htmlEscape, sendEmail } from "./email.js";
+import { brandedEmail, emailBox, emailButton, htmlEscape, sendEmail } from "./email.js";
 
 function normalizedEmail(value) {
   return String(value || "").trim().toLowerCase();
@@ -54,7 +54,17 @@ export function ambassadorAcceptanceEmail(application, account) {
   return {
     to:application.email,
     subject:"You’re approved for the Fatūra Pro Ambassador Program",
-    html:`<div style="font-family:Arial,sans-serif;max-width:600px;margin:0 auto;padding:32px;color:#222"><div style="color:#6366F1;font-size:12px;font-weight:700;letter-spacing:1px;text-transform:uppercase">Fatūra Pro Ambassador Program</div><h1 style="font-size:27px;margin:12px 0">Welcome, ${htmlEscape(application.name)}.</h1><p style="line-height:1.7">Your application has been approved. Your personal tracking link is active and your private dashboard is ready.</p><div style="margin:24px 0;padding:18px;border-radius:10px;background:#f7f3e8"><b>Your commission terms</b><p style="margin:8px 0 0;line-height:1.7">Essential: ${terms.plans.pro.commissionPercent}% · Advanced: ${terms.plans.business.commissionPercent}% · First ${terms.commissionMonths} paid months of each qualified customer. Refunds, disputes and tax are excluded automatically.</p></div><div style="margin:20px 0;padding:18px;border:1px solid #e4d7b5;border-radius:10px"><b>Your personal ambassador link</b><p style="margin:9px 0 15px;word-break:break-all;font-size:13px"><a href="${htmlEscape(links.referral)}">${htmlEscape(links.referral)}</a></p><a href="${htmlEscape(links.referral)}" style="display:inline-block;background:#6366F1;color:#000;padding:12px 20px;border-radius:8px;text-decoration:none;font-weight:700">Open personal link →</a></div><p style="margin:28px 0"><a href="${links.dashboard}" style="display:inline-block;background:#17171f;color:#fff;padding:12px 20px;border-radius:8px;text-decoration:none;font-weight:700">Open tracking dashboard →</a></p><p style="color:#777;font-size:12px;line-height:1.6">Sign in with ${htmlEscape(application.email)}. Your dashboard shows clicks, sign-ups, paid customers, commission and payouts while customer identities remain private.</p></div>`,
+    html:brandedEmail({
+      kicker:"Fatūra Pro Ambassador Program",
+      title:`Welcome, ${htmlEscape(application.name)}.`,
+      paragraphs:["Your application has been approved. Your personal tracking link is active and your private dashboard is ready."],
+      boxes:[
+        emailBox("Your commission terms", `Essential: ${terms.plans.pro.commissionPercent}% · Advanced: ${terms.plans.business.commissionPercent}% · First ${terms.commissionMonths} paid months of each qualified customer. Refunds, disputes and tax are excluded automatically.`),
+        emailBox("Your personal ambassador link", `<a href="${htmlEscape(links.referral)}" style="color:#9d97f5;word-break:break-all;font-size:13px;">${htmlEscape(links.referral)}</a>`),
+      ],
+      buttons:[emailButton(htmlEscape(links.referral), "Open personal link →"), emailButton(links.dashboard, "Open tracking dashboard →", true)],
+      footer:`Sign in with ${htmlEscape(application.email)}. Your dashboard shows clicks, sign-ups, paid customers, commission and payouts while customer identities remain private.`,
+    }),
   };
 }
 
@@ -283,7 +293,14 @@ export async function declineAmbassador(supabaseAdmin, user, body) {
     notification = await sendEmail({
       to:application.email,
       subject:"Update on your Fatūra Pro ambassador application",
-      html:`<div style="font-family:Arial,sans-serif;max-width:560px;margin:0 auto;padding:32px;color:#222"><div style="color:#6366F1;font-size:12px;font-weight:700;letter-spacing:1px;text-transform:uppercase">Fatūra Pro Ambassador Program</div><h1 style="font-size:25px;margin:12px 0">Thank you, ${htmlEscape(application.name)}.</h1><p style="line-height:1.7">We reviewed your application carefully. We are keeping the first ambassador group intentionally small, and we are not able to offer a place in this round.</p><p style="line-height:1.7">This is not a judgment on the quality of your work, and you are welcome to apply again in a future intake.</p><p style="color:#777;font-size:12px;margin-top:28px">Fatūra Pro · Business without borders</p></div>`,
+      html:brandedEmail({
+        kicker:"Fatūra Pro Ambassador Program",
+        title:`Thank you, ${htmlEscape(application.name)}.`,
+        paragraphs:[
+          "We reviewed your application carefully. We are keeping the first ambassador group intentionally small, and we are not able to offer a place in this round.",
+          "This is not a judgment on the quality of your work, and you are welcome to apply again in a future intake.",
+        ],
+      }),
     });
   } catch (emailError) {
     console.error("Ambassador decline email error:", emailError?.message || emailError);
