@@ -55,7 +55,7 @@ export default async function handler(req, res) {
   let sent = 0;
   for (const u of users || []) {
     const { data: { user } } = await supabase.auth.admin.getUserById(u.user_id);
-    if (!user?.email) continue;
+    if (!user?.email || !user.email_confirmed_at) continue; // unconfirmed accounts can't use the trial
 
     await fetch("https://api.resend.com/emails", {
       method: "POST",

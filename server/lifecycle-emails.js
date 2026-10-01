@@ -31,7 +31,10 @@ const langFor = (invoiceLang) => (invoiceLang === "nl" ? "nl" : "en");
 // Pure selection, so it can be tested without a database.
 // users: [{ id, email, created_at, last_sign_in_at, email_confirmed_at }]
 // invoiceCount: Map userId -> number; onboarding: Map userId -> row; teamMembers: Set userId; invoiceLangs: Map userId -> most used invoice language
-export function selectLifecycleEmails({ users, invoiceCount, onboarding, teamMembers, invoiceLangs = new Map(), now = Date.now(), skip = excluded() }) {
+// trialEnds: Map userId -> Essential trial end. Nobody gets a lifecycle email within 3 days of
+// their trial ending (they get the trial reminder then), and the two activation emails are a
+// week apart, so a new user never gets emails on consecutive days.
+export function selectLifecycleEmails({ users, invoiceCount, onboarding, teamMembers, invoiceLangs = new Map(), trialEnds = new Map(), now = Date.now(), skip = excluded() }) {
   const picks = [];
   for (const u of users) {
     if (!u.email || !u.email_confirmed_at) continue;
@@ -43,10 +46,12 @@ export function selectLifecycleEmails({ users, invoiceCount, onboarding, teamMem
     const age = now - new Date(u.created_at).getTime();
     const lastIn = u.last_sign_in_at ? new Date(u.last_sign_in_at).getTime() : new Date(u.created_at).getTime();
     const lang = langFor(invoiceLangs.get(u.id));
+    const trialEnd = trialEnds.get(u.id) ? new Date(trialEnds.get(u.id)).getTime() : NaN;
+    if (Math.abs(trialEnd - now) < 3 * DAY) continue;
     let key = null;
     if (invoices === 0) {
       if (!row.email_1_sent_at && age >= 2 * DAY) key = "email_1";
-      else if (row.email_1_sent_at && !row.email_2_sent_at && now - new Date(row.email_1_sent_at).getTime() >= 5 * DAY) key = "email_2";
+      else if (row.email_1_sent_at && !row.email_2_sent_at && now - new Date(row.email_1_sent_at).getTime() >= 7 * DAY) key = "email_2";
     } else if (!row.winback_sent_at && now - lastIn >= 30 * DAY) {
       key = "winback";
     }
@@ -129,12 +134,13 @@ export async function runLifecycleEmails(supabaseAdmin) {
     users.push(...data.users);
     if (data.users.length < 1000) break;
   }
-  const [inv, onb, team] = await Promise.all([
+  const [inv, onb, team, plans] = await Promise.all([
     supabaseAdmin.from("invoices").select("user_id, document_language"),
     supabaseAdmin.from("user_onboarding").select("user_id, email_1_sent_at, email_2_sent_at, winback_sent_at, emails_unsubscribed_at"),
     supabaseAdmin.from("team_members").select("member_user_id").eq("status", "active"),
+    supabaseAdmin.from("user_plans").select("user_id, trial_end"),
   ]);
-  const firstError = inv.error || onb.error || team.error;
+  const firstError = inv.error || onb.error || team.error || plans.error;
   if (firstError) throw firstError;
 
   const invoiceCount = new Map();
@@ -153,6 +159,7 @@ export async function runLifecycleEmails(supabaseAdmin) {
     onboarding: new Map((onb.data || []).map((r) => [r.user_id, r])),
     teamMembers: new Set((team.data || []).map((r) => r.member_user_id).filter(Boolean)),
     invoiceLangs,
+    trialEnds: new Map((plans.data || []).filter((r) => r.trial_end).map((r) => [r.user_id, r.trial_end])),
   });
 
   const sent = [];
