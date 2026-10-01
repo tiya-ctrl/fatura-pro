@@ -26,6 +26,7 @@ import { getLocale, setLocale, tr } from "../lib/locale";
 import { printOnlyCss, printWithTitle } from "../lib/printDocument";
 import { INVOICE_LANGUAGES, documentDirection, invoiceCopy, normalizeDocumentLanguage } from "../lib/documentLanguage";
 import { Zap as ZapIcon, Lock as LockIcon, Repeat as RepeatIcon, Users as UsersIcon, FilePen as FilePenIcon, Link as LinkIcon, Download as DownloadIcon } from "lucide-react";
+import { LayoutDashboard as LayoutDashboardIcon, FileText as FileTextIcon, FileSignature as FileSignatureIcon, Receipt as ReceiptIcon, BarChart3 as BarChart3Icon, Settings as SettingsIcon, Sparkles as SparklesIcon } from "lucide-react";
 
 const FONTS = `@import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600;700&family=DM+Sans:wght@300;400;500;600&display=swap');`;
 const INVOICE_ATTRIBUTION_URL = "https://faturapro.app/?utm_source=invoice&utm_medium=footer&utm_campaign=made_with_fatura_pro";
@@ -65,7 +66,7 @@ const STYLES = `
     color: var(--text2); transition: all 0.18s; margin-bottom: 2px; }
   .nav-item:hover { background: var(--bg3); color: var(--text); }
   .nav-item.active { background: var(--gold-dim); color: var(--gold); }
-  .nav-item .icon { font-size: 17px; width: 22px; text-align: center; }
+  .nav-item .icon { font-size: 17px; width: 22px; text-align: center; display: inline-flex; align-items: center; justify-content: center; }
   .nav-badge { margin-left: auto; background: var(--gold); color: #000; font-size: 10px; font-weight: 700; border-radius: 10px; padding: 2px 7px; }
   .sidebar-footer { margin-top: auto; padding: 16px 24px; border-top: 1px solid var(--border); }
   .referral-nav-card { width:100%; display:flex; align-items:center; justify-content:space-between; gap:9px; margin-bottom:11px; padding:10px 12px; border-radius:9px; border:1px solid rgba(99,102,241,.25); background:linear-gradient(120deg,rgba(99,102,241,.14),var(--bg3)); color:var(--text); cursor:pointer; font-family:'DM Sans',sans-serif; font-size:11px; font-weight:700; text-align:left; }
@@ -81,7 +82,8 @@ const STYLES = `
     cursor: pointer; padding: 6px 16px; border-radius: 10px; transition: all 0.15s;
     color: var(--text2); position: relative; }
   .mobile-nav-item.active { color: var(--gold); }
-  .mobile-nav-item .m-icon { font-size: 22px; }
+  .mobile-nav-item .m-icon { font-size: 22px; display: inline-flex; }
+  .mobile-nav-item .m-icon svg { width: 22px; height: 22px; }
   .mobile-nav-item .m-label { font-size: 10px; font-weight: 600; letter-spacing: 0.3px; }
   .mobile-nav-dot { position: absolute; top: 4px; right: 10px; width: 7px; height: 7px;
     background: var(--gold); border-radius: 50%; border: 1.5px solid var(--bg2); }
@@ -1012,14 +1014,14 @@ export default function InvoiceApp({ onGoHome }) {
   }, []);
 
   const navItems = [
-    { id: "dashboard", icon: "\u229e", label: t("dashboard", "Dashboard") },
-    { id: "invoices", icon: "\u229f", label: t("invoices", "Invoices"), badge: invoicesWithStatus.filter(i => i.status === "pending" && i.docType !== "credit_note").length },
-    { id: "clients", icon: "\u2299", label: t("clients", "Clients") },
-    { id: "quotes", icon: "\u2707", label: t("quotes", "Quotes"), locked: !(hasBusinessAccess(plan) || isTeamMember) },
-    { id: "expenses", icon: "\u2296", label: t("expenses", "Expenses"), locked: !(hasBusinessAccess(plan) || isTeamMember) },
-    { id: "analytics", icon: "\u2261", label: t("analytics", "Analytics"), locked: !hasBusinessAccess(plan) },
-    { id: "settings", icon: "\u2699", label: t("settings", "Settings") },
-    ...(ambassadorAdminAccess ? [{ id:"ambassador-admin", icon:"✦", label:t("ambassador_requests", "Ambassador requests"), href:"/admin" }] : []),
+    { id: "dashboard", icon: <LayoutDashboardIcon size={18} strokeWidth={1.9} aria-hidden="true" />, label: t("dashboard", "Dashboard") },
+    { id: "invoices", icon: <FileTextIcon size={18} strokeWidth={1.9} aria-hidden="true" />, label: t("invoices", "Invoices"), badge: invoicesWithStatus.filter(i => i.status === "pending" && i.docType !== "credit_note").length },
+    { id: "clients", icon: <UsersIcon size={18} strokeWidth={1.9} aria-hidden="true" />, label: t("clients", "Clients") },
+    { id: "quotes", icon: <FileSignatureIcon size={18} strokeWidth={1.9} aria-hidden="true" />, label: t("quotes", "Quotes"), locked: !(hasBusinessAccess(plan) || isTeamMember) },
+    { id: "expenses", icon: <ReceiptIcon size={18} strokeWidth={1.9} aria-hidden="true" />, label: t("expenses", "Expenses"), locked: !(hasBusinessAccess(plan) || isTeamMember) },
+    { id: "analytics", icon: <BarChart3Icon size={18} strokeWidth={1.9} aria-hidden="true" />, label: t("analytics", "Analytics"), locked: !hasBusinessAccess(plan) },
+    { id: "settings", icon: <SettingsIcon size={18} strokeWidth={1.9} aria-hidden="true" />, label: t("settings", "Settings") },
+    ...(ambassadorAdminAccess ? [{ id:"ambassador-admin", icon:<SparklesIcon size={18} strokeWidth={1.9} aria-hidden="true" />, label:t("ambassador_requests", "Ambassador requests"), href:"/admin" }] : []),
   ];
 
   const [isMobile, setIsMobile] = React.useState(false);
@@ -2720,7 +2722,7 @@ function UpgradeModal({ feature, onClose, onActivate, initialPlan, userEmail, us
   };
 
   const featEntry = copy.feats[feature];
-  const feat = featEntry ? { icon:"!", label:featEntry[0], desc:featEntry[1] } : { icon:"✦", label:copy.general[0], desc:copy.general[1] };
+  const feat = featEntry ? { icon:<LockIcon size={36} strokeWidth={1.7} aria-hidden="true" />, label:featEntry[0], desc:featEntry[1] } : { icon:<SparklesIcon size={36} strokeWidth={1.7} aria-hidden="true" />, label:copy.general[0], desc:copy.general[1] };
 
   const handleStripe = () => {
     const link = PLANS_INFO[selectedPlan]?.stripe_link;

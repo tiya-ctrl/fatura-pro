@@ -5,6 +5,7 @@
 import React, { useState, useRef, useEffect } from "react";
 import { getLocale } from "../lib/locale";
 import { SUPPORT_ASSISTANT_NAME } from "../lib/chatPrompts";
+import { MessageCircle as MessageCircleIcon, X as XIcon } from "lucide-react";
 
 // The assistant's name and instructions live in ../lib/chatPrompts.js,
 // so the server can use them without trusting text sent from the browser.
@@ -101,7 +102,7 @@ export default function SupportChat({ userEmail, plan }) {
         style={{ position:"fixed", bottom:20, right:ar ? "auto" : 20, left:ar ? 20 : "auto", zIndex:60, width:56, height:56, borderRadius:"50%",
           background:"var(--gold)", color:"#000", border:"none", cursor:"pointer", fontSize:22, fontWeight:700,
           boxShadow:"0 6px 22px rgba(0,0,0,0.45)" }}>
-        {open ? "\u00d7" : "\u2709"}
+        {open ? <XIcon size={22} strokeWidth={2.2} aria-hidden="true" style={{ verticalAlign:"middle" }} /> : <MessageCircleIcon size={24} strokeWidth={2} aria-hidden="true" style={{ verticalAlign:"middle" }} />}
       </button>
 
       {open && (
