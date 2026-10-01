@@ -10,7 +10,7 @@ Key facts:
 - Free plan: 20 invoices, 5 clients, free forever
 - Essential plan: €9/month — unlimited invoices & clients, PDF export, payment reminders
 - Advanced plan: €19/month — team members, multi-business, Stripe integration, API access
-- Supports 17 currencies (EUR, USD, GBP, AED, SAR, MAD, DZD and more)
+- Supports 18 currencies (EUR, USD, GBP, AED, SAR, MAD, DZD and more)
 - Payment reminders: prepare editable text in 3 tones (Polite, Firm, Final), then the user opens it in Email or WhatsApp and sends it
 - UBL/XML export is intended for EN 16931 workflows; users must validate the profile their customer requires. Fatura Pro does not provide Peppol delivery
 - Recurring schedules create new pending invoices for review; they do not send invoices automatically
