@@ -2,6 +2,7 @@
 import { useState } from "react";
 import { supabase } from "../supabase";
 import { getLocale } from "../lib/locale";
+import { TriangleAlert as TriangleAlertIcon, Copy as CopyIcon } from "lucide-react";
 
 export default function ApiKeys({ keys, setKeys, userId }) {
   const ar = getLocale() === "ar";
@@ -41,9 +42,9 @@ export default function ApiKeys({ keys, setKeys, userId }) {
 
       {newKey && (
         <div style={{ padding: "14px 16px", background: "rgba(99,102,241,0.1)", border: "1px solid rgba(99,102,241,0.4)", borderRadius: 10, marginBottom: 14 }}>
-          <div style={{ fontWeight: 800, fontSize: 12, marginBottom: 6, color: "var(--gold)" }}>⚠️ {ui("COPY NOW — shown only once", "انسخه الآن — سيظهر مرة واحدة فقط")}</div>
+          <div style={{ fontWeight: 800, fontSize: 12, marginBottom: 6, color: "var(--gold)" }}><TriangleAlertIcon size={14} strokeWidth={2} aria-hidden="true" style={{ verticalAlign:"-3px", marginInlineEnd:6 }} />{ui("COPY NOW — shown only once", "انسخه الآن — سيظهر مرة واحدة فقط")}</div>
           <code style={{ fontSize: 12, wordBreak: "break-all", display: "block", marginBottom: 8 }}>{newKey}</code>
-          <button className="btn btn-ghost btn-sm" onClick={() => { navigator.clipboard.writeText(newKey); alert(ui("Copied ✓", "تم النسخ ✓")); }}>📋 {ui("Copy", "نسخ")}</button>
+          <button className="btn btn-ghost btn-sm" onClick={() => { navigator.clipboard.writeText(newKey); alert(ui("Copied ✓", "تم النسخ ✓")); }}><CopyIcon size={14} strokeWidth={2} aria-hidden="true" style={{ verticalAlign:"-3px", marginInlineEnd:6 }} />{ui("Copy", "نسخ")}</button>
           <button className="btn btn-ghost btn-sm" onClick={() => setNewKey(null)}>{ui("Done", "تم")}</button>
         </div>
       )}

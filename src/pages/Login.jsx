@@ -3,6 +3,7 @@ import { signIn, signUp, loginWithGoogle, needsEmailConfirmation, isEmailNotConf
 import { trackEvent } from "../lib/tracking";
 import { getLocale, localeHome, setLocale, tr } from "../lib/locale";
 import { attributionEventProperties } from "../lib/attribution";
+import { Eye as EyeIcon, EyeOff as EyeOffIcon, Mail as MailIcon, CircleCheck as CircleCheckIcon } from "lucide-react";
 
 /* ─── CSS ─────────────────────────────────────────────── */
 const FONTS = `@import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700&family=DM+Sans:wght@300;400;500;600&display=swap');`;
@@ -253,7 +254,7 @@ export default function LoginPage({ onLogin, onBack, returnTo = "/app" }) {
       <style>{FONTS + CSS}</style>
       <div className="login-bg-glow" /><div className="login-bg-grid" />
       <div className="login-card" style={{ textAlign:"center" }} role="status" aria-live="polite">
-        <div style={{ fontSize:52, marginBottom:14 }} aria-hidden="true">✉</div>
+        <div style={{ marginBottom:14, color:"var(--gold)" }} aria-hidden="true"><MailIcon size={48} strokeWidth={1.6} /></div>
         <div style={{ fontFamily:"'Playfair Display',serif", fontSize:26, color:"var(--gold)", marginBottom:10 }}>
           {t("check_email_title", "Check your email")}
         </div>
@@ -290,7 +291,7 @@ export default function LoginPage({ onLogin, onBack, returnTo = "/app" }) {
       <style>{FONTS + CSS}</style>
       <div className="login-bg-glow" /><div className="login-bg-grid" />
       <div className="login-card" style={{ textAlign:"center" }}>
-        <div style={{ fontSize:56, marginBottom:16 }}>✔</div>
+        <div style={{ marginBottom:16, color:"var(--gold)" }} aria-hidden="true"><CircleCheckIcon size={52} strokeWidth={1.6} /></div>
         <div style={{ fontFamily:"'Playfair Display',serif", fontSize:26, color:"var(--gold)", marginBottom:8 }}>
           {mode === "login" ? t("welcome_back", "Welcome back!") : t("account_created", "Account created!")}
         </div>
@@ -373,10 +374,10 @@ export default function LoginPage({ onLogin, onBack, returnTo = "/app" }) {
               onChange={e => set("password", e.target.value)} onKeyDown={handleKey}
               placeholder={mode === "signup" ? t("min_characters", "Min. 6 characters") : t("your_password", "Your password")}
               style={{ paddingRight:44 }} />
-            <button onClick={() => setShowPass(s => !s)}
+            <button type="button" aria-label={showPass ? "Hide password" : "Show password"} onClick={() => setShowPass(s => !s)}
               style={{ position:"absolute", right:12, top:"50%", transform:"translateY(-50%)",
                 background:"none", border:"none", cursor:"pointer", color:"var(--text2)", fontSize:16 }}>
-              {showPass ? "🙈" : "👁"}
+              {showPass ? <EyeOffIcon size={18} strokeWidth={2} aria-hidden="true" style={{ verticalAlign:"-3px" }} /> : <EyeIcon size={18} strokeWidth={2} aria-hidden="true" style={{ verticalAlign:"-3px" }} />}
             </button>
           </div>
           {errors.password && <div className="login-error">{errors.password}</div>}

@@ -19,7 +19,7 @@ export default function RecurringList({ recurring, setRecurring, userId, f }) {
       <div className="card-title" style={{ marginBottom: 12 }}>{ui("Recurring invoices", "الفواتير الدورية")}</div>
       {recurring.length === 0 && (
         <div style={{ color:"#999", fontSize:13 }}>
-          {ui("No recurring invoices. Open an invoice and click 🔄 to schedule new pending invoices for review and sending.", "لا توجد فواتير دورية. افتح فاتورة واضغط 🔄 لجدولة فواتير جديدة تراجعها قبل الإرسال.")}
+          {ui("No recurring invoices. Open an invoice and use Make recurring to schedule new pending invoices for review and sending.", "لا توجد فواتير دورية. افتح فاتورة واختر «اجعلها دورية» لجدولة فواتير جديدة تراجعها قبل الإرسال.")}
         </div>
       )}
       {recurring.map((r) => (

@@ -25,7 +25,7 @@ const RECEIPT_POSTS = [
       "Maak een foto van de bon of kies een pdf (max. 5 MB)",
       "Datum, leverancier, bedrag en btw worden automatisch ingevuld",
       "Controleer de gegevens en sla op",
-      "De bon blijft bij de uitgave: tik op 📎 om hem te openen",
+      "De bon blijft bij de uitgave: open hem via het paperclip-icoon",
       "De betaalde btw telt mee in je btw-overzicht per kwartaal",
     ],
     sections: [
@@ -33,7 +33,7 @@ const RECEIPT_POSTS = [
       { h: "Zo werkt bonnetjes scannen in FaturaPro", p: "Ga naar Uitgaven en kies Uitgave toevoegen. Bovenin het venster staat het vak Bon. Tik op Bon toevoegen: op je telefoon kun je direct een foto maken, op je computer kies je een foto of pdf. Terwijl FaturaPro de bon leest, zie je 'Bon wordt gelezen…'. Daarna zijn de velden ingevuld en staat er in het groen dat je de gegevens even moet controleren. Klopt alles, dan kies je Uitgave toevoegen." },
       { h: "Wat wordt er automatisch ingevuld?", p: "FaturaPro leest de datum, de leverancier, een korte omschrijving, de categorie, de valuta, het bedrag exclusief btw en het btw-tarief. Staan er meerdere btw-tarieven op één bon, zoals 9% en 21% in de supermarkt, dan rekent FaturaPro het gemiddelde tarief uit, zodat het totale btw-bedrag klopt. Een bon in dollars of ponden krijgt automatisch de juiste valuta, en die blijft in je overzichten apart van je euro's." },
       { h: "Controleer altijd even", p: "FaturaPro vult alleen in wat op de bon staat en raadt geen bedragen die er niet op staan. Is een foto wazig of is het document geen bon, dan zie je dat meteen en vul je de gegevens zelf in. De uitgave wordt pas opgeslagen als jij op opslaan tikt, dus je houdt altijd de controle over je administratie." },
-      { h: "Waar blijft je bon?", p: "De bon wordt afgeschermd opgeslagen bij de uitgave. Alleen jij en je teamleden kunnen hem openen, via het paperclip-icoon 📎 naast de uitgave. Maak je een fout, dan kun je de bon vervangen of verwijderen; verwijder je de uitgave, dan verdwijnt ook de bon. Sluit je het venster zonder op te slaan, dan wordt de geüploade foto direct weer verwijderd." },
+      { h: "Waar blijft je bon?", p: "De bon wordt afgeschermd opgeslagen bij de uitgave. Alleen jij en je teamleden kunnen hem openen, via het paperclip-icoon naast de uitgave. Maak je een fout, dan kun je de bon vervangen of verwijderen; verwijder je de uitgave, dan verdwijnt ook de bon. Sluit je het venster zonder op te slaan, dan wordt de geüploade foto direct weer verwijderd." },
       { h: "Van bon naar btw-overzicht", p: "Elke uitgave die je opslaat, telt mee in het btw-overzicht per kwartaal op de pagina Uitgaven. Daar zie je de btw op je verkopen, de btw die je zelf hebt betaald en wat je per saldo moet betalen of terugkrijgt, per valuta. Met één klik exporteer je de uitgaven van een kwartaal als CSV voor je boekhouder. FaturaPro doet zelf geen btw-aangifte; het overzicht helpt je die snel en goed in te vullen." },
       { h: "Tips voor een goede foto", p: "Leg de bon plat op een donkere ondergrond, zorg voor voldoende licht en zet de hele bon in beeld, inclusief de datum en het btw-deel onderaan. Vouw kreukels zo veel mogelijk glad. Scan kassabonnen van thermisch papier snel: de inkt vervaagt na een paar maanden, en een onleesbare bon helpt je later niets meer." },
       { h: "Voor wie is bonnetjes scannen handig?", p: "Vooral voor zzp'ers met veel kleine kosten: bouw- en klusbedrijven die dagelijks bij de bouwmarkt staan, creatieven die materiaal en software kopen, en consultants met reis- en lunchkosten. Hoe meer bonnen je hebt, hoe meer typwerk je bespaart en hoe minder aftrekbare btw je mist. Samen met offertes, terugkerende facturen en het btw-overzicht zit het in het Advanced-plan." },
@@ -154,7 +154,7 @@ const RECEIPT_POSTS = [
       "Photo (jpg, png, webp) or PDF up to 5 MB",
       "Date, supplier, amount and VAT are filled in for you",
       "Check the details, then save",
-      "Open the receipt later from the 📎 on the expense",
+      "Open the receipt later from the paperclip icon on the expense",
       "Keep business records for 7 years; a clear digital copy is allowed",
     ],
     sections: [

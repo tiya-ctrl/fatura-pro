@@ -1,4 +1,5 @@
 import { useState, useRef, useEffect } from "react";
+import { MessageCircle as MessageCircleIcon, X as XIcon } from "lucide-react";
 
 /* Support requests are sent through the server-side /api/chat endpoint.
    Never place an AI-provider secret in a REACT_APP_* browser variable. */
@@ -38,7 +39,7 @@ const timeStr = () =>
 
 const INIT_MSG = {
   role: "bot",
-  text: "Hey! 👋 I'm Fatūra's assistant. Ask me anything about features, pricing, or how to get started.",
+  text: "Hey! I'm Fatūra's assistant. Ask me anything about features, pricing, or how to get started.",
   time: timeStr(),
 };
 
@@ -232,7 +233,7 @@ export default function Chatbot() {
       console.error("Chatbot error:", err.message);
       setMsgs(m => [...m, {
         role: "bot",
-        text: "⚠️ Chat unavailable right now. Email us at support@faturapro.app",
+        text: "Chat unavailable right now. Email us at support@faturapro.app",
         time: timeStr(),
       }]);
     } finally {
@@ -322,7 +323,7 @@ export default function Chatbot() {
         onClick={() => setOpen(o => !o)}
         title="Chat with Fatūra Assistant"
       >
-        {open ? "✕" : "💬"}
+        {open ? <XIcon size={22} strokeWidth={2} aria-hidden="true" style={{ verticalAlign:"-3px" }} /> : <MessageCircleIcon size={24} strokeWidth={2} aria-hidden="true" style={{ verticalAlign:"-3px" }} />}
       </button>
     </>
   );

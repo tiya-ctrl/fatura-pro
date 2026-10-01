@@ -7,6 +7,7 @@ import { trackEvent } from "../lib/tracking";
 import { recordActivationEvent } from "../lib/activationEvents";
 import { getLocale, tr } from "../lib/locale";
 import { uploadReceipt, openReceipt, deleteReceipt, scanReceipt, receiptToForm } from "../lib/receipts";
+import { Download as DownloadIcon, Paperclip as PaperclipIcon, Camera as CameraIcon } from "lucide-react";
 
 const CATEGORIES = ["software", "hardware", "office", "travel", "marketing", "services", "other"];
 
@@ -114,7 +115,7 @@ export default function Expenses({ expenses, setExpenses, invoices, userId }) {
       <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center", marginBottom:14, gap:10, flexWrap:"wrap" }}>
         <div className="card-title">{t("expenses", "Expenses")}</div>
         <div style={{ display:"flex", gap:8, flexWrap:"wrap" }}>
-          <button className="btn btn-ghost" disabled={periodExpenses.length === 0} onClick={exportPeriod}>⬇ {t("export_quarter", "Export")} Q{quarter} CSV</button>
+          <button className="btn btn-ghost" disabled={periodExpenses.length === 0} onClick={exportPeriod}><DownloadIcon size={15} strokeWidth={2} aria-hidden="true" style={{ verticalAlign:"-3px", marginInlineEnd:6 }} />{t("export_quarter", "Export")} Q{quarter} CSV</button>
           <button className="btn btn-primary" onClick={() => setEditing("new")}>+ {t("add_expense", "Add expense")}</button>
         </div>
       </div>
@@ -134,7 +135,7 @@ export default function Expenses({ expenses, setExpenses, invoices, userId }) {
           </div>
           <div style={{ display:"flex", alignItems:"center", gap:10 }}>
             <span style={{ fontWeight:700 }}>{fmtCurrency(e.amount_incl, e.currency || "EUR")}</span>
-            {e.receipt_path && <button className="btn btn-ghost btn-sm" title={t("view_receipt", "View receipt")} aria-label={t("view_receipt", "View receipt")} onClick={() => showReceipt(e)}>📎</button>}
+            {e.receipt_path && <button className="btn btn-ghost btn-sm" title={t("view_receipt", "View receipt")} aria-label={t("view_receipt", "View receipt")} onClick={() => showReceipt(e)}><PaperclipIcon size={15} strokeWidth={2} aria-hidden="true" /></button>}
             <button className="btn btn-ghost btn-sm" onClick={() => setEditing(e)}>{t("edit", "Edit")}</button>
             <button className="btn btn-ghost btn-sm" style={{ color:"#e05555" }} onClick={() => handleDelete(e)}>✕</button>
           </div>
@@ -262,9 +263,9 @@ function ExpenseModal({ expense, onClose, onSave, onViewReceipt, ownerId, defaul
                   : t("receipt_hint", "Add a photo or PDF and we fill in the details. Keep receipts for 7 years.")}
               </div>
             </div>
-            {hasStoredReceipt && <button type="button" className="btn btn-ghost btn-sm" onClick={() => onViewReceipt(expense)}>📎 {t("view_receipt", "View receipt")}</button>}
+            {hasStoredReceipt && <button type="button" className="btn btn-ghost btn-sm" onClick={() => onViewReceipt(expense)}><PaperclipIcon size={14} strokeWidth={2} aria-hidden="true" style={{ verticalAlign:"-3px", marginInlineEnd:6 }} />{t("view_receipt", "View receipt")}</button>}
             <button type="button" className="btn btn-ghost btn-sm" disabled={busy} onClick={() => receiptInput.current && receiptInput.current.click()}>
-              📷 {receiptFile || hasStoredReceipt ? t("change_receipt", "Change") : t("add_receipt", "Add receipt")}
+              <CameraIcon size={15} strokeWidth={2} aria-hidden="true" style={{ verticalAlign:"-3px", marginInlineEnd:6 }} />{receiptFile || hasStoredReceipt ? t("change_receipt", "Change") : t("add_receipt", "Add receipt")}
             </button>
             {(receiptFile || hasStoredReceipt) && <button type="button" className="btn btn-ghost btn-sm" style={{ color:"#e05555" }} aria-label={t("remove_receipt", "Remove receipt")} title={t("remove_receipt", "Remove receipt")} onClick={clearReceipt}>✕</button>}
           </div>

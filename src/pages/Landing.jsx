@@ -5,6 +5,7 @@ import { storeReferralCode } from "../lib/referrals";
 import { applyPageSeo } from "../lib/pageSeo";
 import { initLandingMotion } from "../lib/landingMotion";
 import "./landing-v2.en.css";
+import { MessageCircle as MessageCircleIcon, X as XIcon } from "lucide-react";
 
 // Landing page design lives in landing-v2.en.css (generated from public/landing-v2.css,
 // scoped to .lv2). The chat widget keeps its original styles below.
@@ -105,7 +106,7 @@ const richText = (text) => String(text).split(/(\*\*[^*]+\*\*)/g).map((part, i) 
 
 /* ─── CHATBOT ────────────────────────────────────────────────── */
 const SUGGESTIONS = ["What's in the Essential plan?", "كيف تشتغل؟", "Do I need a company?", "How does the trial work?"];
-const INIT_MSG = { role:"bot", text:"Hey! 👋 I'm Fatūra's AI assistant. Ask me anything about features, pricing, or how to get started.", time: timeStr() };
+const INIT_MSG = { role:"bot", text:"Hey! I'm Fatūra's AI assistant. Ask me anything about features, pricing, or how to get started.", time: timeStr() };
 
 function Chatbot() {
   const [open, setOpen] = useState(false);
@@ -201,7 +202,7 @@ function Chatbot() {
         </div>
       )}
       <button className="chat-btn" onClick={() => setOpen(o => !o)} title="Chat with us" aria-label={open ? "Close chat" : "Chat with the AI assistant"}>
-        {open ? "✕" : "💬"}
+        {open ? <XIcon size={22} strokeWidth={2} aria-hidden="true" style={{ verticalAlign:"-3px" }} /> : <MessageCircleIcon size={24} strokeWidth={2} aria-hidden="true" style={{ verticalAlign:"-3px" }} />}
       </button>
     </>
   );

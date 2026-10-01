@@ -25,6 +25,7 @@ import { markOwnBrowser } from "../lib/ownVisits";
 import { getLocale, setLocale, tr } from "../lib/locale";
 import { printOnlyCss, printWithTitle } from "../lib/printDocument";
 import { INVOICE_LANGUAGES, documentDirection, invoiceCopy, normalizeDocumentLanguage } from "../lib/documentLanguage";
+import { Zap as ZapIcon, Lock as LockIcon, Repeat as RepeatIcon, Users as UsersIcon, FilePen as FilePenIcon, Link as LinkIcon, Download as DownloadIcon } from "lucide-react";
 
 const FONTS = `@import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600;700&family=DM+Sans:wght@300;400;500;600&display=swap');`;
 const INVOICE_ATTRIBUTION_URL = "https://faturapro.app/?utm_source=invoice&utm_medium=footer&utm_campaign=made_with_fatura_pro";
@@ -1102,7 +1103,7 @@ export default function InvoiceApp({ onGoHome }) {
                   </div>
                 </div>
                 <button className="btn btn-primary" style={{ width:"100%", justifyContent:"center", fontSize:13, padding:"10px 14px" }} onClick={() => setShowUpgrade(true)}>
-                  ⚡ {t("upgrade_pro", "Upgrade to Essential")}
+                  <ZapIcon size={15} strokeWidth={2} aria-hidden="true" style={{ verticalAlign:"-3px", marginInlineEnd:6 }} />{t("upgrade_pro", "Upgrade to Essential")}
                 </button>
               </div>
             )}
@@ -1127,14 +1128,14 @@ export default function InvoiceApp({ onGoHome }) {
               {(page === "dashboard" || page === "invoices") && (
   <>
   {page === "invoices" && hasBusinessAccess(plan) && (
-      <button className="btn btn-ghost" onClick={() => exportInvoicesCSV(invoicesWithStatus)}>⬇ {t("export_csv", "Export CSV")}</button>
+      <button className="btn btn-ghost" onClick={() => exportInvoicesCSV(invoicesWithStatus)}><DownloadIcon size={15} strokeWidth={2} aria-hidden="true" style={{ verticalAlign:"-3px", marginInlineEnd:6 }} />{t("export_csv", "Export CSV")}</button>
     )}
     {/* Desktop button */}
     {!isMobile && (
       <button className="btn btn-primary" onClick={() => openNewInvoice(page === "dashboard" ? "dashboard_topbar" : "invoice_list_topbar")}>
         <span className="btn-label">
           {!isPro && invoiceOnlyCount >= 20
-            ? "🔒 " + t("new_invoice", "New Invoice")
+            ? <><LockIcon size={14} strokeWidth={2} aria-hidden="true" style={{ verticalAlign:"-3px", marginInlineEnd:6 }} />{t("new_invoice", "New Invoice")}</>
             : t("new_invoice", "New Invoice")}
         </span>
       </button>
@@ -1200,7 +1201,7 @@ export default function InvoiceApp({ onGoHome }) {
             ))}
             {!isPro && (
               <div className="mobile-nav-item" onClick={() => setShowUpgrade(true)} style={{ color:"var(--gold)" }}>
-                <span className="m-icon">⚡</span>
+                <span className="m-icon"><ZapIcon size={22} strokeWidth={2} aria-hidden="true" /></span>
                 <span className="m-label">Essential</span>
               </div>
             )}
@@ -1278,7 +1279,7 @@ function Dashboard({ invoices, clients, businessProfileReady, userEmail, totalRe
     <div className="activation-shell">
       <section className="activation-hero">
         <div>
-          <div className="dashboard-kicker">{t("first_payment", "Welcome to FaturaPro 👋")}</div>
+          <div className="dashboard-kicker">{t("first_payment", "Welcome to FaturaPro")}</div>
           <h1>{t("create_paid_invoice", "Let's create your first invoice.")}</h1>
           <p>{t("guided_invoice_intro", "It only takes a couple of minutes. Enter the essentials, preview the finished document, and save your business and client details during the same guided flow.")}</p>
         </div>
@@ -1456,7 +1457,7 @@ function Invoices({ invoices, filterStatus, setFilterStatus, search, setSearch, 
                       <td>{statusBadge(inv.status)}{inv.status === "partial" && <div style={{ fontSize:10, color:"var(--text2)", marginTop:2 }}><bdi dir="ltr">{fmtCurrency(outstandingOf(inv), inv.currency || "EUR")}</bdi> {t("amount_left", "left")}</div>}</td>
                     <td>
                       <div className="action-btns">
-                        <button className="btn btn-ghost btn-sm" onClick={() => onPreview(inv)}>{t("view", "View")}</button>{onMakeRecurring && <button className="btn btn-ghost btn-sm" title={t("make_recurring", "Make recurring")} onClick={() => onMakeRecurring(inv)}>🔄</button>}
+                        <button className="btn btn-ghost btn-sm" onClick={() => onPreview(inv)}>{t("view", "View")}</button>{onMakeRecurring && <button className="btn btn-ghost btn-sm" title={t("make_recurring", "Make recurring")} aria-label={t("make_recurring", "Make recurring")} onClick={() => onMakeRecurring(inv)}><RepeatIcon size={15} strokeWidth={2} aria-hidden="true" /></button>}
                         {inv.docType !== "credit_note" && <button className="btn btn-ghost btn-sm" style={{ color:"var(--gold)" }} onClick={() => onEdit(inv)}>{t("edit", "Edit")}</button>}{onCreditNote && inv.docType !== "credit_note" && inv.status !== "draft" && <button className="btn btn-ghost btn-sm" title={t("create_credit", "Create a credit note for this invoice")} onClick={() => onCreditNote(inv)}>{t("credit_note", "Credit")}</button>}{onRecordPayment && inv.docType !== "credit_note" && inv.status !== "paid" && inv.status !== "draft" && <button className="btn btn-ghost btn-sm" title={t("record_payment", "Record a payment received")} onClick={() => onRecordPayment(inv)}>{t("payment", "Payment")}</button>}
                         {(inv.status === "overdue" || inv.status === "pending") && (
                           <button className="btn btn-ghost btn-sm" style={{ color:"var(--green)" }} onClick={() => onMarkPaid(inv.id)}>✓ {t("marked_paid", "Paid")}</button>
@@ -1505,7 +1506,7 @@ function Invoices({ invoices, filterStatus, setFilterStatus, search, setSearch, 
                 <div className="inv-card-due" style={{ color:inv.status==="overdue"?"var(--red)":"var(--text2)", fontWeight:inv.status==="overdue"?700:400 }}>{t("due_label", "Due")}: {formatDate(inv.due)}</div>
               </div>
               <div className="inv-card-actions">
-                <button className="btn btn-ghost btn-sm" onClick={() => onPreview(inv)}>{t("view", "View")}</button>{onMakeRecurring && <button className="btn btn-ghost btn-sm" title={t("make_recurring", "Make recurring")} onClick={() => onMakeRecurring(inv)}>🔄</button>}
+                <button className="btn btn-ghost btn-sm" onClick={() => onPreview(inv)}>{t("view", "View")}</button>{onMakeRecurring && <button className="btn btn-ghost btn-sm" title={t("make_recurring", "Make recurring")} aria-label={t("make_recurring", "Make recurring")} onClick={() => onMakeRecurring(inv)}><RepeatIcon size={15} strokeWidth={2} aria-hidden="true" /></button>}
                 {inv.docType !== "credit_note" && <button className="btn btn-ghost btn-sm" style={{ color:"var(--gold)" }} onClick={() => onEdit(inv)}>{t("edit", "Edit")}</button>}{onCreditNote && inv.docType !== "credit_note" && inv.status !== "draft" && <button className="btn btn-ghost btn-sm" title={t("create_credit", "Create a credit note for this invoice")} onClick={() => onCreditNote(inv)}>{t("credit_note", "Credit")}</button>}{onRecordPayment && inv.docType !== "credit_note" && inv.status !== "paid" && inv.status !== "draft" && <button className="btn btn-ghost btn-sm" title={t("record_payment", "Record a payment received")} onClick={() => onRecordPayment(inv)}>{t("payment", "Payment")}</button>}
                 {(inv.status === "overdue" || inv.status === "pending") && (
                   <button className="btn btn-ghost btn-sm" style={{ color:"var(--green)" }} onClick={() => onMarkPaid(inv.id)}>✓ {t("marked_paid", "Paid")}</button>
@@ -1531,7 +1532,7 @@ function Clients({ clients, invoices, f, onAdd, onDeleteClient, onEditClient }) 
     <div className="clients-grid">
   {clients.length === 0 && (
     <div className="empty" style={{ gridColumn: "1 / -1" }}>
-      <div className="empty-icon">🤝</div>
+      <div className="empty-icon"><UsersIcon size={44} strokeWidth={1.5} aria-hidden="true" /></div>
       <div className="empty-text">{t("no_clients", "No clients yet — add your first client to get started.")}</div>
       <button className="btn btn-primary" style={{ marginTop:16 }} onClick={onAdd}>{t("add_first_client", "Add your first client")}</button>
     </div>
@@ -1916,7 +1917,7 @@ React.useEffect(() => {
   <div style={{ background: "rgba(99,102,241,0.12)", border: "1px solid var(--gold)", borderRadius: 10,
     padding: "12px 16px", marginBottom: 18, display: "flex", alignItems: "center", justifyContent: "space-between", gap: 12 }}>
     <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-      <span style={{ fontSize: 18 }}>📝</span>
+      <span style={{ color:"var(--gold)", display:"inline-flex" }}><FilePenIcon size={20} strokeWidth={2} aria-hidden="true" /></span>
       <div>
         <div style={{ fontSize: 13, fontWeight: 700, color: "var(--gold)" }}>{t("restored_edits", "Unsaved Changes Restored")}</div>
         <div style={{ fontSize: 11, color: "var(--text2)" }}>{t("restored_edits_help", "You have unsaved edits for this invoice. Continue where you left off?")}</div>
@@ -2235,7 +2236,7 @@ function FirstInvoiceSuccess({ invoice, onPreview, onCreateAnother, onDashboard 
     <div className="modal-overlay">
       <div className="modal" style={{ maxWidth:500, textAlign:"center" }}>
         <div style={{ width:58, height:58, margin:"0 auto 18px", borderRadius:"50%", display:"grid", placeItems:"center", background:"rgba(76,175,137,.14)", border:"1px solid rgba(76,175,137,.35)", color:"var(--green)", fontSize:28 }}>✓</div>
-        <div className="modal-title" style={{ textAlign:"center", color:"var(--gold)", fontSize:26 }}>{t("first_invoice_ready", "Your first invoice is ready 🎉")}</div>
+        <div className="modal-title" style={{ textAlign:"center", color:"var(--gold)", fontSize:26 }}>{t("first_invoice_ready", "Your first invoice is ready")}</div>
         <p style={{ margin:"10px auto 22px", maxWidth:390, color:"var(--text2)", fontSize:14, lineHeight:1.7 }}>
           {t("first_invoice_ready_body", "Preview the finished document, save it as a PDF, or continue from your dashboard.")}
         </p>
@@ -2398,7 +2399,7 @@ function InvoicePreview({ invoice, onExportUBL, onClose, currency, plan, isFirst
           <div className="preview-footer" style={{ marginTop:32 }}>
             {hasBusinessAccess(plan) && invoice.status !== "paid" && (
             <div style={{ textAlign:"center", margin:"14px 0" }}>
-              <button className="btn btn-ghost btn-sm" onClick={() => { const url = window.location.origin + "/pay/" + encodeURIComponent(invoice.id); navigator.clipboard.writeText(url); alert(copy.paymentCopied + ":\n" + url); }}>🔗 {copy.copyPayment}</button>
+              <button className="btn btn-ghost btn-sm" onClick={() => { const url = window.location.origin + "/pay/" + encodeURIComponent(invoice.id); navigator.clipboard.writeText(url); alert(copy.paymentCopied + ":\n" + url); }}><LinkIcon size={14} strokeWidth={2} aria-hidden="true" style={{ verticalAlign:"-3px", marginInlineEnd:6 }} />{copy.copyPayment}</button>
             </div>
           )}
             <div>{invoice.sellerName ? (invoice.sellerName + " · ") : ""}{copy.thankYou}</div>
