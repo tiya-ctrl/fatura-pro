@@ -1,7 +1,7 @@
 // Subscription emails: a confirmation when someone subscribes (or starts the
 // Advanced trial), a notice to the FaturaPro team, and a reminder the day before
 // a paid Stripe trial turns into a charge.
-import { ambassadorAdminEmails, htmlEscape, sendEmail } from "./email.js";
+import { EMAIL_BRAND_HEADER, ambassadorAdminEmails, htmlEscape, sendEmail } from "./email.js";
 
 const PORTAL_URL = "https://billing.stripe.com/p/login/fZu4gzepGdT05Gx48j5ZC00";
 const PRICES = { business: { name: "Advanced", amount: "€19" }, pro: { name: "Essential", amount: "€9" } };
@@ -12,7 +12,7 @@ function layout(title, paragraphs, button) {
   return [
     '<div style="background:#0d0d0d;padding:32px 16px;font-family:-apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif;">',
     '<div style="max-width:520px;margin:0 auto;background:#141414;border:1px solid #2a2a2a;border-radius:12px;padding:32px;">',
-    '<div style="color:#6366F1;font-size:20px;font-weight:600;">Fat&umacr;ra Pro</div>',
+    EMAIL_BRAND_HEADER,
     '<div style="height:1px;background:#2a2a2a;margin:20px 0 24px;"></div>',
     '<h1 style="color:#ffffff;font-size:20px;margin:0 0 16px;font-weight:600;">' + title + "</h1>",
     ...paragraphs.map((p) => '<p style="color:#c9c9c9;font-size:15px;line-height:1.6;margin:0 0 16px;">' + p + "</p>"),
@@ -36,11 +36,11 @@ export async function sendSubscriptionStarted({ to, plan, sub }) {
         "You now have full access to <strong style=\"color:#6366F1;\">" + price.name + "</strong>, free until <strong style=\"color:#ffffff;\">" + day(sub.trial_end) + "</strong>.",
         "After that, <strong style=\"color:#ffffff;\">" + price.amount + " per month</strong> is charged automatically to the card you entered. We will email you the day before.",
         "Not for you? Cancel any time before " + day(sub.trial_end) + " and you will not be charged. <a href=\"" + PORTAL_URL + "\" style=\"color:#6366F1;\">Manage or cancel your subscription</a>.",
-      ], { href: "https://faturapro.app/app", label: "Open Fat&umacr;ra Pro" })
+      ], { href: "https://faturapro.app/app", label: "Open FaturaPro" })
     : layout("Welcome to " + price.name, [
         "Your <strong style=\"color:#6366F1;\">" + price.name + "</strong> subscription is active: " + price.amount + " per month. Stripe sends the payment receipt separately.",
         "You can change or cancel your subscription any time. <a href=\"" + PORTAL_URL + "\" style=\"color:#6366F1;\">Manage your subscription</a>.",
-      ], { href: "https://faturapro.app/app", label: "Open Fat&umacr;ra Pro" });
+      ], { href: "https://faturapro.app/app", label: "Open FaturaPro" });
 
   const results = await Promise.allSettled([
     to ? sendEmail({ to, subject, html }) : Promise.resolve({ sent: false }),

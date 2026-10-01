@@ -15,6 +15,15 @@ export function ambassadorAdminEmails() {
     .filter(email => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)))];
 }
 
+// Brand header for the dark email layouts: the logo mark on a light tile (the mark is
+// dark navy) and "FaturaPro" as on the site. Plain characters only — some mail apps
+// (Gmail on iOS) show HTML entities such as &umacr; literally.
+export const EMAIL_BRAND_HEADER =
+  '<table role="presentation" cellpadding="0" cellspacing="0" border="0"><tr>' +
+  '<td style="background:#ffffff;border-radius:10px;padding:5px;line-height:0;"><img src="https://faturapro.app/fatura-logo.png" width="30" height="30" alt="FaturaPro" style="display:block;border:0;"></td>' +
+  '<td style="padding-left:12px;font-family:-apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif;font-size:21px;font-weight:700;color:#ffffff;">Fatura<span style="color:#5EEAD4;">Pro</span></td>' +
+  "</tr></table>";
+
 export async function sendEmail(payload) {
   if (!process.env.RESEND_API_KEY) return { sent:false, reason:"email_not_configured" };
   const response = await fetch("https://api.resend.com/emails", {

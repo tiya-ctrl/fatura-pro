@@ -2,7 +2,7 @@
 // Run once a day from /api/trial-reminder. Each email goes to a person at most
 // once (timestamps on user_onboarding), and every email has an unsubscribe link.
 import crypto from "node:crypto";
-import { ambassadorAdminEmails, htmlEscape, sendEmail } from "./email.js";
+import { EMAIL_BRAND_HEADER, ambassadorAdminEmails, htmlEscape, sendEmail } from "./email.js";
 
 const DAY = 86400000;
 const SITE = "https://faturapro.app";
@@ -62,7 +62,7 @@ function layout(lang, title, paragraphs, button, userId) {
   return [
     '<div style="background:#0d0d0d;padding:32px 16px;font-family:-apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif;">',
     '<div style="max-width:520px;margin:0 auto;background:#141414;border:1px solid #2a2a2a;border-radius:12px;padding:32px;">',
-    '<div style="color:#6366F1;font-size:20px;font-weight:600;">Fat&umacr;ra Pro</div>',
+    EMAIL_BRAND_HEADER,
     '<div style="height:1px;background:#2a2a2a;margin:20px 0 24px;"></div>',
     '<h1 style="color:#ffffff;font-size:21px;margin:0 0 16px;font-weight:600;">' + title + "</h1>",
     ...paragraphs.map((p) => '<p style="color:#c9c9c9;font-size:15px;line-height:1.65;margin:0 0 16px;">' + p + "</p>"),

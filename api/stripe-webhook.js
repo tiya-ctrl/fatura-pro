@@ -3,6 +3,7 @@ import { createClient } from "@supabase/supabase-js";
 import { recordAmbassadorCommission, reverseAmbassadorCommission } from "../server/ambassador-commissions.js";
 import { enforceOneTrial } from "../server/trial-claims.js";
 import { sendSubscriptionStarted } from "../server/subscription-emails.js";
+import { EMAIL_BRAND_HEADER } from "../server/email.js";
 
 export const config = {
   api: {
@@ -222,7 +223,7 @@ export default async function handler(req, res) {
             const html = [
               '<div style="background:#0d0d0d;padding:32px 16px;font-family:-apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif;">',
               '<div style="max-width:520px;margin:0 auto;background:#141414;border:1px solid #2a2a2a;border-radius:12px;padding:32px;">',
-              '<div style="color:#6366F1;font-size:20px;font-weight:600;letter-spacing:0.5px;">Fat&umacr;ra Pro</div>',
+              EMAIL_BRAND_HEADER,
               '<div style="height:1px;background:#2a2a2a;margin:20px 0 24px;"></div>',
               '<h1 style="color:#ffffff;font-size:20px;margin:0 0 16px;font-weight:600;">Your cancellation is confirmed</h1>',
               '<p style="color:#c9c9c9;font-size:15px;line-height:1.6;margin:0 0 16px;">',
@@ -230,13 +231,13 @@ export default async function handler(req, res) {
               '<strong style="color:#ffffff;">' + endDate + '</strong>. You will not be charged again.',
               '</p>',
               '<p style="color:#c9c9c9;font-size:15px;line-height:1.6;margin:0 0 16px;">',
-              'After that date your account moves to the Free plan. <strong style="color:#ffffff;">Nothing is deleted</strong> &mdash; ',
+              'After that date your account moves to the Free plan. <strong style="color:#ffffff;">Nothing is deleted</strong> — ',
               'your invoices, clients and settings stay exactly where they are. The Free plan includes 20 invoices and 5 clients.',
               '</p>',
               '<p style="color:#c9c9c9;font-size:15px;line-height:1.6;margin:0 0 24px;">',
-              'Changed your mind? You can restart your subscription any time from <strong style="color:#ffffff;">Settings &rarr; Subscription</strong> inside the app.',
+              'Changed your mind? You can restart your subscription any time from <strong style="color:#ffffff;">Settings → Subscription</strong> inside the app.',
               '</p>',
-              '<a href="https://faturapro.app/app" style="display:inline-block;background:#6366F1;color:#0d0d0d;text-decoration:none;padding:12px 24px;border-radius:8px;font-weight:600;font-size:15px;">Open Fat&umacr;ra Pro</a>',
+              '<a href="https://faturapro.app/app" style="display:inline-block;background:#6366F1;color:#0d0d0d;text-decoration:none;padding:12px 24px;border-radius:8px;font-weight:600;font-size:15px;">Open FaturaPro</a>',
               '<div style="height:1px;background:#2a2a2a;margin:28px 0 20px;"></div>',
               '<p style="color:#7a7a7a;font-size:13px;line-height:1.6;margin:0;">',
               'If you cancelled by mistake, or something in the app did not work for you, just reply to this email or write to ',
