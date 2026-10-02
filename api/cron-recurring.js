@@ -2,6 +2,7 @@
 // يشتغل يومياً عبر Vercel Cron: يولد الفواتير المستحقة ويحدث المواعيد
 import { createClient } from "@supabase/supabase-js";
 import { advancedUserIds } from "../server/plan-access.js";
+import { nextInvoiceId } from "../src/lib/invoiceNumber.js";
 const supabase = createClient(
   process.env.REACT_APP_SUPABASE_URL,
   process.env.SUPABASE_SERVICE_ROLE_KEY
@@ -75,7 +76,12 @@ export default async function handler(req, res) {
     }
 
     const t = rec.template || {};
-    const invoiceId = "INV-R-" + Date.now().toString().slice(-6) + "-" + Math.random().toString(36).slice(2, 5).toUpperCase();
+    // Same numbering series as invoices made in the app (prefix + next number).
+    const [{ data: ownIds }, { data: profile }] = await Promise.all([
+      supabase.from("invoices").select("id").eq("user_id", rec.user_id),
+      supabase.from("business_profile").select("invoice_prefix").eq("user_id", rec.user_id).maybeSingle(),
+    ]);
+    const invoiceId = nextInvoiceId((ownIds || []).map((inv) => inv.id), profile?.invoice_prefix);
 
     const row = {
       id: invoiceId,

@@ -24,6 +24,7 @@ import { fetchAmbassadorAdminAccess } from "../lib/ambassadors";
 import { markOwnBrowser } from "../lib/ownVisits";
 import { getLocale, setLocale, tr } from "../lib/locale";
 import { printOnlyCss, printWithTitle } from "../lib/printDocument";
+import { nextInvoiceId } from "../lib/invoiceNumber";
 import { INVOICE_LANGUAGES, documentDirection, invoiceCopy, normalizeDocumentLanguage } from "../lib/documentLanguage";
 import { Zap as ZapIcon, Lock as LockIcon, Repeat as RepeatIcon, Users as UsersIcon, FilePen as FilePenIcon, Link as LinkIcon, Download as DownloadIcon } from "lucide-react";
 import { LayoutDashboard as LayoutDashboardIcon, FileText as FileTextIcon, FileSignature as FileSignatureIcon, Receipt as ReceiptIcon, BarChart3 as BarChart3Icon, Settings as SettingsIcon, Sparkles as SparklesIcon } from "lucide-react";
@@ -1177,7 +1178,7 @@ export default function InvoiceApp({ onGoHome }) {
                   const { quoteToInvoice } = require("../lib/quotes");
                   const inv = quoteToInvoice(
                     q,
-                    "INV-" + String(invoices.length + 1).padStart(3, "0") + "-" + Date.now().toString().slice(-4),
+                    nextInvoiceId(invoices.map(i => i.id), businessProfile?.invoice_prefix),
                     { paymentTerms:businessProfile?.payment_terms ?? 30 }
                   );
                   return addInvoice(inv, { source:"quote_conversion", showSuccess:false });
@@ -1212,8 +1213,8 @@ export default function InvoiceApp({ onGoHome }) {
 
         {(page === "dashboard" || page === "invoices") && <button className="mobile-fab" aria-label={t("new_invoice", "Create invoice")} onClick={() => openNewInvoice(page === "dashboard" ? "dashboard_fab" : "invoice_list_fab")}>+</button>}
 
-        {showNewInvoice && <NewInvoiceModal bizProfiles={hasBusinessAccess(plan) ? bizProfiles : []} clients={clients} onSave={addInvoice} onClose={handleNewInvoiceClose} invoiceCount={invoices.length} currency={currency} f={f} defaultInvoiceLanguage={normalizeDocumentLanguage(businessProfile?.default_invoice_language)} draftData={invoiceDraft} onDiscardDraft={discardDraft} />}
-        {editingInvoice && <NewInvoiceModal bizProfiles={hasBusinessAccess(plan) ? bizProfiles : []} clients={clients} onSave={updateInvoice} onClose={(draftData) => { if (draftData) setEditDraft(draftData); setEditingInvoice(null); }} invoiceCount={invoices.length} currency={currency} f={f} defaultInvoiceLanguage={normalizeDocumentLanguage(businessProfile?.default_invoice_language)} editData={editingInvoice} editDraft={editDraft} onDiscardEditDraft={() => setEditDraft(null)} />}
+        {showNewInvoice && <NewInvoiceModal bizProfiles={hasBusinessAccess(plan) ? bizProfiles : []} clients={clients} onSave={addInvoice} onClose={handleNewInvoiceClose} invoiceIds={invoices.map(i => i.id)} invoicePrefix={businessProfile?.invoice_prefix} currency={currency} f={f} defaultInvoiceLanguage={normalizeDocumentLanguage(businessProfile?.default_invoice_language)} draftData={invoiceDraft} onDiscardDraft={discardDraft} />}
+        {editingInvoice && <NewInvoiceModal bizProfiles={hasBusinessAccess(plan) ? bizProfiles : []} clients={clients} onSave={updateInvoice} onClose={(draftData) => { if (draftData) setEditDraft(draftData); setEditingInvoice(null); }} invoiceIds={invoices.map(i => i.id)} invoicePrefix={businessProfile?.invoice_prefix} currency={currency} f={f} defaultInvoiceLanguage={normalizeDocumentLanguage(businessProfile?.default_invoice_language)} editData={editingInvoice} editDraft={editDraft} onDiscardEditDraft={() => setEditDraft(null)} />}
         {showNewClient && <NewClientModal onSave={addClient} onClose={() => setShowNewClient(false)} />}
         {editingClient && <NewClientModal onSave={async (updated) => { const { error } = await supabase.from("clients").update({ name:updated.name, email:updated.email, phone:updated.phone, country:updated.country }).eq("id", editingClient.id); if (error) { window.alert(t("client_save_error", "Could not save this client.") + "\n\n" + error.message); return; } setClients(prev => prev.map(c => c.id === editingClient.id ? { ...c, ...updated } : c)); setEditingClient(null); }} onClose={() => setEditingClient(null)} editData={editingClient} />}
         {firstInvoiceSuccess && <FirstInvoiceSuccess
@@ -1704,7 +1705,7 @@ function Settings({ currency, setCurrency, userEmail, invoices, onProfileSaved }
   );
 }
 
-function NewInvoiceModal({ bizProfiles = [], clients, onSave, onClose, invoiceCount, currency: globalCurrency, f: globalF, defaultInvoiceLanguage = "en", editData, draftData, onDiscardDraft, editDraft, onDiscardEditDraft }) {
+function NewInvoiceModal({ bizProfiles = [], clients, onSave, onClose, invoiceIds = [], invoicePrefix, currency: globalCurrency, f: globalF, defaultInvoiceLanguage = "en", editData, draftData, onDiscardDraft, editDraft, onDiscardEditDraft }) {
   const locale = getLocale();
   const t = (key, fallback) => tr(key, fallback, locale);
   const isEdit = !!editData;
@@ -1841,7 +1842,7 @@ React.useEffect(() => {
       setStep(2);
       return alert(t("line_item_required", "Please add at least one line item description (Step 3)"));
     }
-    const id = isEdit ? editData.id : (form.invoiceNumber && form.invoiceNumber.trim() ? form.invoiceNumber.trim() : "INV-" + String(invoiceCount + 1).padStart(3, "0") + "-" + Date.now().toString().slice(-4));
+    const id = isEdit ? editData.id : (form.invoiceNumber && form.invoiceNumber.trim() ? form.invoiceNumber.trim() : nextInvoiceId(invoiceIds, invoicePrefix));
     // Only draft / pending / paid are ever stored. "overdue", "partial" and
     // "cancelled" are worked out on screen from the due date, the payments and
     // any credit note - writing one back would freeze the invoice in that state.

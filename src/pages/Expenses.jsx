@@ -109,6 +109,7 @@ export default function Expenses({ expenses, setExpenses, invoices, userId }) {
             <div className="stat-change">Q{quarter} {year}</div>
           </div>
         </div>
+        <div style={{ fontSize:12, color:"#999", marginTop:12 }}>{t("vat_period_note", "Only invoices and expenses dated in the selected quarter are counted. Choose another quarter above to see that period.")}</div>
       </div>
 
       {/* Expenses list */}
@@ -128,7 +129,7 @@ export default function Expenses({ expenses, setExpenses, invoices, userId }) {
       )}
 
       {expenses.map((e) => (
-        <div key={e.id} className="card" style={{ display:"flex", justifyContent:"space-between", alignItems:"center", marginBottom:8, padding:"12px 16px", flexWrap:"wrap", gap:8 }}>
+        <div key={e.id} className="card" title={periodExpenses.includes(e) ? undefined : t("expense_other_period", "Not in the selected quarter")} style={{ display:"flex", justifyContent:"space-between", alignItems:"center", marginBottom:8, padding:"12px 16px", flexWrap:"wrap", gap:8, opacity: periodExpenses.includes(e) ? 1 : 0.55 }}>
           <div>
             <div style={{ fontWeight:700 }}>{e.description}</div>
             <div style={{ fontSize:12, color:"#999" }}>{e.date} · {e.category}{e.supplier ? " · " + e.supplier : ""} · VAT {e.vat_rate}%</div>
