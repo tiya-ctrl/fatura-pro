@@ -1792,7 +1792,7 @@ React.useEffect(() => {
     buyerLogo: sourceData.buyerLogo || null,
     date: sourceData.date || new Date().toISOString().split("T")[0],
     due: sourceData.due || "",
-    tax: sourceData.tax != null ? sourceData.tax : 20,
+    tax: sourceData.tax != null ? sourceData.tax : 21,
     discount: sourceData.discount != null ? sourceData.discount : 0,
     depositPct: sourceData.depositPct != null ? sourceData.depositPct : 0,
     notes: sourceData.notes || "",
@@ -2113,7 +2113,7 @@ React.useEffect(() => {
             <button className="btn btn-ghost btn-sm" onClick={addItem} style={{ marginBottom:14 }}>{t("add_line", "+ Add Line Item")}</button>
             <div className="form-grid" style={{ gridTemplateColumns:"1fr 1fr", marginBottom:0 }}>
               <div className="form-group"><label>{t("discount", "Discount (%)")}</label><input type="number" value={form.discount===0?"":form.discount} min={0} max={100} onChange={e => set("discount", e.target.value===""?0:+e.target.value)} placeholder="0" /></div>
-              <div className="form-group"><label>{t("deposit", "Deposit / upfront (%)")}</label><input type="number" value={form.depositPct===0?"":form.depositPct} min={0} max={100} placeholder="e.g. 50" onChange={e => set("depositPct", e.target.value==="" ? 0 : clampPercent(e.target.value))} /></div><div className="form-group"><label>{t("tax", "Tax / VAT (%)")}</label><input type="number" value={form.tax===0?"":form.tax} min={0} onChange={e => set("tax", e.target.value===""?0:+e.target.value)} placeholder="20" /></div>
+              <div className="form-group"><label>{t("deposit", "Deposit / upfront (%)")}</label><input type="number" value={form.depositPct===0?"":form.depositPct} min={0} max={100} placeholder="e.g. 50" onChange={e => set("depositPct", e.target.value==="" ? 0 : clampPercent(e.target.value))} /></div><div className="form-group"><label>{t("tax", "Tax / VAT (%)")}</label><input type="number" value={form.tax} min={0} onChange={e => set("tax", e.target.value===""?0:+e.target.value)} placeholder="21" /></div>
             </div>
             <div className="totals-box" style={{ marginTop:12 }}>
               <div className="totals-row"><span>{t("subtotal", "Subtotal")}</span><span>{fLocal(subtotal)}</span></div>
