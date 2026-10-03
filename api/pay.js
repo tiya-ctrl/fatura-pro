@@ -17,6 +17,21 @@ const supabaseAdmin = createClient(
 
 const ZERO_DECIMAL = ["jpy", "krw", "vnd"];
 
+// What is still open on an invoice, the same way the app shows it: the total minus
+// payments already recorded. Credit notes, drafts and invoices cancelled by a
+// credit note cannot be paid online.
+async function payableAmount(inv) {
+  if (inv.doc_type === "credit_note" || inv.status === "draft") return 0;
+  const total = Math.abs(Number(inv.total) || 0);
+  const paid = Number(inv.paid_amount) || 0;
+  if (paid === 0) {
+    const { data: credit } = await supabaseAdmin
+      .from("invoices").select("id").eq("credit_of", inv.id).eq("doc_type", "credit_note").limit(1);
+    if (credit && credit.length) return 0;
+  }
+  return Math.max(0, Math.round((total - paid) * 100) / 100);
+}
+
 export default async function handler(req, res) {
   // Reuse this existing function for lightweight visitor geolocation so the
   // Hobby deployment stays within Vercel's serverless-function limit.
@@ -45,7 +60,7 @@ export default async function handler(req, res) {
     if (!id) return res.status(400).json({ error: "Missing id" });
     const { data: inv, error } = await supabaseAdmin
       .from("invoices")
-      .select("id, user_id, seller_name, client, total, currency, status, date, due, document_language")
+      .select("id, user_id, seller_name, client, total, paid_amount, doc_type, currency, status, date, due, document_language")
       .eq("id", id).maybeSingle();
     if (error || !inv) return res.status(404).json({ error: "Invoice not found" });
     const { data: acct } = await supabaseAdmin
@@ -65,8 +80,9 @@ export default async function handler(req, res) {
         payments_enabled: false,
       });
     }
-    const { user_id, ...safe } = inv;
-    return res.status(200).json({ ...safe, payments_enabled: true });
+    const { user_id, paid_amount, doc_type, ...safe } = inv;
+    const amountDue = await payableAmount(inv);
+    return res.status(200).json({ ...safe, amount_due: amountDue, payments_enabled: amountDue > 0 || inv.status === "paid" });
   }
 
   // --- إنشاء جلسة الدفع ---
@@ -88,9 +104,10 @@ export default async function handler(req, res) {
       }
 
       const currency = (inv.currency || "EUR").toLowerCase();
+      const due = await payableAmount(inv);
       const amount = ZERO_DECIMAL.includes(currency)
-        ? Math.round(Number(inv.total))
-        : Math.round(Number(inv.total) * 100);
+        ? Math.round(due)
+        : Math.round(due * 100);
       if (!amount || amount <= 0) return res.status(400).json({ error: "Invalid amount" });
 
       const origin = safeOrigin(req);

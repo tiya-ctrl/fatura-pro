@@ -5,6 +5,7 @@
 import crypto from "crypto";
 import { createClient } from "@supabase/supabase-js";
 import { hasAdvancedAccess } from "../../server/plan-access.js";
+import { nextInvoiceId } from "../../src/lib/invoiceNumber.js";
 
 const supabaseAdmin = createClient(
   process.env.REACT_APP_SUPABASE_URL,
@@ -21,6 +22,15 @@ async function authenticate(req) {
   // تحديث آخر استخدام (بدون انتظار)
   supabaseAdmin.from("api_keys").update({ last_used_at: new Date().toISOString() }).eq("id", data.id).then(() => {});
   return data.user_id;
+}
+
+// No due date given: use the payment term from the settings (30 days by default).
+function dueFrom(date, terms) {
+  const days = terms != null && terms !== "" && Number(terms) >= 0 ? Number(terms) : 30;
+  const d = new Date(date + "T00:00:00Z");
+  if (Number.isNaN(d.getTime())) return null;
+  d.setUTCDate(d.getUTCDate() + days);
+  return d.toISOString().split("T")[0];
 }
 
 export default async function handler(req, res) {
@@ -57,19 +67,33 @@ export default async function handler(req, res) {
     const taxAmt = (subtotal - discountAmt) * (tax / 100);
     const total = subtotal - discountAmt + taxAmt;
 
-    const id = "INV-API-" + Date.now().toString().slice(-6) + "-" + crypto.randomBytes(2).toString("hex").toUpperCase();
+    // Same numbering series and seller details as invoices made in the app.
+    const [{ data: ownIds }, { data: profile }] = await Promise.all([
+      supabaseAdmin.from("invoices").select("id").eq("user_id", userId),
+      supabaseAdmin.from("business_profile").select("*").eq("user_id", userId).maybeSingle(),
+    ]);
+    const invoiceDate = b.date || new Date().toISOString().split("T")[0];
+    const newId = () => nextInvoiceId((ownIds || []).map((inv) => inv.id), profile?.invoice_prefix);
     const row = {
-      id, user_id: userId,
+      id: newId(), user_id: userId,
+      seller_name: profile?.name || null, seller_email: profile?.email || null, seller_phone: profile?.phone || null,
+      seller_address: profile?.address || null, seller_vat: profile?.vat_number || null, seller_country: profile?.country || null,
+      bank_info: profile?.bank_info || null,
       client: String(b.client), email: b.email || null,
-      date: b.date || new Date().toISOString().split("T")[0],
-      due: b.due || null, status: "pending",
+      date: invoiceDate,
+      due: b.due || dueFrom(invoiceDate, profile?.payment_terms), status: "pending",
       amount: total, subtotal, discount_amt: discountAmt, tax_amt: taxAmt, total,
       tax, discount, notes: b.notes || null, currency: b.currency || "EUR",
       items,
     };
-    const { error } = await supabaseAdmin.from("invoices").insert(row);
+    let { error } = await supabaseAdmin.from("invoices").insert(row);
+    for (let attempt = 0; error && error.code === "23505" && attempt < 5; attempt++) {
+      await new Promise((r) => setTimeout(r, 7));
+      row.id = newId();
+      ({ error } = await supabaseAdmin.from("invoices").insert(row));
+    }
     if (error) { console.error("api create invoice:", error.message); return res.status(500).json({ error: "Could not create invoice" }); }
-    return res.status(201).json({ invoice: { id, total, currency: row.currency, status: "pending" } });
+    return res.status(201).json({ invoice: { id: row.id, total, currency: row.currency, status: "pending" } });
   }
 
   return res.status(405).json({ error: "Method not allowed" });

@@ -99,7 +99,7 @@ export default function ApiDocs() {
           <Code>{`{
   "invoices": [
     {
-      "id": "INV-API-482913-A7F2",
+      "id": "INV-012-4821",
       "client": "Atlas Marketing GmbH",
       "email": "client@atlas-marketing.de",
       "date": "2026-08-01",
@@ -161,7 +161,7 @@ export default function ApiDocs() {
           <P>Example response (HTTP 201):</P>
           <Code>{`{
   "invoice": {
-    "id": "INV-API-482913-A7F2",
+    "id": "INV-012-4821",
     "total": 2904,
     "currency": "EUR",
     "status": "pending"

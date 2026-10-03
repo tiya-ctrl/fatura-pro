@@ -44,7 +44,7 @@ export default async function handler(req, res) {
       // Without this check, another seller could put someone else's invoice id
       // in their own checkout and mark that invoice as paid.
       const { data: inv } = await supabaseAdmin
-        .from("invoices").select("user_id").eq("id", invoiceId).maybeSingle();
+        .from("invoices").select("user_id, total").eq("id", invoiceId).maybeSingle();
       const { data: acct } = inv
         ? await supabaseAdmin.from("stripe_accounts").select("stripe_account_id").eq("user_id", inv.user_id).maybeSingle()
         : { data: null };
@@ -55,7 +55,7 @@ export default async function handler(req, res) {
 
       const { error } = await supabaseAdmin
         .from("invoices")
-        .update({ status: "paid" })
+        .update({ status: "paid", paid_amount: Math.abs(Number(inv.total) || 0) }) // the app reads the balance from paid_amount
         .eq("id", invoiceId)
         .neq("status", "paid"); // idempotent: لا يعيد تحديث المدفوعة
       if (error) console.error("invoice-paid-webhook update:", error.message);
