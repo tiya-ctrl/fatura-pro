@@ -248,6 +248,7 @@ const STYLES = `
   .preview-table th:nth-child(2), .preview-table td:nth-child(2) { width: 8% !important; }
   .preview-table th:nth-child(3), .preview-table td:nth-child(3) { width: 20% !important; }
   .invoice-notes { page-break-inside: avoid; }
+  .no-print { display: none !important; }
   .invoice-bank-info { page-break-inside: avoid; }
   .print-hide { display: none !important; }
   * { box-shadow: none !important; -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; }
@@ -774,7 +775,14 @@ export default function InvoiceApp({ onGoHome }) {
     const { data: { user } } = await supabase.auth.getUser();
     if (!user) return;
     const row = { id: inv.id, user_id: ownerId || user.id, created_by: user.email, client: inv.client, email: inv.email, seller_name: inv.sellerName, seller_email: inv.sellerEmail, seller_phone: inv.sellerPhone, seller_vat: inv.sellerVat || null, seller_address: inv.sellerAddress, seller_country: inv.sellerCountry || null, buyer_phone: inv.buyerPhone, buyer_address: inv.buyerAddress, buyer_country: inv.buyerCountry || null, date: inv.date, due: inv.due, status: inv.status, amount: inv.amount, subtotal: inv.subtotal, discount_amt: inv.discountAmt, tax_amt: inv.taxAmt, total: inv.total, tax: inv.tax, discount: inv.discount, deposit_pct: Number(inv.depositPct) || null, notes: inv.notes, bank_info: inv.bankInfo, currency: inv.currency, document_language: normalizeDocumentLanguage(inv.documentLanguage), items: inv.items, ...logoColumns(inv) };
-    const { error } = await saveInvoiceRow(row);
+    let { error } = await saveInvoiceRow(row);
+    // An automatic number can clash with another account's invoice (the number is the
+    // database id). Try again with a fresh number instead of asking the user.
+    for (let attempt = 0; error && error.code === "23505" && inv.autoNumber && attempt < 5; attempt++) {
+      await new Promise(r => setTimeout(r, 7));
+      row.id = inv.id = nextInvoiceId(invoices.map(i => i.id), businessProfile?.invoice_prefix);
+      ({ error } = await saveInvoiceRow(row));
+    }
     if (error && error.code === "23505") { window.alert(t("invoice_number_taken", "This invoice number is already in use. Choose another number, or leave the field empty to create one automatically.")); return null; }
     if (error) { window.alert(t("invoice_save_error", "Could not save this invoice.") + "\n\n" + error.message); return null; }
 
@@ -1181,7 +1189,7 @@ export default function InvoiceApp({ onGoHome }) {
                     nextInvoiceId(invoices.map(i => i.id), businessProfile?.invoice_prefix),
                     { paymentTerms:businessProfile?.payment_terms ?? 30 }
                   );
-                  return addInvoice(inv, { source:"quote_conversion", showSuccess:false });
+                  return addInvoice({ ...inv, autoNumber:true }, { source:"quote_conversion", showSuccess:false });
                 }}
               />}
             {page === "expenses" && (hasBusinessAccess(plan) || isTeamMember) && <Expenses expenses={expenses} setExpenses={setExpenses} invoices={invoicesWithStatus} userId={ownerId || userId} f={f} />}
@@ -1574,7 +1582,7 @@ function Settings({ currency, setCurrency, userEmail, invoices, onProfileSaved }
   const locale = getLocale();
   const t = (key, fallback) => tr(key, fallback, locale);
   const cur = getCurrency(currency);
-  const [profile, setProfile] = useState({ name:"", email:"", phone:"", country:"NL", vat_number:"", address:"", default_tax:20, notes:"", invoice_prefix:"INV-", payment_terms:30, bank_info:"", default_invoice_language:"en" });
+  const [profile, setProfile] = useState({ name:"", email:"", phone:"", country:"NL", vat_number:"", address:"", default_tax:21, notes:"", invoice_prefix:"INV-", payment_terms:30, bank_info:"", default_invoice_language:"en" });
   const [saving, setSaving] = useState(false);
   const [saved, setSaved] = useState(false);
   const [savingDefaults, setSavingDefaults] = useState(false);
@@ -1585,7 +1593,7 @@ function Settings({ currency, setCurrency, userEmail, invoices, onProfileSaved }
     setSavingDefaults(true);
     const { data: { user } } = await supabase.auth.getUser();
     if (!user) return;
-    await supabase.from("business_profile").upsert({ user_id: user.id, notes: profile.notes || "", default_tax: profile.default_tax ?? 20, invoice_prefix: profile.invoice_prefix || "INV-", payment_terms: profile.payment_terms ?? 30, bank_info: profile.bank_info || "", default_invoice_language: normalizeDocumentLanguage(profile.default_invoice_language), updated_at: new Date().toISOString() });
+    await supabase.from("business_profile").upsert({ user_id: user.id, notes: profile.notes || "", default_tax: profile.default_tax ?? 21, invoice_prefix: profile.invoice_prefix || "INV-", payment_terms: profile.payment_terms ?? 30, bank_info: profile.bank_info || "", default_invoice_language: normalizeDocumentLanguage(profile.default_invoice_language), updated_at: new Date().toISOString() });
     setSavingDefaults(false);
     setSavedDefaults(true);
     setTimeout(() => setSavedDefaults(false), 2000);
@@ -1599,7 +1607,7 @@ function Settings({ currency, setCurrency, userEmail, invoices, onProfileSaved }
       const owner = (await myTeamOwner(user.id)) || user.id;
       const { data } = await supabase.from("business_profile").select("*").eq("user_id", owner).maybeSingle();
       if (data) {
-        setProfile({ name: data.name || "", email: data.email || "", phone: data.phone || "", country: data.country || "NL", address: data.address || "", default_tax: data.default_tax ?? 20, notes: data.notes || "", invoice_prefix: data.invoice_prefix || "INV-", payment_terms: data.payment_terms ?? 30, bank_info: data.bank_info || "", default_invoice_language: normalizeDocumentLanguage(data.default_invoice_language) });
+        setProfile({ name: data.name || "", email: data.email || "", phone: data.phone || "", country: data.country || "NL", address: data.address || "", default_tax: data.default_tax ?? 21, notes: data.notes || "", invoice_prefix: data.invoice_prefix || "INV-", payment_terms: data.payment_terms ?? 30, bank_info: data.bank_info || "", default_invoice_language: normalizeDocumentLanguage(data.default_invoice_language) });
         setProfilePreviouslyComplete(Boolean((data.name || "").trim()));
       }
     };
@@ -1610,7 +1618,7 @@ function Settings({ currency, setCurrency, userEmail, invoices, onProfileSaved }
     setSaving(true);
     const { data: { user } } = await supabase.auth.getUser();
     if (!user) { setSaving(false); return; }
-    const { error } = await supabase.from("business_profile").upsert({ user_id: user.id, ...profile, default_tax: profile.default_tax ?? 20, updated_at: new Date().toISOString() });
+    const { error } = await supabase.from("business_profile").upsert({ user_id: user.id, ...profile, default_tax: profile.default_tax ?? 21, updated_at: new Date().toISOString() });
     setSaving(false);
     if (error) { alert(t("save_business_error", "Could not save your business details. Please try again.")); return; }
     const profileComplete = Boolean((profile.name || "").trim());
@@ -1688,7 +1696,7 @@ function Settings({ currency, setCurrency, userEmail, invoices, onProfileSaved }
             </div>
           </div>
           <div className="form-group full"><label>{t("default_invoice_language", "Default invoice language")}</label><select value={normalizeDocumentLanguage(profile.default_invoice_language)} onChange={e => setProfile(p => ({ ...p, default_invoice_language:e.target.value }))}>{INVOICE_LANGUAGES.map(language => <option key={language.value} value={language.value}>{language.label}</option>)}</select><div style={{ fontSize:11, color:"var(--text2)", marginTop:6 }}>{t("invoice_language_help", "This controls PDF language only. You can override it on each invoice.")}</div></div>
-          <div className="form-group"><label>{t("default_tax", "Default Tax (%)")}</label><input type="number" value={profile.default_tax ?? 20} onChange={e => setProfile(p => ({ ...p, default_tax: +e.target.value }))} /></div>
+          <div className="form-group"><label>{t("default_tax", "Default Tax (%)")}</label><input type="number" value={profile.default_tax ?? 21} onChange={e => setProfile(p => ({ ...p, default_tax: +e.target.value }))} /></div>
           <div className="form-group"><label>{t("payment_terms", "Payment Terms (days)")}</label><input type="number" value={profile.payment_terms ?? 30} onChange={e => setProfile(p => ({ ...p, payment_terms: +e.target.value }))} /></div>
           <div className="form-group"><label>{t("invoice_prefix", "Invoice Prefix")}</label><input value={profile.invoice_prefix || "INV-"} onChange={e => setProfile(p => ({ ...p, invoice_prefix: e.target.value }))} /></div>
           <div className="form-group full"><label>{t("invoice_notes_label", "Invoice Notes")}</label>
@@ -1739,7 +1747,7 @@ React.useEffect(() => {
     client:"", email:"",
     buyerPhone:"", buyerAddress:"", buyerCountry:"", buyerLogo:null,
     date:new Date().toISOString().split("T")[0], due:"",
-    tax:20, discount:0, depositPct:0, notes:"", bankInfo:"", documentLanguage:normalizeDocumentLanguage(defaultInvoiceLanguage),
+    tax:21, discount:0, depositPct:0, notes:"", bankInfo:"", documentLanguage:normalizeDocumentLanguage(defaultInvoiceLanguage),
   };
 
   useEffect(() => {
@@ -1759,7 +1767,7 @@ React.useEffect(() => {
           sellerCountry: f.sellerCountry || data.country || "",
           notes: f.notes || data.notes || "", bankInfo: f.bankInfo || data.bank_info || "",
           sellerLogo: f.sellerLogo || data.logo || null,
-          tax: f.tax !== 20 ? f.tax : (data.default_tax ?? 20),
+          tax: f.tax !== 21 ? f.tax : (data.default_tax ?? 21),
           documentLanguage: normalizeDocumentLanguage(f.documentLanguage || data.default_invoice_language || defaultInvoiceLanguage),
         }));
       }
@@ -1849,7 +1857,7 @@ React.useEffect(() => {
     const STORED_STATUSES = ["draft", "pending", "paid"];
     const prevStatus = isEdit ? (editData.status || "pending") : "pending";
     const status = STORED_STATUSES.indexOf(prevStatus) > -1 ? prevStatus : "pending";
-    onSave({ id, ...form, depositPct, sellerCountry: form.sellerCountry || countryCodeFrom(form.sellerAddress), buyerCountry: form.buyerCountry || countryCodeFrom(form.buyerAddress), currency:invoiceCurrency, sellerLogoSize, buyerLogoSize, amount:total, status, items, subtotal, discountAmt, taxAmt, total });
+    onSave({ id, autoNumber: !isEdit && !(form.invoiceNumber && form.invoiceNumber.trim()), ...form, depositPct, sellerCountry: form.sellerCountry || countryCodeFrom(form.sellerAddress), buyerCountry: form.buyerCountry || countryCodeFrom(form.buyerAddress), currency:invoiceCurrency, sellerLogoSize, buyerLogoSize, amount:total, status, items, subtotal, discountAmt, taxAmt, total });
   };
 
   const steps = [
@@ -1976,6 +1984,7 @@ React.useEffect(() => {
               </div>
               <div style={{ fontSize:11, color:"var(--text2)" }}>{curInfo.label}</div>
             </div>
+            <button type="button" className="btn btn-ghost btn-sm" style={{ alignSelf:"flex-start" }} aria-label={t("close", "Close")} title={t("close", "Close")} onClick={() => onClose(hasMeaningfulData() ? buildDraft() : null)}>✕</button>
           </div>
         </div>
 
@@ -2401,7 +2410,7 @@ function InvoicePreview({ invoice, onExportUBL, onClose, currency, plan, isFirst
 
           <div className="preview-footer" style={{ marginTop:32 }}>
             {hasBusinessAccess(plan) && invoice.status !== "paid" && (
-            <div style={{ textAlign:"center", margin:"14px 0" }}>
+            <div className="no-print" style={{ textAlign:"center", margin:"14px 0" }}>
               <button className="btn btn-ghost btn-sm" onClick={() => { const url = window.location.origin + "/pay/" + encodeURIComponent(invoice.id); navigator.clipboard.writeText(url); alert(copy.paymentCopied + ":\n" + url); }}><LinkIcon size={14} strokeWidth={2} aria-hidden="true" style={{ verticalAlign:"-3px", marginInlineEnd:6 }} />{copy.copyPayment}</button>
             </div>
           )}

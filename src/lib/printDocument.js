@@ -15,6 +15,7 @@ export function printOnlyCss(selector, padding = "12mm 14mm") {
   body *:not(:has(${selector})):not(${selector}):not(${selector} *) { display: none !important; }
   body *:has(${selector}) { display: block !important; position: static !important; inset: auto !important; transform: none !important; margin: 0 !important; padding: 0 !important; width: auto !important; max-width: none !important; height: auto !important; min-height: 0 !important; max-height: none !important; overflow: visible !important; border: 0 !important; border-radius: 0 !important; box-shadow: none !important; background: #fff !important; backdrop-filter: none !important; }
   ${selector} { margin: 0 auto !important; padding: ${padding} !important; max-width: 210mm !important; box-shadow: none !important; border: 0 !important; border-radius: 0 !important; background: #fff !important; -webkit-box-decoration-break: clone; box-decoration-break: clone; }
+  .no-print { display: none !important; }
   * { -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; }
 }`;
 }

@@ -102,6 +102,12 @@ export default async function handler(req, res) {
     if (t.buyerLogo) { row.buyer_logo = t.buyerLogo; row.buyer_logo_size = Number(t.buyerLogoSize) || null; }
 
     let { error: insErr } = await supabase.from("invoices").insert(row);
+    // Same number already used by another account (the number is the id): new suffix.
+    for (let attempt = 0; insErr && insErr.code === "23505" && attempt < 5; attempt++) {
+      await new Promise((r) => setTimeout(r, 7));
+      row.id = nextInvoiceId((ownIds || []).map((inv) => inv.id), profile?.invoice_prefix);
+      ({ error: insErr } = await supabase.from("invoices").insert(row));
+    }
     // Database without the logo columns yet: create the invoice without the logo.
     if (insErr && (insErr.code === "42703" || insErr.code === "PGRST204") && ("seller_logo" in row || "buyer_logo" in row)) {
       const { seller_logo, seller_logo_size, buyer_logo, buyer_logo_size, ...withoutLogos } = row;
