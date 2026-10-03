@@ -4,6 +4,9 @@
 import { createClient } from "@supabase/supabase-js";
 import { safeOrigin, escapeHtml } from "../server/request-safety.js";
 import { brandedEmail, emailButton } from "../server/email.js";
+import { hasAdvancedAccess } from "../server/plan-access.js";
+
+const TEAM_LIMIT = 5; // same as src/lib/team.js
 
 const supabaseAdmin = createClient(
   process.env.REACT_APP_SUPABASE_URL,
@@ -22,6 +25,8 @@ export default async function handler(req, res) {
 
   // --- تفعيل الدعوة ---
   if (action === "claim") {
+    // Only the real owner of the invited address may join (confirmed email).
+    if (!user.email_confirmed_at) return res.status(403).json({ error: "Confirm your email first" });
     const { data, error: updErr } = await supabaseAdmin
       .from("team_members")
       .update({ member_user_id: user.id, status: "active" })
@@ -41,6 +46,11 @@ export default async function handler(req, res) {
       .from("team_members").select("id")
       .eq("owner_id", user.id).eq("member_email", invitee).maybeSingle();
     if (!invite) return res.status(404).json({ error: "Invite not found" });
+    // Teams are an Advanced feature with at most 5 members. The app checks this too,
+    // but invites are stored from the browser, so check again before emailing anyone.
+    if (!(await hasAdvancedAccess(supabaseAdmin, user.id))) return res.status(403).json({ error: "Teams require the Advanced plan." });
+    const { count } = await supabaseAdmin.from("team_members").select("id", { count: "exact", head: true }).eq("owner_id", user.id);
+    if ((count || 0) > TEAM_LIMIT) return res.status(400).json({ error: "Team limit reached (" + TEAM_LIMIT + " members)" });
 
     const origin = safeOrigin(req);
     try {

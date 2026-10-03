@@ -3,18 +3,16 @@
 import { createClient } from "@supabase/supabase-js";
 import { advancedUserIds } from "../server/plan-access.js";
 import { nextInvoiceId } from "../src/lib/invoiceNumber.js";
+import { nextRecurringDate } from "../src/lib/recurringDates.js";
 const supabase = createClient(
   process.env.REACT_APP_SUPABASE_URL,
   process.env.SUPABASE_SERVICE_ROLE_KEY
 );
 
-function nextDate(from, frequency) {
-  const d = new Date(from);
-  if (frequency === "weekly") d.setDate(d.getDate() + 7);
-  else if (frequency === "biweekly") d.setDate(d.getDate() + 14);
-  else if (frequency === "yearly") d.setFullYear(d.getFullYear() + 1);
-  else d.setMonth(d.getMonth() + 1);
-  return d;
+// Keeps the schedule on its day of the month (see src/lib/recurringDates.js).
+function nextDate(from, frequency, rec) {
+  const anchor = Number(rec?.template?.scheduleDay) || Number(String(rec?.created_at || "").slice(8, 10)) || undefined;
+  return nextRecurringDate(from instanceof Date ? from.toISOString().slice(0, 10) : from, frequency, anchor);
 }
 
 // A new invoice gets the same payment term as the invoice it was copied from
@@ -66,8 +64,8 @@ export default async function handler(req, res) {
   let paused = 0;
   for (const rec of due) {
     if (!advanced.has(rec.user_id)) {
-      let next = nextDate(rec.next_run, rec.frequency);
-      for (let i = 0; i < 1000 && next.toISOString().split("T")[0] <= today; i++) next = nextDate(next, rec.frequency);
+      let next = nextDate(rec.next_run, rec.frequency, rec);
+      for (let i = 0; i < 1000 && next.toISOString().split("T")[0] <= today; i++) next = nextDate(next, rec.frequency, rec);
       await supabase.from("recurring_invoices").update({
         next_run: next.toISOString().split("T")[0],
       }).eq("id", rec.id);
@@ -116,7 +114,7 @@ export default async function handler(req, res) {
     if (insErr) { console.error("insert failed for", rec.id, insErr.message); continue; }
 
     await supabase.from("recurring_invoices").update({
-      next_run: nextDate(rec.next_run, rec.frequency).toISOString().split("T")[0],
+      next_run: nextDate(rec.next_run, rec.frequency, rec).toISOString().split("T")[0],
       last_generated_at: new Date().toISOString(),
     }).eq("id", rec.id);
 

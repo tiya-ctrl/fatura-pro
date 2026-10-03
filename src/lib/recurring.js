@@ -1,5 +1,6 @@
 // Fatura Pro - Recurring invoices (Business plan)
 import { supabase } from "../supabase";
+import { nextRecurringDate } from "./recurringDates";
 
 export async function loadRecurring(userId) {
   const { data, error } = await supabase
@@ -14,6 +15,8 @@ export async function loadRecurring(userId) {
 export async function createRecurring(invoice, frequency, userId) {
   // القالب: نسخة من الفاتورة بدون هويتها الفريدة
   const { id, status, ...template } = invoice;
+  // The day of the month the schedule keeps (the cron reads it back).
+  template.scheduleDay = new Date().getDate();
   const next = nextDate(new Date(), frequency);
   const { error } = await supabase.from("recurring_invoices").insert({
     user_id: userId,
@@ -41,11 +44,11 @@ export async function deleteRecurring(recId, userId) {
 }
 
 // حساب الموعد التالي
+// from: a Date (the local calendar day is used) or "YYYY-MM-DD"
 export function nextDate(from, frequency) {
-  const d = new Date(from);
-  if (frequency === "weekly") d.setDate(d.getDate() + 7);
-  else if (frequency === "biweekly") d.setDate(d.getDate() + 14);
-  else if (frequency === "yearly") d.setFullYear(d.getFullYear() + 1);
-  else d.setMonth(d.getMonth() + 1);
-  return d;
+  if (from instanceof Date) {
+    const pad = (n) => String(n).padStart(2, "0");
+    from = from.getFullYear() + "-" + pad(from.getMonth() + 1) + "-" + pad(from.getDate());
+  }
+  return nextRecurringDate(from, frequency);
 }
