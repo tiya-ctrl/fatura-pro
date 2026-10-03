@@ -783,6 +783,8 @@ export default function InvoiceApp({ onGoHome }) {
       row.id = inv.id = nextInvoiceId(invoices.map(i => i.id), businessProfile?.invoice_prefix);
       ({ error } = await saveInvoiceRow(row));
     }
+    // The database enforces the Free plan limit too (see migration 202610030001).
+    if (error && String(error.message || "").includes("FREE_LIMIT_INVOICES")) { setUpgradeFeature("unlimited_invoices"); setShowUpgrade(true); return null; }
     if (error && error.code === "23505") { window.alert(t("invoice_number_taken", "This invoice number is already in use. Choose another number, or leave the field empty to create one automatically.")); return null; }
     if (error) { window.alert(t("invoice_save_error", "Could not save this invoice.") + "\n\n" + error.message); return null; }
 
@@ -955,6 +957,7 @@ export default function InvoiceApp({ onGoHome }) {
     if (!user) return;
     const isFirstClient = clients.length === 0;
     const { error } = await supabase.from("clients").insert({ id: c.id, user_id: ownerId || user.id, name: c.name, email: c.email, phone: c.phone, country: c.country, invoices: 0, total: 0 });
+    if (error && String(error.message || "").includes("FREE_LIMIT_CLIENTS")) { setUpgradeFeature("unlimited_clients"); setShowUpgrade(true); return; }
     if (error) { window.alert(t("client_save_error", "Could not save this client.") + "\n\n" + error.message); return; }
     trackEvent("client_created", { source:"clients_page", is_first_client:isFirstClient });
     recordActivationEvent("client_created", {
