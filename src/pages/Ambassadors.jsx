@@ -147,7 +147,7 @@ export default function Ambassadors() {
               <div className="amb-promise" aria-label={ui("Ambassador program benefits", "مزايا برنامج السفراء")}>
                 <div><strong>{ui("Your link", "رابطك")}</strong><span>{ui("A personal tracked link with clicks, sign-ups, paid customers and earnings.", "رابط شخصي يعرض النقرات والتسجيلات والعملاء المدفوعين والأرباح.")}</span></div>
                 <div><strong>{ui("Your voice", "رأيك")}</strong><span>{ui("Direct product feedback and early access to useful releases.", "ملاحظات مباشرة على المنتج ووصول مبكر إلى الإصدارات المفيدة.")}</span></div>
-                <div><strong>25% / 35%</strong><span>{ui("Standard offer: Pro pays 25%; Business pays 35% for each customer’s first 12 paid months.", "العرض القياسي: 25% لخطة Pro و35% لخطة Business خلال أول 12 شهرًا مدفوعًا لكل عميل.")}</span></div>
+                <div><strong>25% / 35%</strong><span>{ui("Standard offer: Essential pays 25%; Advanced pays 35% for each customer’s first 12 paid months.", "العرض القياسي: 25% لخطة Essential و35% لخطة Advanced خلال أول 12 شهرًا مدفوعًا لكل عميل.")}</span></div>
               </div>
               <div className="amb-principle"><span>✦</span><span><b>{ui("This is not an affiliate-link dump.", "هذا ليس مكانًا لنشر روابط عشوائية.")}</b> {ui("We value honest tutorials, useful templates and real recommendations. Spam, fake accounts and misleading claims are never rewarded.", "نقدّر الشروحات الصادقة والقوالب المفيدة والتوصيات الحقيقية. لا نكافئ الرسائل المزعجة أو الحسابات الوهمية أو الادعاءات المضللة.")}</span></div>
             </div>

@@ -1,8 +1,8 @@
 export const AMBASSADOR_POLICY = Object.freeze({
   commissionMonths: 12,
   plans: Object.freeze({
-    pro: Object.freeze({ label: "Pro", commissionBps: 2500, commissionPercent: 25 }),
-    business: Object.freeze({ label: "Business", commissionBps: 3500, commissionPercent: 35 }),
+    pro: Object.freeze({ label: "Essential", commissionBps: 2500, commissionPercent: 25 }),
+    business: Object.freeze({ label: "Advanced", commissionBps: 3500, commissionPercent: 35 }),
   }),
 });
 
