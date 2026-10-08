@@ -1,0 +1,152 @@
+// English guides for internationals who work for themselves in the Netherlands.
+// Same shape as POSTS in src/pages/Blog.jsx; each slug also has a /p/ rewrite in
+// vercel.json and a sitemap entry so it is pre-rendered and discovered.
+
+const FREE_CTA_EN = {
+  title: "Start invoicing in English, for free",
+  sub: "Free plan: 20 invoices and 5 clients. Work in English, send invoices in Dutch, English, French, Spanish or Arabic. No card needed.",
+  button: "Create your free account →",
+};
+
+const ENGLISH_GUIDES = [
+  {
+    slug: "dutch-vat-btw-guide-expat-freelancers",
+    lang: "en",
+    title: "Dutch VAT (BTW) Explained for Expat Freelancers",
+    seoTitle: "Dutch VAT (BTW) Guide for Expat Freelancers | FaturaPro",
+    description: "BTW in plain English: the 21%, 9% and 0% rates, your two VAT numbers, quarterly returns and deadlines, reclaiming VAT on costs, the KOR scheme and reverse charge for EU clients.",
+    date: "2026-10-09",
+    readTime: "8 min",
+    keywords: "Dutch VAT freelancer, BTW explained English, VAT Netherlands expat, ZZP VAT return, btw aangifte English, KOR small business scheme, reverse charge Netherlands, VAT rates Netherlands 21 9",
+    quickAnswer: "As a freelancer in the Netherlands you usually add 21% VAT (BTW) to your invoices, file a VAT return every quarter and pay the balance by the end of the following month. You deduct the VAT you paid on business costs. With the KOR scheme (turnover up to €20,000 a year) you can choose not to charge VAT at all, but then you cannot reclaim it either.",
+    checklist: [
+      "Standard rate 21%, reduced rate 9%, and 0% or exempt in specific cases",
+      "Your VAT ID (btw-id, NL…B01) goes on every invoice",
+      "Quarterly return: deadline is the last day of the month after the quarter",
+      "Deduct the VAT on your business costs (voorbelasting)",
+      "EU business client: usually 'VAT reverse-charged' and their VAT ID on the invoice",
+      "KOR: no VAT charged or reclaimed if turnover stays under €20,000 a year",
+    ],
+    sections: [
+      { h: "What BTW Is", p: "BTW (belasting toegevoegde waarde) is the Dutch name for VAT. As a business you collect it from your clients on behalf of the Belastingdienst, the Dutch tax authority, and you pay it on what you buy for your business. Every quarter you settle the difference. The VAT on your invoices is never your income: it is money you hold for the tax authority." },
+      { h: "The Rates: 21%, 9% and 0%", p: "Most services and products carry the standard rate of 21%. A reduced rate of 9% applies to things such as food, books, medicines and some repairs and services. A 0% rate applies, for example, to exports outside the EU and supplies of goods to VAT-registered businesses in other EU countries. Some activities are exempt altogether, such as most medical care and certain education. Exempt is not the same as 0%: with an exemption you also cannot reclaim VAT on your costs." },
+      { h: "Your Two VAT Numbers", p: "After you register a sole proprietorship (eenmanszaak) with the KVK, the Belastingdienst sends you two numbers. The VAT identification number (btw-id, in the format NL000000000B01) is the one you put on your invoices and share with clients. The VAT tax number (omzetbelastingnummer) is for your returns and correspondence with the tax authority; keep it to yourself." },
+      { h: "Quarterly Returns and Deadlines", p: "Most freelancers file every quarter. The return and the payment are due by the last day of the month after the quarter: 30 April for Q1, 31 July for Q2, 31 October for Q3 and 31 January for Q4. You file online in Mijn Belastingdienst Zakelijk, or your accountant does it for you. Filing or paying late can lead to a fine, so put the dates in your calendar. If you had no turnover in a quarter, you still file a return, showing zero." },
+      { h: "Reclaiming VAT on Your Costs", p: "The VAT you pay on business purchases, such as a laptop, software subscriptions or a co-working desk, is called voorbelasting. You deduct it from the VAT you collected. If you paid more than you collected, the Belastingdienst refunds the difference. You need a proper invoice or receipt in your business name for each purchase, and the cost has to be for your business. Keep these records for 7 years." },
+      { h: "The KOR Small Business Scheme", p: "With the kleineondernemersregeling (KOR) you do not charge VAT and you do not file VAT returns, as long as your turnover stays under €20,000 a year. That can make your prices more attractive for private clients. The downside: you cannot reclaim VAT on your costs, and once you join you stay in for at least three years unless your turnover goes over the limit. Compare both options before you apply." },
+      { h: "Clients in Other EU Countries", p: "For most services to a VAT-registered business in another EU country, you do not charge Dutch VAT. Instead you write 'VAT reverse-charged' (btw verlegd) on the invoice, together with your client's VAT ID, and the client pays the VAT in their own country. You report these sales in your VAT return and in a separate listing (opgave ICP). Private clients abroad and clients outside the EU follow different rules, so check your situation or ask an accountant." },
+      { h: "How FaturaPro Helps", p: "FaturaPro calculates the VAT on every invoice at the rate you choose, keeps currencies apart, and adds up the VAT on your sales and on your expenses per quarter. Scan a receipt and its VAT is filled in. At the end of the quarter you have the three numbers you need: VAT collected, VAT paid and the balance to pay or reclaim. You or your accountant then file the return." },
+    ],
+    faqs: [
+      { q: "Do I have to charge VAT as a freelancer in the Netherlands?", a: "Usually yes, at 21% for most services. Exceptions are exempt activities, reverse-charge sales to EU businesses, and the KOR scheme for small turnovers." },
+      { q: "When is the Q3 VAT return due?", a: "By 31 October: both the return and the payment. Q4 is due by 31 January." },
+      { q: "Can my invoices be in English?", a: "Yes. An invoice does not have to be in Dutch, as long as it contains all the required details. The Belastingdienst can ask for a translation." },
+      { q: "Does FaturaPro file my VAT return?", a: "No. It gives you the quarterly figures; you or your accountant file the return in Mijn Belastingdienst Zakelijk." },
+    ],
+    sources: [
+      { label: "Business.gov.nl: VAT rates", href: "https://business.gov.nl/regulations/vat-rates/" },
+      { label: "Business.gov.nl: filing a VAT return", href: "https://business.gov.nl/regulations/filing-vat-return/" },
+      { label: "Business.gov.nl: small businesses scheme (KOR)", href: "https://business.gov.nl/subsidies-and-schemes/small-businesses-scheme-kor/" },
+    ],
+    relatedLinks: [
+      { label: "How to invoice as a ZZP in the Netherlands", href: "/blog/how-to-invoice-zzp-netherlands-english" },
+      { label: "Starting as a freelancer in the Netherlands", href: "/blog/start-freelancing-netherlands-checklist" },
+      { label: "Receipt scanner for freelancers", href: "/blog/receipt-scanner-app-freelancers-netherlands" },
+    ],
+    cta: FREE_CTA_EN,
+  },
+  {
+    slug: "how-to-invoice-zzp-netherlands-english",
+    lang: "en",
+    title: "How to Invoice as a ZZP in the Netherlands (English Guide)",
+    seoTitle: "How to Invoice as a ZZP in the Netherlands | English Guide",
+    description: "Everything a Dutch invoice must show, in English: numbering, your KVK number and VAT ID, VAT per rate, payment terms, the 15-day rule, credit notes and how long to keep invoices.",
+    date: "2026-10-09",
+    readTime: "7 min",
+    keywords: "how to invoice ZZP Netherlands, Dutch invoice requirements English, invoice template Netherlands freelancer, factuur requirements English, KVK number on invoice, payment terms Netherlands, credit note Netherlands",
+    quickAnswer: "A Dutch invoice needs a unique sequential number, the invoice date, your name, address, KVK number and VAT ID, your client's name and address, a description and date of the work, the amount excluding VAT, the VAT rate and amount, and the total. Send it within 15 days after the end of the month of the work, and set a payment term; without one, 30 days applies for business clients.",
+    checklist: [
+      "Unique, sequential invoice number",
+      "Invoice date and date (or period) of the work",
+      "Your name, address, KVK number and VAT ID",
+      "Client's name and address (and VAT ID for reverse charge)",
+      "Description, quantity and price per item",
+      "Amount excl. VAT, VAT rate and VAT amount per rate, total",
+    ],
+    sections: [
+      { h: "Can I Invoice in English?", p: "Yes. Dutch law does not require invoices to be in Dutch. Many freelancers in the Netherlands invoice in English, especially for international clients. What matters is that every required detail is there. The tax authority may ask for a translation, so keep your wording clear and simple." },
+      { h: "What Every Invoice Must Show", p: "Your invoice needs: a unique invoice number in an unbroken sequence; the invoice date; your name and address; your VAT identification number; your client's name and address; a clear description of the work or goods with the quantity; the date or period of the work; the amount excluding VAT; the VAT rate and the VAT amount for each rate; and the total. As a business registered with the KVK you also show your KVK number." },
+      { h: "Invoice Numbers", p: "Numbers must be unique and follow on from each other, for example 2026-001, 2026-002. You may start a new series each year. Do not reuse or skip numbers to hide a mistake: a wrong invoice is corrected with a credit note, not deleted." },
+      { h: "When to Send It", p: "For business clients, the invoice must be issued no later than the 15th day of the month after the month in which you did the work. In practice it is best to invoice the day the job is done: the sooner it is sent, the sooner you get paid." },
+      { h: "Payment Terms", p: "Put a payment term on every invoice, such as 14 or 30 days. If you agreed nothing, the legal term for business clients is 30 days. Large companies must pay small businesses and freelancers within 30 days at most. If a business client pays late, you may charge statutory commercial interest and collection costs; for private clients, send a 14-day reminder letter first." },
+      { h: "Clients Abroad", p: "For an EU business client you usually do not charge Dutch VAT on services. Write 'VAT reverse-charged' on the invoice and add the client's VAT ID. For clients outside the EU, different rules apply depending on the service. Invoicing in the client's currency is fine: show the amounts clearly and keep the VAT figures correct." },
+      { h: "Mistakes and Credit Notes", p: "Sent an invoice with an error? Do not change or delete it. Create a credit note with its own number that refers to the original invoice and cancels it, then send a new, correct invoice. This keeps your number sequence and your VAT return correct." },
+      { h: "Keeping Invoices", p: "Keep copies of all invoices you send and receive for 7 years. Digital copies are fine, as long as they are complete and readable." },
+      { h: "Doing It in FaturaPro", p: "In FaturaPro you work in English and pick the invoice language per client. Numbers follow on automatically, VAT is calculated per invoice, a credit note is one click, and invoices are kept with your account. You can add your logo, bank details and payment terms once and reuse them on every invoice." },
+    ],
+    faqs: [
+      { q: "Is a KVK number required on an invoice?", a: "Businesses registered in the Dutch Commercial Register show their KVK number on invoices and other business documents." },
+      { q: "What is the default payment term in the Netherlands?", a: "For business clients, 30 days if nothing else was agreed. Large companies may take at most 30 days to pay small businesses." },
+      { q: "Can I send invoices in another currency?", a: "Yes. FaturaPro supports 18 currencies and keeps each currency apart in your overview." },
+      { q: "How do I correct a sent invoice?", a: "With a credit note that refers to the original, followed by a new invoice. Never delete a sent invoice." },
+    ],
+    sources: [
+      { label: "Business.gov.nl: invoice requirements", href: "https://business.gov.nl/regulations/invoice-requirements/" },
+      { label: "Business.gov.nl: payment terms", href: "https://business.gov.nl/running-your-business/accounting-and-finance/payment-terms/" },
+    ],
+    relatedLinks: [
+      { label: "Dutch VAT (BTW) explained", href: "/blog/dutch-vat-btw-guide-expat-freelancers" },
+      { label: "English invoicing software for ZZP'ers", href: "/blog/zzp-invoice-app-english-netherlands" },
+      { label: "How to create a professional invoice", href: "/blog/how-to-create-professional-invoice" },
+    ],
+    cta: FREE_CTA_EN,
+  },
+  {
+    slug: "start-freelancing-netherlands-checklist",
+    lang: "en",
+    title: "Starting as a Freelancer in the Netherlands: A Checklist for Internationals",
+    seoTitle: "Start Freelancing in the Netherlands: Checklist for Internationals",
+    description: "The steps to work for yourself in the Netherlands as an international: your right to work, BSN, KVK registration, VAT numbers, bank account, insurance, tax deductions and records.",
+    date: "2026-10-09",
+    readTime: "8 min",
+    keywords: "start freelancing Netherlands, become ZZP expat, register KVK English, eenmanszaak expat, freelance checklist Netherlands, self-employed Netherlands international, zelfstandigenaftrek English, urencriterium",
+    quickAnswer: "Check that your residence status allows self-employment, make sure you have a BSN, register a sole proprietorship (eenmanszaak) with the KVK, wait for your VAT numbers from the Belastingdienst, open a separate business account, arrange insurance, and set up invoicing and record keeping from day one.",
+    checklist: [
+      "Residence status allows self-employment",
+      "BSN (citizen service number)",
+      "KVK registration as eenmanszaak",
+      "VAT numbers from the Belastingdienst",
+      "Separate business bank account",
+      "Insurance, invoicing and records for 7 years",
+    ],
+    sections: [
+      { h: "1. Check Your Right to Work for Yourself", p: "EU, EEA and Swiss citizens can work as freelancers in the Netherlands. If you have another nationality, check that your residence permit allows self-employment; some permits state that work is freely allowed, others do not. US and Japanese citizens can apply for a residence permit as self-employed under the Dutch-American (DAFT) or Dutch-Japanese treaty. When in doubt, check with the IND." },
+      { h: "2. Get Your BSN", p: "Your citizen service number (BSN) is needed for almost everything, including registering your business. You receive it when you register at your municipality." },
+      { h: "3. Register With the KVK", p: "Most freelancers start as a sole proprietorship (eenmanszaak). You register online at kvk.nl and usually confirm your identity at a short appointment at a KVK office. You choose a trade name, describe your activities and pay a one-off fee; check kvk.nl for the current amount. You receive your KVK number straight away." },
+      { h: "4. Your VAT Numbers", p: "After registration the Belastingdienst sends you a VAT ID for your invoices and a VAT tax number for your returns, usually within about two weeks. From then on you add VAT to your invoices and file a return every quarter, unless you choose the KOR small business scheme." },
+      { h: "5. Open a Business Account", p: "It is not legally required for a sole proprietorship, but a separate account keeps business and private money apart, makes your administration easier and looks more professional to clients." },
+      { h: "6. Insurance", p: "Basic health insurance is compulsory for residents. As a freelancer, consider professional or general liability insurance, and think about disability insurance, because as self-employed you are not covered through an employer." },
+      { h: "7. Tax Deductions for Entrepreneurs", p: "Your profit is taxed through your yearly income tax return. If you work at least 1,225 hours a year on your business (the hours criterion, urencriterium), you can qualify for the self-employed deduction (zelfstandigenaftrek), and in your first years for the starters deduction. Keep a simple log of your hours. An accountant can tell you what applies to you." },
+      { h: "8. Invoicing and Records From Day One", p: "Send proper invoices with sequential numbers, keep every receipt and purchase invoice, and keep your records for 7 years. Set money aside for VAT and income tax as soon as you get paid. With FaturaPro you can invoice in English, scan receipts, see your VAT per quarter and give your accountant view-only access to everything." },
+    ],
+    faqs: [
+      { q: "Do I need a Dutch business bank account?", a: "It is not required for a sole proprietorship, but it is strongly recommended to keep business and private money apart." },
+      { q: "How long does it take to get a VAT number?", a: "Usually about two weeks after your KVK registration; the Belastingdienst sends it by post." },
+      { q: "Can I use FaturaPro in English?", a: "Yes. The app works in English, Dutch, French, Spanish and Arabic, and you choose the language of each invoice." },
+      { q: "Can my accountant see my invoices?", a: "Yes. Add your accountant to your team with view-only access: they see invoices, expenses and receipts, but cannot change anything." },
+    ],
+    sources: [
+      { label: "KVK: registering a business", href: "https://www.kvk.nl/en/registration/" },
+      { label: "Business.gov.nl: starting a business", href: "https://business.gov.nl/starting-your-business/" },
+      { label: "IND: working in the Netherlands", href: "https://ind.nl/en/work" },
+    ],
+    relatedLinks: [
+      { label: "Dutch VAT (BTW) explained", href: "/blog/dutch-vat-btw-guide-expat-freelancers" },
+      { label: "How to invoice as a ZZP", href: "/blog/how-to-invoice-zzp-netherlands-english" },
+      { label: "Compare Free, Essential and Advanced", href: "/blog/invoicing-plans-free-vs-pro-vs-business" },
+    ],
+    cta: FREE_CTA_EN,
+  },
+];
+
+export default ENGLISH_GUIDES;

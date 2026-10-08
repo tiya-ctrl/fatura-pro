@@ -4,6 +4,7 @@ import { applyPageSeo, suspendBaseSiteSchema } from "../lib/pageSeo";
 import { trackEvent } from "../lib/tracking";
 import NotFound from "./NotFound";
 import RECEIPT_POSTS from "../lib/blogReceiptPosts";
+import ENGLISH_GUIDES from "../lib/blogEnglishGuides";
 
 // Interface text around a post, in the post's own language (posts are en, nl or ar).
 const BLOG_UI = {
@@ -16,6 +17,7 @@ const postLanguage = (post) => (post.lang === "ar" || post.lang === "nl" ? post.
 
 const POSTS = [
   ...RECEIPT_POSTS,
+  ...ENGLISH_GUIDES,
   {
     slug: "how-to-create-ubl-invoice-en16931",
     lang: "en",

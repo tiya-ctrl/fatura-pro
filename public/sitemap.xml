@@ -231,4 +231,22 @@
     <priority>0.2</priority>
   </url>
   <url><loc>https://faturapro.app/ar/invoicing-netherlands-germany-belgium</loc><lastmod>2026-09-12</lastmod></url>
+  <url>
+    <loc>https://faturapro.app/blog/dutch-vat-btw-guide-expat-freelancers</loc>
+    <xhtml:link rel="alternate" hreflang="en" href="https://faturapro.app/blog/dutch-vat-btw-guide-expat-freelancers" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://faturapro.app/blog/dutch-vat-btw-guide-expat-freelancers" />
+    <lastmod>2026-10-09</lastmod>
+  </url>
+  <url>
+    <loc>https://faturapro.app/blog/how-to-invoice-zzp-netherlands-english</loc>
+    <xhtml:link rel="alternate" hreflang="en" href="https://faturapro.app/blog/how-to-invoice-zzp-netherlands-english" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://faturapro.app/blog/how-to-invoice-zzp-netherlands-english" />
+    <lastmod>2026-10-09</lastmod>
+  </url>
+  <url>
+    <loc>https://faturapro.app/blog/start-freelancing-netherlands-checklist</loc>
+    <xhtml:link rel="alternate" hreflang="en" href="https://faturapro.app/blog/start-freelancing-netherlands-checklist" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://faturapro.app/blog/start-freelancing-netherlands-checklist" />
+    <lastmod>2026-10-09</lastmod>
+  </url>
 </urlset>
