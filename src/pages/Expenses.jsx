@@ -16,8 +16,15 @@ export default function Expenses({ expenses, setExpenses, invoices, userId }) {
   const t = (key, fallback) => tr(key, fallback, locale);
   const now = new Date();
   const [editing, setEditing] = useState(null);
-  const [year, setYear] = useState(now.getFullYear());
-  const [quarter, setQuarter] = useState(Math.floor(now.getMonth() / 3) + 1);
+  // In the first month of a quarter you file the VAT return of the quarter before it
+  // (deadline: the end of that month), so the report opens on that quarter.
+  const currentQ = Math.floor(now.getMonth() / 3) + 1;
+  const filingMonth = now.getMonth() % 3 === 0;
+  const [year, setYear] = useState(filingMonth && currentQ === 1 ? now.getFullYear() - 1 : now.getFullYear());
+  const [quarter, setQuarter] = useState(filingMonth ? (currentQ === 1 ? 4 : currentQ - 1) : currentQ);
+  // Years to choose from: this year back to the oldest invoice or expense (records are kept 7 years).
+  const oldestYear = (invoices || []).concat(expenses || []).reduce((min, x) => { const y = Number(String(x.date || "").slice(0, 4)); return y > 1990 && y < min ? y : min; }, now.getFullYear());
+  const yearOptions = Array.from({ length: Math.min(7, Math.max(3, now.getFullYear() - oldestYear + 1)) }, (_, i) => now.getFullYear() - i);
 
   const refresh = async () => setExpenses(await loadExpenses(userId));
   const currencyCodes = codesUsed((invoices || []).concat(expenses || []), "EUR");
@@ -95,7 +102,7 @@ export default function Expenses({ expenses, setExpenses, invoices, userId }) {
               <option value={3}>Q3 (Jul–Sep)</option><option value={4}>Q4 (Oct–Dec)</option>
             </select>
             <select value={year} onChange={(e) => setYear(Number(e.target.value))}>
-              {[0,1,2].map(i => { const y = now.getFullYear() - i; return <option key={y} value={y}>{y}</option>; })}
+              {yearOptions.map(y => <option key={y} value={y}>{y}</option>)}
             </select>
           </div>
         </div>
