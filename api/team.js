@@ -65,15 +65,29 @@ export default async function handler(req, res) {
             title: "You're invited to a team",
             paragraphs: [
               `<b style="color:#fff;">${escapeHtml(user.email)}</b> invited you to join their team on <b style="color:#fff;">Fatūra Pro</b>. You'll be able to work on their invoices, clients and quotes.`,
-              `Sign up (or log in) with <b style="color:#fff;">${escapeHtml(invitee)}</b> and you'll join the team automatically.`,
+              `Log in with <b style="color:#fff;">${escapeHtml(invitee)}</b>, or create a free account with that email if you don't have one yet. You'll join the team automatically. If you already use FaturaPro yourself, you can switch between your own account and the team in the menu.`,
             ],
-            buttons: [emailButton(`${origin}/app?invited=${encodeURIComponent(invitee)}`, "Join the team →")],
+            buttons: [emailButton(`${origin}/login?invited=${encodeURIComponent(invitee)}`, "Join the team →")],
             footer: "If you didn't expect this invite, you can ignore this email.",
           }),
         }),
       });
     } catch (e) { console.error("invite email:", e.message); }
     return res.status(200).json({ sent: true });
+  }
+
+  // --- My active membership (owner, owner's email, my role) ---
+  if (action === "me") {
+    const { data: rows, error: meErr } = await supabaseAdmin
+      .from("team_members").select("owner_id, role")
+      .eq("member_user_id", user.id).eq("status", "active")
+      .order("created_at", { ascending: true }).limit(1);
+    if (meErr) return res.status(500).json({ error: meErr.message });
+    const row = rows && rows[0];
+    if (!row) return res.status(200).json({ membership: null });
+    let ownerEmail = null;
+    try { const { data: o } = await supabaseAdmin.auth.admin.getUserById(row.owner_id); ownerEmail = o?.user?.email || null; } catch (e) {}
+    return res.status(200).json({ membership: { owner_id: row.owner_id, role: row.role === "editor" ? "editor" : "viewer", owner_email: ownerEmail } });
   }
 
   // --- Change a member's role (owner only) ---

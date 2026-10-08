@@ -14,7 +14,7 @@ import RecurringList from "./RecurringList";
 import TeamMembers from "./TeamMembers";
 import ApiKeys from "./ApiKeys";
 import ReferralProgram from "./ReferralProgram";
-import { loadTeam, claimInvites, myTeamOwner, myTeamRole } from "../lib/team";
+import { loadTeam, claimInvites, myTeamRole, myTeamMembership, preferredWorkspace, setPreferredWorkspace, currentDataOwner } from "../lib/team";
 import { loadRecurring, createRecurring } from "../lib/recurring";
 import { loadExpenses } from "../lib/expenses";
 import { trackEvent } from "../lib/tracking";
@@ -569,6 +569,9 @@ export default function InvoiceApp({ onGoHome }) {
   const [apiKeys, setApiKeys] = useState([]);
   const [ownerId, setOwnerId] = useState(null);
   const [teamRole, setTeamRole] = useState("viewer");
+  const [teamMembership, setTeamMembership] = useState(null);
+  // A member who also has an own account switches with a full reload (all data is per owner).
+  const switchWorkspace = (to) => { setPreferredWorkspace(to); window.location.reload(); };
   const [businessProfileReady, setBusinessProfileReady] = useState(false);
   const [businessProfile, setBusinessProfile] = useState(null);
   const [userCreatedAt, setUserCreatedAt] = useState(null);
@@ -610,10 +613,12 @@ export default function InvoiceApp({ onGoHome }) {
         window.history.replaceState({}, "", "/app");
       }
       await claimInvites();
-      const teamOwnerId = await myTeamOwner(user.id);
+      const membership = await myTeamMembership();
+      setTeamMembership(membership);
+      const teamOwnerId = membership && preferredWorkspace() !== "own" ? membership.owner_id : null;
       const dataOwnerId = teamOwnerId || user.id;
       setOwnerId(dataOwnerId);
-      if (teamOwnerId) myTeamRole(user.id).then(setTeamRole);
+      if (teamOwnerId) setTeamRole(membership.role);
       loadQuotes(dataOwnerId).then(setQuotes);
       loadProfiles(dataOwnerId).then(setBizProfiles);
       loadExpenses(dataOwnerId).then(setExpenses);
@@ -1015,7 +1020,7 @@ export default function InvoiceApp({ onGoHome }) {
       await new Promise(r => setTimeout(r, 500));
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) return;
-      const owner = (await myTeamOwner(user.id)) || user.id;
+      const owner = await currentDataOwner(user.id);
       const { data: invData } = await supabase.from("invoices").select("*").eq("user_id", owner).order("created_at", { ascending: false });
       const { data: cliData } = await supabase.from("clients").select("*").eq("user_id", owner);
       if (invData) setInvoices(invData.map(r => ({ id: r.id, createdBy: r.created_by, updatedBy: r.updated_by || null, updatedAt: r.updated_at || null, client: r.client, email: r.email, sellerName: r.seller_name, sellerEmail: r.seller_email, sellerPhone: r.seller_phone, sellerVat: r.seller_vat, sellerAddress: r.seller_address, sellerCountry: r.seller_country, buyerPhone: r.buyer_phone, buyerAddress: r.buyer_address, buyerCountry: r.buyer_country, date: r.date, due: r.due, status: r.status, amount: r.amount, subtotal: r.subtotal, discountAmt: r.discount_amt, taxAmt: r.tax_amt, total: r.total, tax: r.tax, discount: r.discount, depositPct: r.deposit_pct, notes: r.notes, bankInfo: r.bank_info, currency: r.currency, documentLanguage: normalizeDocumentLanguage(r.document_language), docType: r.doc_type, creditOf: r.credit_of, paidAmount: Number(r.paid_amount) || 0, sellerLogo: r.seller_logo || null, sellerLogoSize: r.seller_logo_size || undefined, buyerLogo: r.buyer_logo || null, buyerLogoSize: r.buyer_logo_size || undefined, items: r.items || [] })));
@@ -1035,7 +1040,7 @@ export default function InvoiceApp({ onGoHome }) {
     const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
       if (session?.user) {
         const reload = async () => {
-          const owner = (await myTeamOwner(session.user.id)) || session.user.id;
+          const owner = await currentDataOwner(session.user.id);
           const { data: invData } = await supabase.from("invoices").select("*").eq("user_id", owner).order("created_at", { ascending: false });
           const { data: cliData } = await supabase.from("clients").select("*").eq("user_id", owner);
           if (invData) setInvoices(invData.map(r => ({ id: r.id, createdBy: r.created_by, updatedBy: r.updated_by || null, updatedAt: r.updated_at || null, client: r.client, email: r.email, sellerName: r.seller_name, sellerEmail: r.seller_email, sellerPhone: r.seller_phone, sellerVat: r.seller_vat, sellerAddress: r.seller_address, sellerCountry: r.seller_country, buyerPhone: r.buyer_phone, buyerAddress: r.buyer_address, buyerCountry: r.buyer_country, date: r.date, due: r.due, status: r.status, amount: r.amount, subtotal: r.subtotal, discountAmt: r.discount_amt, taxAmt: r.tax_amt, total: r.total, tax: r.tax, discount: r.discount, depositPct: r.deposit_pct, notes: r.notes, bankInfo: r.bank_info, currency: r.currency, documentLanguage: normalizeDocumentLanguage(r.document_language), docType: r.doc_type, creditOf: r.credit_of, paidAmount: Number(r.paid_amount) || 0, sellerLogo: r.seller_logo || null, sellerLogoSize: r.seller_logo_size || undefined, buyerLogo: r.buyer_logo || null, buyerLogoSize: r.buyer_logo_size || undefined, items: r.items || [] })));
@@ -1192,6 +1197,10 @@ export default function InvoiceApp({ onGoHome }) {
           </div>
 
           <div className="content">
+            {teamMembership && <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center", gap:10, flexWrap:"wrap", background:"rgba(255,255,255,0.04)", border:"1px solid var(--border)", borderRadius:10, padding:"8px 14px", marginBottom:12, fontSize:13 }}>
+              <span>{isTeamMember ? t("workspace_team", "You are working in the team of") + " " + (teamMembership.owner_email || "") + " · " + (readOnly ? t("role_viewer", "View only") : t("role_editor", "Can edit")) : t("workspace_own", "You are in your own account")}</span>
+              <button className="btn btn-ghost btn-sm" onClick={() => switchWorkspace(isTeamMember ? "own" : "team")}>{isTeamMember ? t("switch_to_own", "Switch to my own account") : t("switch_to_team", "Switch to the team")}</button>
+            </div>}
             {readOnly && <div style={{ background:"rgba(99,102,241,0.12)", border:"1px solid rgba(99,102,241,0.4)", borderRadius:10, padding:"10px 14px", marginBottom:16, fontSize:13 }}>{t("view_only_banner", "View only: you can look at everything and download files, but changes are made by the account owner.")}</div>}
             {page === "dashboard" && <Dashboard clients={clients} businessProfileReady={businessProfileReady} userEmail={userEmail} onCreateInvoice={() => openNewInvoice("onboarding_dashboard")} onCreditNote={createCreditNote} onRecordPayment={recordPaymentGated} invoices={invoicesWithStatus} totalRevenue={totalRevenue} totalPending={totalPending} totalOverdue={totalOverdue} totalCredited={totalCredited} setPage={setPage} setPreviewInvoice={(inv) => openInvoicePreview(inv, "dashboard")} onEdit={(inv) => { if (!guardReadOnly()) setEditingInvoice(inv); }} onRemind={(inv) => requirePro("reminders", () => setReminderInvoice(inv))} f={f} />}
             {page === "invoices" && <Invoices viewerEmail={userEmail} invoices={filteredInvoices} filterStatus={filterStatus} setFilterStatus={setFilterStatus} search={search} setSearch={setSearch} onPreview={(inv) => openInvoicePreview(inv, "invoice_list")} onDelete={deleteInvoice} onNew={() => openNewInvoice("invoice_list_empty")} onEdit={(inv) => { if (!guardReadOnly()) setEditingInvoice(inv); }} onRemind={(inv) => requirePro("reminders", () => setReminderInvoice(inv))} remindersLog={remindersLog} f={f} isPro={isPro} onUpgrade={(feat) => { setUpgradeFeature(feat); setShowUpgrade(true); }} hasDraft={!!invoiceDraft} onOpenDraft={() => openNewInvoice("invoice_draft")} onDiscardDraft={discardDraft} onMarkPaid={markAsPaid} onCreditNote={createCreditNote} onRecordPayment={recordPaymentGated} onMakeRecurring={hasBusinessAccess(plan) ? async (inv) => { const choice = window.prompt(t("recurring_prompt", "Repeat this invoice:\n\n1 = Weekly\n2 = Every 2 weeks\n3 = Monthly\n4 = Yearly\n\nType a number:"), "3"); const freqMap = { "1": "weekly", "2": "biweekly", "3": "monthly", "4": "yearly" }; const freq = freqMap[(choice || "").trim()]; if (!freq) return; const ok = await createRecurring(inv, freq, userId); if (ok) { loadRecurring(userId).then(setRecurring); const { nextDate } = require("../lib/recurring"); alert("✓ " + t("recurring_active", "Recurring activated") + " (" + freq + ")\n" + t("next_invoice", "Next invoice") + ": " + nextDate(new Date(), freq).toISOString().split("T")[0] + "\n" + t("recurring_manage", "Manage it in Settings → Recurring invoices.")); } } : () => { setUpgradeIntent("business"); setUpgradeFeature("recurring"); setShowUpgrade(true); }} />}
@@ -1633,7 +1642,7 @@ function Settings({ currency, setCurrency, userEmail, invoices, onProfileSaved }
     const load = async () => {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) return;
-      const owner = (await myTeamOwner(user.id)) || user.id;
+      const owner = await currentDataOwner(user.id);
       const { data } = await supabase.from("business_profile").select("*").eq("user_id", owner).maybeSingle();
       if (data) {
         setProfile({ name: data.name || "", email: data.email || "", phone: data.phone || "", country: data.country || "NL", address: data.address || "", default_tax: data.default_tax ?? 21, notes: data.notes || "", invoice_prefix: data.invoice_prefix || "INV-", payment_terms: data.payment_terms ?? 30, bank_info: data.bank_info || "", default_invoice_language: normalizeDocumentLanguage(data.default_invoice_language) });
@@ -1784,7 +1793,7 @@ React.useEffect(() => {
     const loadProfile = async () => {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) return;
-      const { data } = await supabase.from("business_profile").select("*").eq("user_id", (await myTeamOwner(user.id)) || user.id).maybeSingle();
+      const { data } = await supabase.from("business_profile").select("*").eq("user_id", await currentDataOwner(user.id)).maybeSingle();
       if (data) {
         setForm(f => ({
           ...f,

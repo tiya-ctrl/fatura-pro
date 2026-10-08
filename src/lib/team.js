@@ -65,9 +65,37 @@ export async function claimInvites() {
   }
 }
 
+// My active team membership: { owner_id, role, owner_email } or null. Read on the server.
+export async function myTeamMembership() {
+  try {
+    const { data: { session } } = await supabase.auth.getSession();
+    if (!session?.access_token) return null;
+    const r = await fetch("/api/team?action=me", { method: "POST", headers: { Authorization: "Bearer " + session.access_token } });
+    if (!r.ok) return null;
+    const d = await r.json();
+    return d.membership || null;
+  } catch (e) {
+    console.error("myTeamMembership:", e);
+    return null;
+  }
+}
+
+// Which workspace to open when I am in a team and also have my own account.
+const WORKSPACE_KEY = "fatura_workspace";
+export function preferredWorkspace() { try { return localStorage.getItem(WORKSPACE_KEY) || "team"; } catch (e) { return "team"; } }
+export function setPreferredWorkspace(value) { try { localStorage.setItem(WORKSPACE_KEY, value); } catch (e) {} }
+
+// Whose data to show: the team owner (team workspace) or me (own account).
+export async function currentDataOwner(userId) {
+  const membership = await myTeamMembership();
+  return membership && preferredWorkspace() !== "own" ? membership.owner_id : userId;
+}
+
 // My role in the team I am a member of: "viewer" (read only) or "editor".
 // Falls back to "viewer" when the role cannot be read.
 export async function myTeamRole(userId) {
+  const membership = await myTeamMembership();
+  if (membership) return membership.role;
   const { data, error } = await supabase
     .from("team_members").select("role")
     .eq("member_user_id", userId)

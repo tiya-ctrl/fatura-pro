@@ -143,7 +143,7 @@ export default function LoginPage({ onLogin, onBack, returnTo = "/app" }) {
     }
     const inv = sp.get("invited");
     if (inv) {
-      setMode("signup");
+      setMode(sp.get("signup") ? "signup" : "login");
       localStorage.removeItem("fatura_intent_plan");
       setForm(f => ({ ...f, email: inv }));
     }
