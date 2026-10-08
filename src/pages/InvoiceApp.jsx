@@ -14,7 +14,7 @@ import RecurringList from "./RecurringList";
 import TeamMembers from "./TeamMembers";
 import ApiKeys from "./ApiKeys";
 import ReferralProgram from "./ReferralProgram";
-import { loadTeam, claimInvites, myTeamOwner } from "../lib/team";
+import { loadTeam, claimInvites, myTeamOwner, myTeamRole } from "../lib/team";
 import { loadRecurring, createRecurring } from "../lib/recurring";
 import { loadExpenses } from "../lib/expenses";
 import { trackEvent } from "../lib/tracking";
@@ -568,6 +568,7 @@ export default function InvoiceApp({ onGoHome }) {
   const [team, setTeam] = useState([]);
   const [apiKeys, setApiKeys] = useState([]);
   const [ownerId, setOwnerId] = useState(null);
+  const [teamRole, setTeamRole] = useState("viewer");
   const [businessProfileReady, setBusinessProfileReady] = useState(false);
   const [businessProfile, setBusinessProfile] = useState(null);
   const [userCreatedAt, setUserCreatedAt] = useState(null);
@@ -579,7 +580,7 @@ export default function InvoiceApp({ onGoHome }) {
     (async () => {
       setDashboardDataLoaded(false);
       const { data: invData } = await supabase.from("invoices").select("*").eq("user_id", ownerId).order("created_at", { ascending: false });
-      if (invData) setInvoices(invData.map(r => ({ id: r.id, createdBy: r.created_by, client: r.client, email: r.email, sellerName: r.seller_name, sellerEmail: r.seller_email, sellerPhone: r.seller_phone, sellerVat: r.seller_vat, sellerAddress: r.seller_address, sellerCountry: r.seller_country, buyerPhone: r.buyer_phone, buyerAddress: r.buyer_address, buyerCountry: r.buyer_country, date: r.date, due: r.due, status: r.status, amount: r.amount, subtotal: r.subtotal, discountAmt: r.discount_amt, taxAmt: r.tax_amt, total: r.total, tax: r.tax, discount: r.discount, depositPct: r.deposit_pct, notes: r.notes, bankInfo: r.bank_info, currency: r.currency, documentLanguage: normalizeDocumentLanguage(r.document_language), docType: r.doc_type, creditOf: r.credit_of, paidAmount: Number(r.paid_amount) || 0, sellerLogo: r.seller_logo || null, sellerLogoSize: r.seller_logo_size || undefined, buyerLogo: r.buyer_logo || null, buyerLogoSize: r.buyer_logo_size || undefined, items: r.items || [] })));
+      if (invData) setInvoices(invData.map(r => ({ id: r.id, createdBy: r.created_by, updatedBy: r.updated_by || null, updatedAt: r.updated_at || null, client: r.client, email: r.email, sellerName: r.seller_name, sellerEmail: r.seller_email, sellerPhone: r.seller_phone, sellerVat: r.seller_vat, sellerAddress: r.seller_address, sellerCountry: r.seller_country, buyerPhone: r.buyer_phone, buyerAddress: r.buyer_address, buyerCountry: r.buyer_country, date: r.date, due: r.due, status: r.status, amount: r.amount, subtotal: r.subtotal, discountAmt: r.discount_amt, taxAmt: r.tax_amt, total: r.total, tax: r.tax, discount: r.discount, depositPct: r.deposit_pct, notes: r.notes, bankInfo: r.bank_info, currency: r.currency, documentLanguage: normalizeDocumentLanguage(r.document_language), docType: r.doc_type, creditOf: r.credit_of, paidAmount: Number(r.paid_amount) || 0, sellerLogo: r.seller_logo || null, sellerLogoSize: r.seller_logo_size || undefined, buyerLogo: r.buyer_logo || null, buyerLogoSize: r.buyer_logo_size || undefined, items: r.items || [] })));
       if (invData?.some(row => row.doc_type !== "credit_note" && Number(row.total ?? row.amount ?? 0) > 0)) activateReferral().catch(() => {});
       const { data: cliData } = await supabase.from("clients").select("*").eq("user_id", ownerId);
       if (cliData) setClients(cliData.map(c => ({ id: c.id, name: c.name, email: c.email, phone: c.phone, country: c.country })));
@@ -612,6 +613,7 @@ export default function InvoiceApp({ onGoHome }) {
       const teamOwnerId = await myTeamOwner(user.id);
       const dataOwnerId = teamOwnerId || user.id;
       setOwnerId(dataOwnerId);
+      if (teamOwnerId) myTeamRole(user.id).then(setTeamRole);
       loadQuotes(dataOwnerId).then(setQuotes);
       loadProfiles(dataOwnerId).then(setBizProfiles);
       loadExpenses(dataOwnerId).then(setExpenses);
@@ -665,6 +667,9 @@ export default function InvoiceApp({ onGoHome }) {
   const [remindersLog, setRemindersLog] = useState({});
 
   const isTeamMember = !!(ownerId && userId && ownerId !== userId);
+  // Team members are read only unless the owner made them an editor (enforced in the database too).
+  const readOnly = isTeamMember && teamRole !== "editor";
+  const guardReadOnly = () => { if (!readOnly) return false; window.alert(t("view_only_alert", "You have view-only access to this account. Ask the owner for edit rights.")); return true; };
   const isPro = plan === "pro" || plan === "business" || isTeamMember;
   // Essential through the free trial (no subscription yet): show the days left
   // and a way to subscribe, instead of "Manage subscription".
@@ -693,6 +698,7 @@ export default function InvoiceApp({ onGoHome }) {
   };
 
   const openNewInvoice = (source = "app") => {
+    if (guardReadOnly()) return;
     if (!isPro && invoiceOnlyCount >= 20) { setUpgradeFeature("unlimited_invoices"); setShowUpgrade(true); }
     else {
       trackEvent("invoice_started", { source, is_first_invoice:invoiceOnlyCount === 0 });
@@ -772,6 +778,7 @@ export default function InvoiceApp({ onGoHome }) {
   });
 
   const addInvoice = async (inv, { source = "invoice_wizard", showSuccess = true } = {}) => {
+    if (guardReadOnly()) return null;
     const { data: { user } } = await supabase.auth.getUser();
     if (!user) return;
     const row = { id: inv.id, user_id: ownerId || user.id, created_by: user.email, client: inv.client, email: inv.email, seller_name: inv.sellerName, seller_email: inv.sellerEmail, seller_phone: inv.sellerPhone, seller_vat: inv.sellerVat || null, seller_address: inv.sellerAddress, seller_country: inv.sellerCountry || null, buyer_phone: inv.buyerPhone, buyer_address: inv.buyerAddress, buyer_country: inv.buyerCountry || null, date: inv.date, due: inv.due, status: inv.status, amount: inv.amount, subtotal: inv.subtotal, discount_amt: inv.discountAmt, tax_amt: inv.taxAmt, total: inv.total, tax: inv.tax, discount: inv.discount, deposit_pct: Number(inv.depositPct) || null, notes: inv.notes, bank_info: inv.bankInfo, currency: inv.currency, document_language: normalizeDocumentLanguage(inv.documentLanguage), items: inv.items, ...logoColumns(inv) };
@@ -854,6 +861,7 @@ export default function InvoiceApp({ onGoHome }) {
     return inv;
   };
   const updateInvoice = async (inv) => {
+    if (guardReadOnly()) return;
     const row = { client: inv.client, email: inv.email, seller_name: inv.sellerName, seller_email: inv.sellerEmail, seller_phone: inv.sellerPhone, seller_vat: inv.sellerVat || null, seller_address: inv.sellerAddress, seller_country: inv.sellerCountry || null, buyer_phone: inv.buyerPhone, buyer_address: inv.buyerAddress, buyer_country: inv.buyerCountry || null, date: inv.date, due: inv.due, status: inv.status, amount: inv.amount, subtotal: inv.subtotal, discount_amt: inv.discountAmt, tax_amt: inv.taxAmt, total: inv.total, tax: inv.tax, discount: inv.discount, deposit_pct: Number(inv.depositPct) || null, notes: inv.notes, bank_info: inv.bankInfo, currency: inv.currency, document_language: normalizeDocumentLanguage(inv.documentLanguage), items: inv.items, ...logoColumns(inv, invoices.find(i => i.id === inv.id)) };
     const { error } = await saveInvoiceRow(row, inv.id);
     if (error) { window.alert(t("invoice_save_error", "Could not save this invoice.") + "\n\n" + error.message); return; }
@@ -880,6 +888,7 @@ export default function InvoiceApp({ onGoHome }) {
   };
 
   const createCreditNote = async (inv) => {
+    if (guardReadOnly()) return;
     if (!inv || inv.docType === "credit_note") return;
     const already = (invoices || []).filter((i) => i.creditOf === inv.id);
     const warn = already.length ? "\n\n" + t("credit_exists", "Note: this invoice already has a credit note") + " (" + already.map((i) => i.id).join(", ") + ")." : "";
@@ -914,6 +923,7 @@ export default function InvoiceApp({ onGoHome }) {
   // Records money actually received. "partial" is derived at display time,
   // so only draft / pending / paid are ever written to the database.
   const recordPayment = async (inv) => {
+    if (guardReadOnly()) return;
     if (!inv || inv.docType === "credit_note") return;
     const invTotal = Math.abs(Number(inv.total != null ? inv.total : inv.amount) || 0);
     const already = Number(inv.paidAmount) || 0;
@@ -948,11 +958,13 @@ export default function InvoiceApp({ onGoHome }) {
   };
 
   const markAsPaid = async (id) => {
+    if (guardReadOnly()) return;
     const { error } = await supabase.from("invoices").update({ status: "paid" }).eq("id", id);
     if (error) { window.alert(t("payment_save_error", "Could not save the payment.") + "\n\n" + error.message); return; }
     setInvoices(prev => prev.map(i => i.id === id ? { ...i, status: "paid" } : i));
   };
   const addClient = async (c) => {
+    if (guardReadOnly()) return;
     const { data: { user } } = await supabase.auth.getUser();
     if (!user) return;
     const isFirstClient = clients.length === 0;
@@ -968,6 +980,7 @@ export default function InvoiceApp({ onGoHome }) {
     setClients(prev => [c, ...prev]); setShowNewClient(false);
   };
   const deleteClient = async (id) => {
+    if (guardReadOnly()) return;
     const { error } = await supabase.from("clients").delete().eq("id", id);
     if (error) { window.alert(t("delete_error", "Could not delete this. Please try again.") + "\n\n" + error.message); return; }
     setClients(prev => prev.filter(c => c.id !== id));
@@ -975,6 +988,7 @@ export default function InvoiceApp({ onGoHome }) {
   // Deleting is permanent, so always ask first. An issued invoice is normally
   // cancelled with a credit note instead - say so in the same question.
   const deleteInvoice = async (id) => {
+    if (guardReadOnly()) return;
     const inv = invoices.find(i => i.id === id);
     const issued = inv && inv.status !== "draft" && inv.docType !== "credit_note";
     const question = t("delete_invoice_confirm", "Delete this document permanently? This cannot be undone.") + "\n\n" + id
@@ -993,7 +1007,7 @@ export default function InvoiceApp({ onGoHome }) {
       const owner = (await myTeamOwner(user.id)) || user.id;
       const { data: invData } = await supabase.from("invoices").select("*").eq("user_id", owner).order("created_at", { ascending: false });
       const { data: cliData } = await supabase.from("clients").select("*").eq("user_id", owner);
-      if (invData) setInvoices(invData.map(r => ({ id: r.id, createdBy: r.created_by, client: r.client, email: r.email, sellerName: r.seller_name, sellerEmail: r.seller_email, sellerPhone: r.seller_phone, sellerVat: r.seller_vat, sellerAddress: r.seller_address, sellerCountry: r.seller_country, buyerPhone: r.buyer_phone, buyerAddress: r.buyer_address, buyerCountry: r.buyer_country, date: r.date, due: r.due, status: r.status, amount: r.amount, subtotal: r.subtotal, discountAmt: r.discount_amt, taxAmt: r.tax_amt, total: r.total, tax: r.tax, discount: r.discount, depositPct: r.deposit_pct, notes: r.notes, bankInfo: r.bank_info, currency: r.currency, documentLanguage: normalizeDocumentLanguage(r.document_language), docType: r.doc_type, creditOf: r.credit_of, paidAmount: Number(r.paid_amount) || 0, sellerLogo: r.seller_logo || null, sellerLogoSize: r.seller_logo_size || undefined, buyerLogo: r.buyer_logo || null, buyerLogoSize: r.buyer_logo_size || undefined, items: r.items || [] })));
+      if (invData) setInvoices(invData.map(r => ({ id: r.id, createdBy: r.created_by, updatedBy: r.updated_by || null, updatedAt: r.updated_at || null, client: r.client, email: r.email, sellerName: r.seller_name, sellerEmail: r.seller_email, sellerPhone: r.seller_phone, sellerVat: r.seller_vat, sellerAddress: r.seller_address, sellerCountry: r.seller_country, buyerPhone: r.buyer_phone, buyerAddress: r.buyer_address, buyerCountry: r.buyer_country, date: r.date, due: r.due, status: r.status, amount: r.amount, subtotal: r.subtotal, discountAmt: r.discount_amt, taxAmt: r.tax_amt, total: r.total, tax: r.tax, discount: r.discount, depositPct: r.deposit_pct, notes: r.notes, bankInfo: r.bank_info, currency: r.currency, documentLanguage: normalizeDocumentLanguage(r.document_language), docType: r.doc_type, creditOf: r.credit_of, paidAmount: Number(r.paid_amount) || 0, sellerLogo: r.seller_logo || null, sellerLogoSize: r.seller_logo_size || undefined, buyerLogo: r.buyer_logo || null, buyerLogoSize: r.buyer_logo_size || undefined, items: r.items || [] })));
       if (cliData) setClients(cliData);
     };
     loadData();
@@ -1013,7 +1027,7 @@ export default function InvoiceApp({ onGoHome }) {
           const owner = (await myTeamOwner(session.user.id)) || session.user.id;
           const { data: invData } = await supabase.from("invoices").select("*").eq("user_id", owner).order("created_at", { ascending: false });
           const { data: cliData } = await supabase.from("clients").select("*").eq("user_id", owner);
-          if (invData) setInvoices(invData.map(r => ({ id: r.id, createdBy: r.created_by, client: r.client, email: r.email, sellerName: r.seller_name, sellerEmail: r.seller_email, sellerPhone: r.seller_phone, sellerVat: r.seller_vat, sellerAddress: r.seller_address, sellerCountry: r.seller_country, buyerPhone: r.buyer_phone, buyerAddress: r.buyer_address, buyerCountry: r.buyer_country, date: r.date, due: r.due, status: r.status, amount: r.amount, subtotal: r.subtotal, discountAmt: r.discount_amt, taxAmt: r.tax_amt, total: r.total, tax: r.tax, discount: r.discount, depositPct: r.deposit_pct, notes: r.notes, bankInfo: r.bank_info, currency: r.currency, documentLanguage: normalizeDocumentLanguage(r.document_language), docType: r.doc_type, creditOf: r.credit_of, paidAmount: Number(r.paid_amount) || 0, sellerLogo: r.seller_logo || null, sellerLogoSize: r.seller_logo_size || undefined, buyerLogo: r.buyer_logo || null, buyerLogoSize: r.buyer_logo_size || undefined, items: r.items || [] })));
+          if (invData) setInvoices(invData.map(r => ({ id: r.id, createdBy: r.created_by, updatedBy: r.updated_by || null, updatedAt: r.updated_at || null, client: r.client, email: r.email, sellerName: r.seller_name, sellerEmail: r.seller_email, sellerPhone: r.seller_phone, sellerVat: r.seller_vat, sellerAddress: r.seller_address, sellerCountry: r.seller_country, buyerPhone: r.buyer_phone, buyerAddress: r.buyer_address, buyerCountry: r.buyer_country, date: r.date, due: r.due, status: r.status, amount: r.amount, subtotal: r.subtotal, discountAmt: r.discount_amt, taxAmt: r.tax_amt, total: r.total, tax: r.tax, discount: r.discount, depositPct: r.deposit_pct, notes: r.notes, bankInfo: r.bank_info, currency: r.currency, documentLanguage: normalizeDocumentLanguage(r.document_language), docType: r.doc_type, creditOf: r.credit_of, paidAmount: Number(r.paid_amount) || 0, sellerLogo: r.seller_logo || null, sellerLogoSize: r.seller_logo_size || undefined, buyerLogo: r.buyer_logo || null, buyerLogoSize: r.buyer_logo_size || undefined, items: r.items || [] })));
           if (cliData) setClients(cliData);
         };
         reload();
@@ -1167,9 +1181,10 @@ export default function InvoiceApp({ onGoHome }) {
           </div>
 
           <div className="content">
-            {page === "dashboard" && <Dashboard clients={clients} businessProfileReady={businessProfileReady} userEmail={userEmail} onCreateInvoice={() => openNewInvoice("onboarding_dashboard")} onCreditNote={createCreditNote} onRecordPayment={recordPaymentGated} invoices={invoicesWithStatus} totalRevenue={totalRevenue} totalPending={totalPending} totalOverdue={totalOverdue} totalCredited={totalCredited} setPage={setPage} setPreviewInvoice={(inv) => openInvoicePreview(inv, "dashboard")} onEdit={setEditingInvoice} onRemind={(inv) => requirePro("reminders", () => setReminderInvoice(inv))} f={f} />}
-            {page === "invoices" && <Invoices viewerEmail={userEmail} invoices={filteredInvoices} filterStatus={filterStatus} setFilterStatus={setFilterStatus} search={search} setSearch={setSearch} onPreview={(inv) => openInvoicePreview(inv, "invoice_list")} onDelete={deleteInvoice} onNew={() => openNewInvoice("invoice_list_empty")} onEdit={setEditingInvoice} onRemind={(inv) => requirePro("reminders", () => setReminderInvoice(inv))} remindersLog={remindersLog} f={f} isPro={isPro} onUpgrade={(feat) => { setUpgradeFeature(feat); setShowUpgrade(true); }} hasDraft={!!invoiceDraft} onOpenDraft={() => openNewInvoice("invoice_draft")} onDiscardDraft={discardDraft} onMarkPaid={markAsPaid} onCreditNote={createCreditNote} onRecordPayment={recordPaymentGated} onMakeRecurring={hasBusinessAccess(plan) ? async (inv) => { const choice = window.prompt(t("recurring_prompt", "Repeat this invoice:\n\n1 = Weekly\n2 = Every 2 weeks\n3 = Monthly\n4 = Yearly\n\nType a number:"), "3"); const freqMap = { "1": "weekly", "2": "biweekly", "3": "monthly", "4": "yearly" }; const freq = freqMap[(choice || "").trim()]; if (!freq) return; const ok = await createRecurring(inv, freq, userId); if (ok) { loadRecurring(userId).then(setRecurring); const { nextDate } = require("../lib/recurring"); alert("✓ " + t("recurring_active", "Recurring activated") + " (" + freq + ")\n" + t("next_invoice", "Next invoice") + ": " + nextDate(new Date(), freq).toISOString().split("T")[0] + "\n" + t("recurring_manage", "Manage it in Settings → Recurring invoices.")); } } : () => { setUpgradeIntent("business"); setUpgradeFeature("recurring"); setShowUpgrade(true); }} />}
-              {page === "quotes" && (hasBusinessAccess(plan) || isTeamMember) && <Quotes
+            {readOnly && <div style={{ background:"rgba(99,102,241,0.12)", border:"1px solid rgba(99,102,241,0.4)", borderRadius:10, padding:"10px 14px", marginBottom:16, fontSize:13 }}>{t("view_only_banner", "View only: you can look at everything and download files, but changes are made by the account owner.")}</div>}
+            {page === "dashboard" && <Dashboard clients={clients} businessProfileReady={businessProfileReady} userEmail={userEmail} onCreateInvoice={() => openNewInvoice("onboarding_dashboard")} onCreditNote={createCreditNote} onRecordPayment={recordPaymentGated} invoices={invoicesWithStatus} totalRevenue={totalRevenue} totalPending={totalPending} totalOverdue={totalOverdue} totalCredited={totalCredited} setPage={setPage} setPreviewInvoice={(inv) => openInvoicePreview(inv, "dashboard")} onEdit={(inv) => { if (!guardReadOnly()) setEditingInvoice(inv); }} onRemind={(inv) => requirePro("reminders", () => setReminderInvoice(inv))} f={f} />}
+            {page === "invoices" && <Invoices viewerEmail={userEmail} invoices={filteredInvoices} filterStatus={filterStatus} setFilterStatus={setFilterStatus} search={search} setSearch={setSearch} onPreview={(inv) => openInvoicePreview(inv, "invoice_list")} onDelete={deleteInvoice} onNew={() => openNewInvoice("invoice_list_empty")} onEdit={(inv) => { if (!guardReadOnly()) setEditingInvoice(inv); }} onRemind={(inv) => requirePro("reminders", () => setReminderInvoice(inv))} remindersLog={remindersLog} f={f} isPro={isPro} onUpgrade={(feat) => { setUpgradeFeature(feat); setShowUpgrade(true); }} hasDraft={!!invoiceDraft} onOpenDraft={() => openNewInvoice("invoice_draft")} onDiscardDraft={discardDraft} onMarkPaid={markAsPaid} onCreditNote={createCreditNote} onRecordPayment={recordPaymentGated} onMakeRecurring={hasBusinessAccess(plan) ? async (inv) => { const choice = window.prompt(t("recurring_prompt", "Repeat this invoice:\n\n1 = Weekly\n2 = Every 2 weeks\n3 = Monthly\n4 = Yearly\n\nType a number:"), "3"); const freqMap = { "1": "weekly", "2": "biweekly", "3": "monthly", "4": "yearly" }; const freq = freqMap[(choice || "").trim()]; if (!freq) return; const ok = await createRecurring(inv, freq, userId); if (ok) { loadRecurring(userId).then(setRecurring); const { nextDate } = require("../lib/recurring"); alert("✓ " + t("recurring_active", "Recurring activated") + " (" + freq + ")\n" + t("next_invoice", "Next invoice") + ": " + nextDate(new Date(), freq).toISOString().split("T")[0] + "\n" + t("recurring_manage", "Manage it in Settings → Recurring invoices.")); } } : () => { setUpgradeIntent("business"); setUpgradeFeature("recurring"); setShowUpgrade(true); }} />}
+              {page === "quotes" && (hasBusinessAccess(plan) || isTeamMember) && <Quotes onReadOnly={guardReadOnly}
                 quotes={quotes}
                 setQuotes={setQuotes}
                 userId={ownerId || userId}
@@ -1195,9 +1210,9 @@ export default function InvoiceApp({ onGoHome }) {
                   return addInvoice({ ...inv, autoNumber:true }, { source:"quote_conversion", showSuccess:false });
                 }}
               />}
-            {page === "expenses" && (hasBusinessAccess(plan) || isTeamMember) && <Expenses expenses={expenses} setExpenses={setExpenses} invoices={invoicesWithStatus} userId={ownerId || userId} f={f} />}
+            {page === "expenses" && (hasBusinessAccess(plan) || isTeamMember) && <Expenses readOnly={readOnly} onReadOnly={guardReadOnly} expenses={expenses} setExpenses={setExpenses} invoices={invoicesWithStatus} userId={ownerId || userId} f={f} />}
             {page === "analytics" && hasBusinessAccess(plan) && <Analytics invoices={invoicesWithStatus} f={f} fc={fmtCurrency} defaultCurrency={currency} />}
-            {page === "clients" && <Clients clients={clients} invoices={invoicesWithStatus} f={f} onAdd={() => setShowNewClient(true)} onDeleteClient={deleteClient} onEditClient={(c) => setEditingClient(c)} />}
+            {page === "clients" && <Clients clients={clients} invoices={invoicesWithStatus} f={f} onAdd={() => setShowNewClient(true)} onDeleteClient={deleteClient} onEditClient={(c) => { if (!guardReadOnly()) setEditingClient(c); }} />}
             {page === "settings" && <><ReferralProgram userId={userId} plan={plan} /><Settings currency={currency} setCurrency={setCurrency} userEmail={userEmail} invoices={invoicesWithStatus} onProfileSaved={(ready, profile) => { setBusinessProfileReady(ready); setBusinessProfile(profile); }} />{hasBusinessAccess(plan) && <BusinessProfiles profiles={bizProfiles} setProfiles={setBizProfiles} userId={userId} />}{hasBusinessAccess(plan) && <RecurringList recurring={recurring} setRecurring={setRecurring} userId={userId} f={f} />}{hasBusinessAccess(plan) && <div className="card" style={{ marginTop: 20 }}><div className="card-title" style={{ marginBottom: 10 }}>{t("online_payments", "Online payments")}</div><div style={{ fontSize: 13, color: "#999", marginBottom: 12 }}>{t("connect_stripe_help", "Connect your Stripe account so clients can pay invoices online. Money goes directly to your bank.")}</div><button className="btn btn-primary btn-sm" onClick={async () => { const { data: { session } } = await supabase.auth.getSession(); const r = await fetch("/api/connect-stripe", { method: "POST", headers: { Authorization: "Bearer " + (session?.access_token || "") } }); const d = await r.json(); if (d.url) window.location.href = d.url; else alert(d.error || t("stripe_start_error", "Could not start Stripe onboarding")); }}>{t("connect_stripe", "Connect Stripe →")}</button></div>}{hasBusinessAccess(plan) && <TeamMembers team={team} setTeam={setTeam} userId={userId} />}{hasBusinessAccess(plan) && <ApiKeys keys={apiKeys} setKeys={setApiKeys} userId={userId} />}{((plan === "pro" && !isOnTrial) || plan === "business") && <div className="card" style={{ marginTop: 20 }}><div className="card-title" style={{ marginBottom: 10 }}>{t("subscription", "Subscription")}</div><div style={{ fontSize: 13, color: "#999", marginBottom: 12 }}>{t("subscription_help", "Switch between Essential and Advanced, update your card, view invoices, or cancel anytime.")}</div><a className="btn btn-primary btn-sm" href="https://billing.stripe.com/p/login/fZu4gzepGdT05Gx48j5ZC00" target="_blank" rel="noreferrer">{t("manage_subscription", "Manage subscription →")}</a></div>}{(plan === "free" || isOnTrial) && <div className="card" style={{ marginTop: 20 }}><div className="card-title" style={{ marginBottom: 10 }}>{t("plan", "Plan")}</div><div style={{ fontSize: 13, color:"#999", marginBottom:12 }}>{isOnTrial ? trialDaysLeft + " " + t("trial_days_left", "days left in your free trial") + ". " + t("trial_keep_data", "Subscribe to keep reminders, deposits and UBL export. Your data stays either way.") : t("free_plan_help", "You are on the Free plan. Upgrade for unlimited invoices, reminders, and more.")}</div><button className="btn btn-primary btn-sm" onClick={() => { setUpgradeIntent(null); setShowUpgrade(true); }}>{t("upgrade", "Upgrade →")}</button></div>}</>}
           </div>
         </div>
@@ -1457,7 +1472,7 @@ function Invoices({ invoices, filterStatus, setFilterStatus, search, setSearch, 
                     <td style={{ fontWeight:700, color:"var(--gold)" }}><bdi dir="ltr">{inv.id}</bdi>{inv.docType === "credit_note" && <span style={{ marginInlineStart:6, fontSize:9, fontWeight:800, letterSpacing:0.5, padding:"2px 6px", borderRadius:20, background:"rgba(224,85,85,0.15)", color:"var(--red)", verticalAlign:"middle" }}>{t("credit_note", "CREDIT NOTE")}</span>}</td>
                     <td>
                       <div style={{ fontWeight:500 }}>{inv.client}</div>
-                      <div style={{ fontSize:11, color:"var(--text2)" }}>{inv.email}</div>{inv.createdBy && inv.createdBy !== viewerEmail && <div style={{ fontSize:10, color:"var(--gold)", marginTop:2 }}>{t("created_by", "by")} {inv.createdBy}</div>}
+                      <div style={{ fontSize:11, color:"var(--text2)" }}>{inv.email}</div>{inv.createdBy && inv.createdBy !== viewerEmail && <div style={{ fontSize:10, color:"var(--gold)", marginTop:2 }}>{t("created_by", "by")} {inv.createdBy}</div>}{inv.updatedBy && inv.updatedBy !== inv.createdBy && <div style={{ fontSize:10, color:"var(--text2)", marginTop:2 }}>{t("edited_by", "edited by")} {inv.updatedBy}</div>}
                       {remindersLog[inv.id] && remindersLog[inv.id].length > 0 && (
                         <div style={{ fontSize:10, color:"var(--orange)", marginTop:2 }}>{remindersLog[inv.id].length} {t("reminders_sent", `reminder${remindersLog[inv.id].length > 1 ? "s" : ""} sent`)}</div>
                       )}
@@ -2411,6 +2426,12 @@ function InvoicePreview({ invoice, onExportUBL, onClose, currency, plan, isFirst
             </div>
           )}
 
+          {(invoice.createdBy || invoice.updatedBy) && (
+            <div className="no-print" style={{ fontSize:11, color:"#999", marginTop:20 }}>
+              {invoice.createdBy ? tr("created_by_full", "Created by", getLocale()) + " " + invoice.createdBy : ""}
+              {invoice.updatedBy ? (invoice.createdBy ? " · " : "") + tr("last_edited_by", "Last edited by", getLocale()) + " " + invoice.updatedBy + (invoice.updatedAt ? " (" + new Date(invoice.updatedAt).toLocaleString() + ")" : "") : ""}
+            </div>
+          )}
           <div className="preview-footer" style={{ marginTop:32 }}>
             {hasBusinessAccess(plan) && invoice.status !== "paid" && (
             <div className="no-print" style={{ textAlign:"center", margin:"14px 0" }}>

@@ -11,7 +11,8 @@ import { Download as DownloadIcon, Paperclip as PaperclipIcon, Camera as CameraI
 
 const CATEGORIES = ["software", "hardware", "office", "travel", "marketing", "services", "other"];
 
-export default function Expenses({ expenses, setExpenses, invoices, userId }) {
+export default function Expenses({ expenses, setExpenses, invoices, userId, readOnly, onReadOnly }) {
+  const blocked = () => (readOnly && onReadOnly ? onReadOnly() : false);
   const locale = getLocale();
   const t = (key, fallback) => tr(key, fallback, locale);
   const now = new Date();
@@ -48,6 +49,7 @@ export default function Expenses({ expenses, setExpenses, invoices, userId }) {
   };
 
   const handleDelete = async (e) => {
+    if (blocked()) return;
     if (!window.confirm(locale === "ar" ? "حذف المصروف «" + e.description + "»؟" : "Delete expense \"" + e.description + "\"?")) return;
     const deleted = await deleteExpense(e.id, userId);
     if (deleted && e.receipt_path) deleteReceipt(e.receipt_path);
@@ -124,14 +126,14 @@ export default function Expenses({ expenses, setExpenses, invoices, userId }) {
         <div className="card-title">{t("expenses", "Expenses")}</div>
         <div style={{ display:"flex", gap:8, flexWrap:"wrap" }}>
           <button className="btn btn-ghost" disabled={periodExpenses.length === 0} onClick={exportPeriod}><DownloadIcon size={15} strokeWidth={2} aria-hidden="true" style={{ verticalAlign:"-3px", marginInlineEnd:6 }} />{t("export_quarter", "Export")} Q{quarter} CSV</button>
-          <button className="btn btn-primary" onClick={() => setEditing("new")}>+ {t("add_expense", "Add expense")}</button>
+          <button className="btn btn-primary" onClick={() => { if (!blocked()) setEditing("new"); }}>+ {t("add_expense", "Add expense")}</button>
         </div>
       </div>
 
       {expenses.length === 0 && (
         <div className="card" style={{ textAlign:"center", padding:40, color:"#999" }}>
           <div>{t("no_expenses", "No expenses yet. Track your business costs here — VAT you paid is deducted automatically in the report above.")}</div>
-          <button className="btn btn-primary" style={{ marginTop:16 }} onClick={() => setEditing("new")}>{t("add_expense", "Add an expense")}</button>
+          <button className="btn btn-primary" style={{ marginTop:16 }} onClick={() => { if (!blocked()) setEditing("new"); }}>{t("add_expense", "Add an expense")}</button>
         </div>
       )}
 
@@ -144,7 +146,7 @@ export default function Expenses({ expenses, setExpenses, invoices, userId }) {
           <div style={{ display:"flex", alignItems:"center", gap:10 }}>
             <span style={{ fontWeight:700 }}>{fmtCurrency(e.amount_incl, e.currency || "EUR")}</span>
             {e.receipt_path && <button className="btn btn-ghost btn-sm" title={t("view_receipt", "View receipt")} aria-label={t("view_receipt", "View receipt")} onClick={() => showReceipt(e)}><PaperclipIcon size={15} strokeWidth={2} aria-hidden="true" /></button>}
-            <button className="btn btn-ghost btn-sm" onClick={() => setEditing(e)}>{t("edit", "Edit")}</button>
+            <button className="btn btn-ghost btn-sm" onClick={() => { if (!blocked()) setEditing(e); }}>{t("edit", "Edit")}</button>
             <button className="btn btn-ghost btn-sm" style={{ color:"#e05555" }} onClick={() => handleDelete(e)}>✕</button>
           </div>
         </div>

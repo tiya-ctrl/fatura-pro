@@ -65,6 +65,34 @@ export async function claimInvites() {
   }
 }
 
+// My role in the team I am a member of: "viewer" (read only) or "editor".
+// Falls back to "viewer" when the role cannot be read.
+export async function myTeamRole(userId) {
+  const { data, error } = await supabase
+    .from("team_members").select("role")
+    .eq("member_user_id", userId)
+    .eq("status", "active")
+    .maybeSingle();
+  if (error) { console.error("myTeamRole:", error.message); return "viewer"; }
+  return data?.role === "editor" ? "editor" : "viewer";
+}
+
+// Owner only: change a member's role (checked on the server).
+export async function setMemberRole(memberId, role) {
+  try {
+    const { data: { session } } = await supabase.auth.getSession();
+    const r = await fetch("/api/team?action=role", {
+      method: "POST",
+      headers: { Authorization: "Bearer " + (session?.access_token || ""), "Content-Type": "application/json" },
+      body: JSON.stringify({ memberId, role }),
+    });
+    return r.ok;
+  } catch (e) {
+    console.error("setMemberRole:", e);
+    return false;
+  }
+}
+
 // هل أنا عضو نشط بفريق أحد؟ يرجع owner_id أو null
 export async function myTeamOwner(userId) {
   const { data, error } = await supabase

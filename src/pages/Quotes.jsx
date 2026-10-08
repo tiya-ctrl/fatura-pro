@@ -64,7 +64,8 @@ function compactDate(value, language) {
   }
 }
 
-export default function Quotes({ quotes, setQuotes, userId, onConvert, sellerDefaults }) {
+export default function Quotes({ quotes, setQuotes, userId, onConvert, sellerDefaults, onReadOnly }) {
+  const blocked = () => (onReadOnly ? onReadOnly() : false);
   const ar = getLocale() === "ar";
   const ui = (english, arabic) => ar ? arabic : english;
   const [editing, setEditing] = useState(null);
@@ -73,12 +74,14 @@ export default function Quotes({ quotes, setQuotes, userId, onConvert, sellerDef
   const refresh = async () => setQuotes(await loadQuotes(userId));
 
   const handleDelete = async (quote) => {
+    if (blocked()) return;
     if (!window.confirm(ui("Delete quote " + quote.id + "?", "حذف عرض السعر " + quote.id + "؟"))) return;
     await deleteQuote(quote.id, userId);
     refresh();
   };
 
   const handleConvert = async (quote) => {
+    if (blocked()) return;
     if (quote.convertedInvoiceId) {
       window.alert(ui("Already converted to invoice ", "تم تحويله بالفعل إلى الفاتورة ") + quote.convertedInvoiceId);
       return;
@@ -123,14 +126,14 @@ export default function Quotes({ quotes, setQuotes, userId, onConvert, sellerDef
       <style>{QUOTE_CSS}</style>
       <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center", marginBottom:20, gap:12, flexWrap:"wrap" }}>
         <div className="card-title">{ui("Quotes", "عروض الأسعار")}</div>
-        <button className="btn btn-primary" onClick={() => setEditing("new")}>+ {ui("New Quote", "عرض سعر جديد")}</button>
+        <button className="btn btn-primary" onClick={() => { if (!blocked()) setEditing("new"); }}>+ {ui("New Quote", "عرض سعر جديد")}</button>
       </div>
 
       {quotes.length === 0 && !editing && (
         <div className="card quote-empty">
           <div style={{ fontWeight:700, color:"var(--text)", marginBottom:6 }}>{ui("No quotes yet", "لا توجد عروض أسعار بعد")}</div>
           <div>{ui("Create a professional quote you can preview, save as PDF, and convert to an invoice.", "أنشئ عرض سعر احترافيًا، عاينه واحفظه PDF ثم حوّله إلى فاتورة.")}</div>
-          <button className="btn btn-primary" onClick={() => setEditing("new")}>{ui("Create your first quote", "إنشاء أول عرض سعر")}</button>
+          <button className="btn btn-primary" onClick={() => { if (!blocked()) setEditing("new"); }}>{ui("Create your first quote", "إنشاء أول عرض سعر")}</button>
         </div>
       )}
 
@@ -144,7 +147,7 @@ export default function Quotes({ quotes, setQuotes, userId, onConvert, sellerDef
             <span style={{ fontSize:11, fontWeight:800, textTransform:ar ? "none" : "uppercase", color:statusColor[quote.status] || "#999" }}>{ar ? ({ draft:"مسودة", sent:"مُرسل", accepted:"مقبول", declined:"مرفوض", expired:"منتهي" }[quote.status] || quote.status) : quote.status}</span>
             <span style={{ fontWeight:700 }}>{fmtCurrency(quote.total, quote.currency)}</span>
             <button className="btn btn-ghost btn-sm" onClick={() => setPreviewing(quote)}>{ui("Preview / PDF", "معاينة / PDF")}</button>
-            <button className="btn btn-ghost btn-sm" onClick={() => setEditing(quote)}>{ui("Edit", "تعديل")}</button>
+            <button className="btn btn-ghost btn-sm" onClick={() => { if (!blocked()) setEditing(quote); }}>{ui("Edit", "تعديل")}</button>
             {!quote.convertedInvoiceId && <button className="btn btn-sm" style={{ background:"rgba(45,140,101,0.15)", color:"#2d8c65", border:"1px solid rgba(45,140,101,0.4)" }} onClick={() => handleConvert(quote)}>→ {ui("Invoice", "فاتورة")}</button>}
             <button className="btn btn-ghost btn-sm" aria-label={"Delete " + quote.id} style={{ color:"#e05555" }} onClick={() => handleDelete(quote)}>✕</button>
           </div>

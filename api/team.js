@@ -76,5 +76,18 @@ export default async function handler(req, res) {
     return res.status(200).json({ sent: true });
   }
 
+  // --- Change a member's role (owner only) ---
+  if (action === "role") {
+    const { memberId, role } = req.body || {};
+    if (!["viewer", "editor"].includes(role) || !memberId) return res.status(400).json({ error: "Invalid role" });
+    const { data, error: roleErr } = await supabaseAdmin
+      .from("team_members").update({ role })
+      .eq("id", memberId).eq("owner_id", user.id)
+      .select("id");
+    if (roleErr) return res.status(500).json({ error: roleErr.message });
+    if (!data || !data.length) return res.status(404).json({ error: "Member not found" });
+    return res.status(200).json({ ok: true });
+  }
+
   return res.status(400).json({ error: "Unknown action" });
 }
