@@ -669,6 +669,15 @@ export default function InvoiceApp({ onGoHome }) {
   const isTeamMember = !!(ownerId && userId && ownerId !== userId);
   // Team members are read only unless the owner made them an editor (enforced in the database too).
   const readOnly = isTeamMember && teamRole !== "editor";
+  useEffect(() => {
+    if (!isTeamMember || !userId) return undefined;
+    const refreshRole = () => myTeamRole(userId).then(setTeamRole);
+    window.addEventListener("focus", refreshRole);
+    const timer = setInterval(refreshRole, 30000);
+    return () => { window.removeEventListener("focus", refreshRole); clearInterval(timer); };
+  }, [isTeamMember, userId]);
+  // The database refuses the change (row-level security): the role changed meanwhile.
+  const isPermissionError = (error) => !!error && (error.code === "42501" || /row-level security/i.test(error.message || ""));
   const guardReadOnly = () => { if (!readOnly) return false; window.alert(t("view_only_alert", "You have view-only access to this account. Ask the owner for edit rights.")); return true; };
   const isPro = plan === "pro" || plan === "business" || isTeamMember;
   // Essential through the free trial (no subscription yet): show the days left
@@ -793,6 +802,7 @@ export default function InvoiceApp({ onGoHome }) {
     // The database enforces the Free plan limit too (see migration 202610030001).
     if (error && String(error.message || "").includes("FREE_LIMIT_INVOICES")) { setUpgradeFeature("unlimited_invoices"); setShowUpgrade(true); return null; }
     if (error && error.code === "23505") { window.alert(t("invoice_number_taken", "This invoice number is already in use. Choose another number, or leave the field empty to create one automatically.")); return null; }
+    if (isPermissionError(error)) { myTeamRole(userId).then(setTeamRole); window.alert(t("view_only_alert", "You have view-only access to this account. Ask the owner for edit rights.")); return null; }
     if (error) { window.alert(t("invoice_save_error", "Could not save this invoice.") + "\n\n" + error.message); return null; }
 
     // The first invoice should finish setup, not create more setup work. Reuse
@@ -864,6 +874,7 @@ export default function InvoiceApp({ onGoHome }) {
     if (guardReadOnly()) return;
     const row = { client: inv.client, email: inv.email, seller_name: inv.sellerName, seller_email: inv.sellerEmail, seller_phone: inv.sellerPhone, seller_vat: inv.sellerVat || null, seller_address: inv.sellerAddress, seller_country: inv.sellerCountry || null, buyer_phone: inv.buyerPhone, buyer_address: inv.buyerAddress, buyer_country: inv.buyerCountry || null, date: inv.date, due: inv.due, status: inv.status, amount: inv.amount, subtotal: inv.subtotal, discount_amt: inv.discountAmt, tax_amt: inv.taxAmt, total: inv.total, tax: inv.tax, discount: inv.discount, deposit_pct: Number(inv.depositPct) || null, notes: inv.notes, bank_info: inv.bankInfo, currency: inv.currency, document_language: normalizeDocumentLanguage(inv.documentLanguage), items: inv.items, ...logoColumns(inv, invoices.find(i => i.id === inv.id)) };
     const { error } = await saveInvoiceRow(row, inv.id);
+    if (isPermissionError(error)) { myTeamRole(userId).then(setTeamRole); window.alert(t("view_only_alert", "You have view-only access to this account. Ask the owner for edit rights.")); return; }
     if (error) { window.alert(t("invoice_save_error", "Could not save this invoice.") + "\n\n" + error.message); return; }
     setInvoices(prev => prev.map(i => i.id === inv.id ? inv : i)); setEditDraft(null); setEditingInvoice(null);
   };
