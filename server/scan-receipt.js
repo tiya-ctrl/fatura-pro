@@ -56,7 +56,9 @@ Return the fields exactly as printed on the document; do not guess numbers that 
 - description: a short label for what was bought, max 6 words, in the document's language (e.g. "Kantoorartikelen", "Adobe abonnement").
 - category: the best fit from the list.
 - currency: ISO 4217 code (EUR for "€").
-- amount_excl, vat_amount, amount_incl: totals for the whole document. If only two are printed, leave the third null.
+- amount_incl: the final total paid for the whole document, VAT included ("Totaal", "Te betalen", "Total", "PIN", "Bedrag"). Always fill this in when any total is printed, even if no VAT is shown. Use the grand total, not a single line item or the change given back.
+- amount_excl, vat_amount: totals for the whole document. With several VAT rates, add up the VAT amounts of all rates. Leave null when not printed.
+- Amounts are numbers with a dot as decimal separator: "12,50" is 12.5. Long receipts may come as several overlapping parts of one receipt, top to bottom; read them as one document and count each line once.
 - vat_rate: the VAT percentage when a single rate applies (e.g. 21, 9, 0). If several rates are mixed, or none is shown, null.`;
 
 export async function scanReceiptHandler(req, res) {
@@ -91,9 +93,15 @@ export async function scanReceiptHandler(req, res) {
   if (downloadError || !blob) return res.status(404).json({ error: "Receipt not found" });
   const data = Buffer.from(await blob.arrayBuffer()).toString("base64");
   const mediaType = MEDIA_TYPES[ext];
-  const source = mediaType === "application/pdf"
-    ? { type: "document", source: { type: "base64", media_type: mediaType, data } }
-    : { type: "image", source: { type: "base64", media_type: mediaType, data } };
+  // Long photos: the browser also sends sharp overlapping parts of the original (JPEG, top to
+  // bottom), so small amounts stay readable. Only used next to a stored receipt the caller may read.
+  const tiles = Array.isArray((req.body || {}).tiles) ? req.body.tiles : [];
+  const goodTiles = tiles.length && tiles.length <= 4 && tiles.every((t) => typeof t === "string" && t.startsWith("/9j/") && t.length < 2_500_000);
+  const sources = mediaType === "application/pdf"
+    ? [{ type: "document", source: { type: "base64", media_type: mediaType, data } }]
+    : goodTiles
+      ? tiles.map((t) => ({ type: "image", source: { type: "base64", media_type: "image/jpeg", data: t } }))
+      : [{ type: "image", source: { type: "base64", media_type: mediaType, data } }];
 
   try {
     const response = await anthropic.beta.messages.create({
@@ -101,9 +109,9 @@ export async function scanReceiptHandler(req, res) {
       max_tokens: 2000,
       betas: ["server-side-fallback-2026-07-01"],
       fallbacks: "default",
-      output_config: { effort: "low", format: { type: "json_schema", schema: RECEIPT_SCHEMA } },
+      output_config: { effort: "medium", format: { type: "json_schema", schema: RECEIPT_SCHEMA } },
       system: INSTRUCTIONS,
-      messages: [{ role: "user", content: [source, { type: "text", text: "Read this receipt." }] }],
+      messages: [{ role: "user", content: [...sources, { type: "text", text: sources.length > 1 ? "These are " + sources.length + " overlapping parts of one receipt, top to bottom. Read the receipt." : "Read this receipt." }] }],
     });
 
     if (response.stop_reason !== "end_turn") {

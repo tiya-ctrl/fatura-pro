@@ -201,12 +201,13 @@ function ExpenseModal({ expense, onClose, onSave, onViewReceipt, ownerId, defaul
       return;
     }
     setNewPath(up.path);
-    const fields = await scanReceipt(up.path);
+    const fields = await scanReceipt(up.path, file);
     if (pick !== pickCount.current) return;
-    const values = receiptToForm(fields);
+    const { vat_unknown, ...values } = receiptToForm(fields);
     if (Object.keys(values).length) {
       setForm((p) => ({ ...p, ...values }));
-      setScanState("filled");
+      // Say exactly what is missing instead of "filled in" when the amount or VAT was not found.
+      setScanState(!values.amount_excl ? "no_amount" : vat_unknown ? "no_vat" : "filled");
     } else {
       setScanState("failed");
     }
@@ -255,9 +256,11 @@ function ExpenseModal({ expense, onClose, onSave, onViewReceipt, ownerId, defaul
             {previewUrl && <img src={previewUrl} alt="" style={{ width:56, height:56, objectFit:"cover", borderRadius:8 }} />}
             <div style={{ flex:1, minWidth:160, fontSize:13 }}>
               <div style={{ fontWeight:700 }}>{t("receipt", "Receipt")}</div>
-              <div aria-live="polite" style={{ color: scanState === "filled" ? "#2d8c65" : "#999", fontSize:12 }}>
+              <div aria-live="polite" style={{ color: scanState === "filled" ? "#2d8c65" : scanState === "no_amount" || scanState === "no_vat" ? "#d68a1c" : "#999", fontSize:12 }}>
                 {scanState === "reading" ? t("receipt_reading", "Reading the receipt…")
                   : scanState === "filled" ? t("receipt_filled", "Filled in from the receipt. Please check the details.")
+                  : scanState === "no_amount" ? t("receipt_no_amount", "Filled in from the receipt, but the amount could not be read. Please enter it.")
+                  : scanState === "no_vat" ? t("receipt_no_vat", "Total found, but no VAT on the receipt. Please check the VAT rate.")
                   : scanState === "failed" ? t("receipt_scan_failed", "Could not read the receipt. Please fill in the details.")
                   : receiptFile ? receiptFile.name
                   : hasStoredReceipt ? t("receipt_attached", "Receipt attached")
