@@ -106,7 +106,7 @@ export function applyPageSeo({
   setMeta('meta[property="og:url"]', { property: "og:url", content: canonical }, cleanups);
   setMeta('meta[property="og:image"]', { property: "og:image", content: image }, cleanups);
   setMeta('meta[property="og:image:alt"]', { property: "og:image:alt", content: imageAlt }, cleanups);
-  setMeta('meta[property="og:site_name"]', { property: "og:site_name", content: "Fatūra Pro" }, cleanups);
+  setMeta('meta[property="og:site_name"]', { property: "og:site_name", content: "FaturaPro" }, cleanups);
   setMeta('meta[property="og:locale"]', { property: "og:locale", content: locale }, cleanups);
   setMeta('meta[name="twitter:card"]', { name: "twitter:card", content: "summary_large_image" }, cleanups);
   setMeta('meta[name="twitter:title"]', { name: "twitter:title", content: title }, cleanups);

@@ -75,7 +75,7 @@ const POSTS = [
   {
     slug: "fatura-pro-plan-guide-how-to-use",
     lang: "en",
-    title: "Fatūra Pro Essential Plan: Every Feature and How to Use It (2026 Guide)",
+    title: "FaturaPro Essential Plan: Every Feature and How to Use It (2026 Guide)",
     description: "A step-by-step guide to the Essential plan: unlimited invoices, payment reminders, deposits, UBL export, multi-currency support, and custom branding.",
     date: "2026-08-15",
     dateModified: "2026-09-08",
@@ -382,7 +382,7 @@ export function BlogIndex() {
     <div style={{ minHeight:"100vh", background:"#08080e", color:"#e8e4dc", fontFamily:"DM Sans, sans-serif" }}>
       <div style={{ maxWidth:760, margin:"0 auto", padding:"60px 24px" }}>
         <a href="/" style={{ color:"#6366F1", fontSize:13, textDecoration:"none", display:"inline-block", marginBottom:32 }}>← Fatūra Pro</a>
-        <h1 style={{ fontFamily:"Playfair Display, Georgia, serif", fontSize:38, marginBottom:8 }}>Blog</h1>
+        <h1 style={{ fontFamily:"Playfair Display, Georgia, serif", fontSize:38, marginBottom:8 }}>Invoicing, VAT and Freelancing Guides</h1>
         <p style={{ color:"#9a9690", marginBottom:44, fontSize:15 }}>Invoicing tips, guides and best practices — in English, Dutch and Arabic.</p>
         <a href="/ar/invoicing-netherlands-germany-belgium" lang="ar" dir="rtl" style={{display:"block",background:"#111118",border:"1px solid #444253",borderRadius:14,padding:"26px 28px",marginBottom:18,color:"#e8e4dc",textDecoration:"none"}}><h2 style={{fontSize:22,marginBottom:10}}>الفوترة بالعربية في هولندا وألمانيا وبلجيكا: دليل عملي</h2><p style={{color:"#b5b1c0",lineHeight:1.8}}>بيانات الفاتورة ولغة العميل، الفرق بين PDF وUBL وPeppol، ومتابعة الدفع.</p></a>
         {POSTS.map(p => (

@@ -91,7 +91,7 @@ if (!shell.includes('<div id="root"></div>') || !shell.includes("</head>")) {
   process.exit(0);
 }
 const page = shell
-  .replace("</head>", bootHead + "</head>")
+  .replace("</head>", '<link data-prerender-head rel="canonical" href="https://faturapro.app/"/>' + bootHead + "</head>")
   .replace('<div id="root"></div>', '<div id="root"><div data-prerender="home">' + markup + "</div></div>");
 fs.writeFileSync(indexPath, page);
 

@@ -325,7 +325,7 @@ export default function LandingPage({ onOpenApp }) {
   useEffect(() => {
     const canonical = "https://faturapro.app/";
     const cleanupSeo = applyPageSeo({
-      title:"Multi-Currency Invoicing Software for Freelancers | Fatūra Pro",
+      title:"Multi-Currency Invoicing Software for Freelancers | FaturaPro",
       description:"Multi-currency invoicing software for freelancers and small businesses. Create invoices and quotes, track payments and expenses, and export UBL/XML. Start free.",
       canonical,
       language:"en",
