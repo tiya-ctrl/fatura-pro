@@ -16,7 +16,7 @@ const CURRENCIES = CURRENCY_GROUPS.flatMap((group) => group.items).map((c) => ({
 const FAQS = [
   { q: "Is this invoice generator really free?", a: "Yes. You can create and download as many invoices as you like, without an account, an email address or a credit card." },
   { q: "Is my invoice data stored?", a: "No. Everything you type stays in your browser and is not sent to FaturaPro. When you close the page, it is gone, so download the PDF first." },
-  { q: "Which currencies can I use?", a: "18 currencies, including EUR, USD, GBP, CHF, AED and SAR. Amounts are shown in the currency you choose; nothing is converted." },
+  { q: "Which currencies can I use?", a: "18 currencies, including EUR, USD, GBP, AED, SAR, TRY and JPY. Amounts are shown in the currency you choose; nothing is converted." },
   { q: "Can I add VAT?", a: "Yes. Enter the VAT or sales tax percentage and the tax and total are calculated for you. For clients in other EU countries you may need to reverse-charge VAT instead; see the guide on invoicing international clients." },
   { q: "Can I edit or resend the invoice later?", a: "Not in the generator, because nothing is saved. With a free FaturaPro account your invoices, clients and numbering are kept, and you can edit, duplicate or correct an invoice with a credit note." },
 ];
@@ -47,7 +47,7 @@ export default function InvoiceGenerator() {
     yourName: "", yourAddress: "", yourTaxId: "",
     clientName: "", clientAddress: "",
     invoiceNumber: "INV-001",
-    date: new Date().toISOString().split("T")[0],
+    date: new Date().toLocaleDateString("en-CA"), // local YYYY-MM-DD, not UTC
     due: "", currency: "EUR", tax: 0, payment: "", notes: "",
   });
   const [items, setItems] = useState([{ desc: "", qty: 1, price: 0 }]);
