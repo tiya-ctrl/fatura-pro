@@ -1,4 +1,4 @@
-// Fatura Pro - Expenses + VAT/BTW report (Business plan)
+// Fatura Pro - Expenses + VAT/BTW report (Essential and Advanced)
 import { useEffect, useMemo, useRef, useState } from "react";
 import { loadExpenses, saveExpense, deleteExpense, vatReport } from "../lib/expenses";
 import { CURRENCIES, fmtCurrency, codesUsed } from "../lib/currencies";
@@ -212,6 +212,7 @@ function ExpenseModal({ expense, onClose, onSave, onViewReceipt, ownerId, defaul
     setNewPath(up.path);
     const fields = await scanReceipt(up.path, file);
     if (pick !== pickCount.current) return;
+    if (fields && fields.limitReached) { setScanState("limit"); return; }
     const { vat_unknown, ...values } = receiptToForm(fields);
     if (Object.keys(values).length) {
       setForm((p) => ({ ...p, ...values }));
@@ -265,12 +266,13 @@ function ExpenseModal({ expense, onClose, onSave, onViewReceipt, ownerId, defaul
             {previewUrl && <img src={previewUrl} alt="" style={{ width:56, height:56, objectFit:"cover", borderRadius:8 }} />}
             <div style={{ flex:1, minWidth:160, fontSize:13 }}>
               <div style={{ fontWeight:700 }}>{t("receipt", "Receipt")}</div>
-              <div aria-live="polite" style={{ color: scanState === "filled" ? "#2d8c65" : scanState === "no_amount" || scanState === "no_vat" ? "#d68a1c" : "#999", fontSize:12 }}>
+              <div aria-live="polite" style={{ color: scanState === "filled" ? "#2d8c65" : scanState === "no_amount" || scanState === "no_vat" || scanState === "limit" ? "#d68a1c" : "#999", fontSize:12 }}>
                 {scanState === "reading" ? t("receipt_reading", "Reading the receipt…")
                   : scanState === "filled" ? t("receipt_filled", "Filled in from the receipt. Please check the details.")
                   : scanState === "no_amount" ? t("receipt_no_amount", "Filled in from the receipt, but the amount could not be read. Please enter it.")
                   : scanState === "no_vat" ? t("receipt_no_vat", "Total found, but no VAT on the receipt. Please check the VAT rate.")
                   : scanState === "failed" ? t("receipt_scan_failed", "Could not read the receipt. Please fill in the details.")
+                  : scanState === "limit" ? t("receipt_scan_limit", "The receipt is saved, but you have used this month's 20 receipt scans on Essential. Fill in the details yourself, or switch to Advanced for unlimited scans.")
                   : receiptFile ? receiptFile.name
                   : hasStoredReceipt ? t("receipt_attached", "Receipt attached")
                   : t("receipt_hint", "Add a photo or PDF and we fill in the details. Keep receipts for 7 years.")}

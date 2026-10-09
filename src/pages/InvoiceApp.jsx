@@ -703,7 +703,7 @@ export default function InvoiceApp({ onGoHome }) {
   // see that quotes, expenses and analytics exist before deciding to upgrade.
   const openNav = (n) => {
     if (n.href) { window.location.href = n.href; return; }
-    if (n.locked) { setUpgradeIntent("business"); setUpgradeFeature(n.id); setShowUpgrade(true); return; }
+    if (n.locked) { setUpgradeIntent(n.lockedPlan || "business"); setUpgradeFeature(n.id); setShowUpgrade(true); return; }
     setPage(n.id);
   };
 
@@ -1060,7 +1060,7 @@ export default function InvoiceApp({ onGoHome }) {
     { id: "invoices", icon: <FileTextIcon size={18} strokeWidth={1.9} aria-hidden="true" />, label: t("invoices", "Invoices"), badge: invoicesWithStatus.filter(i => i.status === "pending" && i.docType !== "credit_note").length },
     { id: "clients", icon: <UsersIcon size={18} strokeWidth={1.9} aria-hidden="true" />, label: t("clients", "Clients") },
     { id: "quotes", icon: <FileSignatureIcon size={18} strokeWidth={1.9} aria-hidden="true" />, label: t("quotes", "Quotes"), locked: !(hasBusinessAccess(plan) || isTeamMember) },
-    { id: "expenses", icon: <ReceiptIcon size={18} strokeWidth={1.9} aria-hidden="true" />, label: t("expenses", "Expenses"), locked: !(hasBusinessAccess(plan) || isTeamMember) },
+    { id: "expenses", icon: <ReceiptIcon size={18} strokeWidth={1.9} aria-hidden="true" />, label: t("expenses", "Expenses"), locked: !isPro, lockedPlan: "pro" },
     { id: "analytics", icon: <BarChart3Icon size={18} strokeWidth={1.9} aria-hidden="true" />, label: t("analytics", "Analytics"), locked: !hasBusinessAccess(plan) },
     { id: "settings", icon: <SettingsIcon size={18} strokeWidth={1.9} aria-hidden="true" />, label: t("settings", "Settings") },
     ...(ambassadorAdminAccess ? [{ id:"ambassador-admin", icon:<SparklesIcon size={18} strokeWidth={1.9} aria-hidden="true" />, label:t("ambassador_requests", "Ambassador requests"), href:"/admin" }] : []),
@@ -1100,10 +1100,10 @@ export default function InvoiceApp({ onGoHome }) {
           <div className="nav-section">
             <div className="nav-label">{t("main", "Main")}</div>
             {navItems.map(n => (
-              <div key={n.id} className={"nav-item" + (page === n.id ? " active" : "")} onClick={() => { openNav(n); setSidebarOpen(false); }} style={n.locked ? { opacity:0.45 } : undefined} title={n.locked ? t("business_feature", "Advanced plan feature") : undefined}>
+              <div key={n.id} className={"nav-item" + (page === n.id ? " active" : "")} onClick={() => { openNav(n); setSidebarOpen(false); }} style={n.locked ? { opacity:0.45 } : undefined} title={n.locked ? (n.lockedPlan === "pro" ? t("essential_feature", "Essential plan feature") : t("business_feature", "Advanced plan feature")) : undefined}>
                 <span className="icon">{n.icon}</span>
                 {n.label}
-                {n.locked && <span style={{ marginInlineStart:"auto", fontSize:10, color:"var(--text2)", border:"1px solid var(--border)", borderRadius:20, padding:"1px 7px" }}>Advanced</span>}
+                {n.locked && <span style={{ marginInlineStart:"auto", fontSize:10, color:"var(--text2)", border:"1px solid var(--border)", borderRadius:20, padding:"1px 7px" }}>{n.lockedPlan === "pro" ? "Essential" : "Advanced"}</span>}
                 {n.badge > 0 && <span className="nav-badge">{n.badge}</span>}
               </div>
             ))}
@@ -1230,7 +1230,7 @@ export default function InvoiceApp({ onGoHome }) {
                   return addInvoice({ ...inv, autoNumber:true }, { source:"quote_conversion", showSuccess:false });
                 }}
               />}
-            {page === "expenses" && (hasBusinessAccess(plan) || isTeamMember) && <Expenses readOnly={readOnly} onReadOnly={guardReadOnly} expenses={expenses} setExpenses={setExpenses} invoices={invoicesWithStatus} userId={ownerId || userId} f={f} />}
+            {page === "expenses" && isPro && <Expenses readOnly={readOnly} onReadOnly={guardReadOnly} expenses={expenses} setExpenses={setExpenses} invoices={invoicesWithStatus} userId={ownerId || userId} f={f} />}
             {page === "analytics" && hasBusinessAccess(plan) && <Analytics invoices={invoicesWithStatus} f={f} fc={fmtCurrency} defaultCurrency={currency} />}
             {page === "clients" && <Clients clients={clients} invoices={invoicesWithStatus} f={f} onAdd={() => setShowNewClient(true)} onDeleteClient={deleteClient} onEditClient={(c) => { if (!guardReadOnly()) setEditingClient(c); }} />}
             {page === "settings" && <><ReferralProgram userId={userId} plan={plan} /><Settings currency={currency} setCurrency={setCurrency} userEmail={userEmail} invoices={invoicesWithStatus} onProfileSaved={(ready, profile) => { setBusinessProfileReady(ready); setBusinessProfile(profile); }} />{hasBusinessAccess(plan) && <BusinessProfiles profiles={bizProfiles} setProfiles={setBizProfiles} userId={userId} />}{hasBusinessAccess(plan) && <RecurringList recurring={recurring} setRecurring={setRecurring} userId={userId} f={f} />}{hasBusinessAccess(plan) && <div className="card" style={{ marginTop: 20 }}><div className="card-title" style={{ marginBottom: 10 }}>{t("online_payments", "Online payments")}</div><div style={{ fontSize: 13, color: "#999", marginBottom: 12 }}>{t("connect_stripe_help", "Connect your Stripe account so clients can pay invoices online. Money goes directly to your bank.")}</div><button className="btn btn-primary btn-sm" onClick={async () => { const { data: { session } } = await supabase.auth.getSession(); const r = await fetch("/api/connect-stripe", { method: "POST", headers: { Authorization: "Bearer " + (session?.access_token || "") } }); const d = await r.json(); if (d.url) window.location.href = d.url; else alert(d.error || t("stripe_start_error", "Could not start Stripe onboarding")); }}>{t("connect_stripe", "Connect Stripe →")}</button></div>}{hasBusinessAccess(plan) && <TeamMembers team={team} setTeam={setTeam} userId={userId} />}{hasBusinessAccess(plan) && <ApiKeys keys={apiKeys} setKeys={setApiKeys} userId={userId} />}{((plan === "pro" && !isOnTrial) || plan === "business") && <div className="card" style={{ marginTop: 20 }}><div className="card-title" style={{ marginBottom: 10 }}>{t("subscription", "Subscription")}</div><div style={{ fontSize: 13, color: "#999", marginBottom: 12 }}>{t("subscription_help", "Switch between Essential and Advanced, update your card, view invoices, or cancel anytime.")}</div><a className="btn btn-primary btn-sm" href="https://billing.stripe.com/p/login/fZu4gzepGdT05Gx48j5ZC00" target="_blank" rel="noreferrer">{t("manage_subscription", "Manage subscription →")}</a></div>}{(plan === "free" || isOnTrial) && <div className="card" style={{ marginTop: 20 }}><div className="card-title" style={{ marginBottom: 10 }}>{t("plan", "Plan")}</div><div style={{ fontSize: 13, color:"#999", marginBottom:12 }}>{isOnTrial ? trialDaysLeft + " " + t("trial_days_left", "days left in your free trial") + ". " + t("trial_keep_data", "Subscribe to keep reminders, deposits and UBL export. Your data stays either way.") : t("free_plan_help", "You are on the Free plan. Upgrade for unlimited invoices, reminders, and more.")}</div><button className="btn btn-primary btn-sm" onClick={() => { setUpgradeIntent(null); setShowUpgrade(true); }}>{t("upgrade", "Upgrade →")}</button></div>}</>}
@@ -2668,8 +2668,8 @@ function ReminderModal({ invoice: reminderTarget, onClose, onLog }) { const loca
 const UPGRADE_COPY = {
   en: {
     tax: "excl. VAT",
-    pro: ["Unlimited invoices","Unlimited clients","UBL/XML export (EN 16931)","Deposits & partial payments","Payment reminders (Email + WhatsApp)","PDF export","Custom logo & branding"],
-    business: ["Everything in Essential","Receipt scanning: expenses fill themselves in","Quotes that convert to invoices","Expenses & VAT/BTW report","Advanced analytics","Team members (up to 5)","Multi-business profiles","Stripe payment integration","API access"],
+    pro: ["Unlimited invoices","Unlimited clients","UBL/XML export (EN 16931)","Deposits & partial payments","Payment reminders (Email + WhatsApp)","Expenses & quarterly VAT/BTW summary","Receipt scanning (20 per month)","PDF export","Custom logo & branding"],
+    business: ["Everything in Essential","Unlimited receipt scanning","Quotes that convert to invoices","Recurring invoices","Advanced analytics","Team members (up to 5)","Multi-business profiles","Stripe payment integration","API access"],
     general: ["Essential Feature", "Unlock all Essential features"],
     feats: {
       reminders: ["Payment Reminders", "Prepare and review overdue reminders, then open them in Email or WhatsApp"],
@@ -2685,8 +2685,8 @@ const UPGRADE_COPY = {
   },
   nl: {
     tax: "excl. btw",
-    pro: ["Onbeperkt facturen","Onbeperkt klanten","UBL/XML-export (EN 16931)","Aanbetalingen en deelbetalingen","Betalingsherinneringen (e-mail + WhatsApp)","PDF-export","Eigen logo en huisstijl"],
-    business: ["Alles uit Essential","Bon scannen: uitgave vult zichzelf in","Offertes die je omzet in facturen","Uitgaven en btw-overzicht","Uitgebreide analyses","Teamleden (tot 5)","Meerdere bedrijfsprofielen","Online betalingen via Stripe","API-toegang"],
+    pro: ["Onbeperkt facturen","Onbeperkt klanten","UBL/XML-export (EN 16931)","Aanbetalingen en deelbetalingen","Betalingsherinneringen (e-mail + WhatsApp)","Uitgaven en btw-overzicht per kwartaal","Bon scannen (20 per maand)","PDF-export","Eigen logo en huisstijl"],
+    business: ["Alles uit Essential","Onbeperkt bonnen scannen","Offertes die je omzet in facturen","Terugkerende facturen","Uitgebreide analyses","Teamleden (tot 5)","Meerdere bedrijfsprofielen","Online betalingen via Stripe","API-toegang"],
     general: ["Essential-functie", "Ontgrendel alle functies van Essential"],
     feats: {
       reminders: ["Betalingsherinneringen", "Stel herinneringen voor te late facturen op, controleer ze en open ze in je e-mail of WhatsApp"],
@@ -2702,8 +2702,8 @@ const UPGRADE_COPY = {
   },
   fr: {
     tax: "HT",
-    pro: ["Factures illimitées","Clients illimités","Export UBL/XML (EN 16931)","Acomptes et paiements partiels","Relances de paiement (e-mail + WhatsApp)","Export PDF","Logo et identité personnalisés"],
-    business: ["Tout Essential","Scan des justificatifs : la dépense se remplit seule","Devis convertibles en factures","Dépenses et synthèse de TVA","Analyses avancées","Membres d'équipe (jusqu'à 5)","Plusieurs profils d'entreprise","Paiements en ligne via Stripe","Accès API"],
+    pro: ["Factures illimitées","Clients illimités","Export UBL/XML (EN 16931)","Acomptes et paiements partiels","Relances de paiement (e-mail + WhatsApp)","Dépenses et synthèse trimestrielle de TVA","Scan des justificatifs (20 par mois)","Export PDF","Logo et identité personnalisés"],
+    business: ["Tout Essential","Scan illimité des justificatifs","Devis convertibles en factures","Factures récurrentes","Analyses avancées","Membres d'équipe (jusqu'à 5)","Plusieurs profils d'entreprise","Paiements en ligne via Stripe","Accès API"],
     general: ["Fonction Essential", "Débloquez toutes les fonctions d'Essential"],
     feats: {
       reminders: ["Relances de paiement", "Préparez et vérifiez vos relances de factures en retard, puis ouvrez-les dans votre e-mail ou WhatsApp"],
@@ -2719,8 +2719,8 @@ const UPGRADE_COPY = {
   },
   es: {
     tax: "IVA no incluido",
-    pro: ["Facturas ilimitadas","Clientes ilimitados","Exportación UBL/XML (EN 16931)","Anticipos y pagos parciales","Recordatorios de pago (email + WhatsApp)","Exportación a PDF","Logo e imagen propios"],
-    business: ["Todo lo de Essential","Escaneo de recibos: el gasto se rellena solo","Presupuestos que se convierten en facturas","Gastos y resumen de IVA","Análisis avanzados","Miembros del equipo (hasta 5)","Varios perfiles de empresa","Pagos online con Stripe","Acceso a la API"],
+    pro: ["Facturas ilimitadas","Clientes ilimitados","Exportación UBL/XML (EN 16931)","Anticipos y pagos parciales","Recordatorios de pago (email + WhatsApp)","Gastos y resumen trimestral de IVA","Escaneo de recibos (20 al mes)","Exportación a PDF","Logo e imagen propios"],
+    business: ["Todo lo de Essential","Escaneo de recibos ilimitado","Presupuestos que se convierten en facturas","Facturas recurrentes","Análisis avanzados","Miembros del equipo (hasta 5)","Varios perfiles de empresa","Pagos online con Stripe","Acceso a la API"],
     general: ["Función de Essential", "Desbloquea todas las funciones de Essential"],
     feats: {
       reminders: ["Recordatorios de pago", "Prepara y revisa recordatorios de facturas vencidas y ábrelos en tu email o WhatsApp"],
@@ -2736,8 +2736,8 @@ const UPGRADE_COPY = {
   },
   ar: {
     tax: "غير شامل الضريبة",
-    pro: ["فواتير غير محدودة","عملاء غير محدودين","تصدير UBL/XML وفق EN 16931","دفعات مقدّمة وجزئية","تذكيرات دفع عبر البريد وWhatsApp","تصدير PDF","شعار وهوية مخصصان"],
-    business: ["كل مزايا Essential","صوّر الإيصال فتُملأ بيانات المصروف تلقائيًا","عروض أسعار تتحول إلى فواتير","المصروفات وملخص VAT/BTW","تحليلات متقدمة","حتى 5 أعضاء فريق","ملفات أنشطة تجارية متعددة","مدفوعات بطاقات عبر Stripe","الوصول إلى API"],
+    pro: ["فواتير غير محدودة","عملاء غير محدودين","تصدير UBL/XML وفق EN 16931","دفعات مقدّمة وجزئية","تذكيرات دفع عبر البريد وWhatsApp","المصروفات وملخص VAT/BTW الفصلي","مسح الإيصالات (20 شهريًا)","تصدير PDF","شعار وهوية مخصصان"],
+    business: ["كل مزايا Essential","مسح إيصالات بلا حد","عروض أسعار تتحول إلى فواتير","فواتير دورية","تحليلات متقدمة","حتى 5 أعضاء فريق","ملفات أنشطة تجارية متعددة","مدفوعات بطاقات عبر Stripe","الوصول إلى API"],
     general: ["ميزة Essential", "افتح جميع مزايا Essential"],
     feats: {
       reminders: ["تذكيرات الدفع", "حضّر وراجع تذكيرات الفواتير المتأخرة ثم افتحها في البريد أو WhatsApp"],

@@ -1,4 +1,4 @@
-// Fatura Pro - Expenses + VAT report (Business plan)
+// Fatura Pro - Expenses + VAT report (Essential and Advanced)
 import { supabase } from "../supabase";
 
 export async function loadExpenses(userId) {

@@ -13,6 +13,19 @@ export async function advancedUserIds(supabaseAdmin, userIds) {
   return new Set((data || []).filter((row) => row.plan === "business").map((row) => row.user_id));
 }
 
+// "business" (Advanced), "pro" (Essential, including the free Essential trial) or null.
+export async function paidPlanOf(supabaseAdmin, userId) {
+  if (!userId) return null;
+  const { data, error } = await supabaseAdmin
+    .from("user_plans").select("plan, trial_end").eq("user_id", userId).maybeSingle();
+  if (error) throw error;
+  if (!data) return null;
+  if (data.plan === "business") return "business";
+  if (data.plan === "pro") return "pro";
+  if (data.trial_end && new Date(data.trial_end) > new Date()) return "pro";
+  return null;
+}
+
 export async function hasAdvancedAccess(supabaseAdmin, userId) {
   if (!userId) return false;
   return (await advancedUserIds(supabaseAdmin, [userId])).has(userId);

@@ -111,14 +111,14 @@ export function lifecycleEmail({ key, lang, user }) {
   return {
     subject: nl ? "Nieuw in FaturaPro: bonnetjes scannen en meer" : "New in FaturaPro: receipt scanning and more",
     html: layout(lang, nl ? "Er is veel nieuw sinds je laatste bezoek" : "A lot is new since your last visit", nl ? [
-      "📸 <strong style=\"color:#fff;\">Bonnetjes scannen</strong>: maak een foto van je bon en datum, leverancier, bedrag en btw worden automatisch ingevuld (Advanced).",
+      "📸 <strong style=\"color:#fff;\">Bonnetjes scannen</strong>: maak een foto van je bon en datum, leverancier, bedrag en btw worden automatisch ingevuld (Essential, 20 per maand).",
       "💬 <strong style=\"color:#fff;\">Herinneringen via WhatsApp of mail</strong>, met factuurnummer en bedrag al ingevuld, in 5 talen.",
-      "📊 <strong style=\"color:#fff;\">Btw-overzicht per kwartaal</strong>, handig voor je aangifte vóór 31 oktober (Advanced).",
+      "📊 <strong style=\"color:#fff;\">Btw-overzicht per kwartaal</strong>, handig voor je aangifte vóór 31 oktober (Essential).",
       "Je facturen en klanten staan nog precies waar je ze hebt achtergelaten.",
     ] : [
-      "📸 <strong style=\"color:#fff;\">Receipt scanning</strong>: photograph a receipt and the date, supplier, amount and VAT fill themselves in (Advanced).",
+      "📸 <strong style=\"color:#fff;\">Receipt scanning</strong>: photograph a receipt and the date, supplier, amount and VAT fill themselves in (Essential, 20 a month).",
       "💬 <strong style=\"color:#fff;\">Payment reminders by WhatsApp or email</strong>, with the invoice number and amount filled in, in 5 languages.",
-      "📊 <strong style=\"color:#fff;\">Quarterly VAT summary</strong> for your VAT return (Advanced).",
+      "📊 <strong style=\"color:#fff;\">Quarterly VAT summary</strong> for your VAT return (Essential).",
       "Your invoices and clients are exactly where you left them.",
     ], { href: APP("winback"), label: nl ? "Bekijk wat er nieuw is" : "See what's new" }, user.id),
   };

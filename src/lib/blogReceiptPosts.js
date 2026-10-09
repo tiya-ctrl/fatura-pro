@@ -1,12 +1,12 @@
-// Blog posts about receipt scanning (Advanced plan). Same shape as POSTS in
+// Blog posts about receipt scanning (Essential: 20 a month; Advanced: unlimited). Same shape as POSTS in
 // src/pages/Blog.jsx; each slug also needs a /p/ rewrite in vercel.json and a
 // sitemap entry so it is pre-rendered and discovered.
 
 const ADVANCED_TRIAL_CTA_NL = {
   title: "Probeer bonnetjes scannen 7 dagen gratis",
-  sub: "Advanced: bon scannen, offertes, btw-overzicht per kwartaal en meer. Daarna €19 per maand excl. btw, altijd opzegbaar.",
+  sub: "Essential: bon scannen (20 per maand), uitgaven en btw-overzicht per kwartaal. 7 dagen gratis zonder creditcard, daarna €9 per maand excl. btw.",
   button: "Start 7 dagen gratis →",
-  plan: "business",
+  plan: "pro",
 };
 
 const RECEIPT_POSTS = [
@@ -19,7 +19,7 @@ const RECEIPT_POSTS = [
     date: "2026-10-01",
     readTime: "6 min",
     keywords: "bonnetjes scannen app, bonnen scannen zzp, bonnetjes app zzp, kassabon scannen, bonnetjes digitaliseren, uitgaven bijhouden zzp, btw bonnetjes",
-    quickAnswer: "Open in FaturaPro de pagina Uitgaven, kies Uitgave toevoegen en tik op Bon toevoegen. Maak een foto of kies een pdf. Binnen een paar seconden staan datum, leverancier, omschrijving, categorie, valuta, bedrag excl. btw en btw-tarief ingevuld. Jij controleert en slaat op, en de bon blijft bij de uitgave bewaard. Bonnetjes scannen zit in het Advanced-plan (€19 per maand excl. btw, 7 dagen gratis te proberen).",
+    quickAnswer: "Open in FaturaPro de pagina Uitgaven, kies Uitgave toevoegen en tik op Bon toevoegen. Maak een foto of kies een pdf. Binnen een paar seconden staan datum, leverancier, omschrijving, categorie, valuta, bedrag excl. btw en btw-tarief ingevuld. Jij controleert en slaat op, en de bon blijft bij de uitgave bewaard. Bonnetjes scannen zit in Essential (20 bonnen per maand, €9 per maand excl. btw, 7 dagen gratis zonder creditcard); Advanced scant onbeperkt.",
     checklist: [
       "Uitgaven → Uitgave toevoegen → Bon toevoegen",
       "Maak een foto van de bon of kies een pdf (max. 5 MB)",
@@ -36,14 +36,14 @@ const RECEIPT_POSTS = [
       { h: "Waar blijft je bon?", p: "De bon wordt afgeschermd opgeslagen bij de uitgave. Alleen jij en je teamleden kunnen hem openen, via het paperclip-icoon naast de uitgave. Maak je een fout, dan kun je de bon vervangen of verwijderen; verwijder je de uitgave, dan verdwijnt ook de bon. Sluit je het venster zonder op te slaan, dan wordt de geüploade foto direct weer verwijderd." },
       { h: "Van bon naar btw-overzicht", p: "Elke uitgave die je opslaat, telt mee in het btw-overzicht per kwartaal op de pagina Uitgaven. Daar zie je de btw op je verkopen, de btw die je zelf hebt betaald en wat je per saldo moet betalen of terugkrijgt, per valuta. Met één klik exporteer je de uitgaven van een kwartaal als CSV voor je boekhouder. FaturaPro doet zelf geen btw-aangifte; het overzicht helpt je die snel en goed in te vullen." },
       { h: "Tips voor een goede foto", p: "Leg de bon plat op een donkere ondergrond, zorg voor voldoende licht en zet de hele bon in beeld, inclusief de datum en het btw-deel onderaan. Vouw kreukels zo veel mogelijk glad. Scan kassabonnen van thermisch papier snel: de inkt vervaagt na een paar maanden, en een onleesbare bon helpt je later niets meer." },
-      { h: "Voor wie is bonnetjes scannen handig?", p: "Vooral voor zzp'ers met veel kleine kosten: bouw- en klusbedrijven die dagelijks bij de bouwmarkt staan, creatieven die materiaal en software kopen, en consultants met reis- en lunchkosten. Hoe meer bonnen je hebt, hoe meer typwerk je bespaart en hoe minder aftrekbare btw je mist. Samen met offertes, terugkerende facturen en het btw-overzicht zit het in het Advanced-plan." },
+      { h: "Voor wie is bonnetjes scannen handig?", p: "Vooral voor zzp'ers met veel kleine kosten: bouw- en klusbedrijven die dagelijks bij de bouwmarkt staan, creatieven die materiaal en software kopen, en consultants met reis- en lunchkosten. Hoe meer bonnen je hebt, hoe meer typwerk je bespaart en hoe minder aftrekbare btw je mist. Samen met het btw-overzicht zit het in Essential, met 20 scans per maand; Advanced scant onbeperkt." },
     ],
     faqs: [
       { q: "Mag ik de papieren bon weggooien na het scannen?", a: "De Belastingdienst staat toe dat je bonnen digitaal bewaart, als de kopie volledig, leesbaar en ongewijzigd is. Controleer daarom of alle gegevens goed zichtbaar zijn voordat je het origineel weggooit, en kijk bij twijfel naar de officiële regels voor jouw situatie." },
       { q: "Welke bestanden kan ik uploaden?", a: "Foto's (jpg, png, webp) en pdf-bestanden tot 5 MB. Foto's worden voor het uploaden automatisch verkleind, zodat het snel gaat." },
       { q: "Werkt het ook met buitenlandse bonnen?", a: "Ja. FaturaPro herkent de valuta op de bon en houdt die in het btw-overzicht apart van andere valuta." },
       { q: "Doet FaturaPro mijn btw-aangifte?", a: "Nee. FaturaPro geeft je per kwartaal een overzicht van de btw op je verkopen en je kosten. De aangifte doe je zelf of via je boekhouder bij de Belastingdienst." },
-      { q: "Wat kost bonnetjes scannen?", a: "Het zit in het Advanced-plan van €19 per maand excl. btw. Je kunt Advanced 7 dagen gratis proberen en daarna op elk moment opzeggen." },
+      { q: "Wat kost bonnetjes scannen?", a: "Het zit in Essential van €9 per maand excl. btw, met 20 scans per kalendermaand. Advanced (€19) scant onbeperkt. Essential kun je 7 dagen gratis proberen, zonder creditcard." },
     ],
     sources: [
       { label: "Belastingdienst: uw facturen bewaren", href: "https://www.belastingdienst.nl/wps/wcm/connect/bldcontentnl/belastingdienst/zakelijk/btw/administratie_bijhouden/facturen_maken/uw_facturen_bewaren" },
@@ -80,7 +80,7 @@ const RECEIPT_POSTS = [
       { h: "Wat moet er leesbaar zijn?", p: "Zorg dat de naam van de winkel of leverancier, de datum, wat je hebt gekocht, het totaalbedrag en de btw te lezen zijn. Voor bedragen tot €100 inclusief btw mag een leverancier een vereenvoudigde factuur geven, zoals een kassabon; daarop staan minder gegevens. Is een deel van de bon afgescheurd of vervaagd, dan is de kopie niet volledig." },
       { h: "Het probleem met kassabonnen", p: "Veel kassabonnen zijn gedrukt op thermisch papier. In een warme auto of portemonnee vervaagt die inkt binnen een paar maanden, lang voordat de bewaartermijn om is. Een bon die je pas bij de btw-aangifte terugvindt, is dan vaak al onleesbaar. De enige echte oplossing is scannen op het moment dat je de bon krijgt." },
       { h: "Een routine die wél werkt", p: "Maak van bonnen verwerken een gewoonte van tien seconden: bon ontvangen, foto maken, klaar. Bewaar de foto bij de uitgave zelf, zodat je bij een vraag van je boekhouder of de Belastingdienst niet hoeft te zoeken in een map met honderden losse afbeeldingen. Verwerk wat je toch op papier verzamelt minstens één keer per week." },
-      { h: "Zo doe je het in FaturaPro", p: "In het Advanced-plan van FaturaPro maak je bij een nieuwe uitgave een foto van de bon. Datum, leverancier, bedrag en btw worden automatisch ingevuld en de bon blijft afgeschermd bij de uitgave bewaard, te openen via het paperclip-icoon. De betaalde btw telt direct mee in je btw-overzicht per kwartaal." },
+      { h: "Zo doe je het in FaturaPro", p: "Vanaf het Essential-plan van FaturaPro maak je bij een nieuwe uitgave een foto van de bon. Datum, leverancier, bedrag en btw worden automatisch ingevuld en de bon blijft afgeschermd bij de uitgave bewaard, te openen via het paperclip-icoon. De betaalde btw telt direct mee in je btw-overzicht per kwartaal." },
     ],
     faqs: [
       { q: "Moet ik het papieren origineel ook bewaren?", a: "Nee, als je digitale kopie volledig, juist en leesbaar is, mag je die bewaren in plaats van het origineel. Controleer de kopie voordat je het papier weggooit." },
@@ -120,13 +120,13 @@ const RECEIPT_POSTS = [
       { h: "Welk bewijs heb je nodig?", p: "Voor aftrek heb je een factuur nodig waarop de btw staat. Voor bedragen tot €100 inclusief btw mag de leverancier een vereenvoudigde factuur geven, zoals een kassabon met btw. Voor grotere bedragen vraag je om een volledige factuur op je bedrijfsnaam. Zonder bon of factuur kun je de btw niet onderbouwen, en bij een controle moet je die alsnog betalen." },
       { h: "De drie fouten die zzp'ers geld kosten", p: "Eén: bonnen van kleine bedragen niet bewaren, omdat 'die paar euro' niet de moeite lijkt. Bij elkaar is dat per kwartaal vaak tientallen euro's btw. Twee: bonnen pas bij de aangifte zoeken, als ze al vervaagd of kwijt zijn. Drie: btw op een verkeerd tarief of een verkeerd bedrag invoeren, waardoor je aangifte niet klopt. Een vaste routine en een tool die de bedragen van de bon overneemt, voorkomen alle drie." },
       { h: "Per kwartaal: zo reken je het uit", p: "Tel de btw op al je verkoopfacturen van het kwartaal op. Tel daarna de btw op al je zakelijke kosten van dat kwartaal op. Btw op verkopen min voorbelasting is het bedrag dat je betaalt; is het negatief, dan krijg je geld terug. De aangifte en betaling moeten binnen zijn vóór het einde van de maand na het kwartaal, dus voor het derde kwartaal uiterlijk 31 oktober." },
-      { h: "Zo houd je het bij in FaturaPro", p: "In het Advanced-plan van FaturaPro maak je een foto van elke bon; de btw wordt overgenomen en de bon blijft bij de uitgave. Op de pagina Uitgaven zie je per kwartaal en per valuta de btw op je facturen, de betaalde btw op je kosten en wat je moet betalen of terugkrijgt. Die bedragen neem je over in Mijn Belastingdienst Zakelijk of geef je aan je boekhouder. FaturaPro doet de aangifte niet voor je." },
+      { h: "Zo houd je het bij in FaturaPro", p: "Vanaf het Essential-plan van FaturaPro maak je een foto van elke bon; de btw wordt overgenomen en de bon blijft bij de uitgave. Op de pagina Uitgaven zie je per kwartaal en per valuta de btw op je facturen, de betaalde btw op je kosten en wat je moet betalen of terugkrijgt. Die bedragen neem je over in Mijn Belastingdienst Zakelijk of geef je aan je boekhouder. FaturaPro doet de aangifte niet voor je." },
     ],
     faqs: [
       { q: "Mag ik btw terugvragen als ik de KOR gebruik?", a: "Nee. Met de kleineondernemersregeling reken je geen btw aan klanten en vraag je ook geen btw terug op je kosten." },
       { q: "Kan ik btw terugvragen op een kassabon?", a: "Voor bedragen tot €100 inclusief btw geldt een kassabon met btw als vereenvoudigde factuur. Voor hogere bedragen vraag je om een factuur op je bedrijfsnaam." },
       { q: "Wat als ik een bon kwijt ben?", a: "Vraag de leverancier om een kopie van de factuur of zoek de digitale factuur in je e-mail of account. Zonder bewijs kun je de btw niet onderbouwen." },
-      { q: "Berekent FaturaPro mijn btw-aangifte?", a: "FaturaPro Advanced toont per kwartaal de btw op je verkopen en je kosten, zodat je de aangifte snel kunt invullen. De aangifte zelf doe je bij de Belastingdienst." },
+      { q: "Berekent FaturaPro mijn btw-aangifte?", a: "FaturaPro toont vanaf Essential per kwartaal de btw op je verkopen en je kosten, zodat je de aangifte snel kunt invullen. De aangifte zelf doe je bij de Belastingdienst." },
     ],
     sources: [
       { label: "Belastingdienst: uw facturen bewaren", href: "https://www.belastingdienst.nl/wps/wcm/connect/bldcontentnl/belastingdienst/zakelijk/btw/administratie_bijhouden/facturen_maken/uw_facturen_bewaren" },
@@ -148,7 +148,7 @@ const RECEIPT_POSTS = [
     date: "2026-10-01",
     readTime: "6 min",
     keywords: "receipt scanner app Netherlands, receipt scanning freelancer, expense tracking ZZP English, scan receipts VAT Netherlands, bookkeeping app English Netherlands, keep receipts Belastingdienst",
-    quickAnswer: "In FaturaPro, open Expenses, choose Add expense and tap Add receipt. Take a photo or pick a PDF, and the date, supplier, description, category, currency, amount excluding VAT and VAT rate fill themselves in. You check the details and save; the receipt stays attached to the expense. Receipt scanning is part of the Advanced plan (€19 per month excl. VAT, free for 7 days).",
+    quickAnswer: "In FaturaPro, open Expenses, choose Add expense and tap Add receipt. Take a photo or pick a PDF, and the date, supplier, description, category, currency, amount excluding VAT and VAT rate fill themselves in. You check the details and save; the receipt stays attached to the expense. Receipt scanning is included in Essential (20 receipts a month, €9 per month excl. VAT, free for 7 days without a card); Advanced scans without limit.",
     checklist: [
       "Expenses → Add expense → Add receipt",
       "Photo (jpg, png, webp) or PDF up to 5 MB",
@@ -169,7 +169,7 @@ const RECEIPT_POSTS = [
       { q: "Can I throw away the paper receipt after scanning?", a: "The Belastingdienst allows a digital copy instead of the original when the copy is complete, accurate and legible. Check the copy before discarding the paper and follow the official rules for your situation." },
       { q: "Is the app available in English?", a: "Yes. FaturaPro works in English, Dutch, French, Spanish and Arabic, and receipts in any of these languages can be read." },
       { q: "Does FaturaPro file my Dutch VAT return?", a: "No. It shows quarterly VAT figures for your sales and costs; you or your accountant file the return with the Belastingdienst." },
-      { q: "How much does receipt scanning cost?", a: "It is included in the Advanced plan at €19 per month excluding VAT, with a 7-day free trial. You can cancel any time." },
+      { q: "How much does receipt scanning cost?", a: "It is included in Essential at €9 per month excluding VAT, with 20 scans per calendar month. Advanced (€19) scans without limit. Essential has a 7-day free trial without a card, and you can cancel any time." },
     ],
     sources: [
       { label: "Belastingdienst: keeping your invoices (Dutch)", href: "https://www.belastingdienst.nl/wps/wcm/connect/bldcontentnl/belastingdienst/zakelijk/btw/administratie_bijhouden/facturen_maken/uw_facturen_bewaren" },
@@ -182,9 +182,9 @@ const RECEIPT_POSTS = [
     ],
     cta: {
       title: "Try receipt scanning free for 7 days",
-      sub: "Advanced: receipt scanning, quotes, quarterly VAT summary and more. Then €19 per month excl. VAT, cancel any time.",
+      sub: "Essential: receipt scanning (20 a month), expenses and your quarterly VAT summary. 7 days free without a card, then €9 per month excl. VAT.",
       button: "Start the 7-day trial →",
-      plan: "business",
+      plan: "pro",
     },
   },
 ];

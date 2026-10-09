@@ -1,10 +1,11 @@
-// Fatura Pro - Read a receipt photo/PDF and suggest the expense fields (Advanced plan)
+// Fatura Pro - Read a receipt photo/PDF and suggest the expense fields
+// (Advanced: unlimited; Essential and its trial: ESSENTIAL_MONTHLY_SCANS per calendar month)
 // Served through POST /api/chat?action=scan-receipt  { path: "<owner id>/<file>" } with the user's Supabase access token
 // (the Vercel plan allows 12 functions, so this shares the AI chat function).
 // The file must already be in the private "receipts" bucket, in the caller's own or team owner's folder.
 import Anthropic from "@anthropic-ai/sdk";
 import { createClient } from "@supabase/supabase-js";
-import { hasAdvancedAccess } from "./plan-access.js";
+import { paidPlanOf } from "./plan-access.js";
 
 // Created on first use, so importing this file from the chat function can never break the chat.
 let supabaseAdmin = null;
@@ -17,6 +18,19 @@ function clients() {
 
 const CATEGORIES = ["software", "hardware", "office", "travel", "marketing", "services", "other"];
 const MEDIA_TYPES = { jpg: "image/jpeg", jpeg: "image/jpeg", png: "image/png", webp: "image/webp", pdf: "application/pdf" };
+
+export const ESSENTIAL_MONTHLY_SCANS = 20;
+
+// Scans the owner's account used this calendar month (UTC). null if the count failed.
+async function scansThisMonth(supabaseAdmin, ownerId) {
+  const now = new Date();
+  const monthStart = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), 1)).toISOString();
+  const { count, error } = await supabaseAdmin
+    .from("receipt_scans").select("id", { count: "exact", head: true })
+    .eq("owner_id", ownerId).gte("created_at", monthStart);
+  if (error) { console.error("scan-receipt count", error.message); return null; }
+  return count || 0;
+}
 
 const RATE_LIMIT = 30;                  // scans per user
 const RATE_WINDOW_MS = 60 * 60 * 1000;  // per hour
@@ -86,7 +100,14 @@ export async function scanReceiptHandler(req, res) {
     if (!membership || membership.owner_id !== folder) return res.status(403).json({ error: "Forbidden" });
     ownerId = membership.owner_id;
   }
-  if (!(await hasAdvancedAccess(supabaseAdmin, ownerId))) return res.status(403).json({ error: "Plan required" });
+  const plan = await paidPlanOf(supabaseAdmin, ownerId);
+  if (!plan) return res.status(403).json({ error: "Plan required" });
+  if (plan === "pro") {
+    const used = await scansThisMonth(supabaseAdmin, ownerId);
+    if (used !== null && used >= ESSENTIAL_MONTHLY_SCANS) {
+      return res.status(429).json({ error: "scan_limit", limit: ESSENTIAL_MONTHLY_SCANS, used });
+    }
+  }
   if (rateLimited(user.id)) return res.status(429).json({ error: "Too many scans. Please try again later." });
 
   const { data: blob, error: downloadError } = await supabaseAdmin.storage.from("receipts").download(path);
@@ -113,6 +134,10 @@ export async function scanReceiptHandler(req, res) {
       system: INSTRUCTIONS,
       messages: [{ role: "user", content: [...sources, { type: "text", text: sources.length > 1 ? "These are " + sources.length + " overlapping parts of one receipt, top to bottom. Read the receipt." : "Read this receipt." }] }],
     });
+
+    // Every finished read counts toward the monthly allowance, also when it is not a receipt.
+    const { error: logError } = await supabaseAdmin.from("receipt_scans").insert({ owner_id: ownerId, scanned_by: user.id });
+    if (logError) console.error("scan-receipt log", logError.message);
 
     if (response.stop_reason !== "end_turn") {
       console.error("scan-receipt stop_reason", response.stop_reason);

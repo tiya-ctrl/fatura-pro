@@ -231,7 +231,7 @@ console.log(data.invoice.id);`}</Code>
         <div style={{ background: CARD, border: "1px solid " + GOLD + "33", borderRadius: 12, padding: "26px 24px", textAlign: "center", marginTop: 50 }}>
           <div style={{ fontFamily: "Playfair Display, serif", fontSize: 22, marginBottom: 8 }}>Get your API key</div>
           <div style={{ color: MUTED, fontSize: 14, lineHeight: 1.7, marginBottom: 18 }}>
-            API access is part of the Advanced plan, along with quotes, scheduled recurring invoice creation, VAT summaries and team access.
+            API access is part of the Advanced plan, along with quotes, scheduled recurring invoice creation, unlimited receipt scanning and team access.
           </div>
           <a href="/app" style={{ display: "inline-block", background: GOLD, color: "#000", padding: "12px 26px", borderRadius: 8, textDecoration: "none", fontWeight: 600, fontSize: 14 }}>Start free →</a>
         </div>

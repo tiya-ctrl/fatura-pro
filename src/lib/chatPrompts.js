@@ -17,8 +17,8 @@ WHAT THE PRODUCT DOES
 
 PLANS
 - Free: 20 invoices, 5 clients, all 18 currencies, PDF export and print, your own logo, and credit notes. Free forever, no credit card.
-- Essential, 9 EUR/month: everything in Free plus unlimited invoices and clients, payment reminders (email and WhatsApp), deposits and partial payments, and UBL e-invoice export.
-- Advanced, 19 EUR/month: everything in Essential plus quotes, recurring invoices, expenses and the VAT/BTW report, advanced analytics, up to 5 team members with no per-user fee, multiple business profiles, online card payments for your clients via Stripe, API access, accountant CSV export, removal of Fatura branding, and priority support.
+- Essential, 9 EUR/month: everything in Free plus unlimited invoices and clients, payment reminders (email and WhatsApp), deposits and partial payments, expenses and the quarterly VAT/BTW report, receipt scanning (20 receipts per calendar month), and UBL e-invoice export.
+- Advanced, 19 EUR/month: everything in Essential plus unlimited receipt scanning, quotes, recurring invoices, advanced analytics, up to 5 team members with no per-user fee, multiple business profiles, online card payments for your clients via Stripe, API access, accountant CSV export, removal of Fatura branding, and priority support.
 - Free trials: at sign-up the user chooses a 7-day free trial of Essential (no credit card) or a 7-day free trial of Advanced (card required through Stripe; nothing is charged if they cancel before the trial ends, then 19 EUR/month). No business registration is needed to use the app.
 - When a trial ends without a subscription, the account moves to the Free plan. Invoices, clients and other data are kept, and paid features unlock again as soon as they subscribe.
 - Do not describe cancellation as including a cash-back promise or a fixed grace period. For cancellation timing, billing questions or a charge the user believes is incorrect, direct them to support@faturapro.app.
@@ -123,9 +123,10 @@ PLANS - GET THESE RIGHT. A wrong pricing answer is the worst mistake you can mak
 
 Free: 20 invoices, 5 clients, all 18 currencies, PDF and print, own logo, AND credit notes.
 Essential 9 EUR/month: everything in Free, plus unlimited invoices and clients, payment reminders
-(email and WhatsApp), deposits and partial payments, and UBL e-invoice export.
-Advanced 19 EUR/month: everything in Essential, plus quotes, recurring invoices, expenses and the
-VAT/BTW report, advanced analytics, up to 5 team members with no per-user fee, multiple business
+(email and WhatsApp), deposits and partial payments, expenses and the quarterly VAT/BTW report,
+receipt scanning (20 receipts per calendar month), and UBL e-invoice export.
+Advanced 19 EUR/month: everything in Essential, plus unlimited receipt scanning, quotes, recurring
+invoices, advanced analytics, up to 5 team members with no per-user fee, multiple business
 profiles, Stripe card payments, API access, accountant CSV export, Fatura branding removed,
 priority support.
 Free trials: at sign-up the user chooses a 7-day Essential trial (no card) or a 7-day Advanced trial

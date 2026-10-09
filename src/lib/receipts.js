@@ -1,4 +1,4 @@
-// Fatura Pro - Receipt photos on expenses (Business plan)
+// Fatura Pro - Receipt photos on expenses (Essential: 20 scans a month; Advanced: unlimited)
 // Files are stored privately at receipts/<ownerId>/<id>.<ext> and opened with a short-lived signed URL.
 import { supabase } from "../supabase";
 
@@ -83,7 +83,8 @@ export async function receiptTiles(file) {
   }
 }
 
-// Ask the server to read an uploaded receipt. Returns the suggested fields, or null.
+// Ask the server to read an uploaded receipt. Returns the suggested fields, null,
+// or { limitReached: true, limit } when this month's Essential scans are used up.
 // file: the original photo, used for sharper parts of long receipts.
 export async function scanReceipt(path, file) {
   try {
@@ -95,6 +96,11 @@ export async function scanReceipt(path, file) {
       headers: { Authorization: "Bearer " + session.access_token, "Content-Type": "application/json" },
       body: JSON.stringify({ path, tiles }),
     });
+    if (r.status === 429) {
+      const body = await r.json().catch(() => ({}));
+      if (body.error === "scan_limit") return { limitReached: true, limit: body.limit || 20 };
+      return null;
+    }
     if (!r.ok) return null;
     const { fields } = await r.json();
     return fields || null;
