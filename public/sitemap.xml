@@ -100,7 +100,19 @@
   </url>
   <url>
     <loc>https://faturapro.app/invoice-generator</loc>
-    <lastmod>2026-09-29</lastmod>
+    <xhtml:link rel="alternate" hreflang="en" href="https://faturapro.app/invoice-generator" />
+    <xhtml:link rel="alternate" hreflang="nl" href="https://faturapro.app/nl/factuur-maken" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://faturapro.app/invoice-generator" />
+    <lastmod>2026-10-10</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.9</priority>
+  </url>
+  <url>
+    <loc>https://faturapro.app/nl/factuur-maken</loc>
+    <xhtml:link rel="alternate" hreflang="en" href="https://faturapro.app/invoice-generator" />
+    <xhtml:link rel="alternate" hreflang="nl" href="https://faturapro.app/nl/factuur-maken" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://faturapro.app/invoice-generator" />
+    <lastmod>2026-10-10</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.9</priority>
   </url>

@@ -132,6 +132,7 @@ function AppRoutes() {
       <Route path="/ambassadors" element={<Ambassadors />} />
       <Route path="/ambassador" element={<AccountPageWrapper component={AmbassadorDashboard} />} />
       <Route path="/invoice-generator" element={<InvoiceGenerator />} />
+      <Route path="/nl/factuur-maken" element={<InvoiceGenerator lang="nl" />} />
       <Route path="/blog/:slug" element={<BlogPost />} />
       <Route path="/admin" element={<AccountPageWrapper component={Admin} />} />
       <Route path="/pay/:invoiceId" element={<PayInvoice />} />

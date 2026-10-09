@@ -111,6 +111,7 @@ const pages = {
   "/late-payment-scripts": () => React.createElement(page("LatePaymentScripts.jsx").default),
   "/ambassadors": () => React.createElement(page("Ambassadors.jsx").default),
   "/invoice-generator": () => React.createElement(page("InvoiceGenerator.jsx").default),
+  "/nl/factuur-maken": () => React.createElement(page("InvoiceGenerator.jsx").default, { lang: "nl" }),
 };
 
 const escapeAttr = (value) => String(value).replace(/&/g, "&amp;").replace(/"/g, "&quot;").replace(/</g, "&lt;");

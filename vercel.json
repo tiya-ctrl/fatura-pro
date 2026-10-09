@@ -138,6 +138,10 @@
       "destination": "/p/invoice-generator.html"
     },
     {
+      "source": "/nl/factuur-maken",
+      "destination": "/p/nl/factuur-maken.html"
+    },
+    {
       "source": "/admin",
       "destination": "/app-shell.html"
     },
