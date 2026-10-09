@@ -45,8 +45,8 @@ const ENGLISH_GUIDES = [
     ],
     sources: [
       { label: "Business.gov.nl: VAT rates", href: "https://business.gov.nl/regulations/vat-rates/" },
-      { label: "Business.gov.nl: filing a VAT return", href: "https://business.gov.nl/regulations/filing-vat-return/" },
-      { label: "Business.gov.nl: small businesses scheme (KOR)", href: "https://business.gov.nl/subsidies-and-schemes/small-businesses-scheme-kor/" },
+      { label: "Business.gov.nl: filing a VAT return", href: "https://business.gov.nl/finance-and-taxes/filing-tax-returns/filing-your-vat-return-in-the-netherlands/" },
+      { label: "Business.gov.nl: small businesses scheme (KOR)", href: "https://business.gov.nl/subsidy/small-businesses-scheme/" },
     ],
     relatedLinks: [
       { label: "How to invoice as a ZZP in the Netherlands", href: "/blog/how-to-invoice-zzp-netherlands-english" },
@@ -94,7 +94,7 @@ const ENGLISH_GUIDES = [
     ],
     sources: [
       { label: "Business.gov.nl: invoice requirements", href: "https://business.gov.nl/regulations/invoice-requirements/" },
-      { label: "Business.gov.nl: payment terms", href: "https://business.gov.nl/running-your-business/accounting-and-finance/payment-terms/" },
+      { label: "Business.gov.nl: payment terms", href: "https://business.gov.nl/regulations/payment-term-collection-charges-statutory-interest/" },
     ],
     relatedLinks: [
       { label: "Dutch VAT (BTW) explained", href: "/blog/dutch-vat-btw-guide-expat-freelancers" },
@@ -186,7 +186,7 @@ const ENGLISH_GUIDES = [
       { q: "Can FaturaPro send invoices over Peppol?", a: "No. FaturaPro can export a UBL/XML file in the EN 16931 format on paid plans, which your client or an access point can process, but FaturaPro is not a Peppol access point." },
     ],
     sources: [
-      { label: "Belastingdienst: invoice requirements", href: "https://www.belastingdienst.nl/wps/wcm/connect/en/vat/content/invoicing-with-vat" },
+      { label: "Belastingdienst: invoice requirements", href: "https://www.belastingdienst.nl/wps/wcm/connect/bldcontenten/belastingdienst/business/vat/vat_in_the_netherlands/vat_administration/invoice_requirements" },
       { label: "Your Europe: VAT rules for services", href: "https://europa.eu/youreurope/business/taxation/vat/cross-border-vat/index_en.htm" },
       { label: "European Commission: VIES VAT number check", href: "https://ec.europa.eu/taxation_customs/vies/" },
     ],
@@ -200,6 +200,11 @@ const ENGLISH_GUIDES = [
   {
     slug: "reverse-charge-vat-invoice-btw-verlegd",
     lang: "en",
+    alternates: {
+      en: "https://faturapro.app/blog/reverse-charge-vat-invoice-btw-verlegd",
+      nl: "https://faturapro.app/blog/btw-verlegd-factuur",
+      "x-default": "https://faturapro.app/blog/reverse-charge-vat-invoice-btw-verlegd",
+    },
     title: "Reverse Charge VAT (btw verlegd): When to Use It and What to Put on Your Invoice",
     seoTitle: "Reverse Charge VAT (btw verlegd) Explained for Freelancers | FaturaPro",
     description: "When you charge 0% VAT and write 'VAT reverse-charged' on an invoice, what the invoice must show, where it goes in your Dutch VAT return, and how reverse charge works on costs you buy abroad.",
@@ -233,7 +238,7 @@ const ENGLISH_GUIDES = [
       { q: "Does FaturaPro have a reverse-charge setting?", a: "There is no separate switch. Set the VAT on the invoice to 0% and add the reverse-charge note and your client's VAT ID in the invoice notes." },
     ],
     sources: [
-      { label: "Belastingdienst: VAT reverse-charge mechanism", href: "https://www.belastingdienst.nl/wps/wcm/connect/en/vat/content/vat-reverse-charge-mechanism" },
+      { label: "Belastingdienst: reverse-charging VAT when doing business abroad", href: "https://www.belastingdienst.nl/wps/wcm/connect/bldcontenten/belastingdienst/business/eu-rights-and-rules-in-the-netherlands/eu-businesses/reverse-charging-vat-when-doing-business-abroad/reverse-charging-vat-when-doing-business-abroad" },
       { label: "Your Europe: cross-border VAT", href: "https://europa.eu/youreurope/business/taxation/vat/cross-border-vat/index_en.htm" },
       { label: "European Commission: VIES VAT number check", href: "https://ec.europa.eu/taxation_customs/vies/" },
     ],

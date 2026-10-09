@@ -270,7 +270,15 @@
   <url>
     <loc>https://faturapro.app/blog/reverse-charge-vat-invoice-btw-verlegd</loc>
     <xhtml:link rel="alternate" hreflang="en" href="https://faturapro.app/blog/reverse-charge-vat-invoice-btw-verlegd" />
+    <xhtml:link rel="alternate" hreflang="nl" href="https://faturapro.app/blog/btw-verlegd-factuur" />
     <xhtml:link rel="alternate" hreflang="x-default" href="https://faturapro.app/blog/reverse-charge-vat-invoice-btw-verlegd" />
-    <lastmod>2026-10-09</lastmod>
+    <lastmod>2026-10-10</lastmod>
+  </url>
+  <url>
+    <loc>https://faturapro.app/blog/btw-verlegd-factuur</loc>
+    <xhtml:link rel="alternate" hreflang="en" href="https://faturapro.app/blog/reverse-charge-vat-invoice-btw-verlegd" />
+    <xhtml:link rel="alternate" hreflang="nl" href="https://faturapro.app/blog/btw-verlegd-factuur" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://faturapro.app/blog/reverse-charge-vat-invoice-btw-verlegd" />
+    <lastmod>2026-10-10</lastmod>
   </url>
 </urlset>

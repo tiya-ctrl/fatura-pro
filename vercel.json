@@ -186,6 +186,10 @@
       "destination": "/p/blog/reverse-charge-vat-invoice-btw-verlegd.html"
     },
     {
+      "source": "/blog/btw-verlegd-factuur",
+      "destination": "/p/blog/btw-verlegd-factuur.html"
+    },
+    {
       "source": "/blog/how-to-create-ubl-invoice-en16931",
       "destination": "/p/blog/how-to-create-ubl-invoice-en16931.html"
     },

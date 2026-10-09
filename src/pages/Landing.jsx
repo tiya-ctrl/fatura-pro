@@ -280,7 +280,7 @@ const FOOTER_COLUMNS = [
   ["Product", [["#features", "Features"], ["#how", "How it works"], ["#pricing", "Pricing"], ["#referrals", "Referral rewards"], ["/invoice-generator", "Free invoice generator"], ["/api-docs", "API documentation"]]],
   ["Solutions", [["/for-freelancers", "For freelancers"], ["/for-agencies", "For agencies and teams"], ["/ubl-factuur-maken", "UBL invoice export (NL)"], ["/nl", "Factuurprogramma (NL)"]]],
   ["Resources", [["/blog", "Invoicing guides"], ["/late-payment-scripts", "Late-payment scripts"], ["/blog/how-to-create-ubl-invoice-en16931", "UBL invoice guide"], ["/blog/how-to-create-professional-invoice", "Professional invoice guide"]]],
-  ["Company", [["/ambassadors", "Ambassador program"], ["mailto:support@faturapro.app", "Contact support"], ["/privacy", "Privacy policy"], ["/terms", "Terms of service"], ["https://x.com/Faturapro", "Follow on X"], ["https://www.linkedin.com/in/tiya-zerzouri-7366892b4", "LinkedIn"]]],
+  ["Company", [["/ambassadors", "Ambassador program"], ["mailto:support@faturapro.app", "Contact support"], ["/privacy", "Privacy policy"], ["/terms", "Terms of service"], ]],
 ];
 
 const CURRENCIES = [["EUR", "€"], ["USD", "$"], ["GBP", "£"], ["AED", "د.إ"], ["SAR", "﷼"], ["QAR", "ر.ق"], ["KWD", "د.ك"], ["MAD", "د.م"], ["DZD", "دج"], ["TND", "د.ت"], ["EGP", "ج.م"], ["TRY", "₺"], ["JPY", "¥"], ["MYR", "RM"], ["IDR", "Rp"]];
@@ -561,6 +561,10 @@ export default function LandingPage({ onOpenApp }) {
               <a className="brand" href="/"><img src="/fatura-mark.svg" alt="" width="30" height="30" /><span>Fatura<b>Pro</b></span></a>
               <p>Multi-currency invoicing software for freelancers, consultants and small service businesses working across borders.</p>
               <p className="legal-note">Account data hosted in the EU (Ireland) · UBL XML export · Not a Peppol access point</p>
+              <div className="foot-social">
+                <a href="https://x.com/Faturapro" target="_blank" rel="noreferrer" aria-label="FaturaPro on X" title="X"><svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M18.9 2H22l-6.8 7.8L23.2 22h-6.3l-4.9-6.4L6.4 22H3.3l7.3-8.3L1 2h6.4l4.4 5.9L18.9 2zm-1.1 18h1.7L6.3 3.9H4.5L17.8 20z" /></svg></a>
+                <a href="https://www.linkedin.com/in/tiya-zerzouri-7366892b4" target="_blank" rel="noreferrer" aria-label="FaturaPro on LinkedIn" title="LinkedIn"><svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M20.45 20.45h-3.56v-5.57c0-1.33-.02-3.04-1.85-3.04-1.86 0-2.14 1.45-2.14 2.94v5.67H9.35V9h3.41v1.56h.05c.48-.9 1.64-1.85 3.37-1.85 3.6 0 4.27 2.37 4.27 5.45v6.29zM5.34 7.43a2.06 2.06 0 1 1 0-4.13 2.06 2.06 0 0 1 0 4.13zM7.12 20.45H3.56V9h3.56v11.45zM22.22 0H1.77C.79 0 0 .77 0 1.73v20.54C0 23.23.79 24 1.77 24h20.45c.98 0 1.78-.77 1.78-1.73V1.73C24 .77 23.2 0 22.22 0z" /></svg></a>
+              </div>
             </div>
             {FOOTER_COLUMNS.map(([title, links]) => (
               <div className="foot-col" key={title}><h4>{title}</h4>

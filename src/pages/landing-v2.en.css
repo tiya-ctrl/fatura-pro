@@ -330,6 +330,9 @@ html:has(.lv2){scroll-behavior:smooth;-webkit-text-size-adjust:100%}
 .lv2 .foot-grid{display:grid;grid-template-columns:1.6fr repeat(4,1fr);gap:28px}
 .lv2 .foot-brand p{margin:12px 0 0;max-width:320px}
 .lv2 .foot-col{display:flex;flex-direction:column;gap:8px}
+.lv2 .foot-social{display:flex;gap:10px;margin-top:16px}
+.lv2 .foot-social a{display:inline-flex;align-items:center;justify-content:center;width:38px;height:38px;border:1px solid var(--line-2);border-radius:10px;color:var(--muted);transition:color .2s,border-color .2s}
+.lv2 .foot-social a:hover{color:var(--text);border-color:var(--muted)}
 .lv2 .foot-col h4{margin:0 0 4px;color:var(--text);font-size:14px}
 .lv2 .foot-bottom{margin-top:32px;padding-top:20px;border-top:1px solid var(--line)}
 @media (max-width:1040px){.lv2 .foot-grid{grid-template-columns:1fr 1fr 1fr}.lv2 .foot-brand{grid-column:1 / -1}}

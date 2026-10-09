@@ -5,6 +5,7 @@ import { trackEvent } from "../lib/tracking";
 import NotFound from "./NotFound";
 import RECEIPT_POSTS from "../lib/blogReceiptPosts";
 import ENGLISH_GUIDES from "../lib/blogEnglishGuides";
+import DUTCH_GUIDES from "../lib/blogDutchGuides";
 
 // Interface text around a post, in the post's own language (posts are en, nl or ar).
 const BLOG_UI = {
@@ -18,6 +19,7 @@ const postLanguage = (post) => (post.lang === "ar" || post.lang === "nl" ? post.
 const POSTS = [
   ...RECEIPT_POSTS,
   ...ENGLISH_GUIDES,
+  ...DUTCH_GUIDES,
   {
     slug: "how-to-create-ubl-invoice-en16931",
     lang: "en",
