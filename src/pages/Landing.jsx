@@ -280,7 +280,7 @@ const FOOTER_COLUMNS = [
   ["Product", [["#features", "Features"], ["#how", "How it works"], ["#pricing", "Pricing"], ["#referrals", "Referral rewards"], ["/invoice-generator", "Free invoice generator"], ["/api-docs", "API documentation"]]],
   ["Solutions", [["/for-freelancers", "For freelancers"], ["/for-agencies", "For agencies and teams"], ["/ubl-factuur-maken", "UBL invoice export (NL)"], ["/nl", "Factuurprogramma (NL)"]]],
   ["Resources", [["/blog", "Invoicing guides"], ["/late-payment-scripts", "Late-payment scripts"], ["/blog/how-to-create-ubl-invoice-en16931", "UBL invoice guide"], ["/blog/how-to-create-professional-invoice", "Professional invoice guide"]]],
-  ["Company", [["/ambassadors", "Ambassador program"], ["mailto:support@faturapro.app", "Contact support"], ["/privacy", "Privacy policy"], ["/terms", "Terms of service"], ["https://x.com/Faturapro", "Follow on X"]]],
+  ["Company", [["/ambassadors", "Ambassador program"], ["mailto:support@faturapro.app", "Contact support"], ["/privacy", "Privacy policy"], ["/terms", "Terms of service"], ["https://x.com/Faturapro", "Follow on X"], ["https://www.linkedin.com/in/tiya-zerzouri-7366892b4", "LinkedIn"]]],
 ];
 
 const CURRENCIES = [["EUR", "€"], ["USD", "$"], ["GBP", "£"], ["AED", "د.إ"], ["SAR", "﷼"], ["QAR", "ر.ق"], ["KWD", "د.ك"], ["MAD", "د.م"], ["DZD", "دج"], ["TND", "د.ت"], ["EGP", "ج.م"], ["TRY", "₺"], ["JPY", "¥"], ["MYR", "RM"], ["IDR", "Rp"]];
