@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from "react";
-import { signIn, signUp, loginWithGoogle, needsEmailConfirmation, isEmailNotConfirmedError, resendConfirmationEmail } from "../auth";
+import { signIn, signUp, loginWithGoogle, needsEmailConfirmation, isExistingAccountSignUp, isEmailNotConfirmedError, resendConfirmationEmail } from "../auth";
 import { trackEvent } from "../lib/tracking";
 import { getLocale, localeHome, setLocale, tr } from "../lib/locale";
 import { attributionEventProperties } from "../lib/attribution";
@@ -205,6 +205,14 @@ export default function LoginPage({ onLogin, onBack, returnTo = "/app" }) {
       setTimeout(() => onLogin(res.user), 1200);
     } else {
       const res = await signUp(form.email, form.password, invited ? null : trialChoice);
+      if (isExistingAccountSignUp(res)) {
+        // Already registered: switch to sign in with the email filled in.
+        setMode("login");
+        setForm(f => ({ ...f, password:"", confirm:"" }));
+        setErrors({ email: t("email_already_registered", "This email already has an account. Sign in, or use \"Forgot password?\" if you don't remember your password.") });
+        setLoading(false);
+        return;
+      }
       trackEvent("signup_completed", { method:"email", source:signupSource, ...attributionEventProperties() });
       if (needsEmailConfirmation(res)) {
         setAwaitingEmail({ email: form.email.trim(), fromLogin: false });

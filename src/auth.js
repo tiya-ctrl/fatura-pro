@@ -23,6 +23,12 @@ export const signUp = async (email, password, intentPlan) => {
 // No session after sign-up means Supabase is waiting for the email to be confirmed.
 export const needsEmailConfirmation = (signUpData) => Boolean(signUpData?.user && !signUpData?.session);
 
+// Supabase answers a sign-up for an email that already has an account with a user
+// without identities (and sends no email), so it can't be told apart from a new account
+// by the response shape alone.
+export const isExistingAccountSignUp = (signUpData) =>
+  Boolean(signUpData?.user && Array.isArray(signUpData.user.identities) && signUpData.user.identities.length === 0);
+
 export const isEmailNotConfirmedError = (error) =>
   error?.code === "email_not_confirmed" || /email not confirmed/i.test(String(error?.message || ""));
 

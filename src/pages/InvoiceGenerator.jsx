@@ -243,7 +243,7 @@ export default function InvoiceGenerator() {
           <p style={{ ...pStyle, marginTop:14 }}>Paid plans add payment reminders by email and WhatsApp, deposits, UBL/XML export, quotes, recurring invoices, expenses with receipt scanning and a quarterly VAT summary. <a href="/blog/invoicing-plans-free-vs-pro-vs-business" style={linkStyle}>Compare the plans</a> or <a href={SIGNUP_URL} style={linkStyle}>start free</a>.</p>
 
           <h2 style={h2Style}>Invoicing a client in another country?</h2>
-          <p style={pStyle}>Pick the client's currency above, and check whether you should charge VAT: for business clients in other EU countries, VAT is often reverse-charged. The guide on <a href="/blog/how-to-invoice-international-clients" style={linkStyle}>invoicing international clients</a> explains currency, language and VAT step by step. Clients that ask for an e-invoice can be sent a UBL/XML file from a FaturaPro account (<a href="/blog/how-to-create-ubl-invoice-en16931" style={linkStyle}>what UBL is</a>).</p>
+          <p style={pStyle}>Pick the client's currency above, and check whether you should charge VAT: for business clients in other EU countries, VAT is often <a href="/blog/reverse-charge-vat-invoice-btw-verlegd" style={linkStyle}>reverse-charged</a>. The guide on <a href="/blog/how-to-invoice-international-clients" style={linkStyle}>invoicing international clients</a> explains currency, language and VAT step by step. Clients that ask for an e-invoice can be sent a UBL/XML file from a FaturaPro account (<a href="/blog/how-to-create-ubl-invoice-en16931" style={linkStyle}>what UBL is</a>).</p>
 
           <h2 style={h2Style}>Questions</h2>
           {FAQS.map((item) => (
