@@ -19,11 +19,19 @@ export async function getVisitorCountry() {
 export async function ensureUserPlan(user, knownCountry = null) {
   if (!user?.id) return null;
 
-  const { data: current, error: readError } = await supabase
+  let { data: current, error: readError } = await supabase
     .from("user_plans")
-    .select("plan, trial_end, email, country")
+    .select("plan, trial_end, advanced_trial_end, email, country")
     .eq("user_id", user.id)
     .maybeSingle();
+  if (readError) {
+    // Column not there yet (migration 202610110001 not applied): read without it.
+    ({ data: current, error: readError } = await supabase
+      .from("user_plans")
+      .select("plan, trial_end, email, country")
+      .eq("user_id", user.id)
+      .maybeSingle());
+  }
   if (readError) throw readError;
 
   const email = user.email || null;

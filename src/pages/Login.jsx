@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef } from "react";
+import { ADVANCED_TRIAL_NO_CARD } from "../lib/businessPlan";
 import { signIn, signUp, loginWithGoogle, needsEmailConfirmation, isExistingAccountSignUp, isEmailNotConfirmedError, resendConfirmationEmail } from "../auth";
 import { trackEvent } from "../lib/tracking";
 import { getLocale, localeHome, setLocale, tr } from "../lib/locale";
@@ -410,7 +411,7 @@ export default function LoginPage({ onLogin, onBack, returnTo = "/app" }) {
             <div style={{ display:"flex", gap:10 }}>
               {[
                 { id:"pro", name:"Essential", note:t("trial_essential_note", "7 days free · no card needed") },
-                { id:"business", name:"Advanced", note:t("trial_advanced_note", "7 days free · card via Stripe, cancel anytime") },
+                { id:"business", name:"Advanced", note: ADVANCED_TRIAL_NO_CARD ? t("trial_essential_note", "7 days free · no card needed") : t("trial_advanced_note", "7 days free · card via Stripe, cancel anytime") },
               ].map(option => (
                 <button key={option.id} type="button" role="radio" aria-checked={trialChoice === option.id}
                   onClick={() => chooseTrial(option.id)}

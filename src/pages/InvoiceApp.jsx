@@ -1,6 +1,6 @@
 import React, { useState, useRef, useEffect } from "react";
 import { supabase } from "../supabase";
-import { hasBusinessAccess, BUSINESS_ENABLED } from "../lib/businessPlan";
+import { hasBusinessAccess, BUSINESS_ENABLED, ADVANCED_TRIAL_NO_CARD } from "../lib/businessPlan";
 import { exportInvoicesCSV } from "../lib/accountantExport";
 import { ensureUserPlan } from "../lib/userPlan";
 import { downloadUBL, ublWarnings, countryCodeFrom, COUNTRY_OPTIONS } from "../lib/ubl";
@@ -594,6 +594,7 @@ export default function InvoiceApp({ onGoHome }) {
     })();
   }, [ownerId]);
   const [trialEnd, setTrialEnd] = useState(null);
+  const [advancedTrialEnd, setAdvancedTrialEnd] = useState(null); // Advanced through the no-card trial
 
   useEffect(() => {
     const loadPlan = async () => {
@@ -628,6 +629,9 @@ export default function InvoiceApp({ onGoHome }) {
       const data = await ensureUserPlan(user);
       if (data?.plan === "business") {
         setPlan("business");
+      } else if (data?.advanced_trial_end && new Date(data.advanced_trial_end) > new Date()) {
+        setPlan("business");
+        setAdvancedTrialEnd(data.advanced_trial_end);
       } else if (data?.plan === "pro") {
         setPlan("pro");
       } else if (data?.trial_end && new Date(data.trial_end) > new Date()) {
@@ -689,6 +693,8 @@ export default function InvoiceApp({ onGoHome }) {
   // and a way to subscribe, instead of "Manage subscription".
   const isOnTrial = plan === "pro" && !!trialEnd && !isTeamMember;
   const trialDaysLeft = isOnTrial ? Math.max(0, Math.ceil((new Date(trialEnd) - new Date()) / 86400000)) : 0;
+  const isOnAdvancedTrial = plan === "business" && !!advancedTrialEnd && !isTeamMember;
+  const advancedTrialDaysLeft = isOnAdvancedTrial ? Math.max(0, Math.ceil((new Date(advancedTrialEnd) - new Date()) / 86400000)) : 0;
   // The in-app assistant replaces Crisp: its AI agent is a paid add-on, and a
   // human chat nobody is free to answer is worse than none. Change the plan
   // test below to open it up to every plan.
@@ -1132,6 +1138,11 @@ export default function InvoiceApp({ onGoHome }) {
                   {t("subscribe_now", "Subscribe")}
                 </button>
               </div>
+            ) : isOnAdvancedTrial ? (
+              <div className="plan-badge">
+                <div className="plan-name">✦ {t("advanced_trial", "ADVANCED TRIAL")}</div>
+                <div className="plan-info">{advancedTrialDaysLeft} {t("trial_days_left", "days left in your free trial")}</div>
+              </div>
             ) : isPro ? (
               <div className="plan-badge">
                 <div className="plan-name">✦ {plan === "business" ? t("business_plan", "ADVANCED PLAN") : isTeamMember ? t("team_member", "TEAM MEMBER") : t("pro_plan", "ESSENTIAL PLAN")}</div>
@@ -1233,7 +1244,7 @@ export default function InvoiceApp({ onGoHome }) {
             {page === "expenses" && isPro && <Expenses readOnly={readOnly} onReadOnly={guardReadOnly} expenses={expenses} setExpenses={setExpenses} invoices={invoicesWithStatus} userId={ownerId || userId} f={f} />}
             {page === "analytics" && hasBusinessAccess(plan) && <Analytics invoices={invoicesWithStatus} f={f} fc={fmtCurrency} defaultCurrency={currency} />}
             {page === "clients" && <Clients clients={clients} invoices={invoicesWithStatus} f={f} onAdd={() => setShowNewClient(true)} onDeleteClient={deleteClient} onEditClient={(c) => { if (!guardReadOnly()) setEditingClient(c); }} />}
-            {page === "settings" && <><ReferralProgram userId={userId} plan={plan} /><Settings currency={currency} setCurrency={setCurrency} userEmail={userEmail} invoices={invoicesWithStatus} onProfileSaved={(ready, profile) => { setBusinessProfileReady(ready); setBusinessProfile(profile); }} />{hasBusinessAccess(plan) && <BusinessProfiles profiles={bizProfiles} setProfiles={setBizProfiles} userId={userId} />}{hasBusinessAccess(plan) && <RecurringList recurring={recurring} setRecurring={setRecurring} userId={userId} f={f} />}{hasBusinessAccess(plan) && <div className="card" style={{ marginTop: 20 }}><div className="card-title" style={{ marginBottom: 10 }}>{t("online_payments", "Online payments")}</div><div style={{ fontSize: 13, color: "#999", marginBottom: 12 }}>{t("connect_stripe_help", "Connect your Stripe account so clients can pay invoices online. Money goes directly to your bank.")}</div><button className="btn btn-primary btn-sm" onClick={async () => { const { data: { session } } = await supabase.auth.getSession(); const r = await fetch("/api/connect-stripe", { method: "POST", headers: { Authorization: "Bearer " + (session?.access_token || "") } }); const d = await r.json(); if (d.url) window.location.href = d.url; else alert(d.error || t("stripe_start_error", "Could not start Stripe onboarding")); }}>{t("connect_stripe", "Connect Stripe →")}</button></div>}{hasBusinessAccess(plan) && <TeamMembers team={team} setTeam={setTeam} userId={userId} />}{hasBusinessAccess(plan) && <ApiKeys keys={apiKeys} setKeys={setApiKeys} userId={userId} />}{((plan === "pro" && !isOnTrial) || plan === "business") && <div className="card" style={{ marginTop: 20 }}><div className="card-title" style={{ marginBottom: 10 }}>{t("subscription", "Subscription")}</div><div style={{ fontSize: 13, color: "#999", marginBottom: 12 }}>{t("subscription_help", "Switch between Essential and Advanced, update your card, view invoices, or cancel anytime.")}</div><a className="btn btn-primary btn-sm" href="https://billing.stripe.com/p/login/fZu4gzepGdT05Gx48j5ZC00" target="_blank" rel="noreferrer">{t("manage_subscription", "Manage subscription →")}</a></div>}{(plan === "free" || isOnTrial) && <div className="card" style={{ marginTop: 20 }}><div className="card-title" style={{ marginBottom: 10 }}>{t("plan", "Plan")}</div><div style={{ fontSize: 13, color:"#999", marginBottom:12 }}>{isOnTrial ? trialDaysLeft + " " + t("trial_days_left", "days left in your free trial") + ". " + t("trial_keep_data", "Subscribe to keep reminders, deposits and UBL export. Your data stays either way.") : t("free_plan_help", "You are on the Free plan. Upgrade for unlimited invoices, reminders, and more.")}</div><button className="btn btn-primary btn-sm" onClick={() => { setUpgradeIntent(null); setShowUpgrade(true); }}>{t("upgrade", "Upgrade →")}</button></div>}</>}
+            {page === "settings" && <><ReferralProgram userId={userId} plan={plan} /><Settings currency={currency} setCurrency={setCurrency} userEmail={userEmail} invoices={invoicesWithStatus} onProfileSaved={(ready, profile) => { setBusinessProfileReady(ready); setBusinessProfile(profile); }} />{hasBusinessAccess(plan) && <BusinessProfiles profiles={bizProfiles} setProfiles={setBizProfiles} userId={userId} />}{hasBusinessAccess(plan) && <RecurringList recurring={recurring} setRecurring={setRecurring} userId={userId} f={f} />}{hasBusinessAccess(plan) && <div className="card" style={{ marginTop: 20 }}><div className="card-title" style={{ marginBottom: 10 }}>{t("online_payments", "Online payments")}</div><div style={{ fontSize: 13, color: "#999", marginBottom: 12 }}>{t("connect_stripe_help", "Connect your Stripe account so clients can pay invoices online. Money goes directly to your bank.")}</div><button className="btn btn-primary btn-sm" onClick={async () => { const { data: { session } } = await supabase.auth.getSession(); const r = await fetch("/api/connect-stripe", { method: "POST", headers: { Authorization: "Bearer " + (session?.access_token || "") } }); const d = await r.json(); if (d.url) window.location.href = d.url; else alert(d.error || t("stripe_start_error", "Could not start Stripe onboarding")); }}>{t("connect_stripe", "Connect Stripe →")}</button></div>}{hasBusinessAccess(plan) && <TeamMembers team={team} setTeam={setTeam} userId={userId} />}{hasBusinessAccess(plan) && <ApiKeys keys={apiKeys} setKeys={setApiKeys} userId={userId} />}{((plan === "pro" && !isOnTrial) || (plan === "business" && !isOnAdvancedTrial)) && <div className="card" style={{ marginTop: 20 }}><div className="card-title" style={{ marginBottom: 10 }}>{t("subscription", "Subscription")}</div><div style={{ fontSize: 13, color: "#999", marginBottom: 12 }}>{t("subscription_help", "Switch between Essential and Advanced, update your card, view invoices, or cancel anytime.")}</div><a className="btn btn-primary btn-sm" href="https://billing.stripe.com/p/login/fZu4gzepGdT05Gx48j5ZC00" target="_blank" rel="noreferrer">{t("manage_subscription", "Manage subscription →")}</a></div>}{(plan === "free" || isOnTrial) && <div className="card" style={{ marginTop: 20 }}><div className="card-title" style={{ marginBottom: 10 }}>{t("plan", "Plan")}</div><div style={{ fontSize: 13, color:"#999", marginBottom:12 }}>{isOnTrial ? trialDaysLeft + " " + t("trial_days_left", "days left in your free trial") + ". " + t("trial_keep_data", "Subscribe to keep reminders, deposits and UBL export. Your data stays either way.") : t("free_plan_help", "You are on the Free plan. Upgrade for unlimited invoices, reminders, and more.")}</div><button className="btn btn-primary btn-sm" onClick={() => { setUpgradeIntent(null); setShowUpgrade(true); }}>{t("upgrade", "Upgrade →")}</button></div>}</>}
           </div>
         </div>
 
@@ -2778,7 +2789,24 @@ function UpgradeModal({ feature, onClose, onActivate, initialPlan, userEmail, us
   const featEntry = copy.feats[feature];
   const feat = featEntry ? { icon:<LockIcon size={36} strokeWidth={1.7} aria-hidden="true" />, label:featEntry[0], desc:featEntry[1] } : { icon:<SparklesIcon size={36} strokeWidth={1.7} aria-hidden="true" />, label:copy.general[0], desc:copy.general[1] };
 
+  const noCardTrial = ADVANCED_TRIAL_NO_CARD && BUSINESS_ENABLED && selectedPlan === "business" && advancedTrial;
+  const [startingTrial, setStartingTrial] = useState(false);
+  const startNoCardTrial = async () => {
+    if (startingTrial) return;
+    setStartingTrial(true);
+    const { data, error } = await supabase.rpc("start_advanced_trial");
+    if (error || !data) {
+      setStartingTrial(false);
+      if (!error) setAdvancedTrial(false);
+      window.alert(t("advanced_trial_failed", "The free Advanced trial could not be started. If you already used it, it cannot be started again."));
+      return;
+    }
+    trackEvent("advanced_trial_started", { method:"no_card", feature:feature || "general" });
+    window.location.href = "/app";
+  };
+
   const handleStripe = () => {
+    if (noCardTrial) { startNoCardTrial(); return; }
     const link = PLANS_INFO[selectedPlan]?.stripe_link;
     if (link) {
       trackEvent("checkout_started", { plan:selectedPlan, feature:feature || "general", amount_eur:selectedPlan === "business" ? 19 : 9 });
@@ -2868,7 +2896,7 @@ function UpgradeModal({ feature, onClose, onActivate, initialPlan, userEmail, us
           </button>
         ) : (
           <button className="btn btn-primary" style={{ width:"100%", justifyContent:"center", fontSize:15, padding:"14px", marginBottom:10 }}
-            onClick={handleStripe} disabled={loading}>
+            onClick={handleStripe} disabled={loading || startingTrial}>
             {loading
               ? <span style={{ display:"flex", alignItems:"center", gap:8 }}>
                   <span style={{ width:16, height:16, border:"2px solid #000", borderTopColor:"transparent", borderRadius:"50%", display:"inline-block", animation:"spin 0.7s linear infinite" }} />
@@ -2889,7 +2917,9 @@ function UpgradeModal({ feature, onClose, onActivate, initialPlan, userEmail, us
         )}
         {selectedPlan === "business" && BUSINESS_ENABLED && (
           <div style={{ textAlign:"center", fontSize:12, color:"var(--text2)", marginBottom:10, lineHeight:1.5 }}>
-            {advancedTrial
+            {noCardTrial
+              ? t("advanced_trial_nocard_note", "7 days free, no card needed. After the trial your account goes back to its current plan, and your data stays.")
+              : advancedTrial
               ? t("advanced_trial_note", "7 days free, then €19/month. Cancel before the trial ends and you won't be charged.")
               : t("advanced_trial_used", "You have already used the free trial, so €19/month starts today. The checkout may still mention a trial.")}
           </div>
