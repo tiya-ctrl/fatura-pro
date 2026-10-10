@@ -186,7 +186,6 @@ export default function LoginPage({ onLogin, onBack, returnTo = "/app" }) {
     if (mode === "signup" && !form.name.trim())           e.name     = t("name_required", "Name is required");
     if (!form.email.includes("@"))                        e.email    = t("valid_email", "Enter a valid email");
     if (form.password.length < 6)                         e.password = t("password_min", "Min. 6 characters");
-    if (mode === "signup" && form.password !== form.confirm) e.confirm = t("password_mismatch", "Passwords don't match");
     return e;
   };
 
@@ -391,18 +390,6 @@ export default function LoginPage({ onLogin, onBack, returnTo = "/app" }) {
           </div>
           {errors.password && <div className="login-error">{errors.password}</div>}
         </div>
-
-        {/* Confirm — signup only */}
-        {mode === "signup" && (
-          <div className="login-field">
-            <label>{t("confirm_password", "Confirm Password")}</label>
-            <input className={`login-input${errors.confirm ? " error" : ""}`}
-              type={showPass ? "text" : "password"} value={form.confirm}
-              onChange={e => set("confirm", e.target.value)} onKeyDown={handleKey}
-              placeholder={t("repeat_password", "Repeat your password")} />
-            {errors.confirm && <div className="login-error">{errors.confirm}</div>}
-          </div>
-        )}
 
         {/* Free trial choice — signup only (not for team invites) */}
         {mode === "signup" && !invited && (

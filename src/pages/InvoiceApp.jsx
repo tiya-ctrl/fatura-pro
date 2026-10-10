@@ -1,6 +1,7 @@
 import React, { useState, useRef, useEffect } from "react";
 import { supabase } from "../supabase";
 import { hasBusinessAccess, BUSINESS_ENABLED, ADVANCED_TRIAL_NO_CARD } from "../lib/businessPlan";
+import { defaultTaxForCountry } from "../lib/defaultTax";
 import { exportInvoicesCSV } from "../lib/accountantExport";
 import { ensureUserPlan } from "../lib/userPlan";
 import { downloadUBL, ublWarnings, countryCodeFrom, COUNTRY_OPTIONS } from "../lib/ubl";
@@ -595,6 +596,8 @@ export default function InvoiceApp({ onGoHome }) {
   }, [ownerId]);
   const [trialEnd, setTrialEnd] = useState(null);
   const [advancedTrialEnd, setAdvancedTrialEnd] = useState(null); // Advanced through the no-card trial
+  const [accountCountry, setAccountCountry] = useState(null); // country at sign-up, for the default tax rate
+  const baseTax = defaultTaxForCountry(accountCountry);
 
   useEffect(() => {
     const loadPlan = async () => {
@@ -627,6 +630,7 @@ export default function InvoiceApp({ onGoHome }) {
       loadTeam(user.id).then(setTeam);
       supabase.from("api_keys").select("id, key_prefix, label, last_used_at, created_at").eq("user_id",  user.id).then(({ data }) => setApiKeys(data || []));
       const data = await ensureUserPlan(user);
+      setAccountCountry(data?.country || null);
       if (data?.plan === "business") {
         setPlan("business");
       } else if (data?.advanced_trial_end && new Date(data.advanced_trial_end) > new Date()) {
@@ -832,7 +836,7 @@ export default function InvoiceApp({ onGoHome }) {
     } : null;
     const [profileResult, clientResult] = await Promise.all([
       shouldSaveProfile
-        ? supabase.from("business_profile").upsert({ user_id:dataOwnerId, name:inv.sellerName, email:inv.sellerEmail || "", phone:inv.sellerPhone || "", vat_number:inv.sellerVat || "", address:inv.sellerAddress || "", country:inv.sellerCountry || countryCodeFrom(inv.sellerAddress) || "", updated_at:new Date().toISOString() })
+        ? supabase.from("business_profile").upsert({ user_id:dataOwnerId, name:inv.sellerName, email:inv.sellerEmail || "", phone:inv.sellerPhone || "", vat_number:inv.sellerVat || "", address:inv.sellerAddress || "", country:inv.sellerCountry || countryCodeFrom(inv.sellerAddress) || "", default_tax:Number(inv.tax) || 0, updated_at:new Date().toISOString() })
         : Promise.resolve({ error:null }),
       shouldSaveClient
         ? supabase.from("clients").insert({ ...autoClient, user_id:dataOwnerId, invoices:0, total:0 })
@@ -1228,7 +1232,7 @@ export default function InvoiceApp({ onGoHome }) {
                   sellerAddress:businessProfile?.address || "",
                   sellerCountry:businessProfile?.country || "",
                    bankInfo:businessProfile?.bank_info || "",
-                   defaultTax:businessProfile?.default_tax ?? 21,
+                   defaultTax:businessProfile?.default_tax ?? baseTax,
                    defaultInvoiceLanguage:normalizeDocumentLanguage(businessProfile?.default_invoice_language),
                 }}
                 onConvert={async (q) => {
@@ -1244,7 +1248,7 @@ export default function InvoiceApp({ onGoHome }) {
             {page === "expenses" && isPro && <Expenses readOnly={readOnly} onReadOnly={guardReadOnly} expenses={expenses} setExpenses={setExpenses} invoices={invoicesWithStatus} userId={ownerId || userId} f={f} />}
             {page === "analytics" && hasBusinessAccess(plan) && <Analytics invoices={invoicesWithStatus} f={f} fc={fmtCurrency} defaultCurrency={currency} />}
             {page === "clients" && <Clients clients={clients} invoices={invoicesWithStatus} f={f} onAdd={() => setShowNewClient(true)} onDeleteClient={deleteClient} onEditClient={(c) => { if (!guardReadOnly()) setEditingClient(c); }} />}
-            {page === "settings" && <><ReferralProgram userId={userId} plan={plan} /><Settings currency={currency} setCurrency={setCurrency} userEmail={userEmail} invoices={invoicesWithStatus} onProfileSaved={(ready, profile) => { setBusinessProfileReady(ready); setBusinessProfile(profile); }} />{hasBusinessAccess(plan) && <BusinessProfiles profiles={bizProfiles} setProfiles={setBizProfiles} userId={userId} />}{hasBusinessAccess(plan) && <RecurringList recurring={recurring} setRecurring={setRecurring} userId={userId} f={f} />}{hasBusinessAccess(plan) && <div className="card" style={{ marginTop: 20 }}><div className="card-title" style={{ marginBottom: 10 }}>{t("online_payments", "Online payments")}</div><div style={{ fontSize: 13, color: "#999", marginBottom: 12 }}>{t("connect_stripe_help", "Connect your Stripe account so clients can pay invoices online. Money goes directly to your bank.")}</div><button className="btn btn-primary btn-sm" onClick={async () => { const { data: { session } } = await supabase.auth.getSession(); const r = await fetch("/api/connect-stripe", { method: "POST", headers: { Authorization: "Bearer " + (session?.access_token || "") } }); const d = await r.json(); if (d.url) window.location.href = d.url; else alert(d.error || t("stripe_start_error", "Could not start Stripe onboarding")); }}>{t("connect_stripe", "Connect Stripe →")}</button></div>}{hasBusinessAccess(plan) && <TeamMembers team={team} setTeam={setTeam} userId={userId} />}{hasBusinessAccess(plan) && <ApiKeys keys={apiKeys} setKeys={setApiKeys} userId={userId} />}{((plan === "pro" && !isOnTrial) || (plan === "business" && !isOnAdvancedTrial)) && <div className="card" style={{ marginTop: 20 }}><div className="card-title" style={{ marginBottom: 10 }}>{t("subscription", "Subscription")}</div><div style={{ fontSize: 13, color: "#999", marginBottom: 12 }}>{t("subscription_help", "Switch between Essential and Advanced, update your card, view invoices, or cancel anytime.")}</div><a className="btn btn-primary btn-sm" href="https://billing.stripe.com/p/login/fZu4gzepGdT05Gx48j5ZC00" target="_blank" rel="noreferrer">{t("manage_subscription", "Manage subscription →")}</a></div>}{(plan === "free" || isOnTrial) && <div className="card" style={{ marginTop: 20 }}><div className="card-title" style={{ marginBottom: 10 }}>{t("plan", "Plan")}</div><div style={{ fontSize: 13, color:"#999", marginBottom:12 }}>{isOnTrial ? trialDaysLeft + " " + t("trial_days_left", "days left in your free trial") + ". " + t("trial_keep_data", "Subscribe to keep reminders, deposits and UBL export. Your data stays either way.") : t("free_plan_help", "You are on the Free plan. Upgrade for unlimited invoices, reminders, and more.")}</div><button className="btn btn-primary btn-sm" onClick={() => { setUpgradeIntent(null); setShowUpgrade(true); }}>{t("upgrade", "Upgrade →")}</button></div>}</>}
+            {page === "settings" && <><ReferralProgram userId={userId} plan={plan} /><Settings defaultTax={baseTax} currency={currency} setCurrency={setCurrency} userEmail={userEmail} invoices={invoicesWithStatus} onProfileSaved={(ready, profile) => { setBusinessProfileReady(ready); setBusinessProfile(profile); }} />{hasBusinessAccess(plan) && <BusinessProfiles profiles={bizProfiles} setProfiles={setBizProfiles} userId={userId} />}{hasBusinessAccess(plan) && <RecurringList recurring={recurring} setRecurring={setRecurring} userId={userId} f={f} />}{hasBusinessAccess(plan) && <div className="card" style={{ marginTop: 20 }}><div className="card-title" style={{ marginBottom: 10 }}>{t("online_payments", "Online payments")}</div><div style={{ fontSize: 13, color: "#999", marginBottom: 12 }}>{t("connect_stripe_help", "Connect your Stripe account so clients can pay invoices online. Money goes directly to your bank.")}</div><button className="btn btn-primary btn-sm" onClick={async () => { const { data: { session } } = await supabase.auth.getSession(); const r = await fetch("/api/connect-stripe", { method: "POST", headers: { Authorization: "Bearer " + (session?.access_token || "") } }); const d = await r.json(); if (d.url) window.location.href = d.url; else alert(d.error || t("stripe_start_error", "Could not start Stripe onboarding")); }}>{t("connect_stripe", "Connect Stripe →")}</button></div>}{hasBusinessAccess(plan) && <TeamMembers team={team} setTeam={setTeam} userId={userId} />}{hasBusinessAccess(plan) && <ApiKeys keys={apiKeys} setKeys={setApiKeys} userId={userId} />}{((plan === "pro" && !isOnTrial) || (plan === "business" && !isOnAdvancedTrial)) && <div className="card" style={{ marginTop: 20 }}><div className="card-title" style={{ marginBottom: 10 }}>{t("subscription", "Subscription")}</div><div style={{ fontSize: 13, color: "#999", marginBottom: 12 }}>{t("subscription_help", "Switch between Essential and Advanced, update your card, view invoices, or cancel anytime.")}</div><a className="btn btn-primary btn-sm" href="https://billing.stripe.com/p/login/fZu4gzepGdT05Gx48j5ZC00" target="_blank" rel="noreferrer">{t("manage_subscription", "Manage subscription →")}</a></div>}{(plan === "free" || isOnTrial) && <div className="card" style={{ marginTop: 20 }}><div className="card-title" style={{ marginBottom: 10 }}>{t("plan", "Plan")}</div><div style={{ fontSize: 13, color:"#999", marginBottom:12 }}>{isOnTrial ? trialDaysLeft + " " + t("trial_days_left", "days left in your free trial") + ". " + t("trial_keep_data", "Subscribe to keep reminders, deposits and UBL export. Your data stays either way.") : t("free_plan_help", "You are on the Free plan. Upgrade for unlimited invoices, reminders, and more.")}</div><button className="btn btn-primary btn-sm" onClick={() => { setUpgradeIntent(null); setShowUpgrade(true); }}>{t("upgrade", "Upgrade →")}</button></div>}</>}
           </div>
         </div>
 
@@ -1270,7 +1274,7 @@ export default function InvoiceApp({ onGoHome }) {
 
         {(page === "dashboard" || page === "invoices") && <button className="mobile-fab" aria-label={t("new_invoice", "Create invoice")} onClick={() => openNewInvoice(page === "dashboard" ? "dashboard_fab" : "invoice_list_fab")}>+</button>}
 
-        {showNewInvoice && <NewInvoiceModal bizProfiles={hasBusinessAccess(plan) ? bizProfiles : []} clients={clients} onSave={addInvoice} onClose={handleNewInvoiceClose} invoiceIds={invoices.map(i => i.id)} invoicePrefix={businessProfile?.invoice_prefix} currency={currency} f={f} defaultInvoiceLanguage={normalizeDocumentLanguage(businessProfile?.default_invoice_language)} draftData={invoiceDraft} onDiscardDraft={discardDraft} />}
+        {showNewInvoice && <NewInvoiceModal bizProfiles={hasBusinessAccess(plan) ? bizProfiles : []} clients={clients} defaultTax={businessProfile?.default_tax ?? baseTax} onSave={addInvoice} onClose={handleNewInvoiceClose} invoiceIds={invoices.map(i => i.id)} invoicePrefix={businessProfile?.invoice_prefix} currency={currency} f={f} defaultInvoiceLanguage={normalizeDocumentLanguage(businessProfile?.default_invoice_language)} draftData={invoiceDraft} onDiscardDraft={discardDraft} />}
         {editingInvoice && <NewInvoiceModal bizProfiles={hasBusinessAccess(plan) ? bizProfiles : []} clients={clients} onSave={updateInvoice} onClose={(draftData) => { if (draftData) setEditDraft(draftData); setEditingInvoice(null); }} invoiceIds={invoices.map(i => i.id)} invoicePrefix={businessProfile?.invoice_prefix} currency={currency} f={f} defaultInvoiceLanguage={normalizeDocumentLanguage(businessProfile?.default_invoice_language)} editData={editingInvoice} editDraft={editDraft} onDiscardEditDraft={() => setEditDraft(null)} />}
         {showNewClient && <NewClientModal onSave={addClient} onClose={() => setShowNewClient(false)} />}
         {editingClient && <NewClientModal onSave={async (updated) => { const { error } = await supabase.from("clients").update({ name:updated.name, email:updated.email, phone:updated.phone, country:updated.country }).eq("id", editingClient.id); if (error) { window.alert(t("client_save_error", "Could not save this client.") + "\n\n" + error.message); return; } setClients(prev => prev.map(c => c.id === editingClient.id ? { ...c, ...updated } : c)); setEditingClient(null); }} onClose={() => setEditingClient(null)} editData={editingClient} />}
@@ -1627,11 +1631,11 @@ function Clients({ clients, invoices, f, onAdd, onDeleteClient, onEditClient }) 
   );
 }
 
-function Settings({ currency, setCurrency, userEmail, invoices, onProfileSaved }) {
+function Settings({ currency, setCurrency, userEmail, invoices, onProfileSaved, defaultTax = 21 }) {
   const locale = getLocale();
   const t = (key, fallback) => tr(key, fallback, locale);
   const cur = getCurrency(currency);
-  const [profile, setProfile] = useState({ name:"", email:"", phone:"", country:"NL", vat_number:"", address:"", default_tax:21, notes:"", invoice_prefix:"INV-", payment_terms:30, bank_info:"", default_invoice_language:"en" });
+  const [profile, setProfile] = useState({ name:"", email:"", phone:"", country:"NL", vat_number:"", address:"", default_tax:defaultTax, notes:"", invoice_prefix:"INV-", payment_terms:30, bank_info:"", default_invoice_language:"en" });
   const [saving, setSaving] = useState(false);
   const [saved, setSaved] = useState(false);
   const [savingDefaults, setSavingDefaults] = useState(false);
@@ -1642,7 +1646,7 @@ function Settings({ currency, setCurrency, userEmail, invoices, onProfileSaved }
     setSavingDefaults(true);
     const { data: { user } } = await supabase.auth.getUser();
     if (!user) return;
-    await supabase.from("business_profile").upsert({ user_id: user.id, notes: profile.notes || "", default_tax: profile.default_tax ?? 21, invoice_prefix: profile.invoice_prefix || "INV-", payment_terms: profile.payment_terms ?? 30, bank_info: profile.bank_info || "", default_invoice_language: normalizeDocumentLanguage(profile.default_invoice_language), updated_at: new Date().toISOString() });
+    await supabase.from("business_profile").upsert({ user_id: user.id, notes: profile.notes || "", default_tax: profile.default_tax ?? defaultTax, invoice_prefix: profile.invoice_prefix || "INV-", payment_terms: profile.payment_terms ?? 30, bank_info: profile.bank_info || "", default_invoice_language: normalizeDocumentLanguage(profile.default_invoice_language), updated_at: new Date().toISOString() });
     setSavingDefaults(false);
     setSavedDefaults(true);
     setTimeout(() => setSavedDefaults(false), 2000);
@@ -1656,7 +1660,7 @@ function Settings({ currency, setCurrency, userEmail, invoices, onProfileSaved }
       const owner = await currentDataOwner(user.id);
       const { data } = await supabase.from("business_profile").select("*").eq("user_id", owner).maybeSingle();
       if (data) {
-        setProfile({ name: data.name || "", email: data.email || "", phone: data.phone || "", country: data.country || "NL", address: data.address || "", default_tax: data.default_tax ?? 21, notes: data.notes || "", invoice_prefix: data.invoice_prefix || "INV-", payment_terms: data.payment_terms ?? 30, bank_info: data.bank_info || "", default_invoice_language: normalizeDocumentLanguage(data.default_invoice_language) });
+        setProfile({ name: data.name || "", email: data.email || "", phone: data.phone || "", country: data.country || "NL", address: data.address || "", default_tax: data.default_tax ?? defaultTax, notes: data.notes || "", invoice_prefix: data.invoice_prefix || "INV-", payment_terms: data.payment_terms ?? 30, bank_info: data.bank_info || "", default_invoice_language: normalizeDocumentLanguage(data.default_invoice_language) });
         setProfilePreviouslyComplete(Boolean((data.name || "").trim()));
       }
     };
@@ -1667,7 +1671,7 @@ function Settings({ currency, setCurrency, userEmail, invoices, onProfileSaved }
     setSaving(true);
     const { data: { user } } = await supabase.auth.getUser();
     if (!user) { setSaving(false); return; }
-    const { error } = await supabase.from("business_profile").upsert({ user_id: user.id, ...profile, default_tax: profile.default_tax ?? 21, updated_at: new Date().toISOString() });
+    const { error } = await supabase.from("business_profile").upsert({ user_id: user.id, ...profile, default_tax: profile.default_tax ?? defaultTax, updated_at: new Date().toISOString() });
     setSaving(false);
     if (error) { alert(t("save_business_error", "Could not save your business details. Please try again.")); return; }
     const profileComplete = Boolean((profile.name || "").trim());
@@ -1745,7 +1749,7 @@ function Settings({ currency, setCurrency, userEmail, invoices, onProfileSaved }
             </div>
           </div>
           <div className="form-group full"><label>{t("default_invoice_language", "Default invoice language")}</label><select value={normalizeDocumentLanguage(profile.default_invoice_language)} onChange={e => setProfile(p => ({ ...p, default_invoice_language:e.target.value }))}>{INVOICE_LANGUAGES.map(language => <option key={language.value} value={language.value}>{language.label}</option>)}</select><div style={{ fontSize:11, color:"var(--text2)", marginTop:6 }}>{t("invoice_language_help", "This controls PDF language only. You can override it on each invoice.")}</div></div>
-          <div className="form-group"><label>{t("default_tax", "Default Tax (%)")}</label><input type="number" value={profile.default_tax ?? 21} onChange={e => setProfile(p => ({ ...p, default_tax: +e.target.value }))} /></div>
+          <div className="form-group"><label>{t("default_tax", "Default Tax (%)")}</label><input type="number" value={profile.default_tax ?? defaultTax} onChange={e => setProfile(p => ({ ...p, default_tax: +e.target.value }))} /></div>
           <div className="form-group"><label>{t("payment_terms", "Payment Terms (days)")}</label><input type="number" value={profile.payment_terms ?? 30} onChange={e => setProfile(p => ({ ...p, payment_terms: +e.target.value }))} /></div>
           <div className="form-group"><label>{t("invoice_prefix", "Invoice Prefix")}</label><input value={profile.invoice_prefix || "INV-"} onChange={e => setProfile(p => ({ ...p, invoice_prefix: e.target.value }))} /></div>
           <div className="form-group full"><label>{t("invoice_notes_label", "Invoice Notes")}</label>
@@ -1762,7 +1766,7 @@ function Settings({ currency, setCurrency, userEmail, invoices, onProfileSaved }
   );
 }
 
-function NewInvoiceModal({ bizProfiles = [], clients, onSave, onClose, invoiceIds = [], invoicePrefix, currency: globalCurrency, f: globalF, defaultInvoiceLanguage = "en", editData, draftData, onDiscardDraft, editDraft, onDiscardEditDraft }) {
+function NewInvoiceModal({ bizProfiles = [], clients, onSave, onClose, invoiceIds = [], invoicePrefix, currency: globalCurrency, f: globalF, defaultInvoiceLanguage = "en", defaultTax = 21, editData, draftData, onDiscardDraft, editDraft, onDiscardEditDraft }) {
   const locale = getLocale();
   const t = (key, fallback) => tr(key, fallback, locale);
   const isEdit = !!editData;
@@ -1799,7 +1803,7 @@ React.useEffect(() => {
     client:"", email:"",
     buyerPhone:"", buyerAddress:"", buyerCountry:"", buyerLogo:null,
     date:localDate(), due:defaultDue,
-    tax:21, discount:0, depositPct:0, notes:"", bankInfo:"", documentLanguage:normalizeDocumentLanguage(defaultInvoiceLanguage),
+    tax:defaultTax, discount:0, depositPct:0, notes:"", bankInfo:"", documentLanguage:normalizeDocumentLanguage(defaultInvoiceLanguage),
   };
 
   useEffect(() => {
@@ -1819,7 +1823,7 @@ React.useEffect(() => {
           sellerCountry: f.sellerCountry || data.country || "",
           notes: f.notes || data.notes || "", bankInfo: f.bankInfo || data.bank_info || "",
           sellerLogo: f.sellerLogo || data.logo || null,
-          tax: f.tax !== 21 ? f.tax : (data.default_tax ?? 21),
+          tax: f.tax !== defaultTax ? f.tax : (data.default_tax ?? defaultTax),
           due: !isEdit && !sourceData && f.due === defaultDue && Number(data.payment_terms) > 0 ? localDate(Number(data.payment_terms)) : f.due,
           documentLanguage: normalizeDocumentLanguage(f.documentLanguage || data.default_invoice_language || defaultInvoiceLanguage),
         }));
