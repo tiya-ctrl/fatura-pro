@@ -1789,13 +1789,16 @@ React.useEffect(() => {
   return () => window.removeEventListener("resize", check);
 }, []);
 
+  // Local calendar date (not UTC) as YYYY-MM-DD, plus a number of days.
+  const localDate = (plusDays = 0) => { const d = new Date(); d.setDate(d.getDate() + plusDays); return d.toLocaleDateString("en-CA"); };
+  const defaultDue = localDate(30);
   const emptyForm = {
     invoiceNumber:"",
     sellerName:"", sellerEmail:"", sellerPhone:"", sellerVat:"", sellerAddress:"", sellerCountry:"", sellerLogo:null,
     // No client is picked in advance: an invoice must never go to the wrong client by default.
     client:"", email:"",
     buyerPhone:"", buyerAddress:"", buyerCountry:"", buyerLogo:null,
-    date:new Date().toISOString().split("T")[0], due:"",
+    date:localDate(), due:defaultDue,
     tax:21, discount:0, depositPct:0, notes:"", bankInfo:"", documentLanguage:normalizeDocumentLanguage(defaultInvoiceLanguage),
   };
 
@@ -1817,6 +1820,7 @@ React.useEffect(() => {
           notes: f.notes || data.notes || "", bankInfo: f.bankInfo || data.bank_info || "",
           sellerLogo: f.sellerLogo || data.logo || null,
           tax: f.tax !== 21 ? f.tax : (data.default_tax ?? 21),
+          due: !isEdit && !sourceData && f.due === defaultDue && Number(data.payment_terms) > 0 ? localDate(Number(data.payment_terms)) : f.due,
           documentLanguage: normalizeDocumentLanguage(f.documentLanguage || data.default_invoice_language || defaultInvoiceLanguage),
         }));
       }
@@ -1884,6 +1888,13 @@ React.useEffect(() => {
     const reader = new FileReader();
     reader.onload = ev => { shrinkLogo(ev.target.result).then(small => set(key, small)); };
     reader.readAsDataURL(file);
+  };
+
+  const goNext = () => {
+    if (step === 0 && !(form.sellerName || "").trim()) return alert(t("seller_name_required", "Please enter your business or seller name (Step 1)"));
+    if (step === 1 && (!form.client || !form.due)) return alert(t("client_due_required", "Please fill in Client and Due Date (Step 2)"));
+    if (step === 2 && !items.some(item => (item.desc || "").trim())) return alert(t("line_item_required", "Please add at least one line item description (Step 3)"));
+    setStep(s => s + 1);
   };
 
   const handleSave = () => {
@@ -2232,7 +2243,7 @@ React.useEffect(() => {
             {isEdit && !isLast && <button className="btn btn-primary" onClick={handleSave}>{t("update_invoice", "Update Invoice")}</button>}
             {isLast
               ? <button className="btn btn-primary" onClick={handleSave}>{isEdit ? t("update_invoice", "Update Invoice") : t("save_invoice", "Save Invoice")}</button>
-              : <button className="btn btn-primary" onClick={() => setStep(s => s+1)}>{t("next", "Next →")}</button>
+              : <button className="btn btn-primary" onClick={goNext}>{t("next", "Next →")}</button>
             }
           </div>
         </div>
