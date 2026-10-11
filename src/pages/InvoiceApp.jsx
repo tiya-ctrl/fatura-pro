@@ -1,6 +1,6 @@
 import React, { useState, useRef, useEffect } from "react";
 import { supabase } from "../supabase";
-import { hasBusinessAccess, BUSINESS_ENABLED, ADVANCED_TRIAL_NO_CARD } from "../lib/businessPlan";
+import { hasBusinessAccess, BUSINESS_ENABLED, ADVANCED_TRIAL_NO_CARD, PAYMENTS_PAUSED } from "../lib/businessPlan";
 import { defaultTaxForCountry } from "../lib/defaultTax";
 import { exportInvoicesCSV } from "../lib/accountantExport";
 import { ensureUserPlan } from "../lib/userPlan";
@@ -1248,7 +1248,7 @@ export default function InvoiceApp({ onGoHome }) {
             {page === "expenses" && isPro && <Expenses readOnly={readOnly} onReadOnly={guardReadOnly} expenses={expenses} setExpenses={setExpenses} invoices={invoicesWithStatus} userId={ownerId || userId} f={f} />}
             {page === "analytics" && hasBusinessAccess(plan) && <Analytics invoices={invoicesWithStatus} f={f} fc={fmtCurrency} defaultCurrency={currency} />}
             {page === "clients" && <Clients clients={clients} invoices={invoicesWithStatus} f={f} onAdd={() => setShowNewClient(true)} onDeleteClient={deleteClient} onEditClient={(c) => { if (!guardReadOnly()) setEditingClient(c); }} />}
-            {page === "settings" && <><ReferralProgram userId={userId} plan={plan} /><Settings defaultTax={baseTax} currency={currency} setCurrency={setCurrency} userEmail={userEmail} invoices={invoicesWithStatus} onProfileSaved={(ready, profile) => { setBusinessProfileReady(ready); setBusinessProfile(profile); }} />{hasBusinessAccess(plan) && <BusinessProfiles profiles={bizProfiles} setProfiles={setBizProfiles} userId={userId} />}{hasBusinessAccess(plan) && <RecurringList recurring={recurring} setRecurring={setRecurring} userId={userId} f={f} />}{hasBusinessAccess(plan) && <div className="card" style={{ marginTop: 20 }}><div className="card-title" style={{ marginBottom: 10 }}>{t("online_payments", "Online payments")}</div><div style={{ fontSize: 13, color: "#999", marginBottom: 12 }}>{t("connect_stripe_help", "Connect your Stripe account so clients can pay invoices online. Money goes directly to your bank.")}</div><button className="btn btn-primary btn-sm" onClick={async () => { const { data: { session } } = await supabase.auth.getSession(); const r = await fetch("/api/connect-stripe", { method: "POST", headers: { Authorization: "Bearer " + (session?.access_token || "") } }); const d = await r.json(); if (d.url) window.location.href = d.url; else alert(d.error || t("stripe_start_error", "Could not start Stripe onboarding")); }}>{t("connect_stripe", "Connect Stripe →")}</button></div>}{hasBusinessAccess(plan) && <TeamMembers team={team} setTeam={setTeam} userId={userId} />}{hasBusinessAccess(plan) && <ApiKeys keys={apiKeys} setKeys={setApiKeys} userId={userId} />}{((plan === "pro" && !isOnTrial) || (plan === "business" && !isOnAdvancedTrial)) && <div className="card" style={{ marginTop: 20 }}><div className="card-title" style={{ marginBottom: 10 }}>{t("subscription", "Subscription")}</div><div style={{ fontSize: 13, color: "#999", marginBottom: 12 }}>{t("subscription_help", "Switch between Essential and Advanced, update your card, view invoices, or cancel anytime.")}</div><a className="btn btn-primary btn-sm" href="https://billing.stripe.com/p/login/fZu4gzepGdT05Gx48j5ZC00" target="_blank" rel="noreferrer">{t("manage_subscription", "Manage subscription →")}</a></div>}{(plan === "free" || isOnTrial) && <div className="card" style={{ marginTop: 20 }}><div className="card-title" style={{ marginBottom: 10 }}>{t("plan", "Plan")}</div><div style={{ fontSize: 13, color:"#999", marginBottom:12 }}>{isOnTrial ? trialDaysLeft + " " + t("trial_days_left", "days left in your free trial") + ". " + t("trial_keep_data", "Subscribe to keep reminders, deposits and UBL export. Your data stays either way.") : t("free_plan_help", "You are on the Free plan. Upgrade for unlimited invoices, reminders, and more.")}</div><button className="btn btn-primary btn-sm" onClick={() => { setUpgradeIntent(null); setShowUpgrade(true); }}>{t("upgrade", "Upgrade →")}</button></div>}</>}
+            {page === "settings" && <><ReferralProgram userId={userId} plan={plan} /><Settings defaultTax={baseTax} currency={currency} setCurrency={setCurrency} userEmail={userEmail} invoices={invoicesWithStatus} onProfileSaved={(ready, profile) => { setBusinessProfileReady(ready); setBusinessProfile(profile); }} />{hasBusinessAccess(plan) && <BusinessProfiles profiles={bizProfiles} setProfiles={setBizProfiles} userId={userId} />}{hasBusinessAccess(plan) && <RecurringList recurring={recurring} setRecurring={setRecurring} userId={userId} f={f} />}{hasBusinessAccess(plan) && PAYMENTS_PAUSED && <div className="card" style={{ marginTop: 20 }}><div className="card-title" style={{ marginBottom: 10 }}>{t("online_payments", "Online payments")}</div><div style={{ fontSize: 13, color: "#999" }}>{t("online_payments_paused", "Online card payments for your clients are temporarily unavailable. We will let you know as soon as they are back.")}</div></div>}{hasBusinessAccess(plan) && !PAYMENTS_PAUSED && <div className="card" style={{ marginTop: 20 }}><div className="card-title" style={{ marginBottom: 10 }}>{t("online_payments", "Online payments")}</div><div style={{ fontSize: 13, color: "#999", marginBottom: 12 }}>{t("connect_stripe_help", "Connect your Stripe account so clients can pay invoices online. Money goes directly to your bank.")}</div><button className="btn btn-primary btn-sm" onClick={async () => { const { data: { session } } = await supabase.auth.getSession(); const r = await fetch("/api/connect-stripe", { method: "POST", headers: { Authorization: "Bearer " + (session?.access_token || "") } }); const d = await r.json(); if (d.url) window.location.href = d.url; else alert(d.error || t("stripe_start_error", "Could not start Stripe onboarding")); }}>{t("connect_stripe", "Connect Stripe →")}</button></div>}{hasBusinessAccess(plan) && <TeamMembers team={team} setTeam={setTeam} userId={userId} />}{hasBusinessAccess(plan) && <ApiKeys keys={apiKeys} setKeys={setApiKeys} userId={userId} />}{((plan === "pro" && !isOnTrial) || (plan === "business" && !isOnAdvancedTrial)) && <div className="card" style={{ marginTop: 20 }}><div className="card-title" style={{ marginBottom: 10 }}>{t("subscription", "Subscription")}</div><div style={{ fontSize: 13, color: "#999", marginBottom: 12 }}>{t("subscription_help", "Switch between Essential and Advanced, update your card, view invoices, or cancel anytime.")}</div><a className="btn btn-primary btn-sm" href="https://billing.stripe.com/p/login/fZu4gzepGdT05Gx48j5ZC00" target="_blank" rel="noreferrer">{t("manage_subscription", "Manage subscription →")}</a></div>}{(plan === "free" || isOnTrial) && <div className="card" style={{ marginTop: 20 }}><div className="card-title" style={{ marginBottom: 10 }}>{t("plan", "Plan")}</div><div style={{ fontSize: 13, color:"#999", marginBottom:12 }}>{isOnTrial ? trialDaysLeft + " " + t("trial_days_left", "days left in your free trial") + ". " + t("trial_keep_data", "Subscribe to keep reminders, deposits and UBL export. Your data stays either way.") : t("free_plan_help", "You are on the Free plan. Upgrade for unlimited invoices, reminders, and more.")}</div><button className="btn btn-primary btn-sm" onClick={() => { setUpgradeIntent(null); setShowUpgrade(true); }}>{t("upgrade", "Upgrade →")}</button></div>}</>}
           </div>
         </div>
 
@@ -2820,8 +2820,11 @@ function UpgradeModal({ feature, onClose, onActivate, initialPlan, userEmail, us
     window.location.href = "/app";
   };
 
+  const checkoutPaused = PAYMENTS_PAUSED && !noCardTrial;
+
   const handleStripe = () => {
     if (noCardTrial) { startNoCardTrial(); return; }
+    if (checkoutPaused) return;
     const link = PLANS_INFO[selectedPlan]?.stripe_link;
     if (link) {
       trackEvent("checkout_started", { plan:selectedPlan, feature:feature || "general", amount_eur:selectedPlan === "business" ? 19 : 9 });
@@ -2911,8 +2914,10 @@ function UpgradeModal({ feature, onClose, onActivate, initialPlan, userEmail, us
           </button>
         ) : (
           <button className="btn btn-primary" style={{ width:"100%", justifyContent:"center", fontSize:15, padding:"14px", marginBottom:10 }}
-            onClick={handleStripe} disabled={loading || startingTrial}>
-            {loading
+            onClick={handleStripe} disabled={loading || startingTrial || checkoutPaused}>
+            {checkoutPaused
+              ? t("payments_soon", "Online payment available soon")
+              : loading
               ? <span style={{ display:"flex", alignItems:"center", gap:8 }}>
                   <span style={{ width:16, height:16, border:"2px solid #000", borderTopColor:"transparent", borderRadius:"50%", display:"inline-block", animation:"spin 0.7s linear infinite" }} />
                   {t("connecting_stripe", "Connecting to Stripe...")}
@@ -2925,12 +2930,17 @@ function UpgradeModal({ feature, onClose, onActivate, initialPlan, userEmail, us
         )}
         {/* The Advanced Stripe payment link includes a 7-day free trial. */}
         {/* Subscribing during the free Essential trial starts billing today; say so before Stripe. */}
-        {trialEnd && selectedPlan === "pro" && (
+        {checkoutPaused && (
+          <div style={{ textAlign:"center", fontSize:12, color:"var(--text2)", marginBottom:10, lineHeight:1.5 }}>
+            {t("payments_paused_note", "Online payment is temporarily unavailable. Your account and your data stay as they are, and we will let you know when you can subscribe.")}
+          </div>
+        )}
+        {!checkoutPaused && trialEnd && selectedPlan === "pro" && (
           <div style={{ textAlign:"center", fontSize:12, color:"var(--text2)", marginBottom:10, lineHeight:1.5 }}>
             {t("trial_subscribe_note", "Your free trial runs until {date}. Subscribing now starts billing today; you can also wait until the trial ends.").replace("{date}", new Date(trialEnd).toLocaleDateString(getLocale() === "ar" ? "ar" : getLocale() === "nl" ? "nl-NL" : getLocale() === "fr" ? "fr-FR" : getLocale() === "es" ? "es-ES" : "en-GB", { day:"numeric", month:"long" }))}
           </div>
         )}
-        {selectedPlan === "business" && BUSINESS_ENABLED && (
+        {!checkoutPaused && selectedPlan === "business" && BUSINESS_ENABLED && (
           <div style={{ textAlign:"center", fontSize:12, color:"var(--text2)", marginBottom:10, lineHeight:1.5 }}>
             {noCardTrial
               ? t("advanced_trial_nocard_note", "7 days free, no card needed. After the trial your account goes back to its current plan, and your data stays.")
@@ -2940,7 +2950,7 @@ function UpgradeModal({ feature, onClose, onActivate, initialPlan, userEmail, us
           </div>
         )}
 
-        <div style={{ textAlign:"center", fontSize:11, color:"var(--text3)" }}>{t("no_commitment", "No commitment · Cancel anytime · Secure checkout by Stripe")}</div>
+        {!PAYMENTS_PAUSED && <div style={{ textAlign:"center", fontSize:11, color:"var(--text3)" }}>{t("no_commitment", "No commitment · Cancel anytime · Secure checkout by Stripe")}</div>}
         <button onClick={onClose} style={{ display:"block", margin:"14px auto 0", background:"none", border:"none", color:"var(--text2)", cursor:"pointer", fontSize:13 }}>{t("maybe_later", "Maybe later")}</button>
       </div>
     </div>
