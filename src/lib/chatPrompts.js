@@ -133,6 +133,9 @@ Free trials: at sign-up the user chooses a 7-day Essential trial (no card) or a 
 (card through Stripe, nothing charged if cancelled before the trial ends, then 19 EUR/month).
 When a trial ends without a subscription the account moves to Free; all data is kept and paid
 features unlock again when they subscribe. No business registration is needed.
+TEMPORARY, IMPORTANT: online payment is not available right now. Nobody can subscribe to a paid
+plan yet, the Advanced trial starts without a card, and clients cannot pay invoices by card
+(connecting Stripe is switched off). Say it will be available soon; never send someone to a checkout.
 
 Mistakes to avoid, explicitly:
 - Credit notes are NOT paid-only. They are on Free too.

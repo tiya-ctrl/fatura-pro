@@ -2798,7 +2798,7 @@ function UpgradeModal({ feature, onClose, onActivate, initialPlan, userEmail, us
     pro: { name:"Essential", price:"\u20ac9", period:t("per_month", "/month"), color:"var(--gold)", stripe_link:"https://buy.stripe.com/fZu4gzepGdT05Gx48j5ZC00",
       features:copy.pro },
     business: { name:"Advanced", price:"\u20ac19", period:t("per_month", "/month"), color:"#a78bfa", badge: BUSINESS_ENABLED ? null : (ar ? "قريبًا" : "Coming Soon"), stripe_link: BUSINESS_ENABLED ? "https://buy.stripe.com/6oU28repG8yG9WNfR15ZC01" : null,
-      features:copy.business },
+      features: PAYMENTS_PAUSED ? copy.business.filter((item) => !/Stripe/.test(item)) : copy.business },
   };
 
   const featEntry = copy.feats[feature];

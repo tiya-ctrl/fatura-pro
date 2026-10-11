@@ -4,6 +4,7 @@ import { trackEvent } from "../lib/tracking";
 import { storeReferralCode } from "../lib/referrals";
 import { applyPageSeo } from "../lib/pageSeo";
 import { initLandingMotion } from "../lib/landingMotion";
+import { PAYMENTS_PAUSED } from "../lib/businessPlan";
 import "./landing-v2.en.css";
 import { MessageCircle as MessageCircleIcon, X as XIcon } from "lucide-react";
 
@@ -212,7 +213,7 @@ function Chatbot() {
 const TRUST = ["Free plan, no credit card", "Essential from €9 per month", "Cancel anytime"];
 
 // Feature bubbles around the product shot (rotated by initLandingMotion).
-const HERO_CHIPS = [["✓", "Credit notes on every plan"], ["18", "currencies, kept separate"], ["PDF", "Branded PDF invoices"], ["↻", "Reminders by email & WhatsApp"], ["%", "Deposits & partial payments"], ["XML", "UBL export for EN 16931"], ["5", "invoice languages"], ["→", "Quotes become invoices"], ["€", "Card payments via Stripe"]];
+const HERO_CHIPS = [["✓", "Credit notes on every plan"], ["18", "currencies, kept separate"], ["PDF", "Branded PDF invoices"], ["↻", "Reminders by email & WhatsApp"], ["%", "Deposits & partial payments"], ["XML", "UBL export for EN 16931"], ["5", "invoice languages"], ["→", "Quotes become invoices"], ...(PAYMENTS_PAUSED ? [] : [["€", "Card payments via Stripe"]])];
 
 const FACTS = [
   ["18", "currencies, balances kept separate"],
@@ -258,7 +259,7 @@ const WHY = [
 const PLANS = {
   free: { name: "Free", price: 0, desc: "For freelancers who are just getting started.", items: ["20 invoices and 5 clients", "All 18 currencies", "Dashboard totals and invoice overview", "PDF export and print", "Your own logo and branding", "Credit notes"], cta: "Start free" },
   pro: { name: "Essential", price: 9, desc: "Unlimited invoicing, reminders and your quarterly VAT.", items: ["Everything in Free", "Unlimited invoices and clients", "Editable payment reminders in 5 languages by email and WhatsApp (you send them)", "Deposits and partial payments", "Expenses and quarterly VAT/BTW summary", "Receipt scanning: 20 receipts a month", "UBL/XML export for EN 16931 workflows (no Peppol delivery)"], cta: "Try Essential free", foot: "7-day free trial, automatic · no card needed" },
-  business: { name: "Advanced", price: 19, desc: "For agencies and teams managing many clients.", items: ["Everything in Essential", "Quotes that convert to invoices", "Unlimited receipt scanning", "Recurring invoices created for your review", "Up to 5 team members and multiple business profiles", "Online card payments via Stripe", "API access and accountant CSV export", "Remove Fatūra branding", "Priority support"], cta: "Try Advanced free for 7 days", foot: "7-day free trial · no card needed" },
+  business: { name: "Advanced", price: 19, desc: "For agencies and teams managing many clients.", items: ["Everything in Essential", "Quotes that convert to invoices", "Unlimited receipt scanning", "Recurring invoices created for your review", "Up to 5 team members and multiple business profiles", ...(PAYMENTS_PAUSED ? [] : ["Online card payments via Stripe"]), "API access and accountant CSV export", "Remove Fatūra branding", "Priority support"], cta: "Try Advanced free for 7 days", foot: "7-day free trial · no card needed" },
 };
 
 const FAQS = [
@@ -271,7 +272,7 @@ const FAQS = [
   ["Can I ask for a deposit and invoice the rest later?", "Yes. Record what you received, for example 50% up front, and the invoice shows as partially paid with the balance still owed. Reminders then chase the balance rather than the full amount."],
   ["How does the payment reminder work?", "When an invoice passes its due date, it is marked overdue. You choose a polite, firm or final tone, review the prepared message, then open it in email or WhatsApp to send it yourself."],
   ["Do I need a registered company to start?", "No. Freelancers, sole traders and small businesses can start without a registered company or VAT number. Whether you must register to invoice depends on the rules that apply to you."],
-  ["Can clients pay an invoice online?", "Advanced accounts can connect Stripe so clients can pay by card from the invoice payment page. Available payment methods depend on the connected Stripe account and region."],
+  ...(PAYMENTS_PAUSED ? [] : [["Can clients pay an invoice online?", "Advanced accounts can connect Stripe so clients can pay by card from the invoice payment page. Available payment methods depend on the connected Stripe account and region."]]),
   ["Does Fatūra Pro have a referral program?", "Yes. Open Settings and choose Earn Essential to copy your personal link. A friend who joins through it receives 7 extra Essential days after creating their first valid invoice, and every three activated friends earn you 30 Essential days."],
   ["How is my data handled?", "Account and invoice data is hosted in the European Union (Ireland) and connections are encrypted. We do not sell personal data. The Privacy Policy explains how to request access, export or deletion."],
 ];
@@ -518,7 +519,7 @@ export default function LandingPage({ onOpenApp }) {
           <section id="pricing" className="section tight"><div className="wrap">
             <div className="section-head reveal"><span className="eyebrow">Pricing</span><h2 className="section-title">Start free, <em>upgrade when you’re ready.</em></h2><p>Monthly plans, no contract, cancel anytime.</p></div>
             <div className="plans">{plan("free", false, 0, "ghost")}{plan("pro", true, 100, "primary")}{plan("business", false, 200, "ghost")}</div>
-            <p className="pricing-note">Prices exclude VAT. Billed monthly through Stripe; cancel anytime.</p>
+            <p className="pricing-note">{PAYMENTS_PAUSED ? "Prices exclude VAT. Billed monthly; cancel anytime." : "Prices exclude VAT. Billed monthly through Stripe; cancel anytime."}</p>
           </div></section>
 
           <section id="referrals" className="section tight"><div className="wrap"><div className="guide reveal">
