@@ -881,7 +881,9 @@ export default function InvoiceApp({ onGoHome }) {
         .then(result => { if (result?.activated) trackEvent("referral_activated", { referred_bonus_days:result.referredBonusDays || 7 }); })
         .catch(() => {});
     }
-    setInvoices(prev => [inv, ...prev]); setInvoiceDraft(null); setShowNewInvoice(false);
+    // Same values the database stamps (created_by, updated_by), so "by" / "edited by" show at once.
+    const stampedAt = new Date().toISOString();
+    setInvoices(prev => [{ ...inv, createdBy: user.email, updatedBy: user.email, updatedAt: stampedAt }, ...prev]); setInvoiceDraft(null); setShowNewInvoice(false);
     if (isFirstInvoice && showSuccess) setFirstInvoiceSuccess(inv);
     return inv;
   };
@@ -891,7 +893,8 @@ export default function InvoiceApp({ onGoHome }) {
     const { error } = await saveInvoiceRow(row, inv.id);
     if (isPermissionError(error)) { myTeamRole(userId).then(setTeamRole); window.alert(t("view_only_alert", "You have view-only access to this account. Ask the owner for edit rights.")); return; }
     if (error) { window.alert(t("invoice_save_error", "Could not save this invoice.") + "\n\n" + error.message); return; }
-    setInvoices(prev => prev.map(i => i.id === inv.id ? inv : i)); setEditDraft(null); setEditingInvoice(null);
+    // Keep who created it, and show the editor right away (the database stamps the same email).
+    setInvoices(prev => prev.map(i => i.id === inv.id ? { ...inv, createdBy: i.createdBy, updatedBy: userEmail || i.updatedBy, updatedAt: new Date().toISOString() } : i)); setEditDraft(null); setEditingInvoice(null);
   };
   // --- Credit notes -----------------------------------------------------
   // A credit note is a SEPARATE document with its own sequence and a negative
